@@ -1,0 +1,10 @@
+# 11ty
+.cache
+_site
+
+# Packages
+node_modules
+
+# Editors
+.vscode
+.zed
