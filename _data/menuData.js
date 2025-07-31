@@ -1,124 +1,82 @@
 import Fetch from '@11ty/eleventy-fetch'
 
 const CACHE_DURATION = '1w'
+
 function baseUrl(path = '') {
-  return `https://suttacentral.net/api/menu${path}?language=en`
+  return `https://suttacentral.net/api/menu/${path}?language=en`
 }
-async function fetchData(path, returnFirstItem = false) {
-  const json = await Fetch(baseUrl(path), {
-    duration: CACHE_DURATION,
-    type: 'json',
-  })
-  return returnFirstItem ? json[0] : json
-}
-function fetchMenu(path) {
-  return fetchData(path)
-}
-function fetchSubMenu(path) {
-  return fetchData(path, true)
+function leafUrl(uid) {
+  return `https://suttacentral.net/api/suttaplex/${uid}?language=en`
 }
 
-/*
- * Adds second level, ie `/long`
- */
-async function addCollections(basket) {
-  if (!basket.children) return basket
-
-  const children = await Promise.all(
-    basket.children.map((c) => fetchSubMenu(`/${c.uid}`))
-  )
-
-  return { ...basket, children }
-}
-
-/*
- * Adds third level, ie `/dn`
- */
-async function addSubCollections(collection) {
-  const children = await Promise.all(
-    collection.children.map(async (c) => {
-      if (!c?.children) return { ...c, children: [] }
-
-      const subChildren = await Promise.all(
-        c.children.map(async (group) => {
-          const next = await fetchSubMenu(`/${group.uid}`)
-          return { ...group, children: next.children }
-        })
-      )
-
-      return { ...c, children: subChildren }
+async function fetchMenu(uid, depth = 0) {
+  let json
+  try {
+    json = await Fetch(baseUrl(uid), {
+      duration: CACHE_DURATION,
+      type: 'json',
     })
-  )
+  } catch (e) {
+    console.error(`Fetch error for uid: ${uid} at depth ${depth}:`, e)
+    return null
+  }
 
-  return { ...collection, children }
-}
+  // Defensive: sometimes the API returns a non-array or malformed data
+  if (!json || !Array.isArray(json) || !json[0]) {
+    console.warn(`Malformed or empty data for uid: ${uid} at depth ${depth}`)
+    return null
+  }
 
-/*
- * Adds fourth level, ie `/dn-silakkhandhavagga`
- */
-async function addChapters(subCollection) {
-  const children = await Promise.all(
-    subCollection.children.map(async (c) => {
-      if (!c?.children) return { ...c, children: [] }
+  const node = json[0]
 
-      const subChildren = await Promise.all(
-        c.children.map(async (group) => {
-          if (!group.children.length) return { ...group, children: [] }
+  if (node.node_type) {
+    console.log(
+      `Fetched uid: ${node.uid}, type: ${node.node_type}, depth: ${depth}`
+    )
+  }
 
-          const chapters = await Promise.all(
-            group.children.map(async (chapter) => {
-              const next = await fetchSubMenu(`/${chapter.uid}`)
-              // if (chapter?.uid?.includes('dn'))
-              //   console.log('chapter', chapter.uid)
-              // if (chapter?.uid?.includes('dn'))
-              // console.log('next', next.children.length)
-              // console.log('next', next.uid)
-              // if (!next.children) console.log(next.uid)
+  if (node.node_type === 'leaf') {
+    let suttaplexData = null
+    try {
+      suttaplexData = await Fetch(leafUrl(node.uid), {
+        duration: CACHE_DURATION,
+        type: 'json',
+      })
+    } catch (e) {
+      console.error(`Leaf fetch error for uid: ${node.uid}:`, e)
+    }
+    // Switch to `/suttaplex` data
+    return suttaplexData[0]
+  }
 
-              if (!next.children.length) return { ...chapter, children: [] }
-
-              return { ...chapter, children: next.children }
-            })
-          )
-
-          return { ...group, children: chapters }
-        })
+  if (node.children?.length > 0) {
+    node.children = (
+      await Promise.all(
+        node.children.map((child) => fetchMenu(child.uid, depth + 1))
       )
+    ).filter(Boolean)
+  }
 
-      return { ...c, children: subChildren }
-    })
-  )
-
-  return { ...subCollection, children }
+  return node
 }
 
 /*
- * Generated readable, structured, nested data for the the main navigation
+ * Generated structured, nested data for the the main navigation
  * by recursively calling SuttaCentral's `/menu/${uid}` API
  * and nesting the result in the `children` value.
+ *
+ * When it gets to a `"node_type": "leaf"`, it switches to `/suttaplex/${uid}` API
+ * to get the more detailed meta-data for the text (translators etc).
+ *
+ * TODO: After that it uses `/bilarasuttas/${author_id}` API
+ * on each of the translators to get all versions of the actual text itself.
  */
 export default async function () {
   try {
-    const sutta = await fetchMenu('/sutta')
-    const vinaya = await fetchMenu('/vinaya')
-    const abhidhamma = await fetchMenu('/abhidhamma')
-
-    // const tripitika = [...sutta, ...vinaya, ...abhidhamma]
-    const tripitika = [...sutta]
-
-    const withCollections = await Promise.all(tripitika.map(addCollections))
-
-    const withSubCollections = await Promise.all(
-      withCollections.map(addSubCollections)
-    )
-
-    // withChapters, ie: /dn-silakkhandhavagga
-    const withChapters = await Promise.all(withSubCollections.map(addChapters))
-
-    // withTexts?, ie /dn1
-
-    // return withSubCollections
-    return withChapters
+    // const roots = ['sutta', 'vinaya', 'abhidhamma']
+    const roots = ['sutta']
+    const tree = await Promise.all(roots.map((uid) => fetchMenu(uid)))
+    return tree.filter(Boolean)
   } catch (e) {
     console.error('menuData error:', e)
     return []

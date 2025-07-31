@@ -9,7 +9,7 @@ pagination:
 
 permalink: '/pitika/{{ entry.scx_path }}/index.html'
 eleventyComputed:
-  title: '{{ entry.root_name }} - {{ entry.translated_name }}'
+  title: '{{ entry.original_title | default: entry.root_name }} - {{ entry.translated_title | default: entry.translated_name }}'
 ---
 
 # {{ title }}
@@ -21,9 +21,21 @@ eleventyComputed:
   {% for child in entry.children %}
     <li>
       <a href="/pitika{{ entry.scx_path }}/{{ child.uid }}/">
-        {{ child.root_name }} - {{ child.translated_name }}
+        {{ child.original_title | default: child.root_name }} - {{ child.translated_title | default: child.translated_name }}
       </a>
       <p>{{ child.blurb }} </p>
+    </li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% if entry.translations.length %}
+<ul>
+  {% for version in entry.translations %}
+    <li>
+      <a href="/pitika{{ entry.scx_path }}/{{ version.lang }}/{{ version.author_uid }}">
+          {{ version.lang_name }} - {{ version.author }}
+      </a>
+      <p>{{ version.title }} </p>
     </li>
   {% endfor %}
 </ul>
