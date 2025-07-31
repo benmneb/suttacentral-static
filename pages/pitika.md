@@ -9,10 +9,10 @@ pagination:
 
 permalink: '/pitika/{{ entry.path }}/index.html'
 eleventyComputed:
-  title: '{{ entry.translated_name }}'
+  title: '{{ entry.root_name }} - {{ entry.translated_name }}'
 ---
 
-# {{ entry.translated_name }}
+# {{ title }}
 
 {{ entry.blurb }}
 

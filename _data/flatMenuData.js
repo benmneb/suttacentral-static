@@ -17,6 +17,16 @@ function flatten(nodes, parentPath = '') {
   return flat
 }
 
+/*
+ * Changes `menuData` to add a `scx_path` key with the URL slug.
+ *
+ * @returns
+ * [
+ *  { uid: 'sutta', scx_path: '/sutta', ... },
+ *  { uid: 'long', scx_path: '/sutta/long', ... },
+ *  { uid: 'dn', scx_path: '/sutta/long/dn', ... },
+ * ]
+ */
 export default async function () {
   const menu = await menuData()
   return flatten(menu)
