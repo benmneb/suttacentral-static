@@ -6,7 +6,10 @@ layout: base-layout.liquid
 
 <ul>
   {% for item in menuData %}
-    <li><a href="pitika/{{item.uid}}">{{ item.root_name }} - {{ item.translated_name }}</a></li>
+    <li>
+        <a href="pitika/{{item.uid}}">{{ item.root_name }} - {{ item.translated_name }}</a>
+        <p>{{ item.blurb }} </p>
+    </li>
   {% endfor %}
 </ul>
 

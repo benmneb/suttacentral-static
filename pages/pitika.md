@@ -7,9 +7,9 @@ pagination:
   alias: entry
   addAllPagesToCollections: true
 
-permalink: "/pitika/{{ entry.path }}/index.html"
+permalink: '/pitika/{{ entry.path }}/index.html'
 eleventyComputed:
-  title: "{{ entry.translated_name }}"
+  title: '{{ entry.translated_name }}'
 ---
 
 # {{ entry.translated_name }}
@@ -17,13 +17,13 @@ eleventyComputed:
 {{ entry.blurb }}
 
 {% if entry.children.length %}
-## Subsections
 <ul>
   {% for child in entry.children %}
     <li>
       <a href="/pitika{{ entry.path }}/{{ child.uid }}/">
-        {{ child.translated_name }}
+        {{ child.root_name }} - {{ child.translated_name }}
       </a>
+      <p>{{ child.blurb }} </p>
     </li>
   {% endfor %}
 </ul>
