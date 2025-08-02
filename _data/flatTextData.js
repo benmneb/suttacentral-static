@@ -33,6 +33,6 @@ function flatten(nodes, parent) {
  * ie `/dn1/en/sujato`.
  */
 export default async function () {
-  const menu = await menuData()
+  const menu = await menuData('flatText')
   return flatten(menu).filter(Boolean)
 }

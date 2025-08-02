@@ -66,9 +66,9 @@ async function fetchDataTree(uid, depth = 0) {
     // Add translations text from `/bilarasuttas` to `/suttaplex` object
     const mergedTranslations = await Promise.all(
       translations.map(async (trans) => {
-        let json
+        let texts
         try {
-          json = await Fetch(translationUrl(node.uid, trans.author_uid), {
+          texts = await Fetch(translationUrl(node.uid, trans.author_uid), {
             duration: CACHE_DURATION,
             type: 'json',
           })
@@ -80,8 +80,9 @@ async function fetchDataTree(uid, depth = 0) {
             .start()
           return null
         }
-        // Merge `/bilarasuttas` texts into `/suttaplex`.translations
-        return { ...trans, ...json }
+        // Add `/bilarasuttas` texts data into `/suttaplex`.translations
+        // This puts the translations texts data with its meta data.
+        return { ...trans, _bilarasuttas_data: texts }
       })
     )
 
@@ -116,13 +117,13 @@ async function fetchDataTree(uid, depth = 0) {
  * It then uses `/bilarasuttas/${author_id}` API on the `translations` array in the "leaf node"
  * to get all versions of the actual text itself.
  */
-export default async function () {
+export default async function (file = 'menu') {
   try {
     spinner.start()
     // const roots = ['sutta', 'vinaya', 'abhidhamma']
     const roots = ['sutta']
     const tree = await Promise.all(roots.map((uid) => fetchDataTree(uid)))
-    spinner.succeed('Fetch complete')
+    spinner.succeed(`Fetch complete for ${JSON.stringify(file)}`)
     return tree
   } catch (e) {
     spinner.fail(e.message)

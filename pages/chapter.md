@@ -38,9 +38,7 @@ eleventyComputed:
 </ul>
 {% endif %}
 
-{% comment %}
 <script>
   const data = {{ entry | jsonify }};
-  console.log('entry:', data);
+  console.log(data);
 </script>
-{% endcomment %}

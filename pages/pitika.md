@@ -35,37 +35,12 @@ eleventyComputed:
       </a>
     </h2>
       <p>{{ child.blurb }}</p>
-      {% if child.translations.length %}
-        <ul>
-            {% for version in child.translations %}
-            <li>
-                <a href="/pitika{{ entry.scx_path }}/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}">
-                    {{ version.lang_name }}—{{ version.author }}
-                </a>—<span>{{ version.title }}</span>
-            </li>
-            {% endfor %}
-        </ul>
-      {% endif %}
-    </li>
-  {% endfor %}
-</ul>
-{% endif %}
-{% if entry.translations.length %}
-<ul>
-  {% for version in entry.translations %}
-    <li>
-      <a href="/pitika{{ entry.scx_path }}/{{ version.lang }}/{{ version.author_uid }}">
-          {{ version.lang_name }}—{{ version.author }}
-      </a>
-      <p>{{ version.title }} </p>
     </li>
   {% endfor %}
 </ul>
 {% endif %}
 
-{% comment %}
 <script>
   const data = {{ entry | jsonify }};
-  console.log('entry:', data);
+  console.log(data);
 </script>
-{% endcomment %}

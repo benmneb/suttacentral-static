@@ -1,5 +1,23 @@
 import menuData from './menuData.js'
 
+/*
+ * Don't need translations yet, and logging them breaks dev server.
+ */
+function removeTranslations(node) {
+  const { translations, children, ...rest } = node
+
+  const redacted = {
+    ...rest,
+    ...(translations && { translations: [{ scx_redacted: true }] }),
+  }
+
+  if (children) {
+    redacted.children = children.map(removeTranslations)
+  }
+
+  return redacted
+}
+
 function flatten(nodes, parentPath = '') {
   return nodes.flatMap((node) => {
     if (!!node.children?.some((c) => c.node_type === 'leaf')) {
@@ -9,7 +27,7 @@ function flatten(nodes, parentPath = '') {
 
     const currentPath = parentPath ? `${parentPath}/${node.uid}` : `${node.uid}`
 
-    const flatNode = { ...node, scx_path: currentPath }
+    const flatNode = removeTranslations({ ...node, scx_path: currentPath })
 
     return !!node.children?.length
       ? [flatNode, ...flatten(node.children, currentPath)]
@@ -29,6 +47,6 @@ function flatten(nodes, parentPath = '') {
  * ]
  */
 export default async function () {
-  const menu = await menuData()
+  const menu = await menuData('flatMenu')
   return flatten(menu).filter(Boolean)
 }

@@ -5,7 +5,7 @@ layout: base-layout.liquid
 # Tipiṭaka—the Three Baskets of the Buddhist canon
 
 <ul>
-  {% for item in menuData %}
+  {% for item in flatIndexData %}
     <li>
         <h2><a href="pitika/{{item.uid}}">{{ item.root_name }}—{{ item.translated_name }}</a></h2>
         <p>{{ item.blurb }} </p>
@@ -13,9 +13,7 @@ layout: base-layout.liquid
   {% endfor %}
 </ul>
 
-{% comment %}
 <script>
-  const data = {{ menuData | jsonify }};
-  console.dir(data);
+  const data = {{ flatIndexData | jsonify }};
+  console.log(data);
 </script>
-{% endcomment %}
