@@ -1,0 +1,46 @@
+---
+layout: base-layout.liquid
+
+pagination:
+  data: flatChapterData
+  size: 1
+  alias: entry
+  addAllPagesToCollections: true
+
+permalink: '{{ entry.scx_path }}/index.html'
+eleventyComputed:
+  title: '{{ entry.original_title | default: entry.root_name }}—{{ entry.translated_title | default: entry.translated_name }}'
+---
+
+# {{ title }}
+
+{{ entry.blurb }}
+
+{% if entry.children.length %}
+<ul>
+  {% for child in entry.children %}
+    <li>
+    <h2>{{ child.original_title | default: child.root_name }}—{{ child.translated_title | default: child.translated_name }}</h2>
+      <p>{{ child.blurb }}</p>
+      {% if child.translations.length %}
+        <ul>
+            {% for version in child.translations %}
+            <li>
+                <a href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}">
+                    {{ version.lang_name }}—{{ version.author }}
+                </a>—<span>{{ version.title }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+{% comment %}
+<script>
+  const data = {{ entry | jsonify }};
+  console.log('entry:', data);
+</script>
+{% endcomment %}

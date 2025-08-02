@@ -1,39 +1,46 @@
 import Fetch from '@11ty/eleventy-fetch'
+import ora from 'ora'
 
-const CACHE_DURATION = '1w'
+const CACHE_DURATION = '*' // https://www.11ty.dev/docs/plugins/fetch/#change-the-cache-duration
 
-function baseUrl(path = '') {
+function menuUrl(path = '') {
   return `https://suttacentral.net/api/menu/${path}?language=en`
 }
 function leafUrl(uid) {
   return `https://suttacentral.net/api/suttaplex/${uid}?language=en`
 }
+function translationUrl(uid, author) {
+  return `https://suttacentral.net/api/bilarasuttas/${uid}/${author}`
+}
 
-async function fetchMenu(uid, depth = 0) {
+const spinner = ora('Fetching...')
+spinner.spinner = { frames: ['⏳'] }
+
+async function fetchDataTree(uid, depth = 0) {
   let json
   try {
-    json = await Fetch(baseUrl(uid), {
+    json = await Fetch(menuUrl(uid), {
       duration: CACHE_DURATION,
       type: 'json',
     })
   } catch (e) {
-    console.error(`Fetch error for uid: ${uid} at depth ${depth}:`, e)
+    spinner
+      .fail(`Fetch error for /menu with uid: ${uid} at depth ${depth}`)
+      .start()
     return null
   }
 
-  // Defensive: sometimes the API returns a non-array or malformed data
+  // Sometimes the API returns a non-array or malformed data
   if (!json || !Array.isArray(json) || !json[0]) {
-    console.warn(`Malformed or empty data for uid: ${uid} at depth ${depth}`)
+    spinner
+      .warn(
+        `Malformed or empty data from /menu for uid: ${uid} at depth ${depth}`
+      )
+      .start()
     return null
   }
 
   const node = json[0]
-
-  if (node.node_type) {
-    console.log(
-      `Fetched uid: ${node.uid}, type: ${node.node_type}, depth: ${depth}`
-    )
-  }
 
   if (node.node_type === 'leaf') {
     let suttaplexData = null
@@ -43,16 +50,54 @@ async function fetchMenu(uid, depth = 0) {
         type: 'json',
       })
     } catch (e) {
-      console.error(`Leaf fetch error for uid: ${node.uid}:`, e)
+      spinner.fail(`Fetch error for /suttaplex with uid: ${node.uid}`).start()
     }
-    // Switch to `/suttaplex` data
-    return suttaplexData[0]
+
+    // Ensure suttaplexData[0] exists
+    if (!suttaplexData || !Array.isArray(suttaplexData) || !suttaplexData[0]) {
+      return node
+    }
+
+    const translations = suttaplexData[0]?.translations
+    if (!Array.isArray(translations) || !translations.length) {
+      return { ...node, ...suttaplexData[0] }
+    }
+
+    // Add translations text from `/bilarasuttas` to `/suttaplex` object
+    const mergedTranslations = await Promise.all(
+      translations.map(async (trans) => {
+        let json
+        try {
+          json = await Fetch(translationUrl(node.uid, trans.author_uid), {
+            duration: CACHE_DURATION,
+            type: 'json',
+          })
+        } catch (e) {
+          spinner
+            .fail(
+              `Fetch error from /bilarasuttas for translation: ${node.uid}/${trans.author_uid} at depth ${depth}`
+            )
+            .start()
+          return null
+        }
+        // Merge `/bilarasuttas` texts into `/suttaplex`.translations
+        return { ...trans, ...json }
+      })
+    )
+
+    return {
+      ...node,
+      ...suttaplexData[0],
+      translations: mergedTranslations.filter(Boolean),
+    }
   }
 
-  if (node.children?.length > 0) {
+  // Recursion for children nodes
+  // These nodes are all type "root" or "branch"
+  if (!!node.children?.length) {
     node.children = (
       await Promise.all(
-        node.children.map((child) => fetchMenu(child.uid, depth + 1))
+        node.children.map((child) => fetchDataTree(child.uid, depth + 1))
       )
     ).filter(Boolean)
   }
@@ -68,17 +113,19 @@ async function fetchMenu(uid, depth = 0) {
  * When it gets to a `"node_type": "leaf"`, it switches to `/suttaplex/${uid}` API
  * to get the more detailed meta-data for the text (translators etc).
  *
- * TODO: After that it uses `/bilarasuttas/${author_id}` API
- * on each of the translators to get all versions of the actual text itself.
+ * It then uses `/bilarasuttas/${author_id}` API on the `translations` array in the "leaf node"
+ * to get all versions of the actual text itself.
  */
 export default async function () {
   try {
+    spinner.start()
     // const roots = ['sutta', 'vinaya', 'abhidhamma']
     const roots = ['sutta']
-    const tree = await Promise.all(roots.map((uid) => fetchMenu(uid)))
-    return tree.filter(Boolean)
+    const tree = await Promise.all(roots.map((uid) => fetchDataTree(uid)))
+    spinner.succeed('Fetch complete')
+    return tree
   } catch (e) {
-    console.error('menuData error:', e)
+    spinner.fail(e.message)
     return []
   }
 }

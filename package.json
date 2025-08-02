@@ -10,9 +10,12 @@
   "keywords": [],
   "author": "benmneb",
   "license": "CC0",
-  "packageManager": "pnpm@10.13.1",
+  "packageManager": "pnpm@10.14.0",
   "dependencies": {
     "@11ty/eleventy": "^3.1.2",
     "@11ty/eleventy-fetch": "^5.1.0"
+  },
+  "devDependencies": {
+    "ora": "^8.2.0"
   }
 }

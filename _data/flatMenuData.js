@@ -1,24 +1,25 @@
 import menuData from './menuData.js'
 
 function flatten(nodes, parentPath = '') {
-  let flat = []
-
-  for (const node of nodes) {
-    const currentPath = parentPath
-      ? `${parentPath}/${node.uid}`
-      : `/${node.uid}`
-    flat.push({ ...node, scx_path: currentPath })
-
-    if (node.children && node.children.length > 0) {
-      flat = flat.concat(flatten(node.children, currentPath))
+  return nodes.flatMap((node) => {
+    if (!!node.children?.some((c) => c.node_type === 'leaf')) {
+      // Stop where chapters start, to sync URL structure with SuttaCentral.net
+      return null
     }
-  }
 
-  return flat
+    const currentPath = parentPath ? `${parentPath}/${node.uid}` : `${node.uid}`
+
+    const flatNode = { ...node, scx_path: currentPath }
+
+    return !!node.children?.length
+      ? [flatNode, ...flatten(node.children, currentPath)]
+      : [flatNode]
+  })
 }
 
 /*
- * Changes `menuData` to add a `scx_path` key with the URL slug.
+ * Flattens `menuData` and adds a `scx_path` key with the URL slug
+ * for the nested URL "menu" only.
  *
  * @returns
  * [
@@ -29,5 +30,5 @@ function flatten(nodes, parentPath = '') {
  */
 export default async function () {
   const menu = await menuData()
-  return flatten(menu)
+  return flatten(menu).filter(Boolean)
 }

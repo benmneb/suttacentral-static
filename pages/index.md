@@ -7,13 +7,15 @@ layout: base-layout.liquid
 <ul>
   {% for item in menuData %}
     <li>
-        <a href="pitika/{{item.uid}}">{{ item.root_name }} - {{ item.translated_name }}</a>
+        <h2><a href="pitika/{{item.uid}}">{{ item.root_name }}—{{ item.translated_name }}</a></h2>
         <p>{{ item.blurb }} </p>
     </li>
   {% endfor %}
 </ul>
 
+{% comment %}
 <script>
   const data = {{ menuData | jsonify }};
-  console.log('menuData:', data);
+  console.dir(data);
 </script>
+{% endcomment %}
