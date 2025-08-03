@@ -1,0 +1,28 @@
+---
+layout: base-layout.liquid
+
+pagination:
+  data: flatTextData
+  size: 1
+  alias: data
+  addAllPagesToCollections: true
+
+permalink: '{{ data.scx_path }}/index.html'
+eleventyComputed:
+  title: '{{ data.acronym }}: {{ data.original_title }}—{{ data.author }}'
+---
+
+{% for key in data._bilarasuttas_data.keys_order %}
+  {% assign html = data._bilarasuttas_data.html_text[key] %}
+  {% assign text = data._bilarasuttas_data.translation_text[key] %}
+  {% if html and text %}
+    {{ html | replace: "{}", text }}
+  {% endif %}
+{% endfor %}
+
+{% comment %}
+<script>
+  const data = {{ entry | jsonify }};
+  console.log(data);
+</script>
+{% endcomment %}
