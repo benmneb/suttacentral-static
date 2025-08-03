@@ -12,7 +12,7 @@ eleventyComputed:
   title: '{{ entry.original_title | default: entry.root_name }}—{{ entry.translated_title | default: entry.translated_name }}'
 ---
 
-# {{ title }}
+<h1>{{ title }}</h1>
 
 {{ entry.blurb }}
 
