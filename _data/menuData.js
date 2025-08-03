@@ -81,7 +81,7 @@ async function fetchDataTree(uid, depth = 0) {
           return null
         }
         // Add `/bilarasuttas` texts data into `/suttaplex`.translations
-        // This puts the translations texts data with its meta data.
+        // This puts the translations texts data with its meta-data.
         return { ...trans, _bilarasuttas_data: texts }
       })
     )
@@ -107,7 +107,7 @@ async function fetchDataTree(uid, depth = 0) {
 }
 
 /*
- * Generated structured, nested data for the the main navigation
+ * Generated structured, nested data for the the whole site
  * by recursively calling SuttaCentral's `/menu/${uid}` API
  * and nesting the result in the `children` value.
  *
@@ -116,8 +116,14 @@ async function fetchDataTree(uid, depth = 0) {
  *
  * It then uses `/bilarasuttas/${author_id}` API on the `translations` array in the "leaf node"
  * to get all versions of the actual text itself.
+ *
+ * This master output is then used by the various `flat...Data.js` files
+ * to add `scx_path` key and flatten the nested structure appropriately
+ * to sync URL structure with SuttaCentral.net.
  */
-export default async function (file = 'menu') {
+export default async function (file) {
+  if (file?.eleventy) file = 'menu'
+
   try {
     spinner.start()
     // const roots = ['sutta', 'vinaya', 'abhidhamma']

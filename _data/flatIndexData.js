@@ -27,8 +27,17 @@ function flatten(nodes) {
 }
 
 /*
- * Returns just the data necessary for the root tripitka links:
- * `/sutta`, `/vinaya`, `/abhidhamma`.
+ * Returns just the data necessary for the root tipitka links.
+ *
+ * These are then prefixed with /pitika in `index.md`
+ * to sync URL structure with SuttaCentral.net.
+ *
+ * @returns
+ * [
+ *  { uid: 'sutta', scx_path: '/sutta', ... },
+ *  { uid: 'vinaya', scx_path: '/vinaya', ... },
+ *  { uid: 'abhidhamma', scx_path: '/abhidhamma', ... },
+ * ]
  */
 export default async function () {
   const menu = await menuData('flatIndex')

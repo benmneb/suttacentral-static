@@ -10,7 +10,6 @@ function flatten(nodes, parent) {
       // ie: https://suttacentral.net/api/suttaplex/mn1?language=en has /mn1/ru/sv/ twice
       if (usedPaths.includes(scx_path)) return null
       usedPaths.push(scx_path)
-      // Merge /suttaplex data minus .translations with the /bilarasuttas data for this specific translation
       const { translations, ...parentWithoutTranslations } = parent
       if (scx_path === 'dn1/en/sujato')
         console.log({ ...parentWithoutTranslations, ...node, scx_path })
@@ -29,8 +28,16 @@ function flatten(nodes, parent) {
  * Returns just the "texts".
  *
  * Flattens the .translation info from `menuData`, with the root /suttaplex sutta data and
- * adds a `scx_path` key with the appropriate URL slug,
- * ie `/dn1/en/sujato`.
+ * adds a `scx_path` key with the appropriate URL slug.
+ *
+ * Note: `id` is the unique identifier here because `uid` comes from the parent
+ * and is no longer unique because this meta-data bas been merged with the .translations data.
+ *
+ * @returns
+ * [
+ *  { id: 'dn1_translation-en-sujato', scx_path: '/dn1/en/sujato', ... },
+ *  ...
+ * ]
  */
 export default async function () {
   const menu = await menuData('flatText')

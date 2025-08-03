@@ -37,13 +37,18 @@ function flatten(nodes, parentPath = '') {
 
 /*
  * Flattens `menuData` and adds a `scx_path` key with the URL slug
- * for the nested URL "menu" only.
+ * for the nested URL "menu" only (ie `/sutta/long/dn`),
+ * to sync URL structure with SuttaCentral.net.
+ *
+ * These are then prefixed with /pitika in `pitika.md`
+ * to sync URL structure with SuttaCentral.net properly.
  *
  * @returns
  * [
  *  { uid: 'sutta', scx_path: '/sutta', ... },
  *  { uid: 'long', scx_path: '/sutta/long', ... },
  *  { uid: 'dn', scx_path: '/sutta/long/dn', ... },
+ *  ...
  * ]
  */
 export default async function () {
