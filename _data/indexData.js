@@ -1,4 +1,4 @@
-import menuData from './menuData.js'
+import masterData from './_masterData.js'
 
 /*
  * Don't need this deep nesting, and logging them breaks dev server.
@@ -40,6 +40,6 @@ function flatten(nodes) {
  * ]
  */
 export default async function () {
-  const menu = await menuData('flatIndex')
+  const menu = await masterData('index')
   return flatten(menu).filter(Boolean)
 }

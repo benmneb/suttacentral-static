@@ -1,4 +1,4 @@
-import menuData from './menuData.js'
+import masterData from './_masterData.js'
 
 let usedPaths = []
 
@@ -27,7 +27,7 @@ function flatten(nodes, parent) {
 /*
  * Returns just the "texts".
  *
- * Flattens the .translation info from `menuData`, with the root /suttaplex sutta data and
+ * Flattens the .translation info from `masterData`, with the root /suttaplex sutta data and
  * adds a `scx_path` key with the appropriate URL slug.
  *
  * Note: `id` is the unique identifier here because `uid` comes from the parent
@@ -40,6 +40,6 @@ function flatten(nodes, parent) {
  * ]
  */
 export default async function () {
-  const menu = await menuData('flatText')
+  const menu = await masterData('text')
   return flatten(menu).filter(Boolean)
 }

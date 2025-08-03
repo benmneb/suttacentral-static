@@ -5,7 +5,7 @@ layout: base-layout.liquid
 <h1>Tipiṭaka—the Three Baskets of the Buddhist canon</h1>
 
 <ul>
-  {% for item in flatIndexData %}
+  {% for item in indexData %}
     <li>
         <h2><a href="pitika/{{item.uid}}">{{ item.root_name }}—{{ item.translated_name }}</a></h2>
         <p>{{ item.blurb }} </p>
@@ -14,6 +14,6 @@ layout: base-layout.liquid
 </ul>
 
 <script>
-  const data = {{ flatIndexData | jsonify }};
+  const data = {{ indexData | jsonify }};
   console.log(data);
 </script>

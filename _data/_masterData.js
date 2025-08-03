@@ -122,7 +122,7 @@ async function fetchDataTree(uid, depth = 0) {
  * to sync URL structure with SuttaCentral.net.
  */
 export default async function (file) {
-  if (file?.eleventy) file = 'menu'
+  if (file?.eleventy) file = 'master'
 
   try {
     spinner.start()

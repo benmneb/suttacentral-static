@@ -1,4 +1,4 @@
-import menuData from './menuData.js'
+import masterData from './_masterData.js'
 
 /*
  * Don't need translations yet, and logging them breaks dev server.
@@ -36,7 +36,7 @@ function flatten(nodes, parentPath = '') {
 }
 
 /*
- * Flattens `menuData` and adds a `scx_path` key with the URL slug
+ * Flattens `masterData` and adds a `scx_path` key with the URL slug
  * for the nested URL "menu" only (ie `/sutta/long/dn`),
  * to sync URL structure with SuttaCentral.net.
  *
@@ -52,6 +52,6 @@ function flatten(nodes, parentPath = '') {
  * ]
  */
 export default async function () {
-  const menu = await menuData('flatMenu')
+  const menu = await masterData('menu')
   return flatten(menu).filter(Boolean)
 }
