@@ -27,7 +27,7 @@ function removeTranslationTexts(node) {
 function flatten(nodes) {
   return nodes.flatMap((node) => {
     // Stop recursion before it reaches leaf nodes (sutta texts) to sync URL structure with SuttaCentral.net
-    if (!!node.children?.some((c) => c.node_type === 'leaf')) {
+    if (node.children?.some((c) => c.node_type === 'leaf')) {
       return removeTranslationTexts({ ...node, scx_path: `${node.uid}` })
     }
 

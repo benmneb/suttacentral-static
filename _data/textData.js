@@ -16,7 +16,7 @@ function flatten(nodes, parent) {
       return { ...parentWithoutTranslations, ...node, scx_path }
     }
 
-    if (!!node.translations?.length) {
+    if (node.translations?.length) {
       return flatten(node.translations, node)
     }
 

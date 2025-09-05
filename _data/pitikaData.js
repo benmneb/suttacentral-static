@@ -20,7 +20,7 @@ function removeTranslations(node) {
 
 function flatten(nodes, parentPath = '') {
   return nodes.flatMap((node) => {
-    if (!!node.children?.some((c) => c.node_type === 'leaf')) {
+    if (node.children?.some((c) => c.node_type === 'leaf')) {
       // Stop where chapters start, to sync URL structure with SuttaCentral.net
       return null
     }
@@ -29,7 +29,7 @@ function flatten(nodes, parentPath = '') {
 
     const flatNode = removeTranslations({ ...node, scx_path: currentPath })
 
-    return !!node.children?.length
+    return node.children?.length
       ? [flatNode, ...flatten(node.children, currentPath)]
       : [flatNode]
   })

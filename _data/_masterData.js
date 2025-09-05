@@ -109,7 +109,7 @@ async function fetchDataTree(uid, depth = 0) {
 
   // Recursion for children nodes
   // These nodes are all type "root" or "branch"
-  if (!!node.children?.length) {
+  if (node.children?.length) {
     node.children = (
       await Promise.all(
         node.children.map((child) => fetchDataTree(child.uid, depth + 1))
