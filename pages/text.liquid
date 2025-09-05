@@ -24,9 +24,7 @@ eleventyComputed:
   {{ data._suttas_data.text | replace: "\n", "" }}
 {% endif %}
 
-{% comment %}
 <script>
-  const data = {{ entry | jsonify }};
-  console.log(data);
+  const entry = {{ data | jsonify }};
+  console.log(entry);
 </script>
-{% endcomment %}
