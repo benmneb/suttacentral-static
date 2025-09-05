@@ -19,6 +19,9 @@ function legacyTranslationUrl(uid, author, lang) {
 const spinner = ora('Fetching...')
 spinner.spinner = { frames: ['⏳'] }
 
+const startTime = Date.now()
+let endpointsHit = 0
+
 async function fetchDataTree(uid, depth = 0) {
   let json
   try {
@@ -26,6 +29,7 @@ async function fetchDataTree(uid, depth = 0) {
       duration: CACHE_DURATION,
       type: 'json',
     })
+    endpointsHit++
   } catch (e) {
     spinner
       .fail(`Fetch error for /menu with uid: ${uid} at depth ${depth}`)
@@ -52,6 +56,7 @@ async function fetchDataTree(uid, depth = 0) {
         duration: CACHE_DURATION,
         type: 'json',
       })
+      endpointsHit++
     } catch (e) {
       spinner.fail(`Fetch error for /suttaplex with uid: ${node.uid}`).start()
     }
@@ -137,17 +142,20 @@ async function fetchDataTree(uid, depth = 0) {
  * to sync URL structure with SuttaCentral.net.
  */
 export default async function (file) {
-  if (file?.eleventy) file = 'master'
-
   try {
     spinner.start()
     // const roots = ['sutta', 'vinaya', 'abhidhamma']
     const roots = ['sutta']
     const tree = await Promise.all(roots.map((uid) => fetchDataTree(uid)))
-    spinner.succeed(`Fetch complete for ${JSON.stringify(file)}`)
+    spinner.succeed(`Fetch complete for ${file?.eleventy ? 'master' : file}`)
     return tree
   } catch (e) {
     spinner.fail(e.message)
     return []
+  } finally {
+    spinner.info(
+      `Fetched from ${endpointsHit} endpoints in ~${((Date.now() - startTime) / 60_000).toFixed(2)} mins`
+    )
+    endpointsHit = 0
   }
 }
