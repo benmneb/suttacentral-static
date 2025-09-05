@@ -9,8 +9,11 @@ function menuUrl(path = '') {
 function leafUrl(uid) {
   return `https://suttacentral.net/api/suttaplex/${uid}?language=en`
 }
-function translationUrl(uid, author) {
+function segmentedTranslationUrl(uid, author) {
   return `https://suttacentral.net/api/bilarasuttas/${uid}/${author}`
+}
+function legacyTranslationUrl(uid, author, lang) {
+  return `https://suttacentral.net/api/suttas/${uid}/${author}?lang=${lang}&siteLanguage=en`
 }
 
 const spinner = ora('Fetching...')
@@ -68,21 +71,32 @@ async function fetchDataTree(uid, depth = 0) {
       translations.map(async (trans) => {
         let texts
         try {
-          texts = await Fetch(translationUrl(node.uid, trans.author_uid), {
-            duration: CACHE_DURATION,
-            type: 'json',
-          })
+          texts = await Fetch(
+            trans.segmented
+              ? segmentedTranslationUrl(node.uid, trans.author_uid)
+              : legacyTranslationUrl(node.uid, trans.author_uid, trans.lang),
+            {
+              duration: CACHE_DURATION,
+              type: 'json',
+            }
+          )
+          endpointsHit++
         } catch (e) {
           spinner
             .fail(
-              `Fetch error from /bilarasuttas for translation: ${node.uid}/${trans.author_uid} at depth ${depth}`
+              `Fetch error for ${trans.segmented ? '/bilarasuttas' : '/suttas'} with translation: ${node.uid}/${trans.author_uid} at depth ${depth}`
             )
             .start()
           return null
         }
-        // Add `/bilarasuttas` texts data into `/suttaplex`.translations
-        // This puts the translations texts data with its meta-data.
-        return { ...trans, _bilarasuttas_data: texts }
+        // Add translated texts data into `/suttaplex`.translations
+        // to keep the texts data with its meta-data.
+        return {
+          ...trans,
+          ...(trans.segmented
+            ? { _bilarasuttas_data: texts }
+            : { _suttas_data: texts.translation }),
+        }
       })
     )
 
@@ -112,10 +126,11 @@ async function fetchDataTree(uid, depth = 0) {
  * and nesting the result in the `children` value.
  *
  * When it gets to a `"node_type": "leaf"`, it switches to `/suttaplex/${uid}` API
- * to get the more detailed meta-data for the text (translators etc).
+ * to get the more detailed meta-data for the text (including translations array).
  *
- * It then uses `/bilarasuttas/${author_id}` API on the `translations` array in the "leaf node"
- * to get all versions of the actual text itself.
+ * Then, if `segmented` is `true` on the translation object,
+ * it then uses the `/bilarasuttas` API, otherwise the legacy `/suttas` API
+ * to get the actual translated text.
  *
  * This master output is then used by the various `flat...Data.js` files
  * to add `scx_path` key and flatten the nested structure appropriately

@@ -12,13 +12,17 @@ eleventyComputed:
   title: '{{ data.acronym }}: {{ data.original_title }}—{{ data.author }}'
 ---
 
-{% for key in data._bilarasuttas_data.keys_order %}
-  {% assign html = data._bilarasuttas_data.html_text[key] %}
-  {% assign text = data._bilarasuttas_data.translation_text[key] %}
-  {% if html and text %}
-    {{ html | replace: "{}", text }}
-  {% endif %}
-{% endfor %}
+{% if data.segmented %}
+  {% for key in data._bilarasuttas_data.keys_order %}
+    {% assign html = data._bilarasuttas_data.html_text[key] %}
+    {% assign text = data._bilarasuttas_data.translation_text[key] %}
+    {% if html and text %}
+      {{ html | replace: "{}", text }}
+    {% endif %}
+  {% endfor %}
+{% else %}
+  {{ data._suttas_data.text | replace: "\n", "" }}
+{% endif %}
 
 {% comment %}
 <script>
