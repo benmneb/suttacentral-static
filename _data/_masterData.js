@@ -9,8 +9,8 @@ function menuUrl(path = '') {
 function leafUrl(uid) {
   return `https://suttacentral.net/api/suttaplex/${uid}?language=en`
 }
-function segmentedTranslationUrl(uid, author) {
-  return `https://suttacentral.net/api/bilarasuttas/${uid}/${author}`
+function segmentedTranslationUrl(uid, author, lang) {
+  return `https://suttacentral.net/api/bilarasuttas/${uid}/${author}?lang=${lang}`
 }
 function legacyTranslationUrl(uid, author, lang) {
   return `https://suttacentral.net/api/suttas/${uid}/${author}?lang=${lang}&siteLanguage=en`
@@ -71,14 +71,14 @@ async function fetchDataTree(uid, depth = 0) {
       return { ...node, ...suttaplexData[0] }
     }
 
-    // Add translations text from `/bilarasuttas` to `/suttaplex` object
+    // Add translated text to `/suttaplex` object
     const mergedTranslations = await Promise.all(
       translations.map(async (trans) => {
         let texts
         try {
           texts = await Fetch(
             trans.segmented
-              ? segmentedTranslationUrl(node.uid, trans.author_uid)
+              ? segmentedTranslationUrl(node.uid, trans.author_uid, trans.lang)
               : legacyTranslationUrl(node.uid, trans.author_uid, trans.lang),
             {
               duration: CACHE_DURATION,
