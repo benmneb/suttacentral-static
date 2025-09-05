@@ -4,12 +4,16 @@ import masterData from './_masterData.js'
  * Don't need translations yet, and logging them breaks dev server.
  */
 function removeTranslationTexts(node) {
-  const { _bilarasuttas_data, children, translations, ...rest } = node
+  const { _bilarasuttas_data, _suttas_data, children, translations, ...rest } =
+    node
 
   const redacted = {
     ...rest,
     ...(_bilarasuttas_data && {
       _bilarasuttas_data: { scx_redacted: true },
+    }),
+    ...(_suttas_data && {
+      _suttas_data: { scx_redacted: true },
     }),
   }
 
