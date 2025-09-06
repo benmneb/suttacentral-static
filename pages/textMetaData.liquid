@@ -1,0 +1,46 @@
+---
+layout: base-layout.liquid
+
+pagination:
+  data: textMetaData
+  size: 1
+  alias: entry
+  addAllPagesToCollections: true
+
+permalink: '{{ entry.scx_path }}/index.html'
+eleventyComputed:
+  title: '{{ entry.original_title | default: entry.root_name }}—{{ entry.translated_title | default: entry.translated_name }}'
+---
+
+<h1>{{ title }}</h1>
+
+<p>{{ entry.blurb }}</p>
+
+{% if entry.translations.length %}
+  <ul>
+      {% for version in entry.translations %}
+      <li>
+          <a href="/{{ entry.uid }}/{{ version.lang }}/{{ version.author_uid }}" hreflang="{{ version.lang }}">
+              {{ version.lang_name }}—{{ version.author }}
+          </a>—<span>{{ version.title }}</span>
+      </li>
+      {% endfor %}
+  </ul>
+{% endif %}
+{% if entry._parallels_data %}
+  {% assign totalParallels = 0 %}
+  {% for key in entry._parallels_data %}
+    {% assign totalParallels = totalParallels | plus: key[1].size %}
+  {% endfor %}
+  <details>
+      <summary>Parallels ({{ totalParallels }})</summary>
+      <pre>
+      {{ entry._parallels_data | jsonify | replace: ',', ',\n' | replace: '{', '{\n' | replace: '}', '\n}' }}
+      </pre>
+  </details>
+{% endif %}
+
+<script>
+  const data = {{ entry | jsonify }};
+  console.log(data);
+</script>
