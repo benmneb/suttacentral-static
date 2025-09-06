@@ -45,7 +45,9 @@ function flatten(nodes) {
  * Flattens `masterData` and adds a `scx_path` key with the appropriate URL slug
  * to sync URL structure with SuttaCentral.net.
  *
- * The root path here (ie `/dn-silakkhandhavagga`) is the next nested path after ie `sutta/long/dn/`.
+ * The root path here (ie `/dn-silakkhandhavagga`) is the next nested path
+ * after the end of pitikaData, ie `sutta/long/dn/`,
+ * or the first parent of the leaf nodes, however you want to look at it.
  *
  * @returns
  * [

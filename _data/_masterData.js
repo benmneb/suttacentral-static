@@ -15,6 +15,9 @@ function segmentedTranslationUrl(uid, author, lang) {
 function legacyTranslationUrl(uid, author, lang) {
   return `https://suttacentral.net/api/suttas/${uid}/${author}?lang=${lang}&siteLanguage=en`
 }
+function parallelsUrl(uid) {
+  return `https://suttacentral.net/api/parallels/${uid}`
+}
 
 const spinner = ora('Fetching...')
 spinner.spinner = { frames: ['⏳'] }
@@ -105,10 +108,23 @@ async function fetchDataTree(uid, depth = 0) {
       })
     )
 
+    // Add parallels data
+    let parallelsData
+    try {
+      parallelsData = await Fetch(parallelsUrl(node.uid), {
+        duration: CACHE_DURATION,
+        type: 'json',
+      })
+      endpointsHit++
+    } catch (e) {
+      spinner.fail(`Fetch error for /parallels/${node.uid}`).start()
+    }
+
     return {
       ...node,
       ...suttaplexData[0],
       translations: mergedTranslations.filter(Boolean),
+      _parallels_data: parallelsData,
     }
   }
 

@@ -8,6 +8,8 @@ function flatten(nodes, parent) {
       const scx_path = `${parent.uid}/${node.lang}/${node.author_uid}`
       // Dirty hack to get around duplicate paths in /suttaplex data
       // ie: https://suttacentral.net/api/suttaplex/mn1?language=en has /mn1/ru/sv/ twice
+      // TODO: pick the one with the latest publication date
+      // TODO: log these duplicates and see what's up
       if (usedPaths.includes(scx_path)) return null
       usedPaths.push(scx_path)
       const { translations, ...parentWithoutTranslations } = parent

@@ -26,12 +26,24 @@ eleventyComputed:
         <ul>
             {% for version in child.translations %}
             <li>
-                <a href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}">
+                <a href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}" hreflang="{{ version.lang }}">
                     {{ version.lang_name }}—{{ version.author }}
                 </a>—<span>{{ version.title }}</span>
             </li>
             {% endfor %}
         </ul>
+      {% endif %}
+      {% if child._parallels_data %}
+        {% assign totalParallels = 0 %}
+        {% for key in child._parallels_data %}
+          {% assign totalParallels = totalParallels | plus: key[1].size %}
+        {% endfor %}
+        <details>
+            <summary>Parallels ({{ totalParallels }})</summary>
+            <pre>
+            {{ child._parallels_data | jsonify | replace: ',', ',\n' | replace: '{', '{\n' | replace: '}', '\n}' }}
+            </pre>
+        </details>
       {% endif %}
     </li>
   {% endfor %}
