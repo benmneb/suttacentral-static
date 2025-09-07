@@ -138,9 +138,8 @@ main {
   }
 }
 
-footer {
+footer:not(article footer) {
   background-color: var(--bg-alt-1);
-  font-weight: 600;
   margin-top: 2rem;
   text-align: center;
 
@@ -169,5 +168,14 @@ a {
   &::selection {
     color: var(--text-color);
     background-color: var(--blue-dim);
+  }
+}
+
+article {
+  footer {
+    border-radius: 0.5rem;
+    padding: 1rem 2rem;
+    text-align: left;
+    background-color: var(--bg-alt-2);
   }
 }
