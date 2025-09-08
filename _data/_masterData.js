@@ -19,6 +19,13 @@ function parallelsUrl(uid) {
   return `https://suttacentral.net/api/parallels/${uid}`
 }
 
+async function fetchJson(url) {
+  return await Fetch(url, {
+    duration: CACHE_DURATION,
+    type: 'json',
+  })
+}
+
 const spinner = ora('Fetching...')
 spinner.spinner = { frames: ['⏳'] }
 
@@ -28,10 +35,7 @@ let endpointsHit = 0
 async function fetchDataTree(uid, depth = 0) {
   let json
   try {
-    json = await Fetch(menuUrl(uid), {
-      duration: CACHE_DURATION,
-      type: 'json',
-    })
+    json = await fetchJson(menuUrl(uid))
     endpointsHit++
   } catch (e) {
     spinner
@@ -55,10 +59,7 @@ async function fetchDataTree(uid, depth = 0) {
   if (node.node_type === 'leaf') {
     let suttaplexData = null
     try {
-      suttaplexData = await Fetch(leafUrl(node.uid), {
-        duration: CACHE_DURATION,
-        type: 'json',
-      })
+      suttaplexData = await fetchJson(leafUrl(node.uid))
       endpointsHit++
     } catch (e) {
       spinner.fail(`Fetch error for /suttaplex with uid: ${node.uid}`).start()
@@ -79,14 +80,10 @@ async function fetchDataTree(uid, depth = 0) {
       translations.map(async (trans) => {
         let texts
         try {
-          texts = await Fetch(
+          texts = await fetchJson(
             trans.segmented
               ? segmentedTranslationUrl(node.uid, trans.author_uid, trans.lang)
-              : legacyTranslationUrl(node.uid, trans.author_uid, trans.lang),
-            {
-              duration: CACHE_DURATION,
-              type: 'json',
-            }
+              : legacyTranslationUrl(node.uid, trans.author_uid, trans.lang)
           )
           endpointsHit++
         } catch (e) {
@@ -111,10 +108,7 @@ async function fetchDataTree(uid, depth = 0) {
     // Add parallels data
     let parallelsData
     try {
-      parallelsData = await Fetch(parallelsUrl(node.uid), {
-        duration: CACHE_DURATION,
-        type: 'json',
-      })
+      parallelsData = await fetchJson(parallelsUrl(node.uid))
       endpointsHit++
     } catch (e) {
       spinner.fail(`Fetch error for /parallels/${node.uid}`).start()
