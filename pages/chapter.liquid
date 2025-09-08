@@ -12,75 +12,98 @@ eleventyComputed:
   title: '{{ entry.original_title | default: entry.root_name }}—{{ entry.translated_title | default: entry.translated_name }}'
 ---
 
-<h1>{{ title }}</h1>
+<header>
+  {% assign parts = entry.scx_breadcrumb | split: "/" %}
+  <nav aria-label="Breadcrumb">
+    <ul>
+      <li>
+        <a href="/">📚</a>
+      </li>
+      {% for part in parts %}
+        {% assign path = path | append: "/" | append: part %}
+        <li>
+          {% if forloop.last %}
+            <span aria-current="page">{{ part }}</span>
+          {% else %}
+            <a href="/pitika{{ path }}">{{ part }}</a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </nav>
+</header>
 
-<p>{{ entry.blurb }}</p>
+<main>
+  <h1>{{ title }}</h1>
 
-{% if entry.children.length %}
-<ul>
-  {% for child in entry.children %}
-    <li>
-    <h2>{{ child.original_title | default: child.root_name }}—{{ child.translated_title | default: child.translated_name }}</h2>
-      <p>{{ child.blurb }}</p>
-      {% if child.translations.length %}
-        <ul>
-            {% for version in child.translations %}
-            <li>
-                <a href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}" hreflang="{{ version.lang }}">
-                    {{ version.lang_name }}—{{ version.author }}
-                </a>—<span>{{ version.title }}</span>
-            </li>
-            {% endfor %}
-        </ul>
-      {% endif %}
-      {% if child._parallels_data and child._parallels_data.size > 0 %}
-        {% assign totalParallels = 0 %}
-        {% for key in child._parallels_data %}
-          {% assign totalParallels = totalParallels | plus: key[1].size %}
-        {% endfor %}
-        <details>
-            <summary>Parallels ({{ totalParallels }})</summary>
-            <ul>
-              {% for segment in child._parallels_data %}
-                <li>
-                  {{ segment[0] }}
-                  <ul>
-                      {% for parallel in segment[1] %}
-                          <li>
-                              {% if parallel.to.translations.size > 0 %}
-                                <a
-                                href="/{{ parallel.to.uid }}/{{ parallel.to.translations[0].lang }}/{{ parallel.to.translations[0].author_uid }}{% if parallel.to.to contains '#' %}#{{ parallel.to.to | split: '#' | last }}{% endif %}"
-                                hreflang="{{ parallel.to.translations[0].lang }}"
-                                >
-                                {{ parallel.to.translated_title | default: parallel.to.original_title | default: parallel.to.acronym | strip}}
-                                </a>
-                              {% else %}
-                                <span>
-                                {{ parallel.to.translated_title | default: parallel.to.original_title | default: parallel.to.acronym | strip}}
-                                </span>
-                              {% endif %}
-                              <br />
-                              {% if parallel.to.translated_title and parallel.to.original_title %}
-                                {{ parallel.to.original_title | strip }} | {{ parallel.to.acronym | strip }} | {{ parallel.to.volpages | strip }}
-                              {% elsif parallel.to.original_title %}
-                                {{ parallel.to.acronym | strip }} | {{ parallel.to.volpages | strip }}
-                              {% elsif parallel.to.acronym %}
-                                {{ parallel.to.volpages | strip }}
-                              {% endif %}
-                          </li>
-                      {% endfor %}
-                  </ul>
-                </li>
+  <p>{{ entry.blurb }}</p>
+
+  {% if entry.children.length %}
+  <ul>
+    {% for child in entry.children %}
+      <li>
+      <h2>{{ child.original_title | default: child.root_name }}—{{ child.translated_title | default: child.translated_name }}</h2>
+        <p>{{ child.blurb }}</p>
+        {% if child.translations.length %}
+          <ul>
+              {% for version in child.translations %}
+              <li>
+                  <a href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}" hreflang="{{ version.lang }}">
+                      {{ version.lang_name }}—{{ version.author }}
+                  </a>—<span>{{ version.title }}</span>
+              </li>
               {% endfor %}
-            </ul>
-          </details>
+          </ul>
         {% endif %}
-    </li>
-  {% endfor %}
-</ul>
-{% endif %}
+        {% if child._parallels_data and child._parallels_data.size > 0 %}
+          {% assign totalParallels = 0 %}
+          {% for key in child._parallels_data %}
+            {% assign totalParallels = totalParallels | plus: key[1].size %}
+          {% endfor %}
+          <details>
+              <summary>Parallels ({{ totalParallels }})</summary>
+              <ul>
+                {% for segment in child._parallels_data %}
+                  <li>
+                    {{ segment[0] }}
+                    <ul>
+                        {% for parallel in segment[1] %}
+                            <li>
+                                {% if parallel.to.translations.size > 0 %}
+                                  <a
+                                  href="/{{ parallel.to.uid }}/{{ parallel.to.translations[0].lang }}/{{ parallel.to.translations[0].author_uid }}{% if parallel.to.to contains '#' %}#{{ parallel.to.to | split: '#' | last }}{% endif %}"
+                                  hreflang="{{ parallel.to.translations[0].lang }}"
+                                  >
+                                  {{ parallel.to.translated_title | default: parallel.to.original_title | default: parallel.to.acronym | strip}}
+                                  </a>
+                                {% else %}
+                                  <span>
+                                  {{ parallel.to.translated_title | default: parallel.to.original_title | default: parallel.to.acronym | strip}}
+                                  </span>
+                                {% endif %}
+                                <br />
+                                {% if parallel.to.translated_title and parallel.to.original_title %}
+                                  {{ parallel.to.original_title | strip }} | {{ parallel.to.acronym | strip }} | {{ parallel.to.volpages | strip }}
+                                {% elsif parallel.to.original_title %}
+                                  {{ parallel.to.acronym | strip }} | {{ parallel.to.volpages | strip }}
+                                {% elsif parallel.to.acronym %}
+                                  {{ parallel.to.volpages | strip }}
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                  </li>
+                {% endfor %}
+              </ul>
+            </details>
+          {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
 
-<script>
-  const data = {{ entry | jsonify }};
-  console.log(data);
-</script>
+  <script>
+    const data = {{ entry | jsonify }};
+    console.log(data);
+  </script>
+</main>

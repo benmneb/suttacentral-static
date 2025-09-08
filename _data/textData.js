@@ -2,9 +2,12 @@ import masterData from './_masterData.js'
 
 let usedPaths = []
 
-function flatten(nodes, parent) {
+function flatten(nodes, parent, parentPath) {
   return nodes.flatMap((node) => {
+    let currentPath = parentPath ? `${parentPath}/${node.uid}` : `${node.uid}`
+
     if (parent) {
+      currentPath = parentPath
       const scx_path = `${parent.uid}/${node.lang}/${node.author_uid}`
       // Dirty hack to get around duplicate paths in /suttaplex data
       // ie: https://suttacentral.net/api/suttaplex/mn1?language=en has /mn1/ru/sv/ twice
@@ -14,15 +17,20 @@ function flatten(nodes, parent) {
       usedPaths.push(scx_path)
       const { translations, ...parentWithoutTranslations } = parent
       // if (scx_path.includes('dn1/de/sabbamitta'))
-        // console.log({ ...parentWithoutTranslations, ...node, scx_path })
-      return { ...parentWithoutTranslations, ...node, scx_path }
+      // console.log({ ...parentWithoutTranslations, ...node, scx_path })
+      return {
+        ...parentWithoutTranslations,
+        ...node,
+        scx_path,
+        scx_breadcrumb: currentPath,
+      }
     }
 
     if (node.translations?.length) {
-      return flatten(node.translations, node)
+      return flatten(node.translations, node, currentPath)
     }
 
-    return flatten(node.children || [])
+    return flatten(node.children || [], null, currentPath)
   })
 }
 

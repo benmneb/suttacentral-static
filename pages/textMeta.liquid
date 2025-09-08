@@ -12,65 +12,91 @@ eleventyComputed:
   title: '{{ entry.original_title | default: entry.root_name }}—{{ entry.translated_title | default: entry.translated_name }}'
 ---
 
-<h1>{{ title }}</h1>
-
-<p>{{ entry.blurb }}</p>
-
-{% if entry.translations.length %}
-  <ul>
-      {% for version in entry.translations %}
+<header>
+  {% assign parts = entry.scx_breadcrumb | split: "/" %}
+  {% assign second_last = parts | size | minus: 1 %}
+  <nav aria-label="Breadcrumb">
+    <ul>
       <li>
-          <a href="/{{ entry.uid }}/{{ version.lang }}/{{ version.author_uid }}" hreflang="{{ version.lang }}">
-              {{ version.lang_name }}—{{ version.author }}
-          </a>—<span>{{ version.title }}</span>
+        <a href="/">📚</a>
       </li>
+      {% for part in parts %}
+        {% assign path = path | append: "/" | append: part %}
+        <li>
+          {% if forloop.last %}
+            <span aria-current="page">{{ part }}</span>
+          {% elsif forloop.index == second_last %}
+            <a href="/{{ part }}">{{ part }}</a>
+          {% else %}
+            <a href="/pitika{{ path }}">{{ part }}</a>
+          {% endif %}
+        </li>
       {% endfor %}
-  </ul>
-{% endif %}
-{% if entry._parallels_data and entry._parallels_data.size > 0 %}
-  {% assign totalParallels = 0 %}
-  {% for key in entry._parallels_data %}
-    {% assign totalParallels = totalParallels | plus: key[1].size %}
-  {% endfor %}
-  <details>
-      <summary>Parallels ({{ totalParallels }})</summary>
-      <ul>
-        {% for segment in entry._parallels_data %}
-          <li>
-            {{ segment[0] }}
-            <ul>
-                {% for parallel in segment[1] %}
-                    <li>
-                        {% if parallel.to.translations.size > 0 %}
-                          <a
-                          href="/{{ parallel.to.uid }}/{{ parallel.to.translations[0].lang }}/{{ parallel.to.translations[0].author_uid }}{% if parallel.to.to contains '#' %}#{{ parallel.to.to | split: '#' | last }}{% endif %}"
-                          hreflang="{{ parallel.to.translations[0].lang }}"
-                          >
-                          {{ parallel.to.translated_title | default: parallel.to.original_title | default: parallel.to.acronym | strip}}
-                        </a>
-                        {% else %}
-                          <span>
-                          {{ parallel.to.translated_title | default: parallel.to.original_title | default: parallel.to.acronym | strip}}
-                          </span>
-                        {% endif %}
-                        <br />
-                        {% if parallel.to.translated_title and parallel.to.original_title %}
-                          {{ parallel.to.original_title | strip }} | {{ parallel.to.acronym | strip }} | {{ parallel.to.volpages | strip }}
-                        {% elsif parallel.to.original_title %}
-                          {{ parallel.to.acronym | strip }} | {{ parallel.to.volpages | strip }}
-                        {% elsif parallel.to.acronym %}
-                          {{ parallel.to.volpages | strip }}
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-          </li>
-        {% endfor %}
-      </ul>
-  </details>
-{% endif %}
+    </ul>
+  </nav>
+</header>
 
-<script>
-  const data = {{ entry | jsonify }};
-  console.log(data);
-</script>
+<main>
+  <h1>{{ title }}</h1>
+
+  <p>{{ entry.blurb }}</p>
+
+  {% if entry.translations.length %}
+    <ul>
+        {% for version in entry.translations %}
+        <li>
+            <a href="/{{ entry.uid }}/{{ version.lang }}/{{ version.author_uid }}" hreflang="{{ version.lang }}">
+                {{ version.lang_name }}—{{ version.author }}
+            </a>—<span>{{ version.title }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+  {% endif %}
+  {% if entry._parallels_data and entry._parallels_data.size > 0 %}
+    {% assign totalParallels = 0 %}
+    {% for key in entry._parallels_data %}
+      {% assign totalParallels = totalParallels | plus: key[1].size %}
+    {% endfor %}
+    <details>
+        <summary>Parallels ({{ totalParallels }})</summary>
+        <ul>
+          {% for segment in entry._parallels_data %}
+            <li>
+              {{ segment[0] }}
+              <ul>
+                  {% for parallel in segment[1] %}
+                      <li>
+                          {% if parallel.to.translations.size > 0 %}
+                            <a
+                            href="/{{ parallel.to.uid }}/{{ parallel.to.translations[0].lang }}/{{ parallel.to.translations[0].author_uid }}{% if parallel.to.to contains '#' %}#{{ parallel.to.to | split: '#' | last }}{% endif %}"
+                            hreflang="{{ parallel.to.translations[0].lang }}"
+                            >
+                            {{ parallel.to.translated_title | default: parallel.to.original_title | default: parallel.to.acronym | strip}}
+                          </a>
+                          {% else %}
+                            <span>
+                            {{ parallel.to.translated_title | default: parallel.to.original_title | default: parallel.to.acronym | strip}}
+                            </span>
+                          {% endif %}
+                          <br />
+                          {% if parallel.to.translated_title and parallel.to.original_title %}
+                            {{ parallel.to.original_title | strip }} | {{ parallel.to.acronym | strip }} | {{ parallel.to.volpages | strip }}
+                          {% elsif parallel.to.original_title %}
+                            {{ parallel.to.acronym | strip }} | {{ parallel.to.volpages | strip }}
+                          {% elsif parallel.to.acronym %}
+                            {{ parallel.to.volpages | strip }}
+                          {% endif %}
+                      </li>
+                  {% endfor %}
+              </ul>
+            </li>
+          {% endfor %}
+        </ul>
+    </details>
+  {% endif %}
+
+  <script>
+    const data = {{ entry | jsonify }};
+    console.log(data);
+  </script>
+</main>

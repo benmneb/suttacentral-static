@@ -27,7 +27,11 @@ function flatten(nodes, parentPath = '') {
 
     const currentPath = parentPath ? `${parentPath}/${node.uid}` : `${node.uid}`
 
-    const flatNode = removeTranslations({ ...node, scx_path: currentPath })
+    const flatNode = removeTranslations({
+      ...node,
+      scx_path: currentPath,
+      scx_breadcrumb: currentPath,
+    })
 
     return node.children?.length
       ? [flatNode, ...flatten(node.children, currentPath)]

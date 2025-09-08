@@ -120,14 +120,48 @@ header {
   padding: 0 1rem;
   font-weight: 600;
   max-width: var(--content-width);
-  width: 100%;
+  width: calc(100% - 2rem);
+
+  nav {
+    ul {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0;
+      margin: 0;
+
+      li {
+        list-style-type: none;
+        display: flex;
+        word-break: keep-all;
+        text-wrap: nowrap;
+        white-space: nowrap;
+
+        &:first-of-type a {
+          text-decoration: none;
+        }
+
+        &::after {
+          content: '/';
+          margin-left: 0.5rem;
+          color: var(--gray);
+        }
+
+        &:last-child::after {
+          content: '';
+        }
+      }
+    }
+  }
 }
 
 main {
-  max-width: var(--content-width);
   margin: auto;
   flex: 1;
   padding: 0 1rem;
+  max-width: var(--content-width);
+  width: calc(100% - 2rem);
 
   ul li {
     list-style-type: upper-roman;

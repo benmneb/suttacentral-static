@@ -12,35 +12,58 @@ eleventyComputed:
   title: '{{ entry.original_title | default: entry.root_name }}—{{ entry.translated_title | default: entry.translated_name }}'
 ---
 
-<h1>{{ title }}</h1>
-
-<p>{{ entry.blurb }}</p>
-
-{% if entry.children.length %}
-<ul>
-  {% for child in entry.children %}
-    <li>
-    <!-- Check when the nested menu link should change to the root level chapter link, to sync URL structure with SuttaCentral.net -->
-    {% capture has_leaf_grandchild %}false{% endcapture %}
-    {% if child.children.size > 0 %}
-      {% for grandchild in child.children %}
-        {% if grandchild.node_type == 'leaf' %}
-          {% capture has_leaf_grandchild %}true{% endcapture %}
-        {% endif %}
+<header>
+  {% assign parts = entry.scx_breadcrumb | split: "/" %}
+  <nav aria-label="Breadcrumb">
+    <ul>
+      <li>
+        <a href="/">📚</a>
+      </li>
+      {% for part in parts %}
+        {% assign path = path | append: "/" | append: part %}
+        <li>
+          {% if forloop.last %}
+            <span aria-current="page">{{ part }}</span>
+          {% else %}
+            <a href="/pitika{{ path }}">{{ part }}</a>
+          {% endif %}
+        </li>
       {% endfor %}
-    {% endif %}
-    <h2>
-      <a href="{% if has_leaf_grandchild == 'true' %}/{{ child.uid }}/{% else %}/pitika/{{ entry.scx_path }}/{{ child.uid }}/{% endif %}">
-        {{ child.original_title | default: child.root_name }}—{{ child.translated_title | default: child.translated_name }}
-      </a>
-    </h2>
-      <p>{{ child.blurb }}</p>
-    </li>
-  {% endfor %}
-</ul>
-{% endif %}
+    </ul>
+  </nav>
+</header>
 
-<script>
-  const data = {{ entry | jsonify }};
-  console.log(data);
-</script>
+<main>
+  <h1>{{ title }}</h1>
+
+  <p>{{ entry.blurb }}</p>
+
+  {% if entry.children.length %}
+  <ul>
+    {% for child in entry.children %}
+      <li>
+      <!-- Check when the nested menu link should change to the root level chapter link, to sync URL structure with SuttaCentral.net -->
+      {% capture has_leaf_grandchild %}false{% endcapture %}
+      {% if child.children.size > 0 %}
+        {% for grandchild in child.children %}
+          {% if grandchild.node_type == 'leaf' %}
+            {% capture has_leaf_grandchild %}true{% endcapture %}
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+      <h2>
+        <a href="{% if has_leaf_grandchild == 'true' %}/{{ child.uid }}/{% else %}/pitika/{{ entry.scx_path }}/{{ child.uid }}/{% endif %}">
+          {{ child.original_title | default: child.root_name }}—{{ child.translated_title | default: child.translated_name }}
+        </a>
+      </h2>
+        <p>{{ child.blurb }}</p>
+      </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <script>
+    const data = {{ entry | jsonify }};
+    console.log(data);
+  </script>
+</main>

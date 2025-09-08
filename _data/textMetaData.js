@@ -30,8 +30,10 @@ function removeTranslationTexts(node) {
 
 let usedPaths = []
 
-function flatten(nodes) {
+function flatten(nodes, parentPath = '') {
   return nodes.flatMap((node) => {
+    const currentPath = parentPath ? `${parentPath}/${node.uid}` : `${node.uid}`
+
     if (node.node_type === 'leaf' || node.type === 'leaf') {
       const scx_path = node.uid
       if (usedPaths.includes(scx_path)) {
@@ -42,10 +44,14 @@ function flatten(nodes) {
         return null
       }
       usedPaths.push(scx_path)
-      return removeTranslationTexts({ ...node, scx_path })
+      return removeTranslationTexts({
+        ...node,
+        scx_path,
+        scx_breadcrumb: currentPath,
+      })
     }
 
-    return flatten(node.children || [])
+    return flatten(node.children || [], currentPath)
   })
 }
 

@@ -28,18 +28,24 @@ function removeTranslationTexts(node) {
   return redacted
 }
 
-function flatten(nodes) {
+function flatten(nodes, parentPath = '') {
   return nodes.flatMap((node) => {
+    const currentPath = parentPath ? `${parentPath}/${node.uid}` : `${node.uid}`
+
     // Stop recursion before it reaches leaf nodes (sutta texts) to sync URL structure with SuttaCentral.net
     if (node.children?.some((c) => c.node_type === 'leaf')) {
       // TODO: /dharmapadas page is messed up here, it should be /pitaka/sutta/minor/dharmapadas
       // because https://suttacentral.net/api/menu/dharmapadas?language=en
       // returns the child with `uid: g2dhp` with node type `leaf`, when the rest are `branch`.
       // So fix this check to account for situations like this.
-      return removeTranslationTexts({ ...node, scx_path: `${node.uid}` })
+      return removeTranslationTexts({
+        ...node,
+        scx_path: `${node.uid}`,
+        scx_breadcrumb: currentPath,
+      })
     }
 
-    return flatten(node.children || [])
+    return flatten(node.children || [], currentPath)
   })
 }
 
