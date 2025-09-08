@@ -66,7 +66,7 @@
     --aqua: #427b58;
     --orange: #af3a03;
     --gray: #928374;
-    /*--brown: #7c5c40;*/
+    --brown: #7c5c40;
 
     --red-dim: #cc2412;
     --green-dim: #98971a;
@@ -76,7 +76,7 @@
     --aqua-dim: #689d6a;
     --orange-dim: #d65d0e;
     --gray-dim: #7c6f64;
-    /*--brown-dim: #a07448;*/
+    --brown-dim: #a07448;
 
     /* Use these: */
     --background-color: var(--bg-hard);
