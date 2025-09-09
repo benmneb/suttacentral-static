@@ -2,12 +2,12 @@
 layout: base-layout.liquid
 
 pagination:
-  data: pitikaData
+  data: pitakaData
   size: 1
   alias: entry
   addAllPagesToCollections: true
 
-permalink: '/pitika/{{ entry.scx_path }}/index.html'
+permalink: '/pitaka/{{ entry.scx_path }}/index.html'
 eleventyComputed:
   title: '{{ entry.original_title | default: entry.root_name }}—{{ entry.translated_title | default: entry.translated_name }}'
 ---
@@ -25,7 +25,7 @@ eleventyComputed:
           {% if forloop.last %}
             <span aria-current="page">{{ part }}</span>
           {% else %}
-            <a href="/pitika{{ path }}">{{ part }}</a>
+            <a href="/pitaka{{ path }}">{{ part }}</a>
           {% endif %}
         </li>
       {% endfor %}
@@ -52,7 +52,7 @@ eleventyComputed:
         {% endfor %}
       {% endif %}
       <h2>
-        <a href="{% if has_leaf_grandchild == 'true' %}/{{ child.uid }}/{% else %}/pitika/{{ entry.scx_path }}/{{ child.uid }}/{% endif %}">
+        <a href="{% if has_leaf_grandchild == 'true' %}/{{ child.uid }}/{% else %}/pitaka/{{ entry.scx_path }}/{{ child.uid }}/{% endif %}">
           {{ child.original_title | default: child.root_name }}—{{ child.translated_title | default: child.translated_name }}
         </a>
       </h2>
@@ -68,5 +68,5 @@ eleventyComputed:
   </script>
 </main>
 
-{% assign path = "pitika/" | append: entry.scx_path %}
+{% assign path = "pitaka/" | append: entry.scx_path %}
 {% include "components/footer.liquid", route: path %}

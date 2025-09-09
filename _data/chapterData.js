@@ -56,7 +56,7 @@ function flatten(nodes, parentPath = '') {
  * to sync URL structure with SuttaCentral.net.
  *
  * The root path here (ie `/dn-silakkhandhavagga`) is the next nested path
- * after the end of pitikaData, ie `sutta/long/dn/`,
+ * after the end of pitakaData, ie `sutta/long/dn/`,
  * or the first parent of the leaf nodes, however you want to look at it.
  *
  * @returns

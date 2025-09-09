@@ -44,7 +44,7 @@ function flatten(nodes, parentPath = '') {
  * for the nested URL "menu" only (ie `/sutta/long/dn`),
  * to sync URL structure with SuttaCentral.net.
  *
- * These are then prefixed with /pitika in `pitika.md`
+ * These are then prefixed with /pitaka in `pitaka.md`
  * to sync URL structure with SuttaCentral.net properly.
  *
  * @returns

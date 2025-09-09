@@ -29,7 +29,7 @@ function flatten(nodes) {
 /*
  * Returns just the data necessary for the root tipitka links.
  *
- * These are then prefixed with /pitika in `index.md`
+ * These are then prefixed with /pitaka in `index.md`
  * to sync URL structure with SuttaCentral.net.
  *
  * @returns
