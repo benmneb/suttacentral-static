@@ -39,22 +39,63 @@ eleventyComputed:
   <p>{{ entry.blurb }}</p>
 
   {% if entry.children.length %}
-  <ul>
+  <ul class="texts-list">
     {% for child in entry.children %}
       <li>
       <h2>{{ child.original_title | default: child.root_name }}—{{ child.translated_title | default: child.translated_name }}</h2>
         <p>{{ child.blurb }}</p>
         {% if child.translations.length %}
-          <ul>
-              {% for version in child.translations %}
+
+          {% assign english_versions = child.translations | where: "lang", "en" %}
+          {% if english_versions.size > 0 %}
+          <details open>
+            <summary>English translation{% if english_versions.size > 1 %}s{% endif %}</summary>
+            <ul>
+              {% for version in english_versions %}
               <li>
-                  <a href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}" hreflang="{{ version.lang }}">
-                      {{ version.lang_name }}—{{ version.author }}
-                  </a>—<span>{{ version.title }}</span>
+                <a href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}" hreflang="{{ version.lang }}">
+                    {{ version.author | default: version.author_uid | replace: "&nbsp;", " " | replace: "&#160;", " " | replace: "\u00A0", " " | strip }}
+                </a>{% if version.publication_date %}&nbsp;(<span>{{ version.publication_date }}</span>){% endif %}
               </li>
               {% endfor %}
-          </ul>
+            </ul>
+          </details>
+          {% endif %}
+
+          {% assign root_versions = child.translations | where: "is_root", true | reject: "lang", "en" %}
+          {% if root_versions.size > 0 %}
+          <details open>
+            <summary>Edition{% if root_versions.size > 1 %}s{% endif %} of the root text</summary>
+            <ul>
+              {% for version in root_versions %}
+              <li>
+                <span>{{ version.lang_name }}—</span><a href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}" hreflang="{{ version.lang }}">
+                  {{ version.author | default: version.author_uid | replace: "&nbsp;", " " | replace: "&#160;", " " | replace: "\u00A0", " " | strip }}
+                </a>{% if version.publication_date %}&nbsp;(<span>{{ version.publication_date }}</span>){% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+          </details>
+          {% endif %}
+
+          {% assign remaining_versions = child.translations %}
+          {% assign remaining_versions = remaining_versions | reject: "lang", "en" | reject: "is_root", true %}
+          {% if remaining_versions.size > 0 %}
+          <details>
+            <summary>Translations in other modern languages ({{ remaining_versions.size }})</summary>
+            <ul>
+              {% for version in remaining_versions %}
+              <li>
+                <span>{{ version.lang_name }}—</span><a href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}" hreflang="{{ version.lang }}">
+                  {{ version.author | default: version.author_uid | replace: "&nbsp;", " " | replace: "&#160;", " " | replace: "\u00A0", " " | strip }}
+                </a>{% if version.publication_date %}&nbsp;(<span>{{ version.publication_date }}</span>){% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+          </details>
+          {% endif %}
         {% endif %}
+
         {% if child._parallels_data and child._parallels_data.size > 0 %}
           {% assign totalParallels = 0 %}
           {% for key in child._parallels_data %}

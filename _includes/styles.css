@@ -163,11 +163,49 @@ main {
   max-width: var(--content-width);
   width: calc(100% - 2rem);
 
-  ul li {
-    list-style-type: upper-roman;
+  ul {
+    padding-left: 0.75rem;
 
-    ul li {
-      list-style-type: unset;
+    li {
+      list-style-type: upper-roman;
+      margin: 0.3rem;
+
+      ul li {
+        list-style-type: disc;
+      }
+    }
+  }
+
+  .texts-list {
+    details {
+      summary {
+        cursor: pointer;
+        padding: 0.5rem 0.15rem 0.5rem 0.5rem;
+        border-radius: 0.3rem;
+        margin-left: -0.5rem;
+
+        &:hover,
+        &:active {
+          background-color: var(--bg-alt-1);
+        }
+      }
+
+      ul {
+        padding-left: 0.75rem;
+        margin: 0;
+
+        li {
+          list-style-type: none;
+
+          ul {
+            padding-left: 2rem;
+
+            li {
+              list-style-type: lower-roman;
+            }
+          }
+        }
+      }
     }
   }
 }
