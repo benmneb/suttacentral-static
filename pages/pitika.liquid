@@ -67,3 +67,6 @@ eleventyComputed:
     console.log(data);
   </script>
 </main>
+
+{% assign path = "pitika/" | append: entry.scx_path %}
+{% include "components/footer.liquid", route: path %}
