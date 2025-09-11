@@ -1,7 +1,7 @@
 {
   "name": "suttacentral-static",
   "version": "0.1.0",
-  "description": "A lightweight, performant, minimalist alternative-frontend for SuttaCentral.net",
+  "description": "A fast and minimal alternative frontend for SuttaCentral.net",
   "type": "module",
   "main": "index.js",
   "scripts": {
