@@ -40,6 +40,15 @@
   --text-color: var(--fg);
   --primary-color: var(--yellow);
   --primary-color-alt: var(--yellow-dim);
+
+  --sans-serif-font:
+    -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui,
+    helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica,
+    arial, sans-serif;
+  --serif-font:
+    Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif,
+    Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji,
+    Segoe UI Symbol;
 }
 
 @media (prefers-color-scheme: light) {
@@ -92,18 +101,7 @@
 }
 
 body {
-  font-family:
-    Iowan Old Style,
-    Apple Garamond,
-    Baskerville,
-    Times New Roman,
-    Droid Serif,
-    Times,
-    Source Serif Pro,
-    serif,
-    Apple Color Emoji,
-    Segoe UI Emoji,
-    Segoe UI Symbol;
+  font-family: var(--serif-font);
   background: var(--background-color);
   color: var(--text-color);
   display: flex;
@@ -113,6 +111,13 @@ body {
   padding: 0;
   line-height: 1.5;
   font-weight: 600;
+}
+
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
 }
 
 header {
@@ -152,6 +157,138 @@ header {
           content: '';
         }
       }
+    }
+  }
+}
+
+body:has(aside #commenter:checked) article .segment button[popovertarget] {
+  display: initial;
+}
+
+body:has(aside #segmenter:checked) article .segment .reference {
+  display: initial;
+}
+
+body:has(aside #rooter:checked) article .segment {
+  display: grid;
+  grid-template-columns: minmax(200px, calc(var(--content-width) - 2rem));
+  margin-bottom: 0.3rem;
+
+  .translation {
+    grid-column: 1;
+  }
+
+  .root {
+    grid-column: 1;
+    display: initial;
+  }
+}
+
+[popover] {
+  color: var(--text-color);
+  border: none;
+  box-shadow: 0 0.3rem 1rem var(--bg-hard);
+  border-radius: 0.3rem;
+  padding: 1rem;
+  background-color: var(--bg-alt-1);
+  max-width: calc(min(320px, 100vw) - 2rem);
+  max-height: 60vh;
+  overflow-y: scroll;
+}
+
+aside {
+  display: flex;
+  justify-content: end;
+
+  &:has(#positioner:checked) {
+    position: sticky;
+    top: 0.5rem;
+  }
+
+  fieldset {
+    width: fit-content;
+    padding: 0;
+    border: none;
+    margin: 0;
+    background-color: var(--bg-alt-1);
+    border-top-left-radius: 0.3rem;
+    border-bottom-left-radius: 0.3rem;
+
+    button {
+      height: 100%;
+      padding: 0 0.5rem;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      background-color: inherit;
+      color: var(--fg-alt-3);
+
+      &:focus,
+      &:hover {
+        background-color: var(--primary-color);
+        color: var(--background-color);
+      }
+    }
+
+    ul {
+      list-style: none;
+      margin: 0;
+      padding-left: 0;
+      display: flex;
+    }
+
+    li {
+      display: block;
+      position: relative;
+      color: var(--fg-alt-3);
+
+      &:hover,
+      &:focus-within {
+        background: var(--bg-soft);
+      }
+
+      &:first-of-type > button {
+        border-top-left-radius: 0.3rem;
+        border-bottom-left-radius: 0.3rem;
+      }
+    }
+
+    ul li ul {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 100%;
+      width: max-content;
+      background-color: var(--bg-alt-2);
+      color: var(--text-color);
+      padding-right: 0.3rem;
+
+      li {
+        width: 100%;
+        display: flex;
+        padding-right: 0.3rem;
+
+        label {
+          width: 100%;
+          padding: 0 0.3rem;
+        }
+
+        input {
+          margin: 0;
+        }
+
+        label,
+        input {
+          cursor: pointer;
+        }
+      }
+    }
+
+    ul li:hover > ul,
+    ul li:focus-within > ul,
+    ul li ul:hover,
+    ul li ul:focus {
+      display: block;
     }
   }
 }
@@ -208,6 +345,72 @@ main {
       }
     }
   }
+
+  article {
+    button[popovertarget] {
+      display: none;
+      user-select: none;
+      cursor: help;
+      background: none;
+      border: none;
+      color: var(--primary-color);
+      padding: 0;
+      margin: 0 0.1rem 0 0;
+      vertical-align: text-top;
+      font-weight: 800;
+
+      &:focus {
+        background-color: var(--primary-color);
+        color: var(--background-color);
+      }
+    }
+
+    .segment {
+      .root {
+        display: none;
+        color: var(--fg-alt-4);
+      }
+
+      .reference {
+        display: none;
+
+        a {
+          border: 1px solid var(--bg-alt-2);
+          border-radius: 0.3rem;
+          padding: 0.2rem;
+          text-decoration: none;
+          color: var(--fg-alt-4);
+          font-size: 70%;
+
+          &:hover {
+            background-color: var(--bg-soft);
+          }
+        }
+      }
+    }
+
+    /* This class comes through from Sutta Central with the non-segment texts */
+    a.ref {
+      border: 1px solid var(--bg-alt-2);
+      border-radius: 0.3rem;
+      padding: 0.2rem;
+      text-decoration: none;
+      color: var(--fg-alt-4);
+      font-size: 70%;
+      margin-right: 0.3rem;
+
+      &:hover {
+        background-color: var(--bg-soft);
+      }
+    }
+
+    footer {
+      border-radius: 0.5rem;
+      padding: 1rem 2rem;
+      text-align: left;
+      background-color: var(--bg-alt-2);
+    }
+  }
 }
 
 footer:not(article footer) {
@@ -240,14 +443,5 @@ a {
   &::selection {
     color: var(--text-color);
     background-color: var(--blue-dim);
-  }
-}
-
-article {
-  footer {
-    border-radius: 0.5rem;
-    padding: 1rem 2rem;
-    text-align: left;
-    background-color: var(--bg-alt-2);
   }
 }

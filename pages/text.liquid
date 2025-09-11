@@ -36,33 +36,118 @@ eleventyComputed:
   </nav>
 </header>
 
-<main>
-    <article>
-    {% if entry.is_root %}
-    {% for key in entry._bilarasuttas_data.keys_order %}
-    {% assign html = entry._bilarasuttas_data.html_text[key] %}
-    {% assign text = entry._bilarasuttas_data.root_text[key] %}
-        {% if html and text %}
-            {{ html | replace: "{}", text }}
-        {% endif %}
-        {% endfor %}
-    {% elsif entry.segmented %}
-    {% for key in entry._bilarasuttas_data.keys_order %}
-    {% assign html = entry._bilarasuttas_data.html_text[key] %}
-    {% assign text = entry._bilarasuttas_data.translation_text[key] %}
-        {% if html and text %}
-            {{ html | replace: "{}", text }}
-        {% endif %}
-        {% endfor %}
-    {% else %}
-        {{ entry._suttas_data.text | replace: "\n", "" }}
-    {% endif %}
-    </article>
+<aside>
+  <fieldset>
+    <ul>
+      <li>
+        <button popovertarget="info">Info</button>
+      </li>
+      {% if entry.segmented or entry.has_comment or entry.is_root %}
+      <li>
+        <button aria-haspopup="true">Views</button>
+        <ul class="dropdown" aria-label="submenu">
+          {% if entry.has_comment or entry._bilarasuttas_data.variant_text.size > 0 %}
+          <li>
+            <label for="commenter">Show comments</label>
+            <input type="checkbox" id="commenter" checked />
+          </li>
+          {% endif %}
+          {% unless entry.is_root %}
+          <li>
+            <label for="rooter">Show root text</label>
+            <input type="checkbox" id="rooter" />
+          </li>
+          {% endunless %}
+          {% if entry.segmented %}
+          <li>
+            <label for="segmenter">Show segments</label>
+            <input type="checkbox" id="segmenter" />
+          </li>
+          {% endif %}
+          <li>
+            <label for="positioner">Pin this menu</label>
+            <input type="checkbox" id="positioner" checked />
+          </li>
+        </ul>
+      </li>
+      {% endif %}
+      {% if entry._parallels_data.size > 0 %}
+      <li>
+        <button popovertarget="parallels">Parallels</button>
+      </li>
+      {% endif %}
+    </ul>
+  </fieldset>
+</aside>
 
-    <script>
+<main>
+  {% if entry.is_root %}
+    {% for key in entry._bilarasuttas_data.keys_order %}
+      {% assign html = entry._bilarasuttas_data.html_text[key] %}
+      {% assign text = entry._bilarasuttas_data.root_text[key] %}
+      {% assign comment = entry._bilarasuttas_data.variant_text[key] %}
+      {% if html and text %}
+        {% capture replacement %}
+          <span id="{{ key }}" class="segment">
+            <span class="reference">
+              {% assign ref = key | split: ":" | last %}
+              <a id="{{ ref }}" href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
+            </span>
+            <!-- This is not a translation, its the root text, the class is for styling purposes. -->
+            <span class="translation" lang="{{ entry.lang }}" translate="no">
+              <span class="text">{{ text }}</span>
+              {% if comment %}
+                <button popovertarget="comment-{{ key }}">*</button>
+              {% endif %}
+            </span>
+          </span>
+          {% if comment %}
+            <article id="comment-{{ key }}" popover>{{ comment | replace: 'https://suttacentral.net', '' }}</article>
+          {% endif %}
+        {% endcapture %}
+        {{ html | replace: "{}", replacement }}
+      {% endif %}
+    {% endfor %}
+  {% elsif entry.segmented %}
+    {% for key in entry._bilarasuttas_data.keys_order %}
+      {% assign html = entry._bilarasuttas_data.html_text[key] %}
+      {% assign text = entry._bilarasuttas_data.translation_text[key] %}
+      {% assign rootText = entry._bilarasuttas_data.root_text[key] %}
+      {% assign comment = entry._bilarasuttas_data.comment_text[key] %}
+      {% if html and text %}
+        {% capture replacement %}
+          <span id="{{ key }}" class="segment">
+            <span class="reference">
+              {% assign ref = key | split: ":" | last %}
+              <a id="{{ ref }}" href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
+            </span>
+            <span class="translation" lang="{{ entry.lang }}">
+              <span class="text">{{ text }}</span>
+              {% if comment %}
+                <button popovertarget="comment-{{ key }}">*</button>
+              {% endif %}
+            </span>
+            {% if rootText %}
+            <span class="root" lang="{{ entry.root_lang }}" translate="no">
+              <span class="text">{{ rootText }}</span>
+            </span>
+            {% endif %}
+          </span>
+          {% if comment %}
+            <article id="comment-{{ key }}" popover>{{ comment | replace: 'https://suttacentral.net', '' }}</article>
+          {% endif %}
+        {% endcapture %}
+        {{ html | replace: "{}", replacement }}
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    {{ entry._suttas_data.text | replace: "\n", "" }}
+  {% endif %}
+
+  <script>
     const data = {{ entry | jsonify }};
     console.log(data);
-    </script>
+  </script>
 </main>
 
 {% include "components/footer.liquid", route: entry.scx_path %}
