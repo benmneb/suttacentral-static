@@ -5,7 +5,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "NODE_OPTIONS=\"--max-old-space-size=16384\" pnpm exec eleventy --serve"
+    "dev": "NODE_ENV=development NODE_OPTIONS=\"--max-old-space-size=16384\" pnpm exec eleventy --serve",
+    "build": "NODE_ENV=production pnpm exec eleventy"
   },
   "keywords": [],
   "author": "benmneb",
