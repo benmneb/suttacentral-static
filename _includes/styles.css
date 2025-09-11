@@ -38,6 +38,7 @@
   --content-width: 600px;
   --background-color: var(--bg);
   --text-color: var(--fg-alt-2);
+  --text-color-secondary: var(--fg-alt-4);
   --headings-color: var(--fg);
   --primary-color: var(--yellow);
   --primary-color-alt: var(--yellow-dim);
@@ -91,6 +92,7 @@
     /* Use these: */
     --background-color: var(--bg-hard);
     --text-color: var(--fg-alt-2);
+    --text-color-secondary: var(--fg-alt-4);
     --headings-color: var(--fg);
     --primary-color: var(--orange-dim);
     --primary-color-alt: var(--orange);
@@ -182,7 +184,6 @@ body:has(aside #segmenter:checked) article .segment .reference {
 
 body:has(aside #rooter:checked) article .segment {
   display: grid;
-  grid-template-columns: minmax(200px, calc(var(--content-width) - 2rem));
   margin-bottom: 0.3rem;
 
   .translation {
@@ -400,7 +401,47 @@ main {
       }
     }
 
-    /* This class comes through from Sutta Central with the non-segment texts */
+    /* These all come through from Sutta Central. */
+    header {
+      text-align: center;
+      margin-bottom: 4rem;
+
+      li {
+        list-style-type: none;
+        letter-spacing: 0.02rem;
+        font-variant-caps: all-small-caps;
+        text-wrap: balance;
+      }
+
+      .sutta-title {
+        word-break: break-word;
+        text-wrap: balance;
+      }
+
+      .subheading {
+        font-style: italic;
+      }
+    }
+
+    .evam {
+      letter-spacing: 0.02rem;
+      font-variant-caps: all-small-caps;
+    }
+    .verse-line {
+      display: block;
+    }
+    .endsection {
+      font-style: italic;
+      text-align: center;
+      color: var(--text-color-secondary);
+    }
+    .endsutta {
+      font-weight: bold;
+      text-align: center;
+      color: var(--text-color-secondary);
+    }
+
+    /* This class comes through from Sutta Central with the non-segment texts. */
     a.ref {
       border: 1px solid var(--bg-alt-2);
       border-radius: 0.3rem;
@@ -415,6 +456,7 @@ main {
       }
     }
 
+    /* Sutta Central includes footers in legacy texts with publication info. */
     footer {
       border-radius: 0.5rem;
       padding: 1rem 2rem;
