@@ -37,7 +37,8 @@
   /* Use these: */
   --content-width: 600px;
   --background-color: var(--bg);
-  --text-color: var(--fg);
+  --text-color: var(--fg-alt-2);
+  --headings-color: var(--fg);
   --primary-color: var(--yellow);
   --primary-color-alt: var(--yellow-dim);
 
@@ -89,7 +90,8 @@
 
     /* Use these: */
     --background-color: var(--bg-hard);
-    --text-color: var(--fg);
+    --text-color: var(--fg-alt-2);
+    --headings-color: var(--fg);
     --primary-color: var(--orange-dim);
     --primary-color-alt: var(--orange);
   }
@@ -111,13 +113,22 @@ body {
   padding: 0;
   line-height: 1.5;
   font-weight: 600;
-}
 
-input,
-textarea,
-select,
-button {
-  font-family: inherit;
+  input,
+  textarea,
+  select,
+  button {
+    font-family: inherit;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--headings-color);
+  }
 }
 
 header {
