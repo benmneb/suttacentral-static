@@ -86,12 +86,12 @@ eleventyComputed:
       {% assign html = entry._bilarasuttas_data.html_text[key] %}
       {% assign text = entry._bilarasuttas_data.root_text[key] %}
       {% assign comment = entry._bilarasuttas_data.variant_text[key] %}
+      {% assign ref = key | split: ":" | last %}
       {% if html and text %}
         {% capture replacement %}
           <span id="{{ key }}" class="segment">
-            <span class="reference">
-              {% assign ref = key | split: ":" | last %}
-              <a id="{{ ref }}" href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
+            <span class="reference" id="{{ ref }}">
+              <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
             </span>
             <!-- This is not a translation, its the root text, the class is for styling purposes. -->
             <span class="translation" lang="{{ entry.lang }}" translate="no">
@@ -114,12 +114,12 @@ eleventyComputed:
       {% assign text = entry._bilarasuttas_data.translation_text[key] %}
       {% assign rootText = entry._bilarasuttas_data.root_text[key] %}
       {% assign comment = entry._bilarasuttas_data.comment_text[key] %}
+      {% assign ref = key | split: ":" | last %}
       {% if html and text %}
         {% capture replacement %}
           <span id="{{ key }}" class="segment">
-            <span class="reference">
-              {% assign ref = key | split: ":" | last %}
-              <a id="{{ ref }}" href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
+            <span class="reference" id="{{ ref }}">
+              <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
             </span>
             <span class="translation" lang="{{ entry.lang }}">
               <span class="text">{{ text }}</span>

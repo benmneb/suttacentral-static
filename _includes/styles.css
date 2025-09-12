@@ -181,7 +181,8 @@ body:has(aside #commenter:checked) article .segment button[popovertarget] {
 body:has(aside #segmenter:checked)
   article
   .segment:not(header .segment)
-  .reference {
+  .reference
+  > a {
   display: initial;
 }
 
@@ -388,9 +389,8 @@ main {
       }
 
       .reference {
-        display: none;
-
         a {
+          display: none;
           border: 1px solid var(--bg-alt-2);
           border-radius: 0.3rem;
           padding: 0.2rem;
