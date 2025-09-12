@@ -131,43 +131,43 @@ body {
   h6 {
     color: var(--headings-color);
   }
-}
 
-header {
-  margin: 1rem auto;
-  padding: 0 1rem;
-  font-weight: 600;
-  max-width: var(--content-width);
-  width: calc(100% - 2rem);
+  & > header {
+    margin: 1rem auto;
+    padding: 0 1rem;
+    font-weight: 600;
+    max-width: var(--content-width);
+    width: calc(100% - 2rem);
 
-  nav {
-    ul {
-      list-style: none;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      padding: 0;
-      margin: 0;
-
-      li {
-        list-style-type: none;
+    nav {
+      ul {
+        list-style: none;
         display: flex;
-        word-break: keep-all;
-        text-wrap: nowrap;
-        white-space: nowrap;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0;
+        margin: 0;
 
-        &:first-of-type a {
-          text-decoration: none;
-        }
+        li {
+          list-style-type: none;
+          display: flex;
+          word-break: keep-all;
+          text-wrap: nowrap;
+          white-space: nowrap;
 
-        &::after {
-          content: '/';
-          margin-left: 0.5rem;
-          color: var(--gray);
-        }
+          &:first-of-type a {
+            text-decoration: none;
+          }
 
-        &:last-child::after {
-          content: '';
+          &::after {
+            content: '/';
+            margin-left: 0.5rem;
+            color: var(--gray);
+          }
+
+          &:last-child::after {
+            content: '';
+          }
         }
       }
     }
@@ -178,7 +178,10 @@ body:has(aside #commenter:checked) article .segment button[popovertarget] {
   display: initial;
 }
 
-body:has(aside #segmenter:checked) article .segment .reference {
+body:has(aside #segmenter:checked)
+  article
+  .segment:not(header .segment)
+  .reference {
   display: initial;
 }
 
