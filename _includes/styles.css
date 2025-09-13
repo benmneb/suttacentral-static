@@ -459,6 +459,10 @@ main {
     .verse-line {
       display: block;
     }
+    .uddana-intro {
+      font-weight: bold;
+      color: var(--text-color-secondary);
+    }
     .endsection {
       font-style: italic;
       text-align: center;
@@ -467,6 +471,13 @@ main {
     .endsutta {
       font-weight: bold;
       text-align: center;
+      color: var(--text-color-secondary);
+    }
+    .endbook,
+    .endvagga,
+    .endkagga {
+      text-align: center;
+      font-variant-caps: all-small-caps;
       color: var(--text-color-secondary);
     }
 
