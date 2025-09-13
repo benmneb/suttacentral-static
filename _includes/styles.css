@@ -139,7 +139,7 @@ body {
     max-width: var(--content-width);
     width: calc(100% - 2rem);
 
-    nav {
+    > nav {
       ul {
         list-style: none;
         display: flex;
@@ -169,6 +169,31 @@ body {
             content: '';
           }
         }
+      }
+    }
+  }
+
+  > nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-self: center;
+    gap: 1rem;
+    margin: 2rem 1rem;
+    width: calc(100vw - 2rem);
+    max-width: calc(var(--content-width) * 1.2);
+
+    div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: flex-start;
+
+      &:nth-of-type(2) {
+        align-items: flex-end;
+      }
+
+      span {
+        font-variant-caps: petite-caps;
       }
     }
   }

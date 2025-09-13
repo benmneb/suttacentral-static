@@ -87,6 +87,12 @@ eleventyComputed:
       {% assign text = entry._bilarasuttas_data.root_text[key] %}
       {% assign comment = entry._bilarasuttas_data.variant_text[key] %}
       {% assign ref = key | split: ":" | last %}
+      {% if entry.previous.uid != blank %}
+        {% capture prev %}/{{ entry.previous.uid }}/{{ entry.root_lang }}/{{ entry.author_uid }}{% endcapture %}
+      {% endif %}
+      {% if entry.next.uid != blank %}
+       {% capture next %}/{{ entry.next.uid }}/{{ entry.root_lang }}/{{ entry.author_uid }}{% endcapture %}
+      {% endif %}
       {% if html and text %}
         {% capture replacement %}
           <span id="{{ key }}" class="segment">
@@ -115,6 +121,12 @@ eleventyComputed:
       {% assign rootText = entry._bilarasuttas_data.root_text[key] %}
       {% assign comment = entry._bilarasuttas_data.comment_text[key] %}
       {% assign ref = key | split: ":" | last %}
+      {% if entry.previous.uid != blank %}
+        {% capture prev %}/{{ entry.previous.uid }}/en/{{ entry.priority_author_uid }}{% endcapture %}
+      {% endif %}
+      {% if entry.next.uid != blank %}
+       {% capture next %}/{{ entry.next.uid }}/en/{{ entry.priority_author_uid }}{% endcapture %}
+      {% endif %}
       {% if html and text %}
         {% capture replacement %}
           <span id="{{ key }}" class="segment">
@@ -149,5 +161,20 @@ eleventyComputed:
     console.log(data);
   </script>
 </main>
+
+<nav aria-label="Article pagination">
+    <div>
+      {% if entry.previous.uid != blank %}
+        <span>Previous</span>
+        <a href="{{ prev }}" rel="prev">{{ entry.previous.name }}</a>
+      {% endif %}
+    </div>
+    <div>
+      {% if entry.next.uid != blank %}
+        <span>Next</span>
+        <a href="{{ next }}" rel="next">{{ entry.next.name }}</a>
+      {% endif %}
+    </div>
+</nav>
 
 {% include "components/footer.liquid", route: entry.scx_path %}
