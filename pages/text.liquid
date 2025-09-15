@@ -11,9 +11,8 @@ permalink: '{{ entry.scx_path }}/index.html'
 eleventyComputed:
   title: '{{ entry.acronym }}: {{ entry.original_title }}—{{ entry.author }}'
 ---
-
 <header>
-  {% assign parts = entry.scx_breadcrumb | split: "/" %}
+  {% assign parts = entry.scx_breadcrumb | split: '/' %}
   {% assign second_last = parts | size | minus: 1 %}
   <nav aria-label="Breadcrumb">
     <ul>
@@ -21,7 +20,7 @@ eleventyComputed:
         <a href="/">📚</a>
       </li>
       {% for part in parts %}
-        {% assign path = path | append: "/" | append: part %}
+        {% assign path = path | append: '/' | append: part %}
         <li>
           {% if forloop.last %}
             <span aria-current="page">{{ part }}</span>
@@ -43,38 +42,40 @@ eleventyComputed:
         <button popovertarget="info">Info</button>
       </li>
       {% if entry.segmented or entry.has_comment or entry.is_root %}
-      <li>
-        <button aria-haspopup="true">Views</button>
-        <ul class="dropdown" aria-label="submenu">
-          {% if entry.has_comment or entry._bilarasuttas_data.variant_text.size > 0 %}
-          <li>
-            <label for="commenter">Show comments</label>
-            <input type="checkbox" id="commenter" checked />
-          </li>
-          {% endif %}
-          {% unless entry.is_root %}
-          <li>
-            <label for="rooter">Show root text</label>
-            <input type="checkbox" id="rooter" />
-          </li>
-          {% endunless %}
-          {% if entry.segmented %}
-          <li>
-            <label for="segmenter">Show segments</label>
-            <input type="checkbox" id="segmenter" />
-          </li>
-          {% endif %}
-          <li>
-            <label for="positioner">Pin this menu</label>
-            <input type="checkbox" id="positioner" checked />
-          </li>
-        </ul>
-      </li>
+        <li>
+          <button aria-haspopup="true">Views</button>
+          <ul class="dropdown" aria-label="submenu">
+            {% if entry.has_comment
+              or entry._bilarasuttas_data.variant_text.size > 0
+            %}
+              <li>
+                <label for="commenter">Show comments</label>
+                <input type="checkbox" id="commenter" checked>
+              </li>
+            {% endif %}
+            {% unless entry.is_root %}
+              <li>
+                <label for="rooter">Show root text</label>
+                <input type="checkbox" id="rooter">
+              </li>
+            {% endunless %}
+            {% if entry.segmented %}
+              <li>
+                <label for="segmenter">Show segments</label>
+                <input type="checkbox" id="segmenter">
+              </li>
+            {% endif %}
+            <li>
+              <label for="positioner">Pin this menu</label>
+              <input type="checkbox" id="positioner" checked>
+            </li>
+          </ul>
+        </li>
       {% endif %}
       {% if entry._parallels_data.size > 0 %}
-      <li>
-        <button popovertarget="parallels">Parallels</button>
-      </li>
+        <li>
+          <button popovertarget="parallels">Parallels</button>
+        </li>
       {% endif %}
     </ul>
   </fieldset>
@@ -86,12 +87,12 @@ eleventyComputed:
       {% assign html = entry._bilarasuttas_data.html_text[key] %}
       {% assign text = entry._bilarasuttas_data.root_text[key] %}
       {% assign comment = entry._bilarasuttas_data.variant_text[key] %}
-      {% assign ref = key | split: ":" | last %}
+      {% assign ref = key | split: ':' | last %}
       {% if entry.previous.uid != blank %}
         {% capture prev %}/{{ entry.previous.uid }}/{{ entry.root_lang }}/{{ entry.author_uid }}{% endcapture %}
       {% endif %}
       {% if entry.next.uid != blank %}
-       {% capture next %}/{{ entry.next.uid }}/{{ entry.root_lang }}/{{ entry.author_uid }}{% endcapture %}
+        {% capture next %}/{{ entry.next.uid }}/{{ entry.root_lang }}/{{ entry.author_uid }}{% endcapture %}
       {% endif %}
       {% if html and text %}
         {% capture replacement %}
@@ -108,24 +109,27 @@ eleventyComputed:
             </span>
           </span>
           {% if comment %}
-            <article id="comment-{{ key }}" popover>{{ comment | replace: 'https://suttacentral.net', '' }}</article>
+            <article id="comment-{{ key }}" popover>Variant: {{ comment | replace: 'https://suttacentral.net', '' }}</article>
           {% endif %}
         {% endcapture %}
-        {{ html | replace: "{}", replacement }}
+        {{ html | replace: '{}', replacement }}
       {% endif %}
     {% endfor %}
+    <article id="info" popover>
+      {% include 'components/publication-info.liquid', entry: entry %}
+    </article>
   {% elsif entry.segmented %}
     {% for key in entry._bilarasuttas_data.keys_order %}
       {% assign html = entry._bilarasuttas_data.html_text[key] %}
       {% assign text = entry._bilarasuttas_data.translation_text[key] %}
       {% assign rootText = entry._bilarasuttas_data.root_text[key] %}
       {% assign comment = entry._bilarasuttas_data.comment_text[key] %}
-      {% assign ref = key | split: ":" | last %}
+      {% assign ref = key | split: ':' | last %}
       {% if entry.previous.uid != blank %}
         {% capture prev %}/{{ entry.previous.uid }}/en/{{ entry.priority_author_uid }}{% endcapture %}
       {% endif %}
       {% if entry.next.uid != blank %}
-       {% capture next %}/{{ entry.next.uid }}/en/{{ entry.priority_author_uid }}{% endcapture %}
+        {% capture next %}/{{ entry.next.uid }}/en/{{ entry.priority_author_uid }}{% endcapture %}
       {% endif %}
       {% if html and text %}
         {% capture replacement %}
@@ -149,9 +153,14 @@ eleventyComputed:
             <article id="comment-{{ key }}" popover>{{ comment | replace: 'https://suttacentral.net', '' }}</article>
           {% endif %}
         {% endcapture %}
-        {{ html | replace: "{}", replacement }}
+        {{ html | replace: '{}', replacement }}
       {% endif %}
     {% endfor %}
+    {% if entry._publication_info != blank %}
+      <article id="info" popover>
+        {% include 'components/publication-info.liquid', entry: entry %}
+      </article>
+    {% endif %}
   {% else %}
     {% if entry.previous.uid != blank %}
       {% capture prev %}/{{ entry.previous.uid }}/en/{{ entry.priority_author_uid }}{% endcapture %}
@@ -159,7 +168,24 @@ eleventyComputed:
     {% if entry.next.uid != blank %}
       {% capture next %}/{{ entry.next.uid }}/en/{{ entry.priority_author_uid }}{% endcapture %}
     {% endif %}
-    {{ entry._suttas_data.text | replace: "\n", "" }}
+    {% assign html_content = entry._suttas_data.text | replace: '\n', '' %}
+    {% assign original_footer = html_content
+      | split: '<footer'
+      | last
+      | split: '</footer>'
+      | first
+      | prepend: '<footer'
+      | append: '</footer>'
+    %}
+    {% assign html_without_footer = html_content
+      | replace: original_footer, ''
+    %}
+    {% assign modified_footer = original_footer
+      | replace: '<footer', '<article id="info" popover'
+      | replace: '</footer>', '</article>'
+    %}
+    {{ html_without_footer }}
+    {{ modified_footer }}
   {% endif %}
 
   <script>
@@ -169,18 +195,18 @@ eleventyComputed:
 </main>
 
 <nav aria-label="Article pagination">
-    <div>
-      {% if entry.previous.uid != blank %}
-        <span>Previous</span>
-        <a href="{{ prev }}" rel="prev">{{ entry.previous.name }}</a>
-      {% endif %}
-    </div>
-    <div>
-      {% if entry.next.uid != blank %}
-        <span>Next</span>
-        <a href="{{ next }}" rel="next">{{ entry.next.name }}</a>
-      {% endif %}
-    </div>
+  <div>
+    {% if entry.previous.uid != blank %}
+      <span>Previous</span>
+      <a href="{{ prev }}" rel="prev">{{ entry.previous.name }}</a>
+    {% endif %}
+  </div>
+  <div>
+    {% if entry.next.uid != blank %}
+      <span>Next</span>
+      <a href="{{ next }}" rel="next">{{ entry.next.name }}</a>
+    {% endif %}
+  </div>
 </nav>
 
-{% include "components/footer.liquid", route: entry.scx_path %}
+{% include 'components/footer.liquid', route: entry.scx_path %}

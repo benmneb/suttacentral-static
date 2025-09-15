@@ -23,6 +23,9 @@ function legacyTranslationUrl(uid, author, lang) {
 function parallelsUrl(uid) {
   return `https://suttacentral.net/api/parallels/${uid}`
 }
+function publicationInfoUrl(suttaUid, lang, translatorUid) {
+  return `https://suttacentral.net/api/publication_info/${suttaUid}/${lang}/${translatorUid}`
+}
 
 async function fetchJson(url) {
   endpointsHit++
@@ -110,13 +113,28 @@ async function fetchDataTree(uid, depth = 0) {
           .start()
         return null
       }
-      // Add translated texts data into `/suttaplex`.translations
+
+      let publicationInfo
+      try {
+        publicationInfo = await fetchJson(
+          publicationInfoUrl(node.uid, trans.lang, trans.author_uid)
+        )
+      } catch {
+        publicationInfo = { error: true }
+        // It's possibly only root texts and Sujato's translations actually have data here.
+        // This error object is what SC returns for errors also, ie: https://suttacentral.net/api/publication_info/dn1/en/bodhi
+      }
+
+      // Add translated texts and publication info into `/suttaplex`.translations
       // to keep the texts data with its meta-data.
       return {
         ...trans,
         ...(trans.segmented
           ? { _bilarasuttas_data: texts }
           : { _suttas_data: texts.translation }),
+        ...(!publicationInfo.error && {
+          _publication_info: publicationInfo[0],
+        }),
       }
     })
 

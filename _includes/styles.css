@@ -42,6 +42,7 @@
   --headings-color: var(--fg);
   --primary-color: var(--yellow);
   --primary-color-alt: var(--yellow-dim);
+  --shadow-color: var(--bg-hard);
 
   --sans-serif-font:
     -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui,
@@ -96,6 +97,7 @@
     --headings-color: var(--fg);
     --primary-color: var(--orange-dim);
     --primary-color-alt: var(--orange);
+    --shadow-color: var(--gray-dim);
   }
 }
 
@@ -235,6 +237,10 @@ body:has(aside #rooter:checked) article .segment {
   max-width: calc(min(320px, 100vw) - 2rem);
   max-height: 60vh;
   overflow-y: scroll;
+
+  dl dt {
+    color: var(--text-color-secondary);
+  }
 }
 
 aside {

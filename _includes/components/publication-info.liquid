@@ -1,0 +1,111 @@
+<section>
+  <h2>Publication Info</h2>
+  <section about="{{ entry._publication_info.source_url }}">
+    <dl>
+      <dt>Translation title</dt>
+      <dd property="dc:title">
+        {{ entry._publication_info.translation_title }}
+      </dd>
+      <dt>Translation subtitle</dt>
+      <dd property="dc:title">
+        {{ entry._publication_info.translation_subtitle }}
+      </dd>
+      {% if entry._publication_info.author_name %}
+        <dt>Translator</dt>
+        <dd property="dc:creator">
+          {{ entry._publication_info.author_name }}
+        </dd>
+      {% endif %}
+      {% if entry._publication_info.collaborator %}
+        <dt>Collaborator</dt>
+        <dd property="dc:creator">
+          {{ entry._publication_info.collaborator }}
+        </dd>
+      {% endif %}
+    </dl>
+    <dl>
+      <dt>Root title</dt>
+      <dd property="dc:title">
+        {{ entry._publication_info.root_title }}
+      </dd>
+      {% if entry._publication_info.translation_lang_name %}
+        <dt>Translation language</dt>
+        <dd property="dc:language">
+          {{ entry._publication_info.translation_lang_name }}
+        </dd>
+      {% endif %}
+      <dt>Root language</dt>
+      <dd>
+        {{ entry._publication_info.root_lang_name }}
+      </dd>
+    </dl>
+    <dl>
+      <dt>Translations description</dt>
+      <dd property="dc:description">
+        {{ entry._publication_info.translation_description }}
+      </dd>
+      <dt>Translations process</dt>
+      <dd property="dc:description">
+        {{ entry._publication_info.translation_process }}
+      </dd>
+      <dt>Publication status</dt>
+      <dd>
+        {{ entry._publication_info.publication_status }}
+      </dd>
+    </dl>
+    <dl>
+      <dt>Edition</dt>
+      <dd>
+        {{ entry._publication_info.edition[0].edition_number }}
+      </dd>
+      <dt property="dc:date">Publication date</dt>
+      <dd property="dc:date">
+        {{ entry._publication_info.edition[0].publication_date }}
+      </dd>
+      <dt>Publisher</dt>
+      <dd property="dc:publisher">
+        {{ entry._publication_info.edition[0].publisher }}
+      </dd>
+      <dt>Publication type</dt>
+      <dd property="dc:format">
+        {{ entry._publication_info.edition[0].publication_type }}
+      </dd>
+    </dl>
+    <dl>
+      <dt>URL</dt>
+      <dd>
+        <a
+          href="{{ entry._publication_info.edition[0].edition_url }}"
+        >
+          {{- entry._publication_info.edition[0].edition_url -}}
+        </a>
+      </dd>
+      <dt>Source</dt>
+      <dd>
+        <a
+          href="{{ entry._publication_info.source_url }}"
+        >
+          {{- entry._publication_info.source_url -}}
+        </a>
+      </dd>
+      <dt>SuttaCentral publication number</dt>
+      <dd property="dc:identifier">
+        {{ entry._publication_info._key }}
+      </dd>
+    </dl>
+  </section>
+  <section>
+    <h3>License</h3>
+    <p property="dc:rights">
+      {{ entry._publication_info.license.license_type }}
+    </p>
+    <p>
+      <a href="{{ entry._publication_info.license.license_url }}">
+        {{ entry._publication_info.license.license_url }}
+      </a>
+    </p>
+    <p>
+      {{ entry._publication_info.license.license_statement }}
+    </p>
+  </section>
+</section>
