@@ -3,9 +3,8 @@ import ora from 'ora'
 
 const CACHE_DURATION = '*' // https://www.11ty.dev/docs/plugins/fetch/#change-the-cache-duration
 const DEV_MODE = process.env.NODE_ENV !== 'production'
-const MAX_CONCURRENT_REQUESTS = 50 // Limit concurrent requests
+const MAX_CONCURRENT_REQUESTS = 50
 
-// Cache the master data globally to avoid refetching
 let cachedMasterData = null
 let isBuilding = false
 
@@ -26,13 +25,13 @@ function parallelsUrl(uid) {
 }
 
 async function fetchJson(url) {
+  endpointsHit++
   return await Fetch(url, {
     duration: CACHE_DURATION,
     type: 'json',
   })
 }
 
-// Utility to limit concurrent promises
 async function limitConcurrency(promises, limit) {
   const results = []
   for (let i = 0; i < promises.length; i += limit) {
@@ -53,7 +52,6 @@ async function fetchDataTree(uid, depth = 0) {
   let json
   try {
     json = await fetchJson(menuUrl(uid))
-    endpointsHit++
   } catch (e) {
     spinner
       .fail(`Fetch error for /menu with uid: ${uid} at depth ${depth}`)
@@ -77,7 +75,6 @@ async function fetchDataTree(uid, depth = 0) {
     let suttaplexData = null
     try {
       suttaplexData = await fetchJson(leafUrl(node.uid))
-      endpointsHit++
     } catch (e) {
       spinner.fail(`Fetch error for /suttaplex with uid: ${node.uid}`).start()
     }
@@ -92,7 +89,6 @@ async function fetchDataTree(uid, depth = 0) {
       return { ...node, ...suttaplexData[0] }
     }
 
-    // In dev mode, limit translations reduce memory usage
     const translationsToProcess = DEV_MODE
       ? translations.filter((t) => t.lang === 'en' || t.is_root)
       : translations
@@ -106,7 +102,6 @@ async function fetchDataTree(uid, depth = 0) {
             ? segmentedTranslationUrl(node.uid, trans.author_uid, trans.lang)
             : legacyTranslationUrl(node.uid, trans.author_uid, trans.lang)
         )
-        endpointsHit++
       } catch (e) {
         spinner
           .fail(
@@ -130,12 +125,10 @@ async function fetchDataTree(uid, depth = 0) {
       MAX_CONCURRENT_REQUESTS
     )
 
-    // Add parallels data (skip in dev mode for faster builds)
     let parallelsData = null
     if (!DEV_MODE) {
       try {
         parallelsData = await fetchJson(parallelsUrl(node.uid))
-        endpointsHit++
       } catch (e) {
         spinner.fail(`Fetch error for /parallels/${node.uid}`).start()
       }
@@ -152,11 +145,11 @@ async function fetchDataTree(uid, depth = 0) {
   // Recursion for children nodes
   // These nodes are all type "root" or "branch"
   if (node.children?.length) {
-    const childPromises = node.children.map((child) =>
-      fetchDataTree(child.uid, depth + 1)
-    )
     node.children = (
-      await limitConcurrency(childPromises, MAX_CONCURRENT_REQUESTS)
+      await limitConcurrency(
+        node.children.map((child) => fetchDataTree(child.uid, depth + 1)),
+        MAX_CONCURRENT_REQUESTS
+      )
     ).filter(Boolean)
   }
 
@@ -180,12 +173,8 @@ async function fetchDataTree(uid, depth = 0) {
  * to sync URL structure with SuttaCentral.net.
  */
 export default async function (file) {
-  // Return cached data if available
-  if (cachedMasterData) {
-    return cachedMasterData
-  }
+  if (cachedMasterData) return cachedMasterData
 
-  // Prevent multiple simultaneous builds
   if (isBuilding) {
     return new Promise((resolve) => {
       const checkCache = setInterval(() => {
@@ -205,14 +194,13 @@ export default async function (file) {
     const roots = ['sutta']
     const tree = await Promise.all(roots.map((uid) => fetchDataTree(uid)))
     cachedMasterData = tree
-    spinner.succeed(`Fetch complete for ${file?.eleventy ? 'master' : file}`)
     return tree
   } catch (e) {
     spinner.fail(e.message)
     return []
   } finally {
     isBuilding = false
-    spinner.info(
+    spinner.succeed(
       `Fetched from ${endpointsHit} endpoints in ~${((Date.now() - startTime) / 60_000).toFixed(2)} mins`
     )
     endpointsHit = 0
