@@ -232,7 +232,7 @@ body:has(aside #rooter:checked) article .segment {
 [popover] {
   color: var(--text-color);
   border: none;
-  box-shadow: 0 0.3rem 1rem var(--bg-hard);
+  box-shadow: 0 0.3rem 1rem var(--shadow-color);
   border-radius: 0.3rem;
   padding: 1rem;
   background-color: var(--bg-alt-1);
