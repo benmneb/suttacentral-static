@@ -41,37 +41,37 @@ eleventyComputed:
       <li>
         <button popovertarget="info">Info</button>
       </li>
-      {% if entry.segmented or entry.has_comment or entry.is_root %}
-        <li>
-          <button aria-haspopup="true">Views</button>
-          <ul class="dropdown" aria-label="submenu">
-            {% if entry.has_comment
-              or entry._bilarasuttas_data.variant_text.size > 0
-            %}
-              <li>
-                <label for="commenter">Show comments</label>
-                <input type="checkbox" id="commenter" checked>
-              </li>
-            {% endif %}
-            {% unless entry.is_root %}
-              <li>
-                <label for="rooter">Show root text</label>
-                <input type="checkbox" id="rooter">
-              </li>
-            {% endunless %}
-            {% if entry.segmented %}
-              <li>
-                <label for="segmenter">Show segments</label>
-                <input type="checkbox" id="segmenter">
-              </li>
-            {% endif %}
+      <li>
+        <button aria-haspopup="true">Views</button>
+        <ul class="dropdown" aria-label="submenu">
+          {% if entry.has_comment
+            or entry._bilarasuttas_data.variant_text.size > 0
+          %}
             <li>
-              <label for="positioner">Pin this menu</label>
-              <input type="checkbox" id="positioner" checked>
+              <label for="commenter">Show comments</label>
+              <input type="checkbox" id="commenter" checked>
             </li>
-          </ul>
-        </li>
-      {% endif %}
+          {% endif %}
+          {% unless entry.is_root or entry.segmented == blank %}
+            <li>
+              <label for="rooter">Show root text</label>
+              <input type="checkbox" id="rooter">
+            </li>
+          {% endunless %}
+          {% if entry.segmented
+            or entry._suttas_data.text contains "class='ref"
+          %}
+            <li>
+              <label for="segmenter">Show segments</label>
+              <input type="checkbox" id="segmenter">
+            </li>
+          {% endif %}
+          <li>
+            <label for="positioner">Pin this menu</label>
+            <input type="checkbox" id="positioner" checked>
+          </li>
+        </ul>
+      </li>
       {% if entry._parallels_data.size > 0 %}
         <li>
           <button popovertarget="parallels">Parallels</button>

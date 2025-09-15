@@ -209,7 +209,9 @@ body:has(aside #segmenter:checked)
   article
   .segment:not(header .segment)
   .reference
-  > a {
+  > a,
+  /* This one below is for legacy texts. */
+body:has(aside #segmenter:checked) main article a.ref {
   display: initial;
 }
 
@@ -413,6 +415,10 @@ main {
       }
     }
 
+    ul li {
+      list-style-type: initial;
+    }
+
     .segment {
       .root {
         display: none;
@@ -489,6 +495,7 @@ main {
 
     /* This class comes through from Sutta Central with the non-segment texts. */
     a.ref {
+      display: none;
       border: 1px solid var(--bg-alt-2);
       border-radius: 0.3rem;
       padding: 0.2rem;
