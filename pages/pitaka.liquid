@@ -53,7 +53,7 @@ eleventyComputed:
       {% endif %}
       <h2>
         <a href="{% if has_leaf_grandchild == 'true' %}/{{ child.uid }}/{% else %}/pitaka/{{ entry.scx_path }}/{{ child.uid }}/{% endif %}">
-          {{ child.original_title | default: child.root_name }}—{{ child.translated_title | default: child.translated_name }}
+          {{ child.original_title | default: child.root_name }}{% if child.translated_title or child.translated_name %}—{{ child.translated_title | default: child.translated_name }}{% endif %}
         </a>
       </h2>
         <p>{{ child.blurb }}</p>
