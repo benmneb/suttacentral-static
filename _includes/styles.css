@@ -523,6 +523,7 @@ footer:not(article footer) {
   background-color: var(--bg-alt-1);
   margin-top: 2rem;
   text-align: center;
+  padding: 1rem;
 
   ul {
     max-width: var(--content-width);
