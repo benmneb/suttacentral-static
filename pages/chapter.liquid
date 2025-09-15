@@ -9,7 +9,7 @@ pagination:
 
 permalink: '{{ entry.scx_path }}/index.html'
 eleventyComputed:
-  title: '{{ entry.original_title | default: entry.root_name }}—{% if entry.translated_title or entry.translated_name %}{{ entry.translated_title | default: entry.translated_name }}{% endif %}'
+  title: '{{ entry.original_title | default: entry.root_name }}{% if entry.translated_title or entry.translated_name %}—{{ entry.translated_title | default: entry.translated_name }}{% endif %}'
 ---
 
 <header>
