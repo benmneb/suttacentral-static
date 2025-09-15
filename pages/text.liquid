@@ -153,6 +153,12 @@ eleventyComputed:
       {% endif %}
     {% endfor %}
   {% else %}
+    {% if entry.previous.uid != blank %}
+      {% capture prev %}/{{ entry.previous.uid }}/en/{{ entry.priority_author_uid }}{% endcapture %}
+    {% endif %}
+    {% if entry.next.uid != blank %}
+      {% capture next %}/{{ entry.next.uid }}/en/{{ entry.priority_author_uid }}{% endcapture %}
+    {% endif %}
     {{ entry._suttas_data.text | replace: "\n", "" }}
   {% endif %}
 
