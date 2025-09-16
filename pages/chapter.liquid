@@ -35,7 +35,9 @@ eleventyComputed:
 <main>
   <h1>{{ title }}</h1>
 
-  <p>{{ entry.blurb }}</p>
+  {% if entry.blurb %}
+    <p>{{ entry.blurb }}</p>
+  {% endif %}
 
   {% if entry.children.length %}
     <ul class="texts-list">
