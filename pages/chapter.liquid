@@ -11,16 +11,15 @@ permalink: '{{ entry.scx_path }}/index.html'
 eleventyComputed:
   title: '{{ entry.original_title | default: entry.root_name }}{% if entry.translated_title or entry.translated_name %}—{{ entry.translated_title | default: entry.translated_name }}{% endif %}'
 ---
-
 <header>
-  {% assign parts = entry.scx_breadcrumb | split: "/" %}
+  {% assign parts = entry.scx_breadcrumb | split: '/' %}
   <nav aria-label="Breadcrumb">
     <ul>
       <li>
         <a href="/">📚</a>
       </li>
       {% for part in parts %}
-        {% assign path = path | append: "/" | append: part %}
+        {% assign path = path | append: '/' | append: part %}
         <li>
           {% if forloop.last %}
             <span aria-current="page">{{ part }}</span>
@@ -39,112 +38,195 @@ eleventyComputed:
   <p>{{ entry.blurb }}</p>
 
   {% if entry.children.length %}
-  <ul class="texts-list">
-    {% for child in entry.children %}
-      <li>
-      <h2>{{ child.original_title | default: child.root_name }}{% if child.translated_title or child.translated_name %}—{{ child.translated_title | default: child.translated_name }}{% endif %}</h2>
-        <p>{{ child.blurb }}</p>
-        {% if child.translations.length %}
+    <ul class="texts-list">
+      {% for child in entry.children %}
+        <li>
+          <hgroup>
+            <h2>
+              {{ child.original_title | default: child.root_name -}}
+              {%- if child.translated_title or child.translated_name -%}
+                —{{ child.translated_title | default: child.translated_name -}}
+              {%- endif %}
+            </h2>
+            {%- if child.acronym %}
+              <p>{{ child.acronym }}</p>
+            {% endif %}
+          </hgroup>
+          <p>{{ child.blurb }}</p>
+          {% if child.translations.length %}
+            {% assign english_versions = child.translations
+              | where: 'lang', 'en'
+            %}
+            {% if english_versions.size > 0 %}
+              <details open>
+                <summary>
+                  English translation
+                  {%- if english_versions.size > 1 %}s{% endif %}
+                </summary>
+                <ul>
+                  {% for version in english_versions %}
+                    <li>
+                      <a
+                        href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}"
+                        hreflang="{{ version.lang }}"
+                      >
+                        {{
+                          version.author
+                          | default: version.author_uid
+                          | replace: '&nbsp;', ' '
+                          | replace: '&#160;', ' '
+                          | replace: '\u00A0', ' '
+                          | strip
+                        }}
+                      </a>
+                      {%- if version.publication_date -%}
+                        &nbsp;(<span>{{ version.publication_date }}</span>)
+                      {%- endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              </details>
+            {% endif %}
 
-          {% assign english_versions = child.translations | where: "lang", "en" %}
-          {% if english_versions.size > 0 %}
-          <details open>
-            <summary>English translation{% if english_versions.size > 1 %}s{% endif %}</summary>
-            <ul>
-              {% for version in english_versions %}
-              <li>
-                <a href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}" hreflang="{{ version.lang }}">
-                    {{ version.author | default: version.author_uid | replace: "&nbsp;", " " | replace: "&#160;", " " | replace: "\u00A0", " " | strip }}
-                </a>{% if version.publication_date %}&nbsp;(<span>{{ version.publication_date }}</span>){% endif %}
-              </li>
-              {% endfor %}
-            </ul>
-          </details>
+            {% assign root_versions = child.translations
+              | where: 'is_root', true
+              | reject: 'lang', 'en'
+            %}
+            {% if root_versions.size > 0 %}
+              <details open>
+                <summary>
+                  Edition{% if root_versions.size > 1 %}s{% endif %} of the root
+                  text
+                </summary>
+                <ul>
+                  {% for version in root_versions %}
+                    <li>
+                      <span>{{ version.lang_name }}—</span
+                      ><a
+                        href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}"
+                        hreflang="{{ version.lang }}"
+                      >
+                        {% if version.author_uid == 'sct' %}
+                          SuttaCentral Taishō
+                        {% else %}
+                          {{
+                            version.author
+                            | default: version.author_uid
+                            | replace: '&nbsp;', ' '
+                            | replace: '&#160;', ' '
+                            | replace: '\u00A0', ' '
+                            | strip
+                          }}
+                        {% endif %}
+                      </a>
+                      {%- if version.publication_date -%}
+                        &nbsp;(<span>{{ version.publication_date }}</span>)
+                      {%- endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              </details>
+            {% endif %}
+
+            {% assign remaining_versions = child.translations %}
+            {% assign remaining_versions = remaining_versions
+              | reject: 'lang', 'en'
+              | reject: 'is_root', true
+            %}
+            {% if remaining_versions.size > 0 %}
+              <details>
+                <summary>
+                  Translations in other modern languages (
+                  {{- remaining_versions.size -}}
+                  )
+                </summary>
+                <ul>
+                  {% for version in remaining_versions %}
+                    <li>
+                      <span>{{ version.lang_name }}—</span
+                      ><a
+                        href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}"
+                        hreflang="{{ version.lang }}"
+                      >
+                        {{
+                          version.author
+                          | default: version.author_uid
+                          | replace: '&nbsp;', ' '
+                          | replace: '&#160;', ' '
+                          | replace: '\u00A0', ' '
+                          | strip
+                        }}
+                      </a>
+                      {%- if version.publication_date -%}
+                        &nbsp;(<span>{{ version.publication_date }}</span>)
+                      {%- endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              </details>
+            {% endif %}
           {% endif %}
 
-          {% assign root_versions = child.translations | where: "is_root", true | reject: "lang", "en" %}
-          {% if root_versions.size > 0 %}
-          <details open>
-            <summary>Edition{% if root_versions.size > 1 %}s{% endif %} of the root text</summary>
-            <ul>
-              {% for version in root_versions %}
-              <li>
-                <span>{{ version.lang_name }}—</span><a href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}" hreflang="{{ version.lang }}">
-                  {% if version.author_uid == 'sct' %}
-                    SuttaCentral Taishō
-                  {% else %}
-                    {{ version.author | default: version.author_uid | replace: "&nbsp;", " " | replace: "&#160;", " " | replace: "\u00A0", " " | strip }}
-                  {% endif %}
-                </a>{% if version.publication_date %}&nbsp;(<span>{{ version.publication_date }}</span>){% endif %}
-              </li>
-              {% endfor %}
-            </ul>
-          </details>
-          {% endif %}
-
-          {% assign remaining_versions = child.translations %}
-          {% assign remaining_versions = remaining_versions | reject: "lang", "en" | reject: "is_root", true %}
-          {% if remaining_versions.size > 0 %}
-          <details>
-            <summary>Translations in other modern languages ({{ remaining_versions.size }})</summary>
-            <ul>
-              {% for version in remaining_versions %}
-              <li>
-                <span>{{ version.lang_name }}—</span><a href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}" hreflang="{{ version.lang }}">
-                  {{ version.author | default: version.author_uid | replace: "&nbsp;", " " | replace: "&#160;", " " | replace: "\u00A0", " " | strip }}
-                </a>{% if version.publication_date %}&nbsp;(<span>{{ version.publication_date }}</span>){% endif %}
-              </li>
-              {% endfor %}
-            </ul>
-          </details>
-          {% endif %}
-        {% endif %}
-
-        {% if child._parallels_data and child._parallels_data.size > 0 %}
-          {% assign totalParallels = 0 %}
-          {% for key in child._parallels_data %}
-            {% assign totalParallels = totalParallels | plus: key[1].size %}
-          {% endfor %}
-          <details>
+          {% if child._parallels_data and child._parallels_data.size > 0 %}
+            {% assign totalParallels = 0 %}
+            {% for key in child._parallels_data %}
+              {% assign totalParallels = totalParallels | plus: key[1].size %}
+            {% endfor %}
+            <details>
               <summary>Parallels ({{ totalParallels }})</summary>
               <ul>
                 {% for segment in child._parallels_data %}
                   <li>
                     {{ segment[0] }}
                     <ul>
-                        {% for parallel in segment[1] %}
-                            <li>
-                                {% if parallel.to.translations.size > 0 %}
-                                  <a
-                                  href="/{{ parallel.to.uid }}/{{ parallel.to.translations[0].lang }}/{{ parallel.to.translations[0].author_uid }}{% if parallel.to.to contains '#' %}#{{ parallel.to.to | split: '#' | last }}{% endif %}"
-                                  hreflang="{{ parallel.to.translations[0].lang }}"
-                                  >
-                                  {{ parallel.to.translated_title | default: parallel.to.original_title | default: parallel.to.acronym | strip}}
-                                  </a>
-                                {% else %}
-                                  <span>
-                                  {{ parallel.to.translated_title | default: parallel.to.original_title | default: parallel.to.acronym | strip}}
-                                  </span>
-                                {% endif %}
-                                <br />
-                                {% if parallel.to.translated_title and parallel.to.original_title %}
-                                  {{ parallel.to.original_title | strip }} | {{ parallel.to.acronym | strip }} | {{ parallel.to.volpages | strip }}
-                                {% elsif parallel.to.original_title %}
-                                  {{ parallel.to.acronym | strip }} | {{ parallel.to.volpages | strip }}
-                                {% elsif parallel.to.acronym %}
-                                  {{ parallel.to.volpages | strip }}
-                                {% endif %}
-                            </li>
-                        {% endfor %}
+                      {% for parallel in segment[1] %}
+                        <li>
+                          {% if parallel.to.translations.size > 0 %}
+                            <a
+                              href="/{{ parallel.to.uid }}/{{ parallel.to.translations[0].lang }}/{{ parallel.to.translations[0].author_uid }}{% if parallel.to.to contains '#' %}#{{ parallel.to.to | split: '#' | last }}{% endif %}"
+                              hreflang="{{ parallel.to.translations[0].lang }}"
+                            >
+                              {{
+                                parallel.to.translated_title
+                                | default: parallel.to.original_title
+                                | default: parallel.to.acronym
+                                | strip
+                              }}
+                            </a>
+                          {% else %}
+                            <span>
+                              {{
+                                parallel.to.translated_title
+                                | default: parallel.to.original_title
+                                | default: parallel.to.acronym
+                                | strip
+                              }}
+                            </span>
+                          {% endif %}
+                          <br>
+                          {% if parallel.to.translated_title
+                            and parallel.to.original_title
+                          %}
+                            {{ parallel.to.original_title | strip }} |
+                            {{ parallel.to.acronym | strip }} |
+                            {{ parallel.to.volpages | strip }}
+                          {% elsif parallel.to.original_title %}
+                            {{ parallel.to.acronym | strip }} |
+                            {{ parallel.to.volpages | strip }}
+                          {% elsif parallel.to.acronym %}
+                            {{ parallel.to.volpages | strip }}
+                          {% endif %}
+                        </li>
+                      {% endfor %}
                     </ul>
                   </li>
                 {% endfor %}
               </ul>
             </details>
           {% endif %}
-      </li>
-    {% endfor %}
-  </ul>
+        </li>
+      {% endfor %}
+    </ul>
   {% endif %}
 
   <script>
@@ -153,4 +235,4 @@ eleventyComputed:
   </script>
 </main>
 
-{% include "components/footer.liquid", route: entry.scx_path %}
+{% include 'components/footer.liquid', route: entry.scx_path %}
