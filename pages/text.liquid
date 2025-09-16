@@ -83,6 +83,7 @@ eleventyComputed:
 
 <main>
   {% if entry.is_root %}
+    {% assign comments = '' %}
     {% for key in entry._bilarasuttas_data.keys_order %}
       {% assign html = entry._bilarasuttas_data.html_text[key] %}
       {% assign text = entry._bilarasuttas_data.root_text[key] %}
@@ -108,17 +109,24 @@ eleventyComputed:
               {% endif %}
             </span>
           </span>
-          {% if comment %}
-            <article id="comment-{{ key }}" popover>Variant: {{ comment | replace: 'https://suttacentral.net', '' }}</article>
-          {% endif %}
         {% endcapture %}
         {{ html | replace: '{}', replacement }}
+        {%- if comment -%}
+          {% capture comments %}
+            {{ comments }}
+            <article id="comment-{{ key }}" popover>
+              Variant: {{ comment | replace: 'https://suttacentral.net', '' }}
+            </article>
+          {% endcapture %}
+        {%- endif -%}
       {% endif %}
     {% endfor %}
+    {{ comments }}
     <article id="info" popover>
       {% include 'components/publication-info.liquid', entry: entry %}
     </article>
   {% elsif entry.segmented %}
+    {% assign comments = '' %}
     {% for key in entry._bilarasuttas_data.keys_order %}
       {% assign html = entry._bilarasuttas_data.html_text[key] %}
       {% assign text = entry._bilarasuttas_data.translation_text[key] %}
@@ -149,13 +157,19 @@ eleventyComputed:
             </span>
             {% endif %}
           </span>
-          {% if comment %}
-            <article id="comment-{{ key }}" popover>{{ comment | replace: 'https://suttacentral.net', '' }}</article>
-          {% endif %}
         {% endcapture %}
         {{ html | replace: '{}', replacement }}
+        {%- if comment -%}
+          {% capture comments %}
+            {{ comments }}
+            <article id="comment-{{ key }}" popover>
+              {{ comment | replace: 'https://suttacentral.net', '' }}
+            </article>
+          {% endcapture %}
+        {%- endif -%}
       {% endif %}
     {% endfor %}
+    {{ comments }}
     {% if entry._publication_info != blank %}
       <article id="info" popover>
         {% include 'components/publication-info.liquid', entry: entry %}
