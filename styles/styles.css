@@ -245,6 +245,11 @@ body:has(aside #rooter:checked) article .segment {
   }
 }
 
+[popover]#info,
+[popover]#parallels {
+  max-width: calc(min(60ch, 100vw) - 2rem);
+}
+
 aside {
   display: flex;
   justify-content: end;
