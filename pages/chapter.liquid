@@ -16,7 +16,7 @@ eleventyComputed:
   <nav aria-label="Breadcrumb">
     <ul>
       <li>
-        <a href="/">📚</a>
+        <a href="/" aria-label="Home">📚<span class="sr-only">Home</span></a>
       </li>
       {% for part in parts %}
         {% assign path = path | append: '/' | append: part %}
@@ -62,8 +62,13 @@ eleventyComputed:
             {% if english_versions.size > 0 %}
               <details open>
                 <summary>
-                  English translation
-                  {%- if english_versions.size > 1 %}s{% endif %}
+                  <span
+                    >English translation
+                    {%- if english_versions.size > 1 %}s{% endif -%}
+                  </span>
+                  <span class="sr-only"
+                    >({{ english_versions.size }} available)</span
+                  >
                 </summary>
                 <ul>
                   {% for version in english_versions %}

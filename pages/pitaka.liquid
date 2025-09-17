@@ -11,16 +11,15 @@ permalink: '/pitaka/{{ entry.scx_path }}/index.html'
 eleventyComputed:
   title: '{{ entry.original_title | default: entry.root_name }}—{{ entry.translated_title | default: entry.translated_name }}'
 ---
-
 <header>
-  {% assign parts = entry.scx_breadcrumb | split: "/" %}
+  {% assign parts = entry.scx_breadcrumb | split: '/' %}
   <nav aria-label="Breadcrumb">
     <ul>
       <li>
-        <a href="/">📚</a>
+        <a href="/" aria-label="Home">📚<span class="sr-only">Home</span></a>
       </li>
       {% for part in parts %}
-        {% assign path = path | append: "/" | append: part %}
+        {% assign path = path | append: '/' | append: part %}
         <li>
           {% if forloop.last %}
             <span aria-current="page">{{ part }}</span>
@@ -39,27 +38,34 @@ eleventyComputed:
   <p>{{ entry.blurb }}</p>
 
   {% if entry.children.length %}
-  <ul>
-    {% for child in entry.children %}
-      <li>
-      <!-- Check when the nested menu link should change to the root level chapter link, to sync URL structure with SuttaCentral.net -->
-      {% capture has_leaf_grandchild %}false{% endcapture %}
-      {% if child.children.size > 0 %}
-        {% for grandchild in child.children %}
-          {% if grandchild.node_type == 'leaf' %}
-            {% capture has_leaf_grandchild %}true{% endcapture %}
+    <ul>
+      {% for child in entry.children %}
+        <li>
+          <!--
+            Check when the nested menu link should change to the root level chapter link, to sync URL structure with SuttaCentral.net
+          -->
+          {% capture has_leaf_grandchild %}false{% endcapture %}
+          {% if child.children.size > 0 %}
+            {% for grandchild in child.children %}
+              {% if grandchild.node_type == 'leaf' %}
+                {% capture has_leaf_grandchild %}true{% endcapture %}
+              {% endif %}
+            {% endfor %}
           {% endif %}
-        {% endfor %}
-      {% endif %}
-      <h2>
-        <a href="{% if has_leaf_grandchild == 'true' %}/{{ child.uid }}/{% else %}/pitaka/{{ entry.scx_path }}/{{ child.uid }}/{% endif %}">
-          {{ child.original_title | default: child.root_name }}{% if child.translated_title or child.translated_name %}—{{ child.translated_title | default: child.translated_name }}{% endif %}
-        </a>
-      </h2>
-        <p>{{ child.blurb }}</p>
-      </li>
-    {% endfor %}
-  </ul>
+          <h2>
+            <a href="{% if has_leaf_grandchild == 'true' %}/{{ child.uid }}/{% else %}/pitaka/{{ entry.scx_path }}/{{ child.uid }}/{% endif %}">
+              {{ child.original_title | default: child.root_name -}}
+              {%- if child.translated_title or child.translated_name -%}
+                —{{ child.translated_title | default: child.translated_name -}}
+              {%- endif %}
+            </a>
+          </h2>
+          {% if child.blurb %}
+            <p>{{ child.blurb }}</p>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
   {% endif %}
 
   <script>
@@ -68,5 +74,5 @@ eleventyComputed:
   </script>
 </main>
 
-{% assign path = "pitaka/" | append: entry.scx_path %}
-{% include "components/footer.liquid", route: path %}
+{% assign path = 'pitaka/' | append: entry.scx_path %}
+{% include 'components/footer.liquid', route: path %}
