@@ -1,5 +1,122 @@
 import masterData from './_masterData.js'
 
+function generateChapterJsonLd(entry) {
+  return JSON.stringify(
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      '@id': `/${entry.scx_path}`,
+      name: `${entry.original_title || entry.root_name}${entry.translated_title || entry.translated_name ? `—${entry.translated_title || entry.translated_name}` : ''}`,
+      description:
+        entry.blurb || 'Collection of Buddhist texts and translations',
+      url: `/${entry.scx_path}`,
+      sameAs: `https://suttacentral.net/${entry.scx_path}`,
+      identifier: entry.uid,
+      inLanguage: [
+        {
+          '@type': 'Language',
+          name: 'English',
+          alternateName: 'en',
+        },
+        ...(entry.root_lang
+          ? [
+              {
+                '@type': 'Language',
+                name: entry.root_lang,
+                alternateName: entry.root_lang,
+              },
+            ]
+          : []),
+      ],
+      about: {
+        '@type': 'Thing',
+        name: 'Buddhist Literature',
+        description: 'Ancient Buddhist texts, suttas, and modern translations',
+      },
+      isPartOf: {
+        '@type': 'WebSite',
+        '@id': '/#website',
+        name: 'SuttaCentral',
+      },
+      ...(entry.children?.length && {
+        hasPart: entry.children.map((child) => ({
+          '@type': 'CreativeWork',
+          '@id': `/${child.uid}`,
+          name: `${child.original_title || child.root_name}${child.translated_title || child.translated_name ? `—${child.translated_title || child.translated_name}` : ''}`,
+          description: child.blurb,
+          identifier: child.uid,
+          sameAs: `https://suttacentral.net/${child.uid}`,
+          ...(child.acronym && {
+            alternateName: child.acronym,
+          }),
+          about: {
+            '@type': 'Thing',
+            name: 'Buddhist Teaching',
+            description: 'Ancient Buddhist discourse or text',
+          },
+          ...(child.translations?.length && {
+            workTranslation: child.translations.map((translation) => ({
+              '@type': 'CreativeWork',
+              name: `${child.original_title || child.root_name} - ${translation.author || translation.author_uid}`,
+              inLanguage: translation.lang,
+              translator: {
+                '@type': 'Person',
+                name: translation.author || translation.author_uid,
+              },
+              ...(translation.publication_date && {
+                datePublished: translation.publication_date,
+              }),
+              url: `/${child.uid}/${translation.lang}/${translation.author_uid}`,
+              sameAs: `https://suttacentral.net/${child.uid}/${translation.lang}/${translation.author_uid}`,
+            })),
+          }),
+          isPartOf: {
+            '@id': `/${entry.scx_path}`,
+          },
+        })),
+      }),
+      breadcrumb: {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: '/',
+          },
+          ...entry.scx_breadcrumb.split('/').map((part, index) => {
+            const path = entry.scx_breadcrumb
+              .split('/')
+              .slice(0, index + 1)
+              .join('/')
+            const isLast = index === entry.scx_breadcrumb.split('/').length - 1
+            return {
+              '@type': 'ListItem',
+              position: index + 2,
+              name: part,
+              item: isLast ? `/${entry.scx_path}` : `/pitaka/${path}`,
+            }
+          }),
+        ],
+      },
+      publisher: {
+        '@type': 'Organization',
+        '@id': '/#organization',
+        name: 'SuttaCentral',
+        url: '/',
+        sameAs: 'https://suttacentral.net',
+        description: 'Early Buddhist texts, translations, and parallels',
+      },
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': `/${entry.scx_path}`,
+      },
+    },
+    null,
+    2
+  )
+}
+
 /*
  * Don't need translations yet, and logging them breaks dev server.
  */
@@ -38,11 +155,15 @@ function flatten(nodes, parentPath = '') {
       // because https://suttacentral.net/api/menu/dharmapadas?language=en
       // returns the child with `uid: g2dhp` with node type `leaf`, when the rest are `branch`.
       // So fix this check to account for situations like this.
-      return removeTranslationTexts({
+      const entry = removeTranslationTexts({
         ...node,
         scx_path: `${node.uid}`,
         scx_breadcrumb: currentPath,
       })
+      return {
+        ...entry,
+        scx_json_ld: generateChapterJsonLd(entry),
+      }
     }
 
     return flatten(node.children || [], currentPath)

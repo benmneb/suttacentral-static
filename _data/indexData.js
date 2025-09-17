@@ -26,6 +26,79 @@ function flatten(nodes) {
   })
 }
 
+function generateIndexJsonLd(data) {
+  return JSON.stringify(
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      '@id': '/#website',
+      name: 'SuttaCentral Express',
+      alternateName: 'SCX',
+      description:
+        'A fast and minimal alternative frontend for SuttaCentral.net - Early Buddhist texts, translations, and parallels. The largest collection of Buddhist suttas available in translation.',
+      url: '/',
+      sameAs: 'https://suttacentral.net',
+      inLanguage: 'en',
+      keywords: [
+        'Buddhism',
+        'Buddhist texts',
+        'Pali Canon',
+        'Tipitaka',
+        'suttas',
+        'dharma',
+        'ancient texts',
+        'translations',
+      ],
+      about: {
+        '@type': 'Thing',
+        name: 'Buddhist Canon',
+        description:
+          'The Tipiṭaka (Three Baskets) - the traditional term for the Buddhist canon',
+      },
+      mainEntity: {
+        '@type': 'CollectionPage',
+        name: 'Tipiṭaka—the Three Baskets of the Buddhist canon',
+        description:
+          'Collection of the three main divisions of the Buddhist canon: Vinaya Pitaka, Sutta Pitaka, and Abhidhamma Pitaka',
+        hasPart: data.map((item) => ({
+          '@type': 'Collection',
+          '@id': `/pitaka/${item.uid}`,
+          name: `${item.root_name}—${item.translated_name}`,
+          description: item.blurb,
+          url: `/pitaka/${item.uid}`,
+          sameAs: `https://suttacentral.net/pitaka/${item.uid}`,
+          identifier: item.uid,
+          isPartOf: {
+            '@id': '/#website',
+          },
+        })),
+      },
+      publisher: {
+        '@type': 'Organization',
+        '@id': '/#organization',
+        name: 'SuttaCentral',
+        url: '/',
+        description: 'Early Buddhist texts, translations, and parallels',
+        foundingDate: '2012',
+        sameAs: ['https://suttacentral.net', 'https://github.com/suttacentral'],
+      },
+      breadcrumb: {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: '/',
+          },
+        ],
+      },
+    },
+    null,
+    2
+  )
+}
+
 /*
  * Returns just the data necessary for the root tipitka links.
  *
@@ -41,5 +114,10 @@ function flatten(nodes) {
  */
 export default async function () {
   const menu = await masterData('index')
-  return flatten(menu).filter(Boolean)
+  const data = flatten(menu).filter(Boolean)
+
+  return data.map((item) => ({
+    ...item,
+    scx_json_ld: generateIndexJsonLd(data),
+  }))
 }

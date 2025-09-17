@@ -1,29 +1,35 @@
 ---
 layout: base-layout.liquid
----
 
+eleventyComputed:
+  json_ld: '{{ indexData[0].scx_json_ld }}'
+---
 <header>
-    <nav>
-        <span>📚</span>
-    </nav>
+  <nav>
+    <span>📚</span>
+  </nav>
 </header>
 
 <main>
-    <h1>Tipiṭaka—the Three Baskets of the Buddhist canon</h1>
+  <h1>Tipiṭaka—the Three Baskets of the Buddhist canon</h1>
 
-    <ul>
+  <ul>
     {% for item in indexData %}
-        <li>
-            <h2><a href="pitaka/{{item.uid}}">{{ item.root_name }}—{{ item.translated_name }}</a></h2>
-            <p>{{ item.blurb }} </p>
-        </li>
+      <li>
+        <h2>
+          <a href="pitaka/{{item.uid}}">
+            {{- item.root_name }}—{{ item.translated_name -}}
+          </a>
+        </h2>
+        <p>{{ item.blurb }}</p>
+      </li>
     {% endfor %}
-    </ul>
+  </ul>
 
-    <script>
+  <script>
     const data = {{ indexData | jsonify }};
     console.log(data);
-    </script>
+  </script>
 </main>
 
-{% include "components/footer.liquid", route: "" %}
+{% include 'components/footer.liquid', route: '' %}
