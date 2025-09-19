@@ -113,7 +113,7 @@ function generateIndexJsonLd(data) {
  * ]
  */
 export default async function () {
-  const menu = await masterData('index')
+  const menu = await masterData()
   const data = flatten(menu).filter(Boolean)
 
   return data.map((item) => ({

@@ -189,6 +189,6 @@ function flatten(nodes, parentPath = '') {
  * ]
  */
 export default async function () {
-  const menu = await masterData('chapter')
+  const menu = await masterData()
   return flatten(menu).filter(Boolean)
 }

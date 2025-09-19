@@ -190,7 +190,7 @@ async function fetchDataTree(uid, depth = 0) {
  * to add `scx_path` key and flatten the nested structure appropriately
  * to sync URL structure with SuttaCentral.net.
  */
-export default async function (file) {
+export default async function () {
   if (cachedMasterData) return cachedMasterData
 
   if (isBuilding) {

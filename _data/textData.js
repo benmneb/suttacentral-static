@@ -203,6 +203,6 @@ function flatten(nodes, parent, parentPath) {
  * ]
  */
 export default async function () {
-  const menu = await masterData('text')
+  const menu = await masterData()
   return flatten(menu).filter(Boolean)
 }
