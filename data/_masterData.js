@@ -32,9 +32,16 @@ async function fetchJson(url) {
   return await Fetch(url, {
     duration: CACHE_DURATION,
     type: 'json',
+    filenameFormat: function (cacheKey, hash) {
+      return `${url.split('/api/')[1]}-${cacheKey}-${hash}` // Do not include the file extension
+    },
   })
 }
 
+/**
+ * Used to limit simultaneous processing of data, to avoid NodeJS memory heap errors.
+ * Eleventy Fetch already includes HTTP concurrency: https://www.11ty.dev/docs/plugins/fetch/#change-global-concurrency
+ */
 async function limitConcurrency(promises, limit) {
   const results = []
   for (let i = 0; i < promises.length; i += limit) {
