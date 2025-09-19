@@ -1,5 +1,5 @@
 ---
-layout: base-layout.liquid
+layout: base.liquid
 
 pagination:
   data: textData
@@ -141,7 +141,7 @@ eleventyComputed:
     {% endfor %}
     {{ comments }}
     <article id="info" popover>
-      {% include 'components/publication-info.liquid', entry: entry %}
+      {% include 'publication-info.liquid', entry: entry %}
     </article>
   {% elsif entry.segmented %}
     {% assign comments = '' %}
@@ -190,7 +190,7 @@ eleventyComputed:
     {{ comments }}
     {% if entry._publication_info != blank %}
       <article id="info" popover>
-        {% include 'components/publication-info.liquid', entry: entry %}
+        {% include 'publication-info.liquid', entry: entry %}
       </article>
     {% endif %}
   {% else %}
@@ -241,4 +241,4 @@ eleventyComputed:
   </div>
 </nav>
 
-{% include 'components/footer.liquid', route: entry.scx_path %}
+{% include 'footer.liquid', route: entry.scx_path %}
