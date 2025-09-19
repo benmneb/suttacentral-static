@@ -35,8 +35,7 @@ function generateIndexJsonLd(data) {
       '@id': '/#website',
       name: 'SuttaCentral Express',
       alternateName: 'SCX',
-      description:
-        'A fast and minimal alternative frontend for SuttaCentral.net - Early Buddhist texts, translations, and parallels. The largest collection of Buddhist suttas available in translation.',
+      description: `${siteMetaData.description} - Early Buddhist texts, translations, and parallels. The largest collection of Buddhist suttas available in translation.`,
       url: '/',
       sameAs: 'https://suttacentral.net',
       inLanguage: 'en',
