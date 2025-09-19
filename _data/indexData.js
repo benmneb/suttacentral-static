@@ -1,4 +1,5 @@
 import masterData from './_masterData.js'
+import siteMetaData from './_siteMetaData.js'
 
 /*
  * Don't need this deep nesting, and logging them breaks dev server.
@@ -65,7 +66,7 @@ function generateIndexJsonLd(data) {
           '@id': `/pitaka/${item.uid}`,
           name: `${item.root_name}—${item.translated_name}`,
           description: item.blurb,
-          url: `/pitaka/${item.uid}`,
+          url: `${siteMetaData().url}/pitaka/${item.uid}`,
           sameAs: `https://suttacentral.net/pitaka/${item.uid}`,
           identifier: item.uid,
           isPartOf: {

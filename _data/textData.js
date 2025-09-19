@@ -1,4 +1,5 @@
 import masterData from './_masterData.js'
+import siteMetaData from './_siteMetaData.js'
 
 let usedPaths = []
 
@@ -12,7 +13,7 @@ function generateTextJsonLd(entry) {
       alternateName: [entry.acronym, entry.translated_title].filter(Boolean),
       description:
         entry.blurb || 'Buddhist text from the Pali Canon with translation',
-      url: `/${entry.scx_path}`,
+      url: `${siteMetaData().url}/${entry.scx_path}`,
       sameAs: `https://suttacentral.net/${entry.scx_path}`,
       identifier: entry.uid,
       inLanguage: {

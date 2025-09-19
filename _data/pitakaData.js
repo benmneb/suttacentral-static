@@ -1,4 +1,5 @@
 import masterData from './_masterData.js'
+import siteMetaData from './_siteMetaData.js'
 
 function generatePitakaJsonLd(entry) {
   return JSON.stringify(
@@ -8,7 +9,7 @@ function generatePitakaJsonLd(entry) {
       '@id': `/pitaka/${entry.scx_path}`,
       name: `${entry.original_title || entry.root_name}—${entry.translated_title || entry.translated_name}`,
       description: entry.blurb,
-      url: `/pitaka/${entry.scx_path}`,
+      url: `${siteMetaData().url}/pitaka/${entry.scx_path}`,
       sameAs: `https://suttacentral.net/pitaka/${entry.scx_path}`,
       identifier: entry.uid,
       inLanguage: [
