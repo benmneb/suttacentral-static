@@ -25,11 +25,13 @@ eleventyComputed:
       </li>
     {% endfor %}
   </ul>
+</main>
 
+{% include 'footer.liquid', route: '' %}
+
+{% if _siteMetaData.environment == 'dev' %}
   <script>
     const data = {{ indexData | jsonify }};
     console.log(data);
   </script>
-</main>
-
-{% include 'footer.liquid', route: '' %}
+{% endif %}

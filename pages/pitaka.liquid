@@ -68,12 +68,14 @@ eleventyComputed:
       {% endfor %}
     </ul>
   {% endif %}
-
-  <script>
-    const data = {{ entry | jsonify }};
-    console.log(data);
-  </script>
 </main>
 
 {% assign path = 'pitaka/' | append: entry.scx_path %}
 {% include 'footer.liquid', route: path %}
+
+{% if _siteMetaData.environment == 'dev' %}
+  <script>
+    const data = {{ entry | jsonify }};
+    console.log(data);
+  </script>
+{% endif %}

@@ -219,11 +219,6 @@ eleventyComputed:
     {{ html_without_footer }}
     {{ modified_footer }}
   {% endif %}
-
-  <script>
-    const data = {{ entry | jsonify }};
-    console.log(data);
-  </script>
 </main>
 
 <nav aria-label="Article pagination">
@@ -242,3 +237,10 @@ eleventyComputed:
 </nav>
 
 {% include 'footer.liquid', route: entry.scx_path %}
+
+{% if _siteMetaData.environment == 'dev' %}
+  <script>
+    const data = {{ entry | jsonify }};
+    console.log(data);
+  </script>
+{% endif %}

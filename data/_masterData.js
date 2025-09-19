@@ -2,7 +2,7 @@ import Fetch from '@11ty/eleventy-fetch'
 import ora from 'ora'
 
 const CACHE_DURATION = '*' // https://www.11ty.dev/docs/plugins/fetch/#change-the-cache-duration
-const DEV_MODE = process.env.NODE_ENV !== 'production'
+const DEV_MODE = process.env.NODE_ENV !== 'prod'
 const MAX_CONCURRENT_REQUESTS = 50
 
 let cachedMasterData = null

@@ -6,5 +6,6 @@ export default function () {
     title: 'SuttaCentral Express',
     url: 'https://suttacentral.express',
     description: 'A fast and minimal alternative frontend for SuttaCentral.net',
+    environment: process.env.NODE_ENV || 'dev',
   }
 }
