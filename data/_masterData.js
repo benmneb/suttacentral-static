@@ -57,12 +57,14 @@ spinner.spinner = { frames: ['⏳'] }
 
 const startTime = Date.now()
 let endpointsHit = 0
+let fetchErrors = 0
 
 async function fetchDataTree(uid, depth = 0) {
-  let json
+  let menu
   try {
-    json = await fetchJson(menuUrl(uid))
+    menu = await fetchJson(menuUrl(uid))
   } catch (e) {
+    fetchErrors++
     spinner
       .fail(`Fetch error for /menu with uid: ${uid} at depth ${depth}`)
       .start()
@@ -70,7 +72,7 @@ async function fetchDataTree(uid, depth = 0) {
   }
 
   // Sometimes the API returns a non-array or malformed data
-  if (!json || !Array.isArray(json) || !json[0]) {
+  if (!menu || !Array.isArray(menu) || !menu[0]) {
     spinner
       .warn(
         `Malformed or empty data from /menu for uid: ${uid} at depth ${depth}`
@@ -79,13 +81,14 @@ async function fetchDataTree(uid, depth = 0) {
     return null
   }
 
-  const node = json[0]
+  const node = menu[0]
 
   if (node.node_type === 'leaf') {
     let suttaplexData = null
     try {
       suttaplexData = await fetchJson(leafUrl(node.uid))
     } catch (e) {
+      fetchErrors++
       spinner.fail(`Fetch error for /suttaplex with uid: ${node.uid}`).start()
     }
 
@@ -113,6 +116,7 @@ async function fetchDataTree(uid, depth = 0) {
             : legacyTranslationUrl(node.uid, trans.author_uid, trans.lang)
         )
       } catch (e) {
+        fetchErrors++
         spinner
           .fail(
             `Fetch error for ${trans.segmented ? '/bilarasuttas' : '/suttas'} with translation: ${node.uid}/${trans.author_uid} at depth ${depth}`
@@ -127,6 +131,7 @@ async function fetchDataTree(uid, depth = 0) {
           publicationInfoUrl(node.uid, trans.lang, trans.author_uid)
         )
       } catch {
+        fetchErrors++
         publicationInfo = { error: true }
         // It's possibly only root texts and Sujato's translations actually have data here.
         // This error object is what SC returns for errors also, ie: https://suttacentral.net/api/publication_info/dn1/en/bodhi
@@ -155,6 +160,7 @@ async function fetchDataTree(uid, depth = 0) {
       try {
         parallelsData = await fetchJson(parallelsUrl(node.uid))
       } catch (e) {
+        fetchErrors++
         spinner.fail(`Fetch error for /parallels/${node.uid}`).start()
       }
     }
@@ -225,9 +231,16 @@ export default async function () {
     return []
   } finally {
     isBuilding = false
-    spinner.succeed(
-      `Fetched from ${endpointsHit} endpoints in ~${((Date.now() - startTime) / 60_000).toFixed(2)} mins`
-    )
+    spinner
+      .succeed(
+        `Fetched from ${endpointsHit} endpoints in ~${((Date.now() - startTime) / 60_000).toFixed(2)} mins`
+      )
+      .info(
+        `Results: ${endpointsHit - fetchErrors}/${endpointsHit} successful (${endpointsHit > 0 ? (((endpointsHit - fetchErrors) / endpointsHit) * 100).toFixed(1) : 0}%)${
+          fetchErrors > 0 ? `, ${fetchErrors} failed` : ''
+        }`
+      )
     endpointsHit = 0
+    fetchErrors = 0
   }
 }
