@@ -150,12 +150,15 @@ function flatten(nodes, parentPath = '') {
   return nodes.flatMap((node) => {
     const currentPath = parentPath ? `${parentPath}/${node.uid}` : `${node.uid}`
 
-    // Stop recursion before it reaches leaf nodes (sutta texts) to sync URL structure with SuttaCentral.net
-    if (node.children?.some((c) => c.node_type === 'leaf')) {
-      // TODO: /dharmapadas page is messed up here, it should be /pitaka/sutta/minor/dharmapadas
-      // because https://suttacentral.net/api/menu/dharmapadas?language=en
-      // returns the child with `uid: g2dhp` with node type `leaf`, when the rest are `branch`.
-      // So fix this check to account for situations like this.
+    // Stop recursion before it reaches leaf nodes (sutta texts)
+    // to sync URL structure with SuttaCentral.net
+    // while still accounting for uneven tree structure, ie
+    // https://suttacentral.net/api/menu/dharmapadas?language=en
+    // returns a child `uid: g2dhp` with node_type `leaf`, when the rest are `branch`.
+    if (
+      node.node_type !== 'leaf' &&
+      !node.children?.some((c) => c.node_type === 'branch')
+    ) {
       const entry = removeTranslationTexts({
         ...node,
         scx_path: `${node.uid}`,
@@ -191,5 +194,16 @@ function flatten(nodes, parentPath = '') {
  */
 export default async function () {
   const menu = await masterData()
-  return flatten(menu).filter(Boolean)
+  const chapters = flatten(menu).filter(Boolean)
+
+  // Deduplicate by uid to prevent permalink conflicts when the same
+  // collection (ie /dhp) appears at multiple levels in the tree structure
+  const seen = new Set()
+  return chapters.filter((chapter) => {
+    if (seen.has(chapter.uid)) {
+      return false
+    }
+    seen.add(chapter.uid)
+    return true
+  })
 }

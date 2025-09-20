@@ -45,16 +45,16 @@ eleventyComputed:
           <!--
             Check when the nested menu link should change to the root level chapter link, to sync URL structure with SuttaCentral.net
           -->
-          {% capture has_leaf_grandchild %}false{% endcapture %}
+          {% capture has_branch_grandchildren %}false{% endcapture %}
           {% if child.children.size > 0 %}
             {% for grandchild in child.children %}
-              {% if grandchild.node_type == 'leaf' %}
-                {% capture has_leaf_grandchild %}true{% endcapture %}
+              {% if grandchild.node_type == 'branch' %}
+                {% capture has_branch_grandchildren %}true{% endcapture %}
               {% endif %}
             {% endfor %}
           {% endif %}
           <h2>
-            <a href="{% if has_leaf_grandchild == 'true' %}/{{ child.uid }}/{% else %}/pitaka/{{ entry.scx_path }}/{{ child.uid }}/{% endif %}">
+            <a href="{% if has_branch_grandchildren == 'false' %}/{{ child.uid }}/{% else %}/pitaka/{{ entry.scx_path }}/{{ child.uid }}/{% endif %}">
               {{ child.original_title | default: child.root_name -}}
               {%- if child.translated_title or child.translated_name -%}
                 —{{ child.translated_title | default: child.translated_name -}}

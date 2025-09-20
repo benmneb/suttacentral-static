@@ -121,7 +121,7 @@ function removeTranslations(node) {
 
 function flatten(nodes, parentPath = '') {
   return nodes.flatMap((node) => {
-    if (node.children?.some((c) => c.node_type === 'leaf')) {
+    if (!node.children?.some((c) => c.node_type === 'branch')) {
       // Stop where chapters start, to sync URL structure with SuttaCentral.net
       return null
     }
