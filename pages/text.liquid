@@ -122,9 +122,9 @@ eleventyComputed:
             <!-- This is not a translation, its the root text, the class is for styling purposes. -->
             <span class="translation" lang="{{ entry.lang }}" translate="no">
               <span class="text">{{ text }}</span>
-              {% if comment %}
+              {% unless comment == blank %}
                 <button popovertarget="comment-{{ key }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
-              {% endif %}
+              {% endunless %}
             </span>
           </span>
         {% endcapture %}
@@ -165,9 +165,9 @@ eleventyComputed:
             </span>
             <span class="translation" lang="{{ entry.lang }}">
               <span class="text">{{ text }}</span>
-              {% if comment %}
+              {% unless comment == blank %}
                 <button popovertarget="comment-{{ key }}" aria-label="Show {{ entry.author }}'s footnote for segment {{ key }}">*</button>
-              {% endif %}
+              {% endunless %}
             </span>
             {% if rootText %}
             <span class="root" lang="{{ entry.root_lang }}" translate="no">
