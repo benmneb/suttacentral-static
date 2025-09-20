@@ -412,6 +412,7 @@ main {
     }
   }
 
+  section,
   article {
     button[popovertarget] {
       display: none;
