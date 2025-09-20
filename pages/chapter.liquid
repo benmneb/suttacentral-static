@@ -236,13 +236,16 @@ eleventyComputed:
       {% endfor %}
     </ul>
   {% endif %}
-
-  {% if _siteMetaData.environment == 'dev' %}
-    <script>
-      const data = {{ entry | jsonify }};
-      console.log(data);
-    </script>
-  {% endif %}
 </main>
 
-{% include 'footer.liquid', route: entry.scx_path %}
+{% include 'footer.liquid',
+  route: entry.scx_path,
+  fetchedAt: entry.scx_fetched_at
+%}
+
+{% if _siteMetaData.environment == 'dev' %}
+  <script>
+    const data = {{ entry | jsonify }};
+    console.log(data);
+  </script>
+{% endif %}

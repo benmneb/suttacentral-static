@@ -22,4 +22,10 @@
       >
     </li>
   </ul>
+  {% if fetchedAt %}
+    <p>
+      This page was last updated from SuttaCentral.net on<br>
+      {{ fetchedAt | split: ', ' | last }}
+    </p>
+  {% endif %}
 </footer>

@@ -209,7 +209,10 @@ eleventyComputed:
   </section>
 </main>
 
-{% include 'footer.liquid', route: entry.scx_path %}
+{% include 'footer.liquid',
+  route: entry.scx_path,
+  fetchedAt: entry.scx_fetched_at
+%}
 
 {% if _siteMetaData.environment == 'dev' %}
   <script>

@@ -27,7 +27,7 @@ eleventyComputed:
   </ul>
 </main>
 
-{% include 'footer.liquid', route: '' %}
+{% include 'footer.liquid', route: '', fetchedAt: indexData[0].scx_fetched_at %}
 
 {% if _siteMetaData.environment == 'dev' %}
   <script>

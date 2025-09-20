@@ -547,6 +547,10 @@ footer:not(article footer) {
     list-style: none;
     padding: 0;
   }
+
+  p:last-of-type {
+    color: var(--text-color-secondary);
+  }
 }
 
 a {

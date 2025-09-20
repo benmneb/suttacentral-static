@@ -71,7 +71,7 @@ eleventyComputed:
 </main>
 
 {% assign path = 'pitaka/' | append: entry.scx_path %}
-{% include 'footer.liquid', route: path %}
+{% include 'footer.liquid', route: path, fetchedAt: entry.scx_fetched_at %}
 
 {% if _siteMetaData.environment == 'dev' %}
   <script>

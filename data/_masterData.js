@@ -1,4 +1,4 @@
-import Fetch from '@11ty/eleventy-fetch'
+import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
 import ora from 'ora'
 
 const CACHE_DURATION = '*' // https://www.11ty.dev/docs/plugins/fetch/#change-the-cache-duration
@@ -7,6 +7,15 @@ const MAX_CONCURRENT_REQUESTS = 50
 
 let cachedMasterData = null
 let isBuilding = false
+
+const spinner = ora('Fetching...')
+spinner.spinner = { frames: ['⏳'] }
+
+const startTime = Date.now()
+let endpointsHit = 0
+let fetchErrors = 0
+let pubInfoErrors = 0
+let cacheTimeErrors = 0
 
 function menuUrl(path = '') {
   return `https://suttacentral.net/api/menu/${path}?language=en`
@@ -27,15 +36,48 @@ function publicationInfoUrl(suttaUid, lang, translatorUid) {
   return `https://suttacentral.net/api/publication_info/${suttaUid}/${lang}/${translatorUid}`
 }
 
+/**
+ * Fetches JSON data with caching and cache timestamp tracking.
+ *
+ * Uses Eleventy Fetch to cache responses and adds a `scx_fetched_at` property
+ * indicating when the data was originally fetched from Sutta Central (not when
+ * it was served from cache) to print on the page for all to see.
+ *
+ * @param {string} url - The SuttaCentral API URL to fetch data from
+ * @returns {Promise<Object>} The returned JSON data with an additional `scx_fetched_at` property
+ */
 async function fetchJson(url) {
   endpointsHit++
-  return await Fetch(url, {
+
+  const options = {
     duration: CACHE_DURATION,
     type: 'json',
-    filenameFormat: function (cacheKey, hash) {
-      return `${url.split('/api/')[1]}-${cacheKey}-${hash}` // Do not include the file extension
+    filenameFormat: (cacheKey, hash) => {
+      return `${url.split('/api/')[1]}-${cacheKey}-${hash}`
     },
-  })
+  }
+
+  const data = await Fetch(url, options)
+
+  let scx_fetched_at = new Date().toUTCString() // Current time for new fetches
+
+  try {
+    const cache = new AssetCache(url, '.cache', options)
+    const cachedTimestamp = cache.getCachedTimestamp()
+    if (cachedTimestamp) {
+      scx_fetched_at = new Date(cachedTimestamp).toUTCString()
+    }
+  } catch (error) {
+    cacheTimeErrors++
+    // Use current time as fallback as well
+    console.warn(`Could not read cache timestamp for ${url}:`, error.message)
+  }
+
+  if (Array.isArray(data)) {
+    return data.map((item) => ({ ...item, scx_fetched_at }))
+  } else {
+    return { ...data, scx_fetched_at }
+  }
 }
 
 /**
@@ -51,13 +93,6 @@ async function limitConcurrency(promises, limit) {
   }
   return results
 }
-
-const spinner = ora('Fetching...')
-spinner.spinner = { frames: ['⏳'] }
-
-const startTime = Date.now()
-let endpointsHit = 0
-let fetchErrors = 0
 
 async function fetchDataTree(uid, depth = 0) {
   let menu
@@ -132,6 +167,7 @@ async function fetchDataTree(uid, depth = 0) {
         )
       } catch {
         fetchErrors++
+        pubInfoErrors++
         publicationInfo = { error: true }
         // It's possibly only root texts and Sujato's translations actually have data here.
         // This error object is what SC returns for errors also, ie: https://suttacentral.net/api/publication_info/dn1/en/bodhi
@@ -230,16 +266,29 @@ export default async function () {
     spinner.fail(e.message)
     return []
   } finally {
-    isBuilding = false
+    const elapsedMins = ((Date.now() - startTime) / 60_000).toFixed(2)
+    const successCount = endpointsHit - fetchErrors
+    const successRate =
+      endpointsHit > 0 ? ((successCount / endpointsHit) * 100).toFixed(1) : 0
+    let errorDetails = ''
+    if (fetchErrors > 0) {
+      errorDetails += `, ${fetchErrors} total failed`
+      if (pubInfoErrors > 0) {
+        const pubInfoRate = ((pubInfoErrors / fetchErrors) * 100).toFixed(1)
+        errorDetails += `, ${pubInfoErrors} failed from \`publication_info\` (${pubInfoRate}%)`
+      }
+      if (cacheTimeErrors > 0) {
+        errorDetails += `, and ${cacheTimeErrors} errors reading cache data timestamp`
+      }
+    }
+
     spinner
-      .succeed(
-        `Fetched from ${endpointsHit} endpoints in ~${((Date.now() - startTime) / 60_000).toFixed(2)} mins`
-      )
+      .succeed(`Fetched from ${endpointsHit} endpoints in ~${elapsedMins} mins`)
       .info(
-        `Results: ${endpointsHit - fetchErrors}/${endpointsHit} successful (${endpointsHit > 0 ? (((endpointsHit - fetchErrors) / endpointsHit) * 100).toFixed(1) : 0}%)${
-          fetchErrors > 0 ? `, ${fetchErrors} failed` : ''
-        }`
+        `Results: ${successCount}/${endpointsHit} successful (${successRate}%)${errorDetails}`
       )
+
+    isBuilding = false
     endpointsHit = 0
     fetchErrors = 0
   }
