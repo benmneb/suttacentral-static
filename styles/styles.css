@@ -549,18 +549,10 @@ main {
         background-color: var(--bg-soft);
       }
     }
-
-    /* Sutta Central includes footers in legacy texts with publication info. */
-    footer {
-      border-radius: 0.5rem;
-      padding: 1rem 2rem;
-      text-align: left;
-      background-color: var(--bg-alt-2);
-    }
   }
 }
 
-footer:not(article footer) {
+footer {
   background-color: var(--bg-alt-1);
   margin-top: 2rem;
   text-align: center;
