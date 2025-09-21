@@ -36,6 +36,8 @@
 
   /* Use these: */
   --content-width: 600px;
+  --rounding: 0.2rem;
+
   --background-color: var(--bg);
   --text-color: var(--fg-alt-2);
   --text-color-secondary: var(--fg-alt-4);
@@ -233,7 +235,7 @@ body:has(aside #rooter:checked) article .segment {
   color: var(--text-color);
   border: none;
   box-shadow: 0 0.3rem 1rem var(--shadow-color);
-  border-radius: 0.3rem;
+  border-radius: var(--rounding);
   padding: 1rem;
   background-color: var(--bg-alt-1);
   max-width: calc(min(320px, 100vw) - 2rem);
@@ -265,8 +267,8 @@ aside {
     border: none;
     margin: 0;
     background-color: var(--bg-alt-1);
-    border-top-left-radius: 0.3rem;
-    border-bottom-left-radius: 0.3rem;
+    border-top-left-radius: var(--rounding);
+    border-bottom-left-radius: var(--rounding);
 
     button {
       height: 100%;
@@ -295,15 +297,12 @@ aside {
       display: block;
       position: relative;
       color: var(--fg-alt-3);
-
-      &:hover,
-      &:focus-within {
-        background: var(--bg-soft);
-      }
+      border-top-left-radius: var(--rounding);
+      border-bottom-left-radius: var(--rounding);
 
       &:first-of-type > button {
-        border-top-left-radius: 0.3rem;
-        border-bottom-left-radius: 0.3rem;
+        border-top-left-radius: var(--rounding);
+        border-bottom-left-radius: var(--rounding);
       }
     }
 
@@ -316,12 +315,28 @@ aside {
       background-color: var(--bg-alt-2);
       color: var(--text-color);
       padding-right: 0.3rem;
+      border-radius: var(--rounding);
+      border-top-right-radius: unset;
 
       li {
         width: 100%;
         display: flex;
         align-items: center;
         padding-right: 0.3rem;
+
+        &:hover,
+        &:focus-within {
+          background: var(--bg-soft);
+          border-radius: unset;
+
+          &:first-of-type {
+            border-top-left-radius: var(--rounding);
+          }
+          &:last-of-type {
+            border-bottom-left-radius: var(--rounding);
+            border-bottom-right-radius: var(--rounding);
+          }
+        }
 
         label {
           width: 100%;
@@ -384,7 +399,7 @@ main {
       summary {
         cursor: pointer;
         padding: 0.5rem 0.15rem 0.5rem 0.5rem;
-        border-radius: 0.3rem;
+        border-radius: var(--rounding);
         margin-left: -0.5rem;
 
         &:hover,
@@ -446,7 +461,7 @@ main {
         a {
           display: none;
           border: 1px solid var(--bg-alt-2);
-          border-radius: 0.3rem;
+          border-radius: var(--rounding);
           padding: 0.2rem;
           text-decoration: none;
           color: var(--fg-alt-4);
@@ -515,7 +530,7 @@ main {
     .suttainfo {
       background-color: var(--bg-alt-1);
       padding: 1rem;
-      border-radius: 0.2rem;
+      border-radius: var(--rounding);
       margin-bottom: 2rem;
     }
 
@@ -523,7 +538,7 @@ main {
     a.ref {
       display: none;
       border: 1px solid var(--bg-alt-2);
-      border-radius: 0.3rem;
+      border-radius: var(--rounding);
       padding: 0.2rem;
       text-decoration: none;
       color: var(--fg-alt-4);
