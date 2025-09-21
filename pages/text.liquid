@@ -100,7 +100,7 @@ eleventyComputed:
 </aside>
 
 <main>
-  {% if entry.is_root %}
+  {% if entry.is_root and entry._bilarasuttas_data.size > 0 %}
     {% assign comments = '' %}
     {% for key in entry._bilarasuttas_data.keys_order %}
       {% assign html = entry._bilarasuttas_data.html_text[key] %}
