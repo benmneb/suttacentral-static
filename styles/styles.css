@@ -510,7 +510,16 @@ main {
       color: var(--text-color-secondary);
     }
 
-    /* This class comes through from Sutta Central with the non-segment texts. */
+    /* For Chinese root texts*/
+    .xu,
+    .suttainfo {
+      background-color: var(--bg-alt-1);
+      padding: 1rem;
+      border-radius: 0.2rem;
+      margin-bottom: 2rem;
+    }
+
+    /* From Sutta Central with the non-segment texts. */
     a.ref {
       display: none;
       border: 1px solid var(--bg-alt-2);
