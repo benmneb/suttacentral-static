@@ -1,0 +1,162 @@
+<section role="main" aria-labelledby="publication-info-heading">
+  <h1 id="publication-info-heading">Publication Info</h1>
+
+  <article
+    about="{{ entry._publication_info.source_url }}"
+    role="article"
+    aria-labelledby="translation-info-heading"
+  >
+    <h2 id="translation-info-heading" class="sr-only">
+      Translation Information
+    </h2>
+
+    <section aria-labelledby="basic-translation-info">
+      <h3 id="basic-translation-info" class="sr-only">
+        Basic Translation Details
+      </h3>
+      <dl>
+        <dt>Translation title</dt>
+        <dd property="dc:title" aria-label="Translation title">
+          {{ entry._publication_info.translation_title }}
+        </dd>
+        <dt>Translation subtitle</dt>
+        <dd property="dc:title" aria-label="Translation subtitle">
+          {{ entry._publication_info.translation_subtitle }}
+        </dd>
+        {% if entry._publication_info.author_name %}
+          <dt>Translator</dt>
+          <dd property="dc:creator" aria-label="Translator name">
+            {{ entry._publication_info.author_name }}
+          </dd>
+        {% endif %}
+        {% if entry._publication_info.collaborator %}
+          <dt>Collaborator</dt>
+          <dd property="dc:creator" aria-label="Collaborator name">
+            {{ entry._publication_info.collaborator }}
+          </dd>
+        {% endif %}
+      </dl>
+    </section>
+
+    <section aria-labelledby="language-info">
+      <h3 id="language-info" class="sr-only">Language Information</h3>
+      <dl>
+        <dt>Root title</dt>
+        <dd property="dc:title" aria-label="Original root title">
+          {{ entry._publication_info.root_title }}
+        </dd>
+        {% if entry._publication_info.translation_lang_name %}
+          <dt>Translation language</dt>
+          <dd property="dc:language" aria-label="Language of translation">
+            {{ entry._publication_info.translation_lang_name }}
+          </dd>
+        {% endif %}
+        <dt>Root language</dt>
+        <dd aria-label="Original language of the text">
+          {{ entry._publication_info.root_lang_name }}
+        </dd>
+      </dl>
+    </section>
+
+    <section aria-labelledby="description-info">
+      <h3 id="description-info" class="sr-only">
+        Description and Process Information
+      </h3>
+      <dl>
+        <dt>Translations description</dt>
+        <dd
+          property="dc:description"
+          aria-label="Description of the translation"
+        >
+          {{ entry._publication_info.translation_description }}
+        </dd>
+        <dt>Translations process</dt>
+        <dd
+          property="dc:description"
+          aria-label="Translation process details"
+        >
+          {{ entry._publication_info.translation_process }}
+        </dd>
+        <dt>Publication status</dt>
+        <dd aria-label="Current publication status">
+          {{ entry._publication_info.publication_status }}
+        </dd>
+      </dl>
+    </section>
+
+    <section aria-labelledby="publication-details">
+      <h3 id="publication-details" class="sr-only">Publication Details</h3>
+      <dl>
+        <dt>Edition</dt>
+        <dd aria-label="Edition number">
+          {{ entry._publication_info.edition[0].edition_number }}
+        </dd>
+        <dt>Publication date</dt>
+        <dd property="dc:date" aria-label="Date of publication">
+          <time datetime="{{ entry._publication_info.edition[0].publication_date }}">
+            {{ entry._publication_info.edition[0].publication_date }}
+          </time>
+        </dd>
+        <dt>Publisher</dt>
+        <dd property="dc:publisher" aria-label="Publisher name">
+          {{ entry._publication_info.edition[0].publisher }}
+        </dd>
+        <dt>Publication type</dt>
+        <dd property="dc:format" aria-label="Type of publication format">
+          {{ entry._publication_info.edition[0].publication_type }}
+        </dd>
+      </dl>
+    </section>
+
+    <section aria-labelledby="links-identifiers">
+      <h3 id="links-identifiers" class="sr-only">Links and Identifiers</h3>
+      <dl>
+        <dt>URL</dt>
+        <dd>
+          <a
+            href="{{ entry._publication_info.edition[0].edition_url }}"
+            aria-label="Link to publication URL"
+          >
+            {{- entry._publication_info.edition[0].edition_url -}}
+          </a>
+        </dd>
+        <dt>Source</dt>
+        <dd>
+          <a
+            href="{{ entry._publication_info.source_url }}"
+            aria-label="Link to source URL"
+          >
+            {{- entry._publication_info.source_url -}}
+          </a>
+        </dd>
+        <dt>SuttaCentral publication number</dt>
+        <dd
+          property="dc:identifier"
+          aria-label="SuttaCentral unique publication identifier"
+        >
+          {{ entry._publication_info._key }}
+        </dd>
+      </dl>
+    </section>
+  </article>
+
+  <section aria-labelledby="license-info">
+    <h2 id="license-info">License</h2>
+    <div role="group" aria-labelledby="license-info">
+      <p property="dc:rights" aria-label="License type">
+        {{ entry._publication_info.license.license_type }}
+      </p>
+      <p>
+        <a
+          href="{{ entry._publication_info.license.license_url }}"
+          aria-label="Link to full license text"
+        >
+          {{ entry._publication_info.license.license_url }}
+        </a>
+      </p>
+      <p aria-label="License statement">
+        {{ entry._publication_info.license.license_statement }}
+      </p>
+    </div>
+  </section>
+</section>

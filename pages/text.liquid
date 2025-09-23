@@ -133,7 +133,7 @@ eleventyComputed:
     {% endfor %}
     {{ comments }}
     <article id="info" popover>
-      {% include 'publication-info.liquid', entry: entry %}
+      {% include 'publicationInfo.liquid', entry: entry %}
     </article>
   {% elsif entry.segmented %}
     {% assign comments = '' %}
@@ -176,7 +176,7 @@ eleventyComputed:
     {{ comments }}
     {% if entry._publication_info != blank %}
       <article id="info" popover>
-        {% include 'publication-info.liquid', entry: entry %}
+        {% include 'publicationInfo.liquid', entry: entry %}
       </article>
     {% endif %}
   {% else %}
