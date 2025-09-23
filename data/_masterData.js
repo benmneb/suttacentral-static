@@ -136,9 +136,14 @@ async function fetchDataTree(uid, depth = 0) {
       return { ...node, ...suttaplexData[0] }
     }
 
-    const translationsToProcess = DEV_MODE
-      ? translations.filter((t) => t.lang === 'en' || t.is_root)
-      : translations
+    function filterTranslations(translations) {
+      if (!translations.length) return []
+      return DEV_MODE
+        ? translations.filter((t) => t.lang === 'en' || t.is_root)
+        : translations
+    }
+
+    const translationsToProcess = filterTranslations(translations)
 
     const translationPromises = translationsToProcess.map(async (trans) => {
       let bilaraData
@@ -162,6 +167,9 @@ async function fetchDataTree(uid, depth = 0) {
       try {
         suttasData = await fetchJson(
           suttasUrl(node.uid, trans.author_uid, trans.lang)
+        )
+        suttasData.suttaplex.translations = filterTranslations(
+          suttasData.suttaplex.translations
         )
       } catch (e) {
         fetchErrors++
