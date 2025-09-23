@@ -26,7 +26,7 @@ function leafUrl(uid) {
 function segmentedTranslationUrl(uid, author, lang) {
   return `https://suttacentral.net/api/bilarasuttas/${uid}/${author}?lang=${lang}`
 }
-function legacyTranslationUrl(uid, author, lang) {
+function suttasUrl(uid, author, lang) {
   return `https://suttacentral.net/api/suttas/${uid}/${author}?lang=${lang}&siteLanguage=en`
 }
 function parallelsUrl(uid) {
@@ -95,9 +95,9 @@ async function limitConcurrency(promises, limit) {
 }
 
 async function fetchDataTree(uid, depth = 0) {
-  let menu
+  let menuData
   try {
-    menu = await fetchJson(menuUrl(uid))
+    menuData = await fetchJson(menuUrl(uid))
   } catch (e) {
     fetchErrors++
     spinner
@@ -107,7 +107,7 @@ async function fetchDataTree(uid, depth = 0) {
   }
 
   // Sometimes the API returns a non-array or malformed data
-  if (!menu || !Array.isArray(menu) || !menu[0]) {
+  if (!menuData || !Array.isArray(menuData) || !menuData[0]) {
     spinner
       .warn(
         `Malformed or empty data from /menu for uid: ${uid} at depth ${depth}`
@@ -116,7 +116,7 @@ async function fetchDataTree(uid, depth = 0) {
     return null
   }
 
-  const node = menu[0]
+  const node = menuData[0]
 
   if (node.node_type === 'leaf') {
     let suttaplexData = null
@@ -127,7 +127,6 @@ async function fetchDataTree(uid, depth = 0) {
       spinner.fail(`Fetch error for /suttaplex with uid: ${node.uid}`).start()
     }
 
-    // Ensure suttaplexData[0] exists
     if (!suttaplexData || !Array.isArray(suttaplexData) || !suttaplexData[0]) {
       return node
     }
@@ -141,34 +140,48 @@ async function fetchDataTree(uid, depth = 0) {
       ? translations.filter((t) => t.lang === 'en' || t.is_root)
       : translations
 
-    // Add translated text to `/suttaplex` object, with concurrency limiting
     const translationPromises = translationsToProcess.map(async (trans) => {
-      let texts
+      let bilaraData
+      if (trans.segmented) {
+        try {
+          bilaraData = await fetchJson(
+            segmentedTranslationUrl(node.uid, trans.author_uid, trans.lang)
+          )
+        } catch (e) {
+          fetchErrors++
+          spinner
+            .fail(
+              `Fetch error for '/bilarasuttas' with translation: ${node.uid}/${trans.author_uid} at depth ${depth}`
+            )
+            .start()
+          return null
+        }
+      }
+
+      let suttasData
       try {
-        texts = await fetchJson(
-          trans.segmented
-            ? segmentedTranslationUrl(node.uid, trans.author_uid, trans.lang)
-            : legacyTranslationUrl(node.uid, trans.author_uid, trans.lang)
+        suttasData = await fetchJson(
+          suttasUrl(node.uid, trans.author_uid, trans.lang)
         )
       } catch (e) {
         fetchErrors++
         spinner
           .fail(
-            `Fetch error for ${trans.segmented ? '/bilarasuttas' : '/suttas'} with translation: ${node.uid}/${trans.author_uid} at depth ${depth}`
+            `Fetch error for /suttas with translation: ${node.uid}/${trans.author_uid} at depth ${depth}`
           )
           .start()
         return null
       }
 
-      let publicationInfo
+      let publicationData
       try {
-        publicationInfo = await fetchJson(
+        publicationData = await fetchJson(
           publicationInfoUrl(node.uid, trans.lang, trans.author_uid)
         )
       } catch {
         fetchErrors++
         pubInfoErrors++
-        publicationInfo = { error: true }
+        publicationData = { error: true }
         // It's possibly only root texts and Sujato's translations actually have data here.
         // This error object is what SC returns for errors also, ie: https://suttacentral.net/api/publication_info/dn1/en/bodhi
       }
@@ -177,11 +190,10 @@ async function fetchDataTree(uid, depth = 0) {
       // to keep the texts data with its meta-data.
       return {
         ...trans,
-        ...(trans.segmented
-          ? { _bilarasuttas_data: texts }
-          : { _suttas_data: texts.translation }),
-        ...(!publicationInfo.error && {
-          _publication_info: publicationInfo[0],
+        _suttas_data: suttasData,
+        ...(trans.segmented && { _bilarasuttas_data: bilaraData }),
+        ...(!publicationData.error && {
+          _publication_info: publicationData[0],
         }),
       }
     })
@@ -232,11 +244,11 @@ async function fetchDataTree(uid, depth = 0) {
  * to get the more detailed meta-data for the text (including translations array).
  *
  * Then, if `segmented` is `true` on the translation object,
- * it then uses the `/bilarasuttas` API, otherwise the legacy `/suttas` API
- * to get the actual translated text.
+ * it then uses the `/bilarasuttas` API, in addition to the `/suttas` API
+ * to get the actual translated text and associated data.
  *
  * This master output is then used by the various `flat...Data.js` files
- * to add `scx_path` key and flatten the nested structure appropriately
+ * to add `scx_path` key, json-ld data, and flatten this deeply nested tree
  * to sync URL structure with SuttaCentral.net.
  */
 export default async function () {
@@ -291,5 +303,6 @@ export default async function () {
     isBuilding = false
     endpointsHit = 0
     fetchErrors = 0
+    pubInfoErrors = 0
   }
 }

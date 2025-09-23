@@ -75,7 +75,7 @@ eleventyComputed:
             </li>
           {% endunless %}
           {% if entry.segmented
-            or entry._suttas_data.text contains "class='ref"
+            or entry._suttas_data.translation.text contains "class='ref"
           %}
             <li role="menuitem">
               <label for="segmenter">Show segments</label>
@@ -107,12 +107,6 @@ eleventyComputed:
       {% assign text = entry._bilarasuttas_data.root_text[key] %}
       {% assign comment = entry._bilarasuttas_data.variant_text[key] %}
       {% assign ref = key | split: ':' | last %}
-      {% if entry.previous.uid != blank %}
-        {% capture prev %}/{{ entry.previous.uid }}/{{ entry.root_lang }}/{{ entry.author_uid }}{% endcapture %}
-      {% endif %}
-      {% if entry.next.uid != blank %}
-        {% capture next %}/{{ entry.next.uid }}/{{ entry.root_lang }}/{{ entry.author_uid }}{% endcapture %}
-      {% endif %}
       {% if html and text %}
         {% capture replacement %}
           <span id="{{ key }}" class="segment">
@@ -151,12 +145,6 @@ eleventyComputed:
       {% assign rootText = entry._bilarasuttas_data.root_text[key] %}
       {% assign comment = entry._bilarasuttas_data.comment_text[key] %}
       {% assign ref = key | split: ':' | last %}
-      {% if entry.previous.uid != blank %}
-        {% capture prev %}/{{ entry.previous.uid }}/en/{{ entry.priority_author_uid }}{% endcapture %}
-      {% endif %}
-      {% if entry.next.uid != blank %}
-        {% capture next %}/{{ entry.next.uid }}/en/{{ entry.priority_author_uid }}{% endcapture %}
-      {% endif %}
       {% if html and text %}
         {% capture replacement %}
           <span id="{{ key }}" class="segment">
@@ -194,13 +182,9 @@ eleventyComputed:
       </article>
     {% endif %}
   {% else %}
-    {% if entry.previous.uid != blank %}
-      {% capture prev %}/{{ entry.previous.uid }}/en/{{ entry.priority_author_uid }}{% endcapture %}
-    {% endif %}
-    {% if entry.next.uid != blank %}
-      {% capture next %}/{{ entry.next.uid }}/en/{{ entry.priority_author_uid }}{% endcapture %}
-    {% endif %}
-    {% assign html_content = entry._suttas_data.text | replace: '\n', '' %}
+    {% assign html_content = entry._suttas_data.translation.text
+      | replace: '\n', ''
+    %}
     {% assign original_footer = html_content
       | split: '<footer'
       | last
@@ -223,15 +207,25 @@ eleventyComputed:
 
 <nav aria-label="Article pagination">
   <div>
-    {% if entry.previous.uid != blank %}
+    {% if entry._suttas_data.translation.previous.uid != blank %}
       <span>Previous</span>
-      <a href="{{ prev }}" rel="prev">{{ entry.previous.name }}</a>
+      <a
+        href="/{{ entry._suttas_data.translation.previous.uid }}/{{ entry._suttas_data.translation.previous.lang }}/{{ entry._suttas_data.translation.previous.author_uid }}"
+        rel="prev"
+      >
+        {{- entry._suttas_data.translation.previous.name -}}
+      </a>
     {% endif %}
   </div>
   <div>
-    {% if entry.next.uid != blank %}
+    {% if entry._suttas_data.translation.next.uid != blank %}
       <span>Next</span>
-      <a href="{{ next }}" rel="next">{{ entry.next.name }}</a>
+      <a
+        href="/{{ entry._suttas_data.translation.next.uid }}/{{ entry._suttas_data.translation.next.lang }}/{{ entry._suttas_data.translation.next.author_uid }}"
+        rel="next"
+      >
+        {{- entry._suttas_data.translation.next.name -}}
+      </a>
     {% endif %}
   </div>
 </nav>
