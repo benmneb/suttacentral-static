@@ -78,14 +78,14 @@ eleventyComputed:
                         href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}"
                         hreflang="{{ version.lang }}"
                       >
-                        {{
+                        {{-
                           version.author
                           | default: version.author_uid
                           | replace: '&nbsp;', ' '
                           | replace: '&#160;', ' '
                           | replace: '\u00A0', ' '
                           | strip
-                        }}
+                        -}}
                       </a>
                       {%- if version.publication_date -%}
                         &nbsp;(<span>{{ version.publication_date }}</span>)
@@ -117,14 +117,14 @@ eleventyComputed:
                         {% if version.author_uid == 'sct' %}
                           SuttaCentral Taishō
                         {% else %}
-                          {{
+                          {{-
                             version.author
                             | default: version.author_uid
                             | replace: '&nbsp;', ' '
                             | replace: '&#160;', ' '
                             | replace: '\u00A0', ' '
                             | strip
-                          }}
+                          -}}
                         {% endif %}
                       </a>
                       {%- if version.publication_date -%}
@@ -156,14 +156,14 @@ eleventyComputed:
                         href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}"
                         hreflang="{{ version.lang }}"
                       >
-                        {{
+                        {{-
                           version.author
                           | default: version.author_uid
                           | replace: '&nbsp;', ' '
                           | replace: '&#160;', ' '
                           | replace: '\u00A0', ' '
                           | strip
-                        }}
+                        -}}
                       </a>
                       {%- if version.publication_date -%}
                         &nbsp;(<span>{{ version.publication_date }}</span>)

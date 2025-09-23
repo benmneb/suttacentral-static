@@ -166,8 +166,6 @@ function flatten(nodes, parent, parentPath) {
       if (usedPaths.includes(scx_path)) return null
       usedPaths.push(scx_path)
       const { translations, ...parentWithoutTranslations } = parent
-      // if (scx_path.includes('dn1/de/sabbamitta'))
-      // console.log({ ...parentWithoutTranslations, ...node, scx_path })
       const entry = {
         ...parentWithoutTranslations,
         ...node,
