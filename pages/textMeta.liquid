@@ -45,6 +45,31 @@ eleventyComputed:
   %}
 </main>
 
+<nav aria-label="Article pagination">
+  <div>
+    {% if entry.previous.uid != blank %}
+      <span>Previous</span>
+      <a
+        href="/{{ entry.previous.uid }}"
+        rel="prev"
+      >
+        {{- entry.previous.name -}}
+      </a>
+    {% endif %}
+  </div>
+  <div>
+    {% if entry.next.uid != blank %}
+      <span>Next</span>
+      <a
+        href="/{{ entry.next.uid }}"
+        rel="next"
+      >
+        {{- entry.next.name -}}
+      </a>
+    {% endif %}
+  </div>
+</nav>
+
 {% include 'footer.liquid',
   route: entry.scx_path,
   fetchedAt: entry.scx_fetched_at
