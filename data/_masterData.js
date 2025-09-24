@@ -212,14 +212,14 @@ async function fetchDataTree(uid, depth = 0) {
     )
 
     let parallelsData = null
-    if (!DEV_MODE) {
-      try {
-        parallelsData = await fetchJson(parallelsUrl(node.uid))
-      } catch (e) {
-        fetchErrors++
-        spinner.fail(`Fetch error for /parallels/${node.uid}`).start()
-      }
+    // if (!DEV_MODE) {
+    try {
+      parallelsData = await fetchJson(parallelsUrl(node.uid))
+    } catch (e) {
+      fetchErrors++
+      spinner.fail(`Fetch error for /parallels/${node.uid}`).start()
     }
+    // }
 
     return {
       ...node,

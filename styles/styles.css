@@ -245,6 +245,13 @@ body:has(aside #rooter:checked) article .segment {
   dl dt {
     color: var(--text-color-secondary);
   }
+
+  .texts-list > details > summary {
+    &:hover,
+    &:active {
+      background-color: var(--bg-alt-2);
+    }
+  }
 }
 
 [popover]#info,
@@ -383,18 +390,19 @@ main {
     }
   }
 
-  .texts-list {
-    hgroup {
-      h2 {
-        margin-bottom: 0;
-      }
-
-      p {
-        margin-top: 0;
-        color: var(--text-color-secondary);
-      }
+  hgroup:has(p) {
+    h1,
+    h2 {
+      margin-bottom: 0;
     }
 
+    p {
+      margin-top: 0;
+      color: var(--text-color-secondary);
+    }
+  }
+
+  .texts-list {
     details {
       summary {
         cursor: pointer;
@@ -423,6 +431,13 @@ main {
             }
           }
         }
+      }
+
+      .parallel-list-item-full {
+        list-style-type: '⇆  ';
+      }
+      .parallel-list-item-mention {
+        list-style-type: '〞';
       }
     }
   }

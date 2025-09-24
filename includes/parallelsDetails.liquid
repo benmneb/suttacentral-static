@@ -1,0 +1,92 @@
+<details>
+  <summary>Parallels ({{ entry.parallel_count }})</summary>
+  <ul>
+    {% for segment in entry._parallels_data %}
+      {% unless segment[0] contains 'scx_fetched_at' %}
+        <li>
+          {% assign root_trans = entry.translations
+            | default: entry._suttas_data.suttaplex.translations
+            | where: 'is_root', true
+            | first
+          %}
+          <a href="/{% if segment[0] contains '#' %}{{ segment[0] | split: '#' | first }}/{{ root_trans.lang }}/{{ root_trans.author_uid }}#{{ segment[0] | split: '#' | last }}{% else %}{{ segment[0] }}/{{ root_trans.lang }}/{{ root_trans.author_uid }}{% endif %}">
+            {{- segment[0] -}}
+          </a>
+          <ul>
+            {% for parallel in segment[1] %}
+              <li
+                class="parallel-list-item-{{ parallel.to.type }}"
+                title="{% if parallel.to.type == 'full' %}Full parallel: different versions of the same text{% elsif parallel.to.type == 'mention' %}Mention: one text is quoted or mentioned in another{% endif %}"
+              >
+                {% if parallel.to.translations.size > 0 %}
+                  <a
+                    href="/{{ parallel.to.uid }}/{{ parallel.to.translations[0].lang }}/{{ parallel.to.translations[0].author_uid }}{% if parallel.to.to contains '#' %}#{{ parallel.to.to | split: '#' | last }}{% endif %}"
+                    hreflang="{{ parallel.to.translations[0].lang }}"
+                  >
+                    {{
+                      parallel.to.translated_title
+                      | default: parallel.to.original_title
+                      | default: parallel.to.acronym
+                      | strip
+                    }}
+                  </a>
+                {% else %}
+                  <span>
+                    {{
+                      parallel.to.translated_title
+                      | default: parallel.to.original_title
+                      | default: parallel.to.acronym
+                      | strip
+                    }}
+                  </span>
+                {% endif %}
+                {% if parallel.to.volpages contains 'PTS' %}
+                  {% assign parts = parallel.to.volpages
+                    | strip
+                    | split: ', '
+                  %}
+                  {% assign first_parts = parts.first | strip | split: ' ' %}
+                  {% assign last_parts = parts.last | strip | split: ' ' %}
+                  {% assign prefix = first_parts.first %}
+                  {% assign first_num = first_parts.last %}
+                  {% assign last_num = last_parts.last %}
+                  {% assign pretty_volpages = prefix
+                    | append: ' '
+                    | append: first_num
+                    | append: '—'
+                    | append: last_num
+                  %}
+                {% else %}
+                  {% assign pretty_volpages = parallel.to.volpages %}
+                {% endif %}
+                <br>
+                {% if parallel.to.translated_title != blank
+                  and parallel.to.original_title != blank
+                %}
+                  {{ parallel.to.original_title | strip }}
+                  {% if parallel.to.acronym != blank %}
+                    | {{ parallel.to.acronym | strip -}}
+                  {%- endif %}
+                  {% if pretty_volpages != blank %}
+                    | {{ pretty_volpages | strip -}}
+                  {%- endif %}
+                {% elsif parallel.to.original_title != blank %}
+                  {% if parallel.to.acronym != blank %}
+                    {{- parallel.to.acronym | strip -}}
+                  {%- endif %}
+                  {% if pretty_volpages != blank %}
+                    | {{ pretty_volpages | strip -}}
+                  {%- endif %}
+                {% elsif parallel.to.acronym != blank %}
+                  {% if pretty_volpages != blank %}
+                    {{ pretty_volpages | strip -}}
+                  {%- endif %}
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% endunless %}
+    {% endfor %}
+  </ul>
+</details>

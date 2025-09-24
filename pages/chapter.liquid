@@ -176,61 +176,7 @@ eleventyComputed:
           {% endif %}
 
           {% if child._parallels_data and child._parallels_data.size > 0 %}
-            {% assign totalParallels = 0 %}
-            {% for key in child._parallels_data %}
-              {% assign totalParallels = totalParallels | plus: key[1].size %}
-            {% endfor %}
-            <details>
-              <summary>Parallels ({{ totalParallels }})</summary>
-              <ul>
-                {% for segment in child._parallels_data %}
-                  <li>
-                    {{ segment[0] }}
-                    <ul>
-                      {% for parallel in segment[1] %}
-                        <li>
-                          {% if parallel.to.translations.size > 0 %}
-                            <a
-                              href="/{{ parallel.to.uid }}/{{ parallel.to.translations[0].lang }}/{{ parallel.to.translations[0].author_uid }}{% if parallel.to.to contains '#' %}#{{ parallel.to.to | split: '#' | last }}{% endif %}"
-                              hreflang="{{ parallel.to.translations[0].lang }}"
-                            >
-                              {{
-                                parallel.to.translated_title
-                                | default: parallel.to.original_title
-                                | default: parallel.to.acronym
-                                | strip
-                              }}
-                            </a>
-                          {% else %}
-                            <span>
-                              {{
-                                parallel.to.translated_title
-                                | default: parallel.to.original_title
-                                | default: parallel.to.acronym
-                                | strip
-                              }}
-                            </span>
-                          {% endif %}
-                          <br>
-                          {% if parallel.to.translated_title
-                            and parallel.to.original_title
-                          %}
-                            {{ parallel.to.original_title | strip }} |
-                            {{ parallel.to.acronym | strip }} |
-                            {{ parallel.to.volpages | strip }}
-                          {% elsif parallel.to.original_title %}
-                            {{ parallel.to.acronym | strip }} |
-                            {{ parallel.to.volpages | strip }}
-                          {% elsif parallel.to.acronym %}
-                            {{ parallel.to.volpages | strip }}
-                          {% endif %}
-                        </li>
-                      {% endfor %}
-                    </ul>
-                  </li>
-                {% endfor %}
-              </ul>
-            </details>
+            {% include 'parallelsDetails.liquid', entry: child %}
           {% endif %}
         </li>
       {% endfor %}
