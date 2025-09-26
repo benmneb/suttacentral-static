@@ -41,7 +41,8 @@ function generatePitakaJsonLd(entry) {
       ...(entry.children?.length && {
         hasPart: entry.children.map((child) => {
           const hasLeafGrandchild = child.children?.some(
-            (grandchild) => grandchild.node_type === 'leaf'
+            (grandchild) =>
+              grandchild.node_type === 'leaf' || grandchild.uid?.endsWith('-pm')
           )
           return {
             '@type': 'Collection',

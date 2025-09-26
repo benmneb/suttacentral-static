@@ -40,6 +40,19 @@ eleventyComputed:
     <p>{{ entry.blurb }}</p>
   {% endif %}
 
+  {% assign isPatimokkha = entry.uid | endswith: '-pm' %}
+  {% if isPatimokkha %}
+    {% include 'textMetaContent.liquid',
+      entry: entry,
+      translations: entry.translations,
+      isPatimokkha: true
+    %}
+  {% endif %}
+
+  {% if isPatimokkha %}
+    <details class="patimokkha-details">
+      <summary>Details</summary>
+  {% endif %}
   {% if entry.children.length %}
     <ul class="texts-list">
       {% for child in entry.children %}
@@ -174,13 +187,47 @@ eleventyComputed:
               </details>
             {% endif %}
           {% endif %}
-
           {% if child._parallels_data and child._parallels_data.size > 0 %}
             {% include 'parallelsDetails.liquid', entry: child %}
+          {% endif %}
+          {% if isPatimokkha %}
+            <ul>
+              {% for grandchild in child.children %}
+                <li>
+                  <hgroup>
+                    <h3>
+                      {{
+                        grandchild.original_title
+                        | default: grandchild.root_name
+                      -}}
+                      {%- if grandchild.translated_title
+                        or grandchild.translated_name
+                      -%}
+                        —
+                        {{-
+                          grandchild.translated_title
+                          | default: grandchild.translated_name
+                        -}}
+                      {%- endif %}
+                    </h3>
+                    {%- if grandchild.acronym %}
+                      <p>{{ grandchild.acronym }}</p>
+                    {% endif %}
+                  </hgroup>
+                  {% if grandchild.blurb %}
+                    <p>{{ grandchild.blurb }}</p>
+                  {% endif %}
+                  {% include 'parallelsDetails.liquid', entry: grandchild %}
+                </li>
+              {% endfor %}
+            </ul>
           {% endif %}
         </li>
       {% endfor %}
     </ul>
+  {% endif %}
+  {% if isPatimokkha %}
+    </details>
   {% endif %}
 </main>
 

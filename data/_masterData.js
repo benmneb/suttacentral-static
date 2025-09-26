@@ -106,7 +106,6 @@ async function fetchDataTree(uid, depth = 0) {
     return null
   }
 
-  // Sometimes the API returns a non-array or malformed data
   if (!menuData || !Array.isArray(menuData) || !menuData[0]) {
     spinner
       .warn(
@@ -116,9 +115,9 @@ async function fetchDataTree(uid, depth = 0) {
     return null
   }
 
-  const node = menuData[0]
+  let node = menuData[0]
 
-  if (node.node_type === 'leaf') {
+  async function getTextData() {
     let suttaplexData = null
     try {
       suttaplexData = await fetchJson(leafUrl(node.uid))
@@ -131,16 +130,23 @@ async function fetchDataTree(uid, depth = 0) {
       return node
     }
 
+    let parallelsData = null
+    try {
+      parallelsData = await fetchJson(parallelsUrl(node.uid))
+    } catch (e) {
+      fetchErrors++
+      spinner.fail(`Fetch error for /parallels/${node.uid}`).start()
+    }
+
     const translations = suttaplexData[0]?.translations
     if (!Array.isArray(translations) || !translations.length) {
-      return { ...node, ...suttaplexData[0] }
+      return { ...node, ...suttaplexData[0], _parallels_data: parallelsData }
     }
 
     function filterTranslations(translations) {
       if (!translations.length) return []
-      return DEV_MODE
-        ? translations.filter((t) => t.lang === 'en' || t.is_root)
-        : translations
+      return translations.filter((t) => t.lang === 'en' || t.is_root)
+      // return translations // oh no my memory 🤯
     }
 
     const translationsToProcess = filterTranslations(translations)
@@ -211,16 +217,6 @@ async function fetchDataTree(uid, depth = 0) {
       MAX_CONCURRENT_REQUESTS
     )
 
-    let parallelsData = null
-    // if (!DEV_MODE) {
-    try {
-      parallelsData = await fetchJson(parallelsUrl(node.uid))
-    } catch (e) {
-      fetchErrors++
-      spinner.fail(`Fetch error for /parallels/${node.uid}`).start()
-    }
-    // }
-
     return {
       ...node,
       ...suttaplexData[0],
@@ -229,9 +225,18 @@ async function fetchDataTree(uid, depth = 0) {
     }
   }
 
-  // Recursion for children nodes
-  // These nodes are all type "root" or "branch"
+  if (node.node_type === 'leaf') {
+    return await getTextData()
+  }
+
+  // Recursion for children nodes.
+  // These nodes are all type "root" or "branch".
+  // The Pātimokkha's get /suttaplex data while still a branch node.
   if (node.children?.length) {
+    if (node.uid?.endsWith('-pm') || node.uid?.includes('-pm-')) {
+      node = await getTextData()
+    }
+
     node.children = (
       await limitConcurrency(
         node.children.map((child) => fetchDataTree(child.uid, depth + 1)),
@@ -277,8 +282,7 @@ export default async function () {
 
   try {
     spinner.start()
-    // const roots = ['sutta', 'vinaya', 'abhidhamma']
-    const roots = ['sutta']
+    const roots = ['sutta', 'vinaya', 'abhidhamma']
     const tree = await Promise.all(roots.map((uid) => fetchDataTree(uid)))
     cachedMasterData = tree
     return tree
@@ -295,7 +299,7 @@ export default async function () {
       errorDetails += `, ${fetchErrors} total failed`
       if (pubInfoErrors > 0) {
         const pubInfoRate = ((pubInfoErrors / fetchErrors) * 100).toFixed(1)
-        errorDetails += `, ${pubInfoErrors} failed from \`publication_info\` (${pubInfoRate}%)`
+        errorDetails += `, ${pubInfoErrors} (${pubInfoRate}%) failed from \`/publication_info\``
       }
       if (cacheTimeErrors > 0) {
         errorDetails += `, and ${cacheTimeErrors} errors reading cache data timestamp`

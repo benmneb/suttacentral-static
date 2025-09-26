@@ -1,12 +1,14 @@
 <!-- This has it's own file because it's used in text.liquid as well -->
-<hgroup>
-  <h1>{{ title }}</h1>
-  {%- if entry.acronym %}
-    <p>{{ entry.acronym }}</p>
-  {% endif -%}
-</hgroup>
+{% unless isPatimokkha %}
+  <hgroup>
+    <h1>{{ title }}</h1>
+    {%- if entry.acronym %}
+      <p>{{ entry.acronym }}</p>
+    {% endif -%}
+  </hgroup>
 
-<p>{{ entry.blurb }}</p>
+  <p>{{ entry.blurb }}</p>
+{% endunless %}
 
 <section class="texts-list">
   {% if translations.length %}

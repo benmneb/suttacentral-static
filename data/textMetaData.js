@@ -151,10 +151,6 @@ function flatten(nodes, parentPath = '') {
     if (node.node_type === 'leaf' || node.type === 'leaf') {
       const scx_path = node.uid
       if (usedPaths.includes(scx_path)) {
-        // TODO: Dhammapada texts exist in two locations:
-        // https://suttacentral.net/pitaka/sutta/minor/kn?lang=en
-        // and https://suttacentral.net/pitaka/sutta/minor/dharmapadas?lang=en
-        // console.log('Duplicate:', scx_path)
         return null
       }
       usedPaths.push(scx_path)

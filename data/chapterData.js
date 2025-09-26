@@ -150,14 +150,15 @@ function flatten(nodes, parentPath = '') {
   return nodes.flatMap((node) => {
     const currentPath = parentPath ? `${parentPath}/${node.uid}` : `${node.uid}`
 
-    // Stop recursion before it reaches leaf nodes (sutta texts)
-    // to sync URL structure with SuttaCentral.net
-    // while still accounting for uneven tree structure, ie
-    // https://suttacentral.net/api/menu/dharmapadas?language=en
-    // returns a child `uid: g2dhp` with node_type `leaf`, when the rest are `branch`.
+    // Stop recursion before it reaches leaf nodes (the actual texts)
+    // to sync URL structure with SuttaCentral.net, while still accounting for:
+    // 1) uneven tree structure, ie https://suttacentral.net/api/menu/dharmapadas?language=en,
+    //    which returns a child `uid: g2dhp` with node_type `leaf`, when the rest are `branch`,
+    // 2) the unusual chapter breaks for pātimokkha texts (...-pm) in SuttaCentral.net
     if (
-      node.node_type !== 'leaf' &&
-      !node.children?.some((c) => c.node_type === 'branch')
+      (node.node_type !== 'leaf' &&
+        !node.children?.some((c) => c.node_type === 'branch')) ||
+      node.uid?.endsWith('-pm')
     ) {
       const entry = removeTranslationTexts({
         ...node,

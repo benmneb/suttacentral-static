@@ -39,6 +39,7 @@
   --rounding: 0.2rem;
 
   --background-color: var(--bg);
+  --background-color-secondary: var(--bg-soft);
   --text-color: var(--fg-alt-2);
   --text-color-secondary: var(--fg-alt-4);
   --headings-color: var(--fg);
@@ -94,6 +95,7 @@
 
     /* Use these: */
     --background-color: var(--bg-hard);
+    --background-color-secondary: var(--bg-soft);
     --text-color: var(--fg-alt-2);
     --text-color-secondary: var(--fg-alt-4);
     --headings-color: var(--fg);
@@ -134,6 +136,12 @@ body {
   h5,
   h6 {
     color: var(--headings-color);
+  }
+  h1 {
+    text-wrap: balance;
+  }
+  h6 {
+    font-style: italic;
   }
 
   & > header {
@@ -201,33 +209,33 @@ body {
       }
     }
   }
-}
 
-body:has(aside #commenter:checked) article .segment button[popovertarget] {
-  display: initial;
-}
+  &:has(aside #commenter:checked) article .segment button[popovertarget] {
+    display: initial;
+  }
 
-body:has(aside #segmenter:checked)
+  &:has(aside #segmenter:checked)
   article
   .segment:not(header .segment)
   .reference
   > a,
   /* This one below is for legacy texts. */
-body:has(aside #segmenter:checked) main article a.ref {
-  display: initial;
-}
-
-body:has(aside #rooter:checked) article .segment {
-  display: grid;
-  margin-bottom: 0.3rem;
-
-  .translation {
-    grid-column: 1;
+  &:has(aside #segmenter:checked) main article a.ref {
+    display: initial;
   }
 
-  .root {
-    grid-column: 1;
-    display: initial;
+  &:has(aside #rooter:checked) article .segment {
+    display: grid;
+    margin-bottom: 0.3rem;
+
+    .translation {
+      grid-column: 1;
+    }
+
+    .root {
+      grid-column: 1;
+      display: initial;
+    }
   }
 }
 
@@ -257,6 +265,7 @@ body:has(aside #rooter:checked) article .segment {
 [popover]#info,
 [popover]#parallels {
   max-width: calc(min(60ch, 100vw) - 2rem);
+  width: 100%;
 }
 
 aside {
@@ -392,13 +401,31 @@ main {
 
   hgroup:has(p) {
     h1,
-    h2 {
+    h2,
+    h3 {
       margin-bottom: 0;
     }
 
     p {
       margin-top: 0;
       color: var(--text-color-secondary);
+    }
+  }
+
+  details.patimokkha-details {
+    margin-top: 1rem;
+
+    > summary {
+      cursor: pointer;
+      padding: 0.5rem 0.15rem 0.5rem 0.5rem;
+      border-radius: var(--rounding);
+      margin-left: -0.5rem;
+      background-color: var(--background-color-secondary);
+
+      &:hover,
+      &:active {
+        background-color: var(--bg-alt-1);
+      }
     }
   }
 
@@ -442,6 +469,11 @@ main {
     }
   }
 
+  hr {
+    width: 30%;
+    border-radius: var(--rounding);
+  }
+
   section,
   article {
     button[popovertarget] {
@@ -464,6 +496,16 @@ main {
 
     ul li {
       list-style-type: initial;
+    }
+
+    dl {
+      dt {
+        color: var(--text-color-secondary);
+      }
+
+      dd {
+        margin-bottom: 0.5rem;
+      }
     }
 
     .segment {
@@ -489,7 +531,9 @@ main {
       }
     }
 
-    /* These all come through from Sutta Central. */
+    /* These named classes all come through from Sutta Central.
+       See: https://github.com/suttacentral/suttacentral/blob/d583b3364e9d94177343ad96cbab036f07bbba2d/client/elements/styles/sc-typography-common-styles.js#L647
+    */
     header {
       text-align: center;
       margin-bottom: 4rem;
@@ -501,6 +545,10 @@ main {
         text-wrap: balance;
       }
 
+      h1 {
+        font-variant-caps: small-caps;
+      }
+
       .sutta-title {
         word-break: break-word;
         text-wrap: balance;
@@ -510,7 +558,32 @@ main {
         font-style: italic;
       }
     }
-
+    .namo {
+      font-style: italic;
+      text-align: center;
+    }
+    .roman-numerals {
+      text-decoration: underline overline;
+      text-transform: uppercase;
+      text-decoration-thickness: 0.05em;
+      text-underline-offset: 0.2em;
+    }
+    .speaker {
+      font-style: italic;
+      display: block;
+      text-indent: 3em;
+    }
+    .pe {
+      font-style: italic;
+      color: var(--text-color-secondary);
+    }
+    .expansion-instructions {
+      font-style: italic;
+      color: var(--text-color-secondary);
+    }
+    .add {
+      color: var(--text-color-secondary);
+    }
     .evam {
       letter-spacing: 0.02rem;
       font-variant-caps: all-small-caps;
@@ -522,7 +595,9 @@ main {
       font-weight: bold;
       color: var(--text-color-secondary);
     }
-    .endsection {
+    .endsection,
+    .end,
+    .endsubsection {
       font-style: italic;
       text-align: center;
       color: var(--text-color-secondary);
@@ -540,13 +615,87 @@ main {
       color: var(--text-color-secondary);
     }
 
-    /* For Chinese root texts*/
+    /* Udanna */
+
+    .uddana {
+      font-weight: 400;
+      color: var(--text-color-secondary);
+    }
+
+    .uddana-intro {
+      font-weight: bold;
+      color: var(--text-color-secondary);
+    }
+
+    .uddanagatha {
+      font-weight: 400;
+      font-style: inherit;
+      color: var(--text-color-secondary);
+    }
+
+    /* Vinaya */
+    .kamma {
+      font-weight: 600;
+    }
+    .rule {
+      font-weight: 800;
+    }
+    .subrule {
+      font-weight: 600;
+    }
+    .help-heading,
+    .inserted-heading {
+      font-style: italic;
+    }
+
+    /* For Chinese root texts / Descriptive classes */
     .xu,
     .suttainfo {
       background-color: var(--bg-alt-1);
       padding: 1rem;
       border-radius: var(--rounding);
       margin-bottom: 2rem;
+    }
+    .suppliedmetre {
+      color: var(--text-color-secondary);
+    }
+    .gap {
+      color: var(--text-color-secondary);
+    }
+    .describe {
+      text-decoration: line-through;
+      text-decoration-color: var(--text-color-secondary);
+    }
+    .del {
+      text-decoration: line-through;
+      text-decoration-color: var(--text-color-secondary);
+    }
+    .scribe {
+      font-style: italic;
+    }
+    .alt-title {
+      display: none;
+    }
+    .hidden {
+      display: none;
+    }
+    .metre {
+      display: none;
+    }
+    .t-gaiji {
+      color: var(--text-color-secondary);
+    }
+    .rule-number {
+      color: var(--text-color-secondary);
+    }
+    .allowance {
+      font-weight: bold;
+    }
+    .t-note {
+      color: var(--text-color-secondary);
+    }
+    .vagga-number {
+      color: var(--text-color-secondary);
     }
 
     /* From Sutta Central with the non-segment texts. */
@@ -580,6 +729,9 @@ footer {
     padding: 0;
   }
 
+  p:first-of-type {
+    color: var(--headings-color);
+  }
   p:last-of-type {
     color: var(--text-color-secondary);
   }

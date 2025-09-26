@@ -3,6 +3,11 @@ import htmlmin from 'html-minifier-terser'
 export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy('styles')
 
+  eleventyConfig.addFilter('endswith', function (str, suffix) {
+    if (!str || !suffix) return false
+    return str.endsWith(suffix)
+  })
+
   eleventyConfig.addTransform('htmlmin', function (content) {
     if (!(this.page.outputPath || '').endsWith('.html')) return content
 

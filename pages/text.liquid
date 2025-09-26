@@ -105,19 +105,21 @@ eleventyComputed:
       {% assign text = entry._bilarasuttas_data.root_text[key] %}
       {% assign comment = entry._bilarasuttas_data.variant_text[key] %}
       {% assign ref = key | split: ':' | last %}
-      {% if html and text %}
+      {% if html %}
         {% capture replacement %}
           <span id="{{ key }}" class="segment">
             <span class="reference" id="{{ ref }}">
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
             </span>
-            <!-- This is not a translation, its the root text, the class is for styling purposes. -->
+            {% if text %}
+            <!-- This is not a translation, its the root text, the class is so it's not `display: none` by default. -->
             <span class="translation" lang="{{ entry.lang }}" translate="no">
               <span class="text">{{ text }}</span>
               {% unless comment == blank %}
                 <button popovertarget="comment-{{ key }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
               {% endunless %}
             </span>
+            {% endif %}
           </span>
         {% endcapture %}
         {{ html | replace: '{}', replacement }}
@@ -143,18 +145,20 @@ eleventyComputed:
       {% assign rootText = entry._bilarasuttas_data.root_text[key] %}
       {% assign comment = entry._bilarasuttas_data.comment_text[key] %}
       {% assign ref = key | split: ':' | last %}
-      {% if html and text %}
+      {% if html %}
         {% capture replacement %}
           <span id="{{ key }}" class="segment">
             <span class="reference" id="{{ ref }}">
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
             </span>
+            {% if text %}
             <span class="translation" lang="{{ entry.lang }}">
               <span class="text">{{ text }}</span>
               {% unless comment == blank %}
                 <button popovertarget="comment-{{ key }}" aria-label="Show {{ entry.author }}'s footnote for segment {{ key }}">*</button>
               {% endunless %}
             </span>
+            {% endif %}
             {% if rootText %}
             <span class="root" lang="{{ entry.root_lang }}" translate="no">
               <span class="text">{{ rootText }}</span>
