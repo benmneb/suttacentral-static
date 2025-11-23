@@ -120,7 +120,6 @@ body {
   margin: 0;
   padding: 0;
   line-height: 1.5;
-  font-weight: 600;
 
   input,
   textarea,
@@ -147,7 +146,6 @@ body {
   & > header {
     margin: 1rem auto;
     padding: 0 1rem;
-    font-weight: 600;
     max-width: var(--content-width);
     width: calc(100% - 2rem);
 
@@ -488,7 +486,6 @@ main {
       padding: 0;
       margin: 0 0.1rem 0 0;
       vertical-align: text-top;
-      font-weight: 800;
 
       &:focus {
         background-color: var(--primary-color);
