@@ -199,9 +199,11 @@ body {
       flex-direction: column;
       gap: 0.5rem;
       align-items: flex-start;
+      overflow-wrap: anywhere;
 
       &:nth-of-type(2) {
         align-items: flex-end;
+        text-align: right;
       }
 
       span {
