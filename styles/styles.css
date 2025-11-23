@@ -40,6 +40,7 @@
 
   --background-color: var(--bg);
   --background-color-secondary: var(--bg-soft);
+  --footer-background-color: var(--bg-alt-1);
   --text-color: var(--fg-alt-2);
   --text-color-secondary: var(--fg-alt-4);
   --headings-color: var(--fg);
@@ -80,6 +81,7 @@
     --purple: #8f3f71;
     --aqua: #427b58;
     --orange: #af3a03;
+    --orange-alt: #7c2a03;
     --gray: #928374;
     --brown: #7c5c40;
 
@@ -93,14 +95,17 @@
     --gray-dim: #7c6f64;
     --brown-dim: #a07448;
 
+    --offwhite: #faf9f6;
+
     /* Use these: */
-    --background-color: var(--bg-hard);
+    --background-color: var(--offwhite);
     --background-color-secondary: var(--bg-soft);
+    --footer-background-color: var(--bg-alt-1);
     --text-color: var(--fg-alt-2);
     --text-color-secondary: var(--fg-alt-4);
     --headings-color: var(--fg);
-    --primary-color: var(--orange-dim);
-    --primary-color-alt: var(--orange);
+    --primary-color: var(--orange);
+    --primary-color-alt: var(--orange-alt);
     --shadow-color: var(--gray-dim);
   }
 }
