@@ -725,23 +725,22 @@ main {
 }
 
 footer {
-  background-color: var(--bg-alt-1);
+  background-color: var(--footer-background-color);
   margin-top: 2rem;
   text-align: center;
   padding: 1rem;
+  color: var(--headings-color);
+
+  p:first-of-type {
+    font-weight: 800;
+  }
 
   ul {
     max-width: var(--content-width);
     margin: 1rem auto;
     list-style: none;
     padding: 0;
-  }
-
-  p:first-of-type {
-    color: var(--headings-color);
-  }
-  p:last-of-type {
-    color: var(--text-color-secondary);
+    font-weight: 600;
   }
 }
 
