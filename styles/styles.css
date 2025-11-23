@@ -540,12 +540,14 @@ main {
       li {
         list-style-type: none;
         letter-spacing: 0.02rem;
-        font-variant-caps: all-small-caps;
+        /*font-variant-caps: all-small-caps; Doesn't fly with system fonts + diacritics */
+        text-transform: capitalize;
         text-wrap: balance;
       }
 
       h1 {
-        font-variant-caps: small-caps;
+        /*font-variant-caps: small-caps; Doesn't fly with system fonts + diacritics */
+        text-transform: capitalize;
       }
 
       .sutta-title {
@@ -585,7 +587,8 @@ main {
     }
     .evam {
       letter-spacing: 0.02rem;
-      font-variant-caps: all-small-caps;
+      /*font-variant-caps: all-small-caps; Doesn't fly with system fonts + diacritics */
+      text-transform: uppercase;
     }
     .verse-line {
       display: block;
@@ -610,7 +613,8 @@ main {
     .endvagga,
     .endkagga {
       text-align: center;
-      font-variant-caps: all-small-caps;
+      /*font-variant-caps: all-petite-caps; Doesn't fly with system fonts + diacritics */
+      text-transform: capitalize;
       color: var(--text-color-secondary);
     }
 
