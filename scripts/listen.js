@@ -25,6 +25,7 @@
   let sessionId = 0
 
   // DOM
+  const menuButton = document.getElementById('listen-menu-button')
   const rootMenuEl = document.getElementById('listen-menu')
   const voiceSelect = document.getElementById('voice-select')
   const pitch = document.getElementById('pitch')
@@ -59,6 +60,12 @@
     visibleTextContent = visibleTextSpans.map((s) =>
       s.textContent.replace(/\n/g, '')
     )
+  }
+
+  if (!visibleTextSpans || !visibleTextSpans.length) {
+    menuButton.style.display = 'none'
+    console.error('No text found to listen to:', visibleTextSpans)
+    return
   }
 
   function updateClickableSpans() {
