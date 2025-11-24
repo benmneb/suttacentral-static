@@ -3,10 +3,14 @@ import htmlmin from 'html-minifier-terser'
 import path from 'path'
 import { minify } from 'terser'
 import { fileURLToPath } from 'url'
+import { transform, browserslistToTargets } from 'lightningcss'
+import browserslist from 'browserslist'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const targets = browserslistToTargets(browserslist('last 2 years'))
 
 export default function (eleventyConfig) {
-  eleventyConfig.addPassthroughCopy('styles') // TODO: minify
-
   const textTemplate = 'text.liquid'
 
   if (process.env.SKIP_TEXTS) {
@@ -43,38 +47,71 @@ export default function (eleventyConfig) {
     return minified
   })
 
-  eleventyConfig.addPassthroughCopy('scripts')
-  // Then minify after build
+  eleventyConfig.addPassthroughCopy('styles')
   eleventyConfig.on('eleventy.after', async () => {
-    const __filename = fileURLToPath(import.meta.url)
-    const __dirname = path.dirname(__filename)
+    try {
+      const cssPath = path.join(__dirname, '_site/styles/styles.css')
+      const content = fs.readFileSync(cssPath, 'utf8')
 
-    const scriptsDir = path.join(__dirname, '_site/scripts')
-
-    if (!fs.existsSync(scriptsDir)) return
-
-    const files = fs.readdirSync(scriptsDir).filter((f) => f.endsWith('.js'))
-
-    for (const file of files) {
-      const filePath = path.join(scriptsDir, file)
-      const code = fs.readFileSync(filePath, 'utf8')
-
-      const minified = await minify(code, {
-        compress: {
-          dead_code: true,
-          drop_console: false,
-          drop_debugger: true,
-        },
-        mangle: true,
-        format: {
-          comments: 'some',
-        },
+      const result = transform({
+        filename: 'styles.css',
+        code: Buffer.from(content),
+        minify: true,
+        targets,
       })
 
-      if (minified.code) {
-        fs.writeFileSync(filePath, minified.code)
-        console.log(`🚀 Minified: ${file}`)
+      const minified = result.code.toString()
+      fs.writeFileSync(cssPath, minified)
+
+      const originalSize = Buffer.byteLength(content, 'utf8')
+      const minifiedSize = Buffer.byteLength(minified, 'utf8')
+      const savings = originalSize - minifiedSize
+      const savingsPercent = ((savings / originalSize) * 100).toFixed(1)
+      console.log(
+        `📦 Minified CSS: ${originalSize} → ${minifiedSize} bytes (saved ${savings} bytes, ${savingsPercent}%)`
+      )
+    } catch (e) {
+      console.error('Error while minifying CSS:', e)
+    }
+  })
+
+  eleventyConfig.addPassthroughCopy('scripts')
+  eleventyConfig.on('eleventy.after', async () => {
+    try {
+      const scriptsDir = path.join(__dirname, '_site/scripts')
+      if (!fs.existsSync(scriptsDir)) return
+      const files = fs.readdirSync(scriptsDir).filter((f) => f.endsWith('.js'))
+
+      for (const file of files) {
+        const filePath = path.join(scriptsDir, file)
+        const code = fs.readFileSync(filePath, 'utf8')
+
+        const minified = await minify(code, {
+          compress: {
+            dead_code: true,
+            drop_console: false,
+            drop_debugger: true,
+          },
+          mangle: true,
+          format: {
+            comments: 'some',
+          },
+        })
+
+        if (minified.code) {
+          const originalSize = Buffer.byteLength(code, 'utf8')
+          const minifiedSize = Buffer.byteLength(minified.code, 'utf8')
+          const savings = originalSize - minifiedSize
+          const savingsPercent = ((savings / originalSize) * 100).toFixed(1)
+
+          fs.writeFileSync(filePath, minified.code)
+          console.log(
+            `📦 Minified ${file}: ${originalSize} → ${minifiedSize} bytes (saved ${savings} bytes, ${savingsPercent}%)`
+          )
+        }
       }
+    } catch (e) {
+      console.error('Error while minifying JS:', e)
     }
   })
 
