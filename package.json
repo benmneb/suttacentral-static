@@ -5,19 +5,20 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "NODE_OPTIONS=\"--max-old-space-size=16384 --expose-gc\" SKIP_TEXTS=1 pnpm exec eleventy --serve",
-    "build": "NODE_ENV=prod NODE_OPTIONS=\"--max-old-space-size=8192 --expose-gc\" pnpm run build:nav && pnpm run build:texts",
-    "build:nav": "NODE_ENV=prod NODE_OPTIONS=\"--max-old-space-size=8192 --expose-gc\" SKIP_TEXTS=1 pnpm exec eleventy",
-    "build:texts": "NODE_ENV=prod NODE_OPTIONS=\"--max-old-space-size=8192 --expose-gc\" ONLY_TEXTS=1 pnpm exec eleventy"
+    "dev": "NODE_OPTIONS=\"--max-old-space-size=16384\" ONLY_TEXTS=1 pnpm exec eleventy --serve",
+    "build": "NODE_ENV=prod NODE_OPTIONS=\"--max-old-space-size=8192\" pnpm run build:nav && pnpm run build:texts",
+    "build:nav": "NODE_ENV=prod NODE_OPTIONS=\"--max-old-space-size=8192\" SKIP_TEXTS=1 pnpm exec eleventy",
+    "build:texts": "NODE_ENV=prod NODE_OPTIONS=\"--max-old-space-size=8192\" ONLY_TEXTS=1 pnpm exec eleventy"
   },
   "keywords": [],
   "author": "benmneb",
   "license": "CC0",
-  "packageManager": "pnpm@10.14.0",
+  "packageManager": "pnpm@10.23.0",
   "dependencies": {
     "@11ty/eleventy": "^3.1.2",
     "@11ty/eleventy-fetch": "^5.1.0",
-    "html-minifier-terser": "^7.2.0"
+    "html-minifier-terser": "^7.2.0",
+    "terser": "^5.44.1"
   },
   "devDependencies": {
     "ora": "^8.2.0"

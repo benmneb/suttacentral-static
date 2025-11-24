@@ -1,7 +1,11 @@
+import fs from 'fs'
 import htmlmin from 'html-minifier-terser'
+import path from 'path'
+import { minify } from 'terser'
+import { fileURLToPath } from 'url'
 
 export default function (eleventyConfig) {
-  eleventyConfig.addPassthroughCopy('styles')
+  eleventyConfig.addPassthroughCopy('styles') // TODO: minify
 
   const textTemplate = 'text.liquid'
 
@@ -37,6 +41,41 @@ export default function (eleventyConfig) {
     })
 
     return minified
+  })
+
+  eleventyConfig.addPassthroughCopy('scripts')
+  // Then minify after build
+  eleventyConfig.on('eleventy.after', async () => {
+    const __filename = fileURLToPath(import.meta.url)
+    const __dirname = path.dirname(__filename)
+
+    const scriptsDir = path.join(__dirname, '_site/scripts')
+
+    if (!fs.existsSync(scriptsDir)) return
+
+    const files = fs.readdirSync(scriptsDir).filter((f) => f.endsWith('.js'))
+
+    for (const file of files) {
+      const filePath = path.join(scriptsDir, file)
+      const code = fs.readFileSync(filePath, 'utf8')
+
+      const minified = await minify(code, {
+        compress: {
+          dead_code: true,
+          drop_console: false,
+          drop_debugger: true,
+        },
+        mangle: true,
+        format: {
+          comments: 'some',
+        },
+      })
+
+      if (minified.code) {
+        fs.writeFileSync(filePath, minified.code)
+        console.log(`🚀 Minified: ${file}`)
+      }
+    }
   })
 
   return {

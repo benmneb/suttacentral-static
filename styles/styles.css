@@ -48,6 +48,9 @@
   --primary-color: var(--yellow);
   --primary-color-alt: var(--yellow-dim);
   --shadow-color: var(--bg-hard);
+  --tts-highlight-text-color: var(--headings-color);
+  --tts-highlight-background-color: var(--bg-alt-1);
+  --tts-hover-background-color: var(--bg-alt-1);
 
   --sans-serif-font:
     -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui,
@@ -110,6 +113,9 @@
     --primary-color: var(--orange);
     --primary-color-alt: var(--orange-alt);
     --shadow-color: var(--gray-dim);
+    --tts-highlight-text-color: var(--headings-color);
+    --tts-highlight-background-color: var(--bg);
+    --tts-hover-background-color: var(--background-color-secondary);
   }
 }
 
@@ -303,8 +309,8 @@ aside {
       background-color: inherit;
       color: var(--fg-alt-3);
 
-      &:focus,
-      &:hover {
+      &:focus:not(button[disabled]),
+      &:hover:not(button[disabled]) {
         background-color: var(--primary-color);
         color: var(--background-color);
       }
@@ -783,4 +789,48 @@ a {
 :where(article h1, section h1, nav h1, aside h1) {
   margin-block: 0.67em;
   font-size: 2em;
+}
+
+#listen-menu {
+  max-width: 30ch;
+
+  li[role='menuitem'] {
+    display: none;
+  }
+}
+
+.tts-highlight {
+  color: var(--tts-highlight-text-color);
+  background-color: var(--tts-highlight-background-color);
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+}
+
+.tts-clickable {
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--tts-hover-background-color);
+    transition:
+      background-color 0.2s,
+      color 0.2s;
+  }
+}
+
+.tts-controls {
+  display: flex;
+  height: 3rem;
+
+  button {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    &[disabled] {
+      opacity: 0.2;
+      cursor: not-allowed;
+    }
+  }
 }

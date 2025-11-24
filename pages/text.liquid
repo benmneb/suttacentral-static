@@ -11,6 +11,8 @@ permalink: '{{ entry.scx_path }}/index.html'
 eleventyComputed:
   title: '{{ entry.acronym }}: {{ entry.original_title }}—{{ entry.author }}'
   json_ld: '{{ entry.scx_json_ld }}'
+  scripts: 
+    - 'listen.js'
 ---
 <header>
   {% assign parts = entry.scx_breadcrumb | split: '/' %}
@@ -46,7 +48,7 @@ eleventyComputed:
       </li>
       <li>
         <button
-          aria-haspopup="true"
+          aria-haspopup="menu"
           aria-expanded="false"
           aria-controls="views-menu"
           aria-label="Text display settings"
@@ -92,6 +94,77 @@ eleventyComputed:
         <button popovertarget="parallels" aria-label="Show parallel texts">
           Parallels
         </button>
+      </li>
+      <li>
+        <button
+          aria-haspopup="menu"
+          aria-expanded="false"
+          aria-controls="listen-menu"
+          aria-label="Text to speech settings"
+          id="listen-menu-button"
+        >
+          Listen
+        </button>
+        <ul
+          class="dropdown"
+          role="menu"
+          aria-labelledby="listen-menu-button"
+          id="listen-menu"
+        >
+          <li>
+            <noscript>
+              Please enable javascript to listen to this text. It works
+              100% locally in your browser via the SpeechSynthesis API,
+              including while offline.
+            </noscript>
+          </li>
+          <li role="menuitem" class="tts-controls">
+            <button id="prev" type="button">
+              <span>⏮️</span><span>Prev</span>
+            </button>
+            <button id="playpause" type="button">
+              <span>▶️</span><span>Play</span>
+            </button>
+            <button id="stop" type="button">
+              <span>⏹️</span><span>Stop</span>
+            </button>
+            <button id="next" type="button">
+              <span>⏭️</span><span>Next</span>
+            </button>
+          </li>
+          <li role="menuitem">
+            <label for="voice-select">Voice</label>
+            <select id="voice-select"></select>
+          </li>
+          <li role="menuitem">
+            <label for="rate">Rate</label>
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              value="1"
+              step="0.1"
+              id="rate"
+            />
+            <div id="rate-value">1.0</div>
+          </li>
+          <li role="menuitem">
+            <label for="pitch">Pitch</label>
+            <input
+              type="range"
+              min="0"
+              max="2"
+              value="1"
+              step="0.1"
+              id="pitch"
+            />
+            <div id="pitch-value">1.0</div>
+          </li>
+          <li role="menuitem">
+            <label for="auto-scroll">Auto-scroll</label>
+            <input type="checkbox" id="auto-scroll" />
+          </li>
+        </ul>
       </li>
     </ul>
   </fieldset>

@@ -19,6 +19,11 @@
         {{ json_ld }}
       </script>
     {% endif %}
+    {% if scripts %}
+      {% for script in scripts %}
+        <script src='/scripts/{{ script }}' defer></script>
+      {% endfor %}
+    {% endif %}
   </head>
   <body>
     {{ content }}
