@@ -54,18 +54,129 @@
   })
 
   function computeVisibleText() {
+    // for segmented texts
     visibleTextSpans = Array.from(
       document.querySelectorAll('main > article span.text')
     ).filter((s) => s.offsetParent !== null)
-    visibleTextContent = visibleTextSpans.map((s) =>
+
+    visibleTextContent = visibleTextSpans?.map((s) =>
       s.textContent.replace(/\n/g, '')
     )
-  }
 
-  if (!visibleTextSpans || !visibleTextSpans.length) {
-    menuButton.style.display = 'none'
-    console.error('No text found to listen to:', visibleTextSpans)
-    return
+    // fallback for messy DOM in non segmented texts
+    if (!visibleTextSpans.length || !visibleTextContent.length) {
+      const textContainingElements = [
+        'div',
+        'span',
+        'p',
+        'blockquote',
+        'pre',
+        'address',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+        'ul',
+        'ol',
+        'li',
+        'dl',
+        'dt',
+        'dd',
+        'a',
+        'abbr',
+        'b',
+        'strong',
+        'i',
+        'em',
+        'mark',
+        'small',
+        'del',
+        'ins',
+        'sub',
+        'sup',
+        'code',
+        'kbd',
+        'samp',
+        'var',
+        'cite',
+        'dfn',
+        'q',
+        's',
+        'u',
+        'time',
+        'data',
+        'bdi',
+        'bdo',
+        'ruby',
+        'rt',
+        'rp',
+        'table',
+        'caption',
+        'thead',
+        'tbody',
+        'tfoot',
+        'tr',
+        'th',
+        'td',
+        'colgroup',
+        'col',
+        'form',
+        'label',
+        'button',
+      ]
+      const selector = textContainingElements
+        .map((e) => `main > article ${e}`)
+        .join(', ')
+      const allVisibleElements = Array.from(
+        document.querySelectorAll(selector)
+      ).filter((s) => s.offsetParent !== null)
+
+      function getUniqueSelector(node, root) {
+        const path = []
+        let current = node
+        while (current && current !== root) {
+          let index = 0
+          let sibling = current
+          while ((sibling = sibling.previousElementSibling)) {
+            if (sibling.tagName === current.tagName) index++
+          }
+          path.unshift(
+            `${current.tagName.toLowerCase()}:nth-of-type(${index + 1})`
+          )
+          current = current.parentElement
+        }
+        return path.join(' > ')
+      }
+
+      visibleTextSpans = allVisibleElements.filter((el) => {
+        // avoid duplicates
+        return !allVisibleElements.some(
+          (other) => other !== el && other.contains(el)
+        )
+      })
+
+      visibleTextContent = visibleTextSpans.map((el) => {
+        const clone = el.cloneNode(true)
+
+        // remove all .ref elements from the clone
+        const refElements = clone.querySelectorAll('.ref')
+        refElements.forEach((ref) => ref.remove())
+
+        // Find all descendants in the clone and check if corresponding original is hidden
+        const allDescendants = clone.querySelectorAll('*')
+        Array.from(allDescendants).forEach((cloneDesc) => {
+          const selector = getUniqueSelector(cloneDesc, clone)
+          const originalDesc = el.querySelector(selector)
+          if (originalDesc && originalDesc.offsetParent === null) {
+            cloneDesc.remove()
+          }
+        })
+
+        return clone.textContent.replace(/\n/g, '')
+      })
+    }
   }
 
   function updateClickableSpans() {
@@ -446,19 +557,38 @@
   if (nextBtn) nextBtn.addEventListener('click', nextSpan)
   if (stopBtn) stopBtn.addEventListener('click', stopSession)
 
-  // allow clicking any visible span.text to jump/start speaking from there,
+  // allow clicking any visibleTextSpans to jump/start speaking from there
   const articleEl = document.querySelector('main > article, main > section')
   if (articleEl)
     articleEl.addEventListener('click', (ev) => {
       // Only allow click-to-jump once playback has already started
       if (!isPlaying) return
 
-      // find the nearest span.text that was clicked
-      const span =
+      // find the nearest element that was clicked
+      // for segmented texts this will work
+      let clickedElement =
         ev.target && ev.target.closest ? ev.target.closest('span.text') : null
-      if (!span) return
+
+      // for non-segmented texts, check if it's one of the visibleTextSpans
+      if (!clickedElement) {
+        // ignore reference link clicks
+        if (ev.target.closest('.ref')) return
+
+        clickedElement = ev.target
+        // Walk up the tree to find if we're inside a visibleTextSpan
+        while (clickedElement && !visibleTextSpans.includes(clickedElement)) {
+          clickedElement = clickedElement.parentElement
+          if (clickedElement === articleEl) {
+            clickedElement = null
+            break
+          }
+        }
+      }
+
+      if (!clickedElement) return
+
       computeVisibleText()
-      const idx = visibleTextSpans.indexOf(span)
+      const idx = visibleTextSpans.indexOf(clickedElement)
       if (idx < 0) return
 
       // cancel current session/utterances and start from clicked index
