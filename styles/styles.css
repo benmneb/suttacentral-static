@@ -41,6 +41,7 @@
   --background-color: var(--bg);
   --background-color-secondary: var(--bg-soft);
   --footer-background-color: var(--bg-alt-1);
+  --popover-background-color: var(--bg-alt-1);
   --text-color: var(--fg-alt-2);
   --text-color-secondary: var(--fg-alt-4);
   --headings-color: var(--fg);
@@ -96,11 +97,13 @@
     --brown-dim: #a07448;
 
     --offwhite: #faf9f6;
+    --offerwhite: #f8f6f2;
 
     /* Use these: */
     --background-color: var(--offwhite);
     --background-color-secondary: var(--bg-soft);
     --footer-background-color: var(--bg-alt-1);
+    --popover-background-color: var(--offerwhite);
     --text-color: var(--fg-alt-2);
     --text-color-secondary: var(--fg-alt-4);
     --headings-color: var(--fg);
@@ -250,7 +253,7 @@ body {
   box-shadow: 0 0.3rem 1rem var(--shadow-color);
   border-radius: var(--rounding);
   padding: 1rem;
-  background-color: var(--bg-alt-1);
+  background-color: var(--popover-background-color);
   max-width: calc(min(320px, 100vw) - 2rem);
   max-height: 60vh;
   overflow-y: scroll;
