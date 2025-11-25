@@ -57,7 +57,7 @@
     // for segmented texts
     visibleTextSpans = Array.from(
       document.querySelectorAll('main > article span.text')
-    ).filter((s) => s.offsetParent !== null)
+    ).filter((s) => s.offsetParent !== null && s.textContent)
 
     visibleTextContent = visibleTextSpans?.map((s) =>
       s.textContent.replace(/\n/g, '')
@@ -131,7 +131,7 @@
         .join(', ')
       const allVisibleElements = Array.from(
         document.querySelectorAll(selector)
-      ).filter((s) => s.offsetParent !== null)
+      ).filter((s) => s.offsetParent !== null && s.textContent)
 
       function getUniqueSelector(node, root) {
         const path = []
