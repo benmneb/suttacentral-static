@@ -802,9 +802,6 @@ a {
 .tts-highlight {
   color: var(--tts-highlight-text-color);
   background-color: var(--tts-highlight-background-color);
-  transition:
-    background-color 0.2s,
-    color 0.2s;
 }
 
 .tts-clickable {
@@ -812,9 +809,6 @@ a {
 
   &:hover {
     background-color: var(--tts-hover-background-color);
-    transition:
-      background-color 0.2s,
-      color 0.2s;
   }
 }
 
