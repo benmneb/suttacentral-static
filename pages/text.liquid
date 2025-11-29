@@ -279,17 +279,18 @@ eleventyComputed:
     {{ modified_footer }}
   {% endif %}
 
-  {% assign left_title = entry.original_title | default: entry.root_name %}
-  {% assign right_title = entry.translated_title
-    | default: entry.translated_name
-  %}
-  {% assign full_title = left_title | append: '—' | append: right_title %}
-
+  
   <article id="parallels" popover>
+    {% assign left_title = entry.original_title | default: entry.root_name %}
+    {% assign right_title = entry.translated_title
+      | default: entry.translated_name
+    %}
+    {% assign full_title = left_title | append: '—' | append: right_title %}
     {% include 'textMetaContent.liquid',
       entry: entry,
       title: full_title,
       translations: entry._suttas_data.suttaplex.translations
+      parallelsOpen: true
     %}
   </article>
 </main>

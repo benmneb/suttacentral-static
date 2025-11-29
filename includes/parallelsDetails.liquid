@@ -1,4 +1,4 @@
-<details>
+<details {% if parallelsOpen %}open{% endif %}>
   <summary>Parallels ({{ entry.parallel_count }})</summary>
   <ul>
     {% for segment in entry._parallels_data %}

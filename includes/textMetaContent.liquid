@@ -119,6 +119,6 @@
   {% endif %}
 
   {% if entry._parallels_data and entry._parallels_data.size > 0 %}
-    {% include 'parallelsDetails.liquid', entry: entry %}
+    {% include 'parallelsDetails.liquid', entry: entry, parallelsOpen: parallelsOpen %}
   {% endif %}
 </section>
