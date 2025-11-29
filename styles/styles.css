@@ -607,6 +607,17 @@ main {
     .verse-line {
       display: block;
     }
+    .verse-line {
+      display: block;
+    }
+    .verse-line .translation {
+      hyphens: none;
+      margin-left: 2em;
+    }
+    j {
+      display: block;
+      margin-left: 2em;
+    }
     .uddana-intro {
       font-weight: bold;
       color: var(--text-color-secondary);
@@ -625,11 +636,58 @@ main {
     }
     .endbook,
     .endvagga,
-    .endkagga {
+    .endkanda {
       text-align: center;
       /*font-variant-caps: all-petite-caps; Doesn't fly with system fonts + diacritics */
       text-transform: capitalize;
       color: var(--text-color-secondary);
+    }
+    .endbook {
+      font-weight: bold;
+    }
+
+    /* tables */
+    table {
+      margin: 2em auto 1em;
+      border-collapse: collapse;
+    }
+    caption {
+      font-weight: 600;
+      padding: 1em;
+    }
+    td {
+      padding: 0.6667em;
+      vertical-align: text-top;
+      /* border-top: var(--sc-border);  1px solid var(--sc-border-color); */
+      /* border-bottom: var(--sc-border);  1px solid var(--sc-border-color); */
+    }
+    td:first-child {
+      font-weight: bold;
+    }
+
+    /* lists */
+    ol,
+    ul {
+      padding-left: 1em;
+    }
+    ol ul,
+    ul ol,
+    ul ul,
+    ol ol {
+      margin: 0.5em 0 0;
+    }
+    li {
+      padding: 0;
+    }
+    dt {
+      font-weight: bold;
+    }
+    dd {
+      margin-left: 1em;
+    }
+    dd ol,
+    dd ul {
+      padding-left: 0;
     }
 
     /* Udanna */
