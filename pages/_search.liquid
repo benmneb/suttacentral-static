@@ -1,0 +1,33 @@
+---
+layout: base.liquid
+
+permalink: 'search/index.html'
+eleventyExcludeFromCollections: true
+
+eleventyComputed:
+  title: 'Search SuttaCentral Express'
+---
+<header>
+  {% include 'headerNav.liquid', excludeSearch: true %}
+</header>
+
+<main>
+  <h1>Search</h1>
+  {% include 'searchForm.liquid' %}
+  <p
+    id="search-count"
+    role="status"
+    hidden
+  ></p>
+  <ul
+    id="search-results"
+    aria-live="polite"
+    aria-label="Search results"
+    aria-atomic="false"
+  ></ul>
+  <nav aria-label="Search results pagination">
+    <button id="show-more" hidden aria-label="Show more results">Show more</button>
+  </nav>
+</main>
+
+{% include 'footer.liquid', route: 'search' %}

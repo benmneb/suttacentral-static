@@ -15,25 +15,21 @@ eleventyComputed:
 <header>
   {% assign parts = entry.scx_breadcrumb | split: '/' %}
   {% assign second_last = parts | size | minus: 1 %}
-  <nav aria-label="Breadcrumb">
-    <ul>
+  {% capture breadcrumbsList %}
+    {% for part in parts %}
+      {% assign path = path | append: '/' | append: part %}
       <li>
-        <a href="/" aria-label="Home">📚<span class="sr-only">Home</span></a>
+        {% if forloop.last %}
+          <span aria-current="page">{{ part }}</span>
+        {% elsif forloop.index == second_last %}
+          <a href="/{{ part }}">{{ part }}</a>
+        {% else %}
+          <a href="/pitaka{{ path }}">{{ part }}</a>
+        {% endif %}
       </li>
-      {% for part in parts %}
-        {% assign path = path | append: '/' | append: part %}
-        <li>
-          {% if forloop.last %}
-            <span aria-current="page">{{ part }}</span>
-          {% elsif forloop.index == second_last %}
-            <a href="/{{ part }}">{{ part }}</a>
-          {% else %}
-            <a href="/pitaka{{ path }}">{{ part }}</a>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ul>
-  </nav>
+    {% endfor %}
+  {% endcapture %}
+  {% include 'headerNav.liquid', breadcrumbsList: breadcrumbsList %}
 </header>
 
 <main>

@@ -2,15 +2,10 @@
 layout: base.liquid
 
 permalink: 404.html
+eleventyExcludeFromCollections: true
 ---
 <header>
-  <nav>
-    <ul>
-      <li>
-        <a href="/" aria-label="Home">📚<span class="sr-only">Home</span></a>
-      </li>
-    </ul>
-  </nav>
+  {% include 'headerNav.liquid' %}
 </header>
 
 <main>
@@ -19,9 +14,12 @@ permalink: 404.html
     <a href="/">Go home</a>
   </p>
   <p>
+    <a href="/search">Search for something</a>
+  </p>
+  <p>
     Should there be a page here?
     <a href="mailto:scx.judge565@simplelogin.com?subject=%5BSCX%5D%20Re%3A%20404"
       >Let me know</a
-    >.
+    >
   </p>
 </main>

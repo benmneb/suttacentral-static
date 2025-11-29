@@ -1,10 +1,10 @@
+import browserslist from 'browserslist'
 import fs from 'fs'
 import htmlmin from 'html-minifier-terser'
+import { browserslistToTargets, transform } from 'lightningcss'
 import path from 'path'
 import { minify } from 'terser'
 import { fileURLToPath } from 'url'
-import { transform, browserslistToTargets } from 'lightningcss'
-import browserslist from 'browserslist'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -34,6 +34,10 @@ export default function (eleventyConfig) {
     return str.endsWith(suffix)
   })
 
+  eleventyConfig.addFilter('normalise', function (value) {
+    return value?.replace(/\s+/g, ' ').trim() ?? ''
+  })
+
   eleventyConfig.addTransform('htmlmin', function (content) {
     if (!(this.page.outputPath || '').endsWith('.html')) return content
 
@@ -50,11 +54,12 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy('styles')
   eleventyConfig.on('eleventy.after', async () => {
     try {
-      const cssPath = path.join(__dirname, '_site/styles/styles.css')
+      const filename = 'styles.css'
+      const cssPath = path.join(__dirname, `_site/styles/${filename}`)
       const content = fs.readFileSync(cssPath, 'utf8')
 
       const result = transform({
-        filename: 'styles.css',
+        filename,
         code: Buffer.from(content),
         minify: true,
         targets,
@@ -68,7 +73,7 @@ export default function (eleventyConfig) {
       const savings = originalSize - minifiedSize
       const savingsPercent = ((savings / originalSize) * 100).toFixed(1)
       console.log(
-        `📦 Minified CSS: ${originalSize} → ${minifiedSize} bytes (saved ${savings} bytes, ${savingsPercent}%)`
+        `📦 Minified ${filename}: ${originalSize} → ${minifiedSize} bytes (saved ${savings} bytes, ${savingsPercent}%)`
       )
     } catch (e) {
       console.error('Error while minifying CSS:', e)
