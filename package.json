@@ -17,7 +17,11 @@
     "format:check": "prettier --check .",
     "predeploy": "rm -rf _site && pnpm run build && pnpm run build:search",
     "deploy:dev": "vercel deploy --archive=tgz --cwd=_site",
-    "deploy:prod": "vercel deploy --archive=tgz --cwd=_site --prod"
+    "deploy:prod": "vercel deploy --archive=tgz --cwd=_site --prod",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,liquid,json,md,css,yml}": "prettier --write"
   },
   "keywords": [],
   "author": "benmneb",
@@ -31,7 +35,9 @@
     "@shopify/prettier-plugin-liquid": "^1.10.0",
     "browserslist": "^4.28.0",
     "html-minifier-terser": "^7.2.0",
+    "husky": "^9.1.7",
     "lightningcss": "^1.30.2",
+    "lint-staged": "^16.2.7",
     "ora": "^8.2.0",
     "pagefind": "^1.4.0",
     "prettier": "^3.7.3",
