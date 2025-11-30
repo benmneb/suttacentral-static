@@ -14,6 +14,9 @@ importers:
       '@11ty/eleventy-fetch':
         specifier: ^5.1.0
         version: 5.1.0
+      pagefind:
+        specifier: ^1.4.0
+        version: 1.4.0
     devDependencies:
       '@shopify/prettier-plugin-liquid':
         specifier: ^1.10.0
@@ -36,9 +39,6 @@ importers:
       ora:
         specifier: ^8.2.0
         version: 8.2.0
-      pagefind:
-        specifier: ^1.4.0
-        version: 1.4.0
       prettier:
         specifier: ^3.7.3
         version: 3.7.3
