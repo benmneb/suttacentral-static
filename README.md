@@ -10,19 +10,19 @@ Includes all the English and root language tipitaka texts (suttas, vinaya, abhid
 
 Mirrors the URL structure of suttacentral.net (eg `/dn2/en/sujato`, `/mn118`, `/pitika/vinaya`, `/pitaka/sutta/linked/sn` etc). Just switch the `.net` for `.express` in the URL.
 
-### Fast 
+### Fast
 
 Fully static HTML, zero JS, 15kB of CSS.
 
 Performance comparison for `/dn1/en/sujato` via <https://pagespeed.web.dev> on 19/11/2025:
 
-| &nbsp; | SuttaCentral.express | SuttaCentral.net | Performance Gain |
-|--------|-----------|------------------|------------------|
-| First Contentful Paint | 0.3s | 0.6s | 100% faster |
-| Largest Contentful Paint | 0.3s | 2.2s | 633% faster |
-| Total Blocking Time | 0ms | 160ms | 100% reduction |
-| Cumulative Layout Shift | 0 | 0.643 | 100% reduction |
-| Speed Index | 0.6s | 1.0s | 67% faster |
+| &nbsp;                   | SuttaCentral.express | SuttaCentral.net | Performance Gain |
+| ------------------------ | -------------------- | ---------------- | ---------------- |
+| First Contentful Paint   | 0.3s                 | 0.6s             | 100% faster      |
+| Largest Contentful Paint | 0.3s                 | 2.2s             | 633% faster      |
+| Total Blocking Time      | 0ms                  | 160ms            | 100% reduction   |
+| Cumulative Layout Shift  | 0                    | 0.643            | 100% reduction   |
+| Speed Index              | 0.6s                 | 1.0s             | 67% faster       |
 
 ### Minimal
 
@@ -42,7 +42,7 @@ Time saved per page load (using the most user-perceivable metric - Largest Conte
 
 - 2.2s - 0.3s = **1.9 seconds saved per page load**
 
-Number of page loads to break even: 
+Number of page loads to break even:
 
 - 1.231 ÷ 1.9 = **0.648 page loads**
 

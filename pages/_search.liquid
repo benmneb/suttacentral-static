@@ -8,12 +8,12 @@ eleventyComputed:
   title: 'Search SuttaCentral Express'
 ---
 <header>
-  {% include 'headerNav.liquid', excludeSearch: true %}
+  {% include "headerNav.liquid", excludeSearch: true %}
 </header>
 
 <main>
   <h1>Search</h1>
-  {% include 'searchForm.liquid' %}
+  {% include "searchForm.liquid" %}
   <p
     id="search-count"
     role="status"
@@ -26,8 +26,10 @@ eleventyComputed:
     aria-atomic="false"
   ></ul>
   <nav aria-label="Search results pagination">
-    <button id="show-more" hidden aria-label="Show more results">Show more</button>
+    <button id="show-more" hidden aria-label="Show more results">
+      Show more
+    </button>
   </nav>
 </main>
 
-{% include 'footer.liquid', route: 'search' %}
+{% include "footer.liquid", route: "search" %}

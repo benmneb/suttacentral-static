@@ -74,7 +74,7 @@ async function fetchJson(url) {
   }
 
   if (Array.isArray(data)) {
-    return data.map((item) => ({ ...item, scx_fetched_at }))
+    return data.map(item => ({ ...item, scx_fetched_at }))
   } else {
     return { ...data, scx_fetched_at }
   }
@@ -145,13 +145,13 @@ async function fetchDataTree(uid, depth = 0) {
 
     function filterTranslations(translations) {
       if (!translations.length) return []
-      return translations.filter((t) => t.lang === 'en' || t.is_root)
+      return translations.filter(t => t.lang === 'en' || t.is_root)
       // return translations // oh no my memory 🤯
     }
 
     const translationsToProcess = filterTranslations(translations)
 
-    const translationPromises = translationsToProcess.map(async (trans) => {
+    const translationPromises = translationsToProcess.map(async trans => {
       let bilaraData
       if (trans.segmented) {
         try {
@@ -239,7 +239,7 @@ async function fetchDataTree(uid, depth = 0) {
 
     node.children = (
       await limitConcurrency(
-        node.children.map((child) => fetchDataTree(child.uid, depth + 1)),
+        node.children.map(child => fetchDataTree(child.uid, depth + 1)),
         MAX_CONCURRENT_REQUESTS
       )
     ).filter(Boolean)
@@ -268,7 +268,7 @@ export default async function () {
   if (cachedMasterData) return cachedMasterData
 
   if (isBuilding) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const checkCache = setInterval(() => {
         if (cachedMasterData) {
           clearInterval(checkCache)
@@ -283,7 +283,7 @@ export default async function () {
   try {
     spinner.start()
     const roots = ['sutta', 'vinaya', 'abhidhamma']
-    const tree = await Promise.all(roots.map((uid) => fetchDataTree(uid)))
+    const tree = await Promise.all(roots.map(uid => fetchDataTree(uid)))
     cachedMasterData = tree
     return tree
   } catch (e) {

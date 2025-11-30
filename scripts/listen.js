@@ -49,7 +49,7 @@
 
   // enable all the controls (they are disabled by default to show fallback text if user has JS turned off)
   rootMenuEl.style.maxWidth = '100vw'
-  rootMenuEl.querySelectorAll('li[role="menuitem"]').forEach((el) => {
+  rootMenuEl.querySelectorAll('li[role="menuitem"]').forEach(el => {
     el.style.display = 'flex'
   })
 
@@ -57,9 +57,9 @@
     // for segmented texts
     visibleTextSpans = Array.from(
       document.querySelectorAll('main > article span.text')
-    ).filter((s) => s.offsetParent !== null && s.textContent)
+    ).filter(s => s.offsetParent !== null && s.textContent)
 
-    visibleTextContent = visibleTextSpans?.map((s) =>
+    visibleTextContent = visibleTextSpans?.map(s =>
       s.textContent.replace(/\n/g, '')
     )
 
@@ -127,11 +127,11 @@
         'button',
       ]
       const selector = textContainingElements
-        .map((e) => `main > article ${e}`)
+        .map(e => `main > article ${e}`)
         .join(', ')
       const allVisibleElements = Array.from(
         document.querySelectorAll(selector)
-      ).filter((s) => s.offsetParent !== null && s.textContent)
+      ).filter(s => s.offsetParent !== null && s.textContent)
 
       function getUniqueSelector(node, root) {
         const path = []
@@ -150,23 +150,23 @@
         return path.join(' > ')
       }
 
-      visibleTextSpans = allVisibleElements.filter((el) => {
+      visibleTextSpans = allVisibleElements.filter(el => {
         // avoid duplicates
         return !allVisibleElements.some(
-          (other) => other !== el && other.contains(el)
+          other => other !== el && other.contains(el)
         )
       })
 
-      visibleTextContent = visibleTextSpans.map((el) => {
+      visibleTextContent = visibleTextSpans.map(el => {
         const clone = el.cloneNode(true)
 
         // remove all .ref elements from the clone
         const refElements = clone.querySelectorAll('.ref')
-        refElements.forEach((ref) => ref.remove())
+        refElements.forEach(ref => ref.remove())
 
         // Find all descendants in the clone and check if corresponding original is hidden
         const allDescendants = clone.querySelectorAll('*')
-        Array.from(allDescendants).forEach((cloneDesc) => {
+        Array.from(allDescendants).forEach(cloneDesc => {
           const selector = getUniqueSelector(cloneDesc, clone)
           const originalDesc = el.querySelector(selector)
           if (originalDesc && originalDesc.offsetParent === null) {
@@ -182,9 +182,9 @@
   function updateClickableSpans() {
     if (!visibleTextSpans || !visibleTextSpans.length) return
     if (isPlaying) {
-      visibleTextSpans.forEach((s) => s.classList.add(CLASS_CLICKABLE))
+      visibleTextSpans.forEach(s => s.classList.add(CLASS_CLICKABLE))
     } else {
-      visibleTextSpans.forEach((s) => s.classList.remove(CLASS_CLICKABLE))
+      visibleTextSpans.forEach(s => s.classList.remove(CLASS_CLICKABLE))
     }
   }
 
@@ -256,7 +256,7 @@
     }
 
     // Determine preferred voice to select: default voice first, otherwise match browser lang
-    const defaultVoice = voices.find((v) => v.default)
+    const defaultVoice = voices.find(v => v.default)
     const browserLang = (
       navigator.language ||
       navigator.userLanguage ||
@@ -267,10 +267,10 @@
 
     if (!suitableVoiceName && browserLang) {
       // find first voice matching full lang, then primary subtag
-      let found = voices.find((v) => v.lang === browserLang)
+      let found = voices.find(v => v.lang === browserLang)
       if (!found)
         found = voices.find(
-          (v) => v.lang && v.lang.startsWith(primaryBrowserLang)
+          v => v.lang && v.lang.startsWith(primaryBrowserLang)
         )
       if (found) suitableVoiceName = found.name
     }
@@ -357,7 +357,7 @@
       speakNext()
     }
 
-    utter.onerror = (ev) => {
+    utter.onerror = ev => {
       if (utter._session !== sessionId) return
       console.error('SpeechSynthesisUtterance error', ev)
       visibleTextSpans[currentIndex]?.classList.remove(CLASS_HIGHLIGHT)
@@ -372,7 +372,7 @@
         ? voiceSelect.selectedOptions[0].getAttribute('data-name')
         : null
     if (selected) {
-      const v = voices.find((x) => x.name === selected)
+      const v = voices.find(x => x.name === selected)
       if (v) utter.voice = v
     }
     utter.pitch = pitch ? Number(pitch.value) : 1
@@ -447,7 +447,7 @@
     try {
       synth.cancel()
     } catch (e) {}
-    visibleTextSpans.forEach((s) => s.classList.remove(CLASS_HIGHLIGHT))
+    visibleTextSpans.forEach(s => s.classList.remove(CLASS_HIGHLIGHT))
     setTimeout(() => {
       if (sessionId == null) return
       isCancelled = false
@@ -471,7 +471,7 @@
     try {
       synth.cancel()
     } catch (e) {}
-    visibleTextSpans.forEach((s) => s.classList.remove(CLASS_HIGHLIGHT))
+    visibleTextSpans.forEach(s => s.classList.remove(CLASS_HIGHLIGHT))
     setTimeout(() => {
       if (sessionId == null) return
       isCancelled = false
@@ -488,7 +488,7 @@
 
   function finishPlayback() {
     sessionId += 1
-    visibleTextSpans.forEach((s) => {
+    visibleTextSpans.forEach(s => {
       s.classList.remove(CLASS_HIGHLIGHT)
       s.classList.remove(CLASS_CLICKABLE)
     })
@@ -508,7 +508,7 @@
     try {
       synth.cancel()
     } catch (e) {}
-    visibleTextSpans.forEach((s) => {
+    visibleTextSpans.forEach(s => {
       s.classList.remove(CLASS_HIGHLIGHT)
     })
     currentUtterance = null
@@ -560,7 +560,7 @@
   // allow clicking any visibleTextSpans to jump/start speaking from there
   const articleEl = document.querySelector('main > article, main > section')
   if (articleEl)
-    articleEl.addEventListener('click', (ev) => {
+    articleEl.addEventListener('click', ev => {
       // Only allow click-to-jump once playback has already started
       if (!isPlaying) return
 
@@ -597,7 +597,7 @@
       try {
         synth.cancel()
       } catch (e) {}
-      visibleTextSpans.forEach((s) => s.classList.remove(CLASS_HIGHLIGHT))
+      visibleTextSpans.forEach(s => s.classList.remove(CLASS_HIGHLIGHT))
 
       setTimeout(() => {
         isCancelled = false

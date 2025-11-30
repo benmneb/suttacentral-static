@@ -3,7 +3,9 @@
   <ul>
     <li>
       View this page on
-      <a id="sc-redirect" href="https://suttacentral.net/{{ route }}">SuttaCentral.net</a>
+      <a id="sc-redirect" href="https://suttacentral.net/{{ route }}"
+        >SuttaCentral.net</a
+      >
     </li>
     <li>
       Donated to the public domain via
@@ -25,7 +27,7 @@
   {% if fetchedAt %}
     <p>
       This page was last updated from SuttaCentral.net on<br>
-      {{ fetchedAt | split: ', ' | last }}
+      {{ fetchedAt | split: ", " | last }}
     </p>
   {% endif %}
 </footer>

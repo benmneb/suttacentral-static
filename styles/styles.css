@@ -624,7 +624,7 @@ main {
     }
     .text-table td:first-child {
       font-weight: inherit;
-   }
+    }
     .namo {
       font-style: italic;
       text-align: center;
@@ -1030,7 +1030,8 @@ button#show-more {
   font-size: inherit;
   cursor: pointer;
 
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     color: var(--background-color);
     background-color: var(--primary-color);
   }

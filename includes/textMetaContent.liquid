@@ -12,7 +12,7 @@
 
 <section class="texts-list" data-pagefind-ignore="all">
   {% if translations.length %}
-    {% assign english_versions = translations | where: 'lang', 'en' %}
+    {% assign english_versions = translations | where: "lang", "en" %}
     {% if english_versions.size > 0 %}
       <details open>
         <summary>
@@ -26,11 +26,7 @@
                 href="/{{ entry.uid }}/{{ version.lang }}/{{ version.author_uid }}"
                 hreflang="{{ version.lang }}"
               >
-                {{-
-                  version.author
-                  | default: version.author_uid
-                  | normalise
-                -}}
+                {{- version.author | default: version.author_uid | normalise -}}
               </a>
               {%- if version.publication_date -%}
                 &nbsp;(<span>{{ version.publication_date }}</span>)
@@ -42,8 +38,8 @@
     {% endif %}
 
     {% assign root_versions = translations
-      | where: 'is_root', true
-      | reject: 'lang', 'en'
+      | where: "is_root", true
+      | reject: "lang", "en"
     %}
     {% if root_versions.size > 0 %}
       <details open>
@@ -71,8 +67,8 @@
 
     {% assign remaining_versions = translations %}
     {% assign remaining_versions = remaining_versions
-      | reject: 'lang', 'en'
-      | reject: 'is_root', true
+      | reject: "lang", "en"
+      | reject: "is_root", true
     %}
     {% if remaining_versions.size > 0 %}
       <details>
@@ -89,11 +85,7 @@
                 href="/{{ entry.uid }}/{{ version.lang }}/{{ version.author_uid }}"
                 hreflang="{{ version.lang }}"
               >
-                {{-
-                  version.author
-                  | default: version.author_uid
-                  | normalise
-                -}}
+                {{- version.author | default: version.author_uid | normalise -}}
               </a>
               {%- if version.publication_date -%}
                 &nbsp;(<span>{{ version.publication_date }}</span>)
@@ -106,6 +98,9 @@
   {% endif %}
 
   {% if entry._parallels_data and entry._parallels_data.size > 0 %}
-    {% include 'parallelsDetails.liquid', entry: entry, parallelsOpen: parallelsOpen %}
+    {% include "parallelsDetails.liquid",
+      entry: entry,
+      parallelsOpen: parallelsOpen
+    %}
   {% endif %}
 </section>

@@ -26,7 +26,7 @@ function generateTextMetaJsonLd(entry) {
         description: entry.blurb,
         identifier: entry.uid,
         ...(entry.translations?.length && {
-          workTranslation: entry.translations.map((translation) => ({
+          workTranslation: entry.translations.map(translation => ({
             '@type': 'CreativeWork',
             '@id': `/${entry.uid}/${translation.lang}/${translation.author_uid}`,
             name: `${entry.original_title || entry.root_name} - ${translation.author || translation.author_uid}`,
@@ -145,7 +145,7 @@ function removeTranslationTexts(node) {
 let usedPaths = []
 
 function flatten(nodes, parentPath = '') {
-  return nodes.flatMap((node) => {
+  return nodes.flatMap(node => {
     const currentPath = parentPath ? `${parentPath}/${node.uid}` : `${node.uid}`
 
     if (node.node_type === 'leaf' || node.type === 'leaf') {

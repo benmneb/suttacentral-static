@@ -1,27 +1,26 @@
-
 <nav aria-label="Breadcrumb">
   <ul>
     {% if isHome %}
-    <span>📚</span>
+      <span>📚</span>
     {% else %}
-    <li>
-      <a href="/" aria-label="Home">📚<span class="sr-only">Home</span></a>
-    </li>
-    {{ breadcrumbsList }}
+      <li>
+        <a href="/" aria-label="Home">📚<span class="sr-only">Home</span></a>
+      </li>
+      {{ breadcrumbsList }}
     {% endif %}
   </ul>
   {% unless excludeSearch %}
-  <button
-    type="submit"
-    popovertarget="search-modal"
-    aria-label="Search site"
-  >
-    🔎
-  </button>
+    <button
+      type="submit"
+      popovertarget="search-modal"
+      aria-label="Search site"
+    >
+      🔎
+    </button>
   {% endunless %}
 </nav>
 {% unless excludeSearch %}
-<section id="search-modal" popover>
-  {% include 'searchForm.liquid' %}
-</section>
+  <section id="search-modal" popover>
+    {% include "searchForm.liquid" %}
+  </section>
 {% endunless %}

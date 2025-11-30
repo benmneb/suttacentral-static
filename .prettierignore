@@ -1,0 +1,11 @@
+node_modules
+_site
+dist
+build
+*.min.js
+package-lock.json
+pnpm-lock.yaml
+.vscode
+.vercel
+.cache
+pages/_sitemap.liquid

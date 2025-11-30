@@ -39,9 +39,9 @@ function generatePitakaJsonLd(entry) {
         name: 'SuttaCentral',
       },
       ...(entry.children?.length && {
-        hasPart: entry.children.map((child) => {
+        hasPart: entry.children.map(child => {
           const hasLeafGrandchild = child.children?.some(
-            (grandchild) =>
+            grandchild =>
               grandchild.node_type === 'leaf' || grandchild.uid?.endsWith('-pm')
           )
           return {
@@ -121,8 +121,8 @@ function removeTranslations(node) {
 }
 
 function flatten(nodes, parentPath = '') {
-  return nodes.flatMap((node) => {
-    if (!node.children?.some((c) => c.node_type === 'branch')) {
+  return nodes.flatMap(node => {
+    if (!node.children?.some(c => c.node_type === 'branch')) {
       // Stop where chapters start, to sync URL structure with SuttaCentral.net
       return null
     }

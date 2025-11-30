@@ -40,7 +40,7 @@ function generateChapterJsonLd(entry) {
         name: 'SuttaCentral',
       },
       ...(entry.children?.length && {
-        hasPart: entry.children.map((child) => ({
+        hasPart: entry.children.map(child => ({
           '@type': 'CreativeWork',
           '@id': `/${child.uid}`,
           name: `${child.original_title || child.root_name}${child.translated_title || child.translated_name ? `—${child.translated_title || child.translated_name}` : ''}`,
@@ -56,7 +56,7 @@ function generateChapterJsonLd(entry) {
             description: 'Ancient Buddhist discourse or text',
           },
           ...(child.translations?.length && {
-            workTranslation: child.translations.map((translation) => ({
+            workTranslation: child.translations.map(translation => ({
               '@type': 'CreativeWork',
               name: `${child.original_title || child.root_name} - ${translation.author || translation.author_uid}`,
               inLanguage: translation.lang,
@@ -147,7 +147,7 @@ function removeTranslationTexts(node) {
 }
 
 function flatten(nodes, parentPath = '') {
-  return nodes.flatMap((node) => {
+  return nodes.flatMap(node => {
     const currentPath = parentPath ? `${parentPath}/${node.uid}` : `${node.uid}`
 
     // Stop recursion before it reaches leaf nodes (the actual texts)
@@ -157,7 +157,7 @@ function flatten(nodes, parentPath = '') {
     // 2) the unusual chapter breaks for pātimokkha texts (...-pm) in SuttaCentral.net
     if (
       (node.node_type !== 'leaf' &&
-        !node.children?.some((c) => c.node_type === 'branch')) ||
+        !node.children?.some(c => c.node_type === 'branch')) ||
       node.uid?.endsWith('-pm')
     ) {
       const entry = removeTranslationTexts({
@@ -200,7 +200,7 @@ export default async function () {
   // Deduplicate by uid to prevent permalink conflicts when the same
   // collection (ie /dhp) appears at multiple levels in the tree structure
   const seen = new Set()
-  return chapters.filter((chapter) => {
+  return chapters.filter(chapter => {
     if (seen.has(chapter.uid)) {
       return false
     }

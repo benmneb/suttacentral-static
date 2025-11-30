@@ -5,7 +5,7 @@ eleventyComputed:
   json_ld: '{{ indexData[0].scx_json_ld }}'
 ---
 <header>
-  {% include 'headerNav.liquid', isHome: true %}
+  {% include "headerNav.liquid", isHome: true %}
 </header>
 
 <main>
@@ -25,9 +25,9 @@ eleventyComputed:
   </ul>
 </main>
 
-{% include 'footer.liquid', route: '', fetchedAt: indexData[0].scx_fetched_at %}
+{% include "footer.liquid", route: "", fetchedAt: indexData[0].scx_fetched_at %}
 
-{% if _siteMetaData.environment == 'dev' %}
+{% if _siteMetaData.environment == "dev" %}
   <script>
     const data = {{ indexData | jsonify }};
     console.log(data);

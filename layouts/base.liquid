@@ -10,16 +10,16 @@
     <title>{{ title | default: _siteMetaData.title }}</title>
     <link rel="preload" href="/styles/styles.css" as="style">
     <link rel="stylesheet" href="/styles/styles.css">
-    <link
-      rel="icon"
-      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>"
-    >
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
     {% if json_ld %}
       <script type="application/ld+json">
         {{ json_ld }}
       </script>
     {% endif %}
-    <script defer src="https://scripts.simpleanalyticscdn.com/light.js"></script>
+    <script
+      defer
+      src="https://scripts.simpleanalyticscdn.com/light.js"
+    ></script>
     <script src="/scripts/search.js" defer></script>
     {% if scripts %}
       {% for script in scripts %}

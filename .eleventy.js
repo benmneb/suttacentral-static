@@ -85,7 +85,7 @@ export default function (eleventyConfig) {
     try {
       const scriptsDir = path.join(__dirname, '_site/scripts')
       if (!fs.existsSync(scriptsDir)) return
-      const files = fs.readdirSync(scriptsDir).filter((f) => f.endsWith('.js'))
+      const files = fs.readdirSync(scriptsDir).filter(f => f.endsWith('.js'))
 
       for (const file of files) {
         const filePath = path.join(scriptsDir, file)

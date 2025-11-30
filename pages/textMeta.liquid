@@ -13,7 +13,7 @@ eleventyComputed:
   json_ld: '{{ entry.scx_json_ld }}'
 ---
 <header>
-  {% assign parts = entry.scx_breadcrumb | split: '/' %}
+  {% assign parts = entry.scx_breadcrumb | split: "/" %}
   {% assign second_last = parts | size | minus: 1 %}
   {% capture breadcrumbsList %}
     {% for part in parts %}
@@ -29,12 +29,12 @@ eleventyComputed:
       </li>
     {% endfor %}
   {% endcapture %}
-  {% include 'headerNav.liquid', breadcrumbsList: breadcrumbsList %}
+  {% include "headerNav.liquid", breadcrumbsList: breadcrumbsList %}
 </header>
 
 <main>
   <!-- This has it's own file because it's reused in text.liquid -->
-  {% include 'textMetaContent.liquid',
+  {% include "textMetaContent.liquid",
     entry: entry,
     title: title,
     translations: entry.translations
@@ -66,12 +66,12 @@ eleventyComputed:
   </div>
 </nav>
 
-{% include 'footer.liquid',
+{% include "footer.liquid",
   route: entry.scx_path,
   fetchedAt: entry.scx_fetched_at
 %}
 
-{% if _siteMetaData.environment == 'dev' %}
+{% if _siteMetaData.environment == "dev" %}
   <script>
     const data = {{ entry | jsonify }};
     console.log(data);

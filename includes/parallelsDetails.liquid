@@ -1,12 +1,16 @@
-<details {% if parallelsOpen %}open{% endif %}>
+<details
+  {% if parallelsOpen %}
+    open
+  {% endif %}
+>
   <summary>Parallels ({{ entry.parallel_count }})</summary>
   <ul>
     {% for segment in entry._parallels_data %}
-      {% unless segment[0] contains 'scx_fetched_at' %}
+      {% unless segment[0] contains "scx_fetched_at" %}
         <li>
           {% assign root_trans = entry.translations
             | default: entry._suttas_data.suttaplex.translations
-            | where: 'is_root', true
+            | where: "is_root", true
             | first
           %}
           <a href="/{% if segment[0] contains '#' %}{{ segment[0] | split: '#' | first }}/{{ root_trans.lang }}/{{ root_trans.author_uid }}#{{ segment[0] | split: '#' | last }}{% else %}{{ segment[0] }}/{{ root_trans.lang }}/{{ root_trans.author_uid }}{% endif %}">
@@ -40,20 +44,20 @@
                     }}
                   </span>
                 {% endif %}
-                {% if parallel.to.volpages contains 'PTS' %}
+                {% if parallel.to.volpages contains "PTS" %}
                   {% assign parts = parallel.to.volpages
                     | strip
-                    | split: ', '
+                    | split: ", "
                   %}
-                  {% assign first_parts = parts.first | strip | split: ' ' %}
-                  {% assign last_parts = parts.last | strip | split: ' ' %}
+                  {% assign first_parts = parts.first | strip | split: " " %}
+                  {% assign last_parts = parts.last | strip | split: " " %}
                   {% assign prefix = first_parts.first %}
                   {% assign first_num = first_parts.last %}
                   {% assign last_num = last_parts.last %}
                   {% assign pretty_volpages = prefix
-                    | append: ' '
+                    | append: " "
                     | append: first_num
-                    | append: '—'
+                    | append: "—"
                     | append: last_num
                   %}
                 {% else %}

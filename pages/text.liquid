@@ -15,7 +15,7 @@ eleventyComputed:
     - 'listen.js'
 ---
 <header>
-  {% assign parts = entry.scx_breadcrumb | split: '/' %}
+  {% assign parts = entry.scx_breadcrumb | split: "/" %}
   {% assign second_last = parts | size | minus: 1 %}
   {% capture breadcrumbsList %}
     {% for part in parts %}
@@ -31,7 +31,7 @@ eleventyComputed:
       </li>
     {% endfor %}
   {% endcapture %}
-  {% include 'headerNav.liquid', breadcrumbsList: breadcrumbsList %}
+  {% include "headerNav.liquid", breadcrumbsList: breadcrumbsList %}
 </header>
 
 <aside>
@@ -109,9 +109,9 @@ eleventyComputed:
         >
           <li>
             <noscript>
-              Please enable javascript to listen to this text. It works
-              100% locally in your browser via the SpeechSynthesis API,
-              including while offline.
+              Please enable javascript to listen to this text. It works 100%
+              locally in your browser via the SpeechSynthesis API, including
+              while offline.
             </noscript>
           </li>
           <li role="menuitem" class="tts-controls">
@@ -141,7 +141,7 @@ eleventyComputed:
               value="1"
               step="0.1"
               id="rate"
-            />
+            >
             <div id="rate-value">1.0</div>
           </li>
           <li role="menuitem">
@@ -153,12 +153,12 @@ eleventyComputed:
               value="1"
               step="0.1"
               id="pitch"
-            />
+            >
             <div id="pitch-value">1.0</div>
           </li>
           <li role="menuitem">
             <label for="auto-scroll">Auto-scroll</label>
-            <input type="checkbox" id="auto-scroll" />
+            <input type="checkbox" id="auto-scroll">
           </li>
         </ul>
       </li>
@@ -166,24 +166,23 @@ eleventyComputed:
   </fieldset>
 </aside>
 
-
-<main 
-  data-pagefind-body 
+<main
+  data-pagefind-body
   data-acronym="{{ entry.acronym }}"
   data-author="{{ entry.author }}"
   data-lang="{{ entry.lang }}"
   data-title="{{ entry.translated_title | default: entry.translated_name }}"
   data-translatorstitle="{{ entry._suttas_data.translation.title | default: '' }}"
-  data-originaltitle="{{ entry.original_title }}" 
+  data-originaltitle="{{ entry.original_title }}"
   data-pagefind-meta="acronym[data-acronym], author[data-author], lang[data-lang], title[data-title], translatorsTitle[data-translatorstitle], originalTitle[data-originaltitle]"
 >
   {% if entry.is_root and entry._bilarasuttas_data.size > 0 %}
-    {% assign comments = '' %}
+    {% assign comments = "" %}
     {% for key in entry._bilarasuttas_data.keys_order %}
       {% assign html = entry._bilarasuttas_data.html_text[key] %}
       {% assign text = entry._bilarasuttas_data.root_text[key] %}
       {% assign comment = entry._bilarasuttas_data.variant_text[key] %}
-      {% assign ref = key | split: ':' | last %}
+      {% assign ref = key | split: ":" | last %}
       {% if html %}
         {% capture replacement %}
           <span id="{{ key }}" class="segment">
@@ -201,7 +200,7 @@ eleventyComputed:
             {% endif %}
           </span>
         {% endcapture %}
-        {{ html | replace: '{}', replacement }}
+        {{ html | replace: "{}", replacement }}
         {%- if comment -%}
           {% capture comments %}
             {{ comments }}
@@ -214,16 +213,16 @@ eleventyComputed:
     {% endfor %}
     {{ comments }}
     <article id="info" popover data-pagefind-ignore="all">
-      {% include 'publicationInfo.liquid', entry: entry %}
+      {% include "publicationInfo.liquid", entry: entry %}
     </article>
   {% elsif entry.segmented %}
-    {% assign comments = '' %}
+    {% assign comments = "" %}
     {% for key in entry._bilarasuttas_data.keys_order %}
       {% assign html = entry._bilarasuttas_data.html_text[key] %}
       {% assign text = entry._bilarasuttas_data.translation_text[key] %}
       {% assign rootText = entry._bilarasuttas_data.root_text[key] %}
       {% assign comment = entry._bilarasuttas_data.comment_text[key] %}
-      {% assign ref = key | split: ':' | last %}
+      {% assign ref = key | split: ":" | last %}
       {% if html %}
         {% capture replacement %}
           <span id="{{ key }}" class="segment">
@@ -247,7 +246,7 @@ eleventyComputed:
             {% endif %}
           </span>
         {% endcapture %}
-        {{ html | replace: '{}', replacement }}
+        {{ html | replace: "{}", replacement }}
         {%- if comment -%}
           {% capture comments %}
             {{ comments }}
@@ -261,43 +260,43 @@ eleventyComputed:
     {{ comments }}
     {% if entry._publication_info != blank %}
       <article id="info" popover data-pagefind-ignore="all">
-        {% include 'publicationInfo.liquid', entry: entry %}
+        {% include "publicationInfo.liquid", entry: entry %}
       </article>
     {% endif %}
   {% else %}
     {% assign html_content = entry._suttas_data.translation.text
-      | replace: '\n', ''
+      | replace: "\n", ""
     %}
     {% assign original_footer = html_content
-      | split: '<footer'
+      | split: "<footer"
       | last
-      | split: '</footer>'
+      | split: "</footer>"
       | first
-      | prepend: '<footer'
-      | append: '</footer>'
+      | prepend: "<footer"
+      | append: "</footer>"
     %}
     {% assign html_without_footer = html_content
-      | replace: original_footer, ''
+      | replace: original_footer, ""
     %}
     {% assign modified_footer = original_footer
-      | replace: '<footer', '<article id="info" popover data-pagefind-ignore="all"'
-      | replace: '</footer>', '</article>'
+      | replace: "<footer",
+        '<article id="info" popover data-pagefind-ignore="all"'
+      | replace: "</footer>", "</article>"
     %}
     {{ html_without_footer }}
     {{ modified_footer }}
   {% endif %}
 
-  
   <article id="parallels" popover>
     {% assign left_title = entry.original_title | default: entry.root_name %}
     {% assign right_title = entry.translated_title
       | default: entry.translated_name
     %}
-    {% assign full_title = left_title | append: '—' | append: right_title %}
-    {% include 'textMetaContent.liquid',
+    {% assign full_title = left_title | append: "—" | append: right_title %}
+    {% include "textMetaContent.liquid",
       entry: entry,
       title: full_title,
-      translations: entry._suttas_data.suttaplex.translations
+      translations: entry._suttas_data.suttaplex.translations,
       parallelsOpen: true
     %}
   </article>
@@ -328,12 +327,12 @@ eleventyComputed:
   </div>
 </nav>
 
-{% include 'footer.liquid',
+{% include "footer.liquid",
   route: entry.scx_path,
   fetchedAt: entry.scx_fetched_at
 %}
 
-{% if _siteMetaData.environment == 'dev' %}
+{% if _siteMetaData.environment == "dev" %}
   <script>
     const data = {{ entry | jsonify }};
     console.log(data);

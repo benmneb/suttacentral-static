@@ -13,7 +13,7 @@ eleventyComputed:
   json_ld: '{{ entry.scx_json_ld }}'
 ---
 <header>
-  {% assign parts = entry.scx_breadcrumb | split: '/' %}
+  {% assign parts = entry.scx_breadcrumb | split: "/" %}
   {% capture breadcrumbsList %}
     {% for part in parts %}
       {% assign path = path | append: '/' | append: part %}
@@ -26,7 +26,7 @@ eleventyComputed:
       </li>
     {% endfor %}
   {% endcapture %}
-  {% include 'headerNav.liquid', breadcrumbsList: breadcrumbsList %}
+  {% include "headerNav.liquid", breadcrumbsList: breadcrumbsList %}
 </header>
 
 <main>
@@ -36,9 +36,9 @@ eleventyComputed:
     <p>{{ entry.blurb }}</p>
   {% endif %}
 
-  {% assign isPatimokkha = entry.uid | endswith: '-pm' %}
+  {% assign isPatimokkha = entry.uid | endswith: "-pm" %}
   {% if isPatimokkha %}
-    {% include 'textMetaContent.liquid',
+    {% include "textMetaContent.liquid",
       entry: entry,
       translations: entry.translations,
       isPatimokkha: true
@@ -67,7 +67,7 @@ eleventyComputed:
           <p>{{ child.blurb }}</p>
           {% if child.translations.length %}
             {% assign english_versions = child.translations
-              | where: 'lang', 'en'
+              | where: "lang", "en"
             %}
             {% if english_versions.size > 0 %}
               <details open>
@@ -90,9 +90,9 @@ eleventyComputed:
                         {{-
                           version.author
                           | default: version.author_uid
-                          | replace: '&nbsp;', ' '
-                          | replace: '&#160;', ' '
-                          | replace: '\u00A0', ' '
+                          | replace: "&nbsp;", " "
+                          | replace: "&#160;", " "
+                          | replace: "\u00A0", " "
                           | strip
                         -}}
                       </a>
@@ -106,8 +106,8 @@ eleventyComputed:
             {% endif %}
 
             {% assign root_versions = child.translations
-              | where: 'is_root', true
-              | reject: 'lang', 'en'
+              | where: "is_root", true
+              | reject: "lang", "en"
             %}
             {% if root_versions.size > 0 %}
               <details open>
@@ -123,15 +123,15 @@ eleventyComputed:
                         href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}"
                         hreflang="{{ version.lang }}"
                       >
-                        {% if version.author_uid == 'sct' %}
+                        {% if version.author_uid == "sct" %}
                           SuttaCentral Taishō
                         {% else %}
                           {{-
                             version.author
                             | default: version.author_uid
-                            | replace: '&nbsp;', ' '
-                            | replace: '&#160;', ' '
-                            | replace: '\u00A0', ' '
+                            | replace: "&nbsp;", " "
+                            | replace: "&#160;", " "
+                            | replace: "\u00A0", " "
                             | strip
                           -}}
                         {% endif %}
@@ -147,8 +147,8 @@ eleventyComputed:
 
             {% assign remaining_versions = child.translations %}
             {% assign remaining_versions = remaining_versions
-              | reject: 'lang', 'en'
-              | reject: 'is_root', true
+              | reject: "lang", "en"
+              | reject: "is_root", true
             %}
             {% if remaining_versions.size > 0 %}
               <details>
@@ -168,9 +168,9 @@ eleventyComputed:
                         {{-
                           version.author
                           | default: version.author_uid
-                          | replace: '&nbsp;', ' '
-                          | replace: '&#160;', ' '
-                          | replace: '\u00A0', ' '
+                          | replace: "&nbsp;", " "
+                          | replace: "&#160;", " "
+                          | replace: "\u00A0", " "
                           | strip
                         -}}
                       </a>
@@ -184,7 +184,7 @@ eleventyComputed:
             {% endif %}
           {% endif %}
           {% if child._parallels_data and child._parallels_data.size > 0 %}
-            {% include 'parallelsDetails.liquid', entry: child %}
+            {% include "parallelsDetails.liquid", entry: child %}
           {% endif %}
           {% if isPatimokkha %}
             <ul>
@@ -213,7 +213,7 @@ eleventyComputed:
                   {% if grandchild.blurb %}
                     <p>{{ grandchild.blurb }}</p>
                   {% endif %}
-                  {% include 'parallelsDetails.liquid', entry: grandchild %}
+                  {% include "parallelsDetails.liquid", entry: grandchild %}
                 </li>
               {% endfor %}
             </ul>
@@ -227,12 +227,12 @@ eleventyComputed:
   {% endif %}
 </main>
 
-{% include 'footer.liquid',
+{% include "footer.liquid",
   route: entry.scx_path,
   fetchedAt: entry.scx_fetched_at
 %}
 
-{% if _siteMetaData.environment == 'dev' %}
+{% if _siteMetaData.environment == "dev" %}
   <script>
     const data = {{ entry | jsonify }};
     console.log(data);

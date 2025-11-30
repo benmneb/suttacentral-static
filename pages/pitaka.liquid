@@ -13,7 +13,7 @@ eleventyComputed:
   json_ld: '{{ entry.scx_json_ld }}'
 ---
 <header>
-  {% assign parts = entry.scx_breadcrumb | split: '/' %}
+  {% assign parts = entry.scx_breadcrumb | split: "/" %}
   {% capture breadcrumbsList %}
     {% for part in parts %}
       {% assign path = path | append: '/' | append: part %}
@@ -26,7 +26,7 @@ eleventyComputed:
       </li>
     {% endfor %}
   {% endcapture %}
-  {% include 'headerNav.liquid', breadcrumbsList: breadcrumbsList %}
+  {% include "headerNav.liquid", breadcrumbsList: breadcrumbsList %}
 </header>
 
 <main>
@@ -46,7 +46,7 @@ eleventyComputed:
           {% capture pitaka_url %}false{% endcapture %}
           {% if child.children.size > 0 %}
             {% for grandchild in child.children %}
-              {% if grandchild.node_type == 'branch' %}
+              {% if grandchild.node_type == "branch" %}
                 {% capture pitaka_url %}true{% endcapture %}
               {% endif %}
             {% endfor %}
@@ -71,10 +71,10 @@ eleventyComputed:
   {% endif %}
 </main>
 
-{% assign path = 'pitaka/' | append: entry.scx_path %}
-{% include 'footer.liquid', route: path, fetchedAt: entry.scx_fetched_at %}
+{% assign path = "pitaka/" | append: entry.scx_path %}
+{% include "footer.liquid", route: path, fetchedAt: entry.scx_fetched_at %}
 
-{% if _siteMetaData.environment == 'dev' %}
+{% if _siteMetaData.environment == "dev" %}
   <script>
     const data = {{ entry | jsonify }};
     console.log(data);

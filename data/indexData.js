@@ -22,7 +22,7 @@ function removeGrandChildren(node) {
 }
 
 function flatten(nodes) {
-  return nodes.flatMap((node) => {
+  return nodes.flatMap(node => {
     return removeGrandChildren(node)
   })
 }
@@ -60,7 +60,7 @@ function generateIndexJsonLd(data) {
         name: 'Tipiṭaka—the Three Baskets of the Buddhist canon',
         description:
           'Collection of the three main divisions of the Buddhist canon: Vinaya Pitaka, Sutta Pitaka, and Abhidhamma Pitaka',
-        hasPart: data.map((item) => ({
+        hasPart: data.map(item => ({
           '@type': 'Collection',
           '@id': `/pitaka/${item.uid}`,
           name: `${item.root_name}—${item.translated_name}`,
@@ -116,7 +116,7 @@ export default async function () {
   const menu = await masterData()
   const data = flatten(menu).filter(Boolean)
 
-  return data.map((item) => ({
+  return data.map(item => ({
     ...item,
     scx_json_ld: generateIndexJsonLd(data),
   }))

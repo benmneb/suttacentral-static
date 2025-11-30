@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json.schemastore.org/prettierrc",
+  "printWidth": 80,
+  "arrowParens": "avoid",
+  "bracketSpacing": true,
+  "singleQuote": true,
+  "semi": false,
+  "trailingComma": "es5",
+  "plugins": ["@shopify/prettier-plugin-liquid"],
+  "overrides": [
+    {
+      "files": "*.liquid",
+      "options": {
+        "singleQuote": false,
+        "liquidSingleQuote": false,
+        "singleLineLinkTags": true
+      }
+    }
+  ]
+}

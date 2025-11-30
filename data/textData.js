@@ -153,7 +153,7 @@ function generateTextJsonLd(entry) {
 }
 
 function flatten(nodes, parent, parentPath) {
-  return nodes.flatMap((node) => {
+  return nodes.flatMap(node => {
     let currentPath = parentPath ? `${parentPath}/${node.uid}` : `${node.uid}`
 
     if (parent) {

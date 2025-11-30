@@ -13,6 +13,8 @@
     "build:search": "pnpm pagefind",
     "dev": "pnpm serve _site",
     "dev:fresh": "pnpm run predeploy && pnpm run dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "predeploy": "rm -rf _site && pnpm run build && pnpm run build:search",
     "deploy:dev": "vercel deploy --archive=tgz --cwd=_site",
     "deploy:prod": "vercel deploy --archive=tgz --cwd=_site --prod"
@@ -26,11 +28,13 @@
     "@11ty/eleventy-fetch": "^5.1.0"
   },
   "devDependencies": {
+    "@shopify/prettier-plugin-liquid": "^1.10.0",
     "browserslist": "^4.28.0",
     "html-minifier-terser": "^7.2.0",
     "lightningcss": "^1.30.2",
     "ora": "^8.2.0",
     "pagefind": "^1.4.0",
+    "prettier": "^3.7.3",
     "serve": "^14.2.5",
     "terser": "^5.44.1"
   }
