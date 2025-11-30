@@ -51,6 +51,7 @@
   --tts-highlight-text-color: var(--headings-color);
   --tts-highlight-background-color: var(--bg-alt-1);
   --tts-hover-background-color: var(--bg-alt-1);
+  --details-summary-hover-background: var(--bg-alt-2);
 
   --sans-serif-font:
     -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui,
@@ -116,6 +117,7 @@
     --tts-highlight-text-color: var(--headings-color);
     --tts-highlight-background-color: var(--bg);
     --tts-hover-background-color: var(--background-color-secondary);
+    --details-summary-hover-background: var(--bg-alt-1);
   }
 }
 
@@ -292,7 +294,7 @@ body {
   .texts-list > details > summary {
     &:hover,
     &:active {
-      background-color: var(--bg-alt-2);
+      background-color: var(--details-summary-hover-background);
     }
   }
 }
@@ -474,7 +476,7 @@ main {
 
         &:hover,
         &:active {
-          background-color: var(--bg-alt-1);
+          background-color: var(--details-summary-hover-background);
         }
       }
 
@@ -679,8 +681,8 @@ main {
     td {
       padding: 0.6667em;
       vertical-align: text-top;
-      /* border-top: var(--sc-border);  1px solid var(--sc-border-color); */
-      /* border-bottom: var(--sc-border);  1px solid var(--sc-border-color); */
+      border-top: 1px solid var(--background-color-secondary);
+      border-bottom: 1px solid var(--background-color-secondary);
     }
     td:first-child {
       font-weight: bold;
