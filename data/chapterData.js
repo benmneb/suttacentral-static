@@ -10,7 +10,7 @@ function generateChapterJsonLd(entry) {
       name: `${entry.original_title || entry.root_name}${entry.translated_title || entry.translated_name ? `—${entry.translated_title || entry.translated_name}` : ''}`,
       description:
         entry.blurb || 'Collection of Buddhist texts and translations',
-      url: `${siteMetaData().url}/${entry.scx_path}`,
+      url: `${siteMetaData().origin}/${entry.scx_path}`,
       sameAs: `https://suttacentral.net/${entry.scx_path}`,
       identifier: entry.uid,
       inLanguage: [
@@ -67,7 +67,7 @@ function generateChapterJsonLd(entry) {
               ...(translation.publication_date && {
                 datePublished: translation.publication_date,
               }),
-              url: `${siteMetaData().url}/${child.uid}/${translation.lang}/${translation.author_uid}`,
+              url: `${siteMetaData().origin}/${child.uid}/${translation.lang}/${translation.author_uid}`,
               sameAs: `https://suttacentral.net/${child.uid}/${translation.lang}/${translation.author_uid}`,
             })),
           }),

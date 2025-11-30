@@ -11,7 +11,7 @@ function generateTextMetaJsonLd(entry) {
       description:
         entry.blurb ||
         'Information about available translations and editions of this Buddhist text',
-      url: `${siteMetaData().url}/${entry.scx_path}`,
+      url: `${siteMetaData().origin}/${entry.scx_path}`,
       sameAs: `https://suttacentral.net/${entry.scx_path}`,
       identifier: entry.uid,
       inLanguage: 'en',
@@ -35,7 +35,7 @@ function generateTextMetaJsonLd(entry) {
               name: translation.lang_name || translation.lang,
               alternateName: translation.lang,
             },
-            url: `${siteMetaData().url}/${entry.uid}/${translation.lang}/${translation.author_uid}`,
+            url: `${siteMetaData().origin}/${entry.uid}/${translation.lang}/${translation.author_uid}`,
             sameAs: `https://suttacentral.net/${entry.uid}/${translation.lang}/${translation.author_uid}`,
             genre: translation.is_root ? 'Root Text' : 'Translation',
             ...(translation.author && {

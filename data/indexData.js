@@ -65,7 +65,7 @@ function generateIndexJsonLd(data) {
           '@id': `/pitaka/${item.uid}`,
           name: `${item.root_name}—${item.translated_name}`,
           description: item.blurb,
-          url: `${siteMetaData().url}/pitaka/${item.uid}`,
+          url: `${siteMetaData().origin}/pitaka/${item.uid}`,
           sameAs: `https://suttacentral.net/pitaka/${item.uid}`,
           identifier: item.uid,
           isPartOf: {

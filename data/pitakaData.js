@@ -9,7 +9,7 @@ function generatePitakaJsonLd(entry) {
       '@id': `/pitaka/${entry.scx_path}`,
       name: `${entry.original_title || entry.root_name}—${entry.translated_title || entry.translated_name}`,
       description: entry.blurb,
-      url: `${siteMetaData().url}/pitaka/${entry.scx_path}`,
+      url: `${siteMetaData().origin}/pitaka/${entry.scx_path}`,
       sameAs: `https://suttacentral.net/pitaka/${entry.scx_path}`,
       identifier: entry.uid,
       inLanguage: [
