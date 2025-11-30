@@ -1,32 +1,34 @@
-import browserslist from 'browserslist'
-import fs from 'fs'
 import htmlmin from 'html-minifier-terser'
-import { browserslistToTargets, transform } from 'lightningcss'
-import path from 'path'
-import { minify } from 'terser'
-import { fileURLToPath } from 'url'
+import { minifyCss, minifyJs } from './tools/minifyAssets.js'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-const targets = browserslistToTargets(browserslist('last 2 years'))
+const inputDir = 'pages'
+const textTemplate = `${inputDir}/text.liquid`
+const navTemplates = [
+  `${inputDir}/index.liquid`,
+  `${inputDir}/pitaka.liquid`,
+  `${inputDir}/chapter.liquid`,
+  `${inputDir}/textMeta.liquid`,
+]
+const utilTemplates = [
+  `${inputDir}/_search.liquid`,
+  `${inputDir}/_404.liquid`,
+  `${inputDir}/_robots.liquid`,
+  `${inputDir}/_sitemap.liquid`,
+]
 
 export default function (eleventyConfig) {
-  const textTemplate = 'text.liquid'
-
-  if (process.env.SKIP_TEXTS) {
+  if (process.env.ONLY_NAV) {
     eleventyConfig.ignores.add(textTemplate)
-    console.log('⏭️  Skipping text pages (SKIP_TEXTS enabled)')
-  }
-
-  if (process.env.ONLY_TEXTS) {
-    eleventyConfig.ignores.add('index.liquid')
-    eleventyConfig.ignores.add('pitaka.liquid')
-    eleventyConfig.ignores.add('chapter.liquid')
-    eleventyConfig.ignores.add('textMeta.liquid')
-    eleventyConfig.ignores.add('_404.liquid')
-    eleventyConfig.ignores.add('_robots.liquid')
-    eleventyConfig.ignores.add('_sitemap.liquid')
+    utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
+    console.log('⏭️  Building only nav pages (ONLY_NAV enabled)')
+  } else if (process.env.ONLY_TEXTS) {
+    navTemplates.forEach(page => eleventyConfig.ignores.add(page))
+    utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
     console.log('📄 Building only text pages (ONLY_TEXTS enabled)')
+  } else if (process.env.ONLY_UTILS) {
+    eleventyConfig.ignores.add(textTemplate)
+    navTemplates.forEach(page => eleventyConfig.ignores.add(page))
+    console.log('🧰 Building only utility pages (ONLY_UTILS enabled)')
   }
 
   eleventyConfig.addFilter('endswith', function (str, suffix) {
@@ -54,27 +56,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy('styles')
   eleventyConfig.on('eleventy.after', async () => {
     try {
-      const filename = 'styles.css'
-      const cssPath = path.join(__dirname, `_site/styles/${filename}`)
-      const content = fs.readFileSync(cssPath, 'utf8')
-
-      const result = transform({
-        filename,
-        code: Buffer.from(content),
-        minify: true,
-        targets,
-      })
-
-      const minified = result.code.toString()
-      fs.writeFileSync(cssPath, minified)
-
-      const originalSize = Buffer.byteLength(content, 'utf8')
-      const minifiedSize = Buffer.byteLength(minified, 'utf8')
-      const savings = originalSize - minifiedSize
-      const savingsPercent = ((savings / originalSize) * 100).toFixed(1)
-      console.log(
-        `📦 Minified ${filename}: ${originalSize} → ${minifiedSize} bytes (saved ${savings} bytes, ${savingsPercent}%)`
-      )
+      await minifyCss()
     } catch (e) {
       console.error('Error while minifying CSS:', e)
     }
@@ -83,38 +65,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy('scripts')
   eleventyConfig.on('eleventy.after', async () => {
     try {
-      const scriptsDir = path.join(__dirname, '_site/scripts')
-      if (!fs.existsSync(scriptsDir)) return
-      const files = fs.readdirSync(scriptsDir).filter(f => f.endsWith('.js'))
-
-      for (const file of files) {
-        const filePath = path.join(scriptsDir, file)
-        const code = fs.readFileSync(filePath, 'utf8')
-
-        const minified = await minify(code, {
-          compress: {
-            dead_code: true,
-            drop_console: false,
-            drop_debugger: true,
-          },
-          mangle: true,
-          format: {
-            comments: 'some',
-          },
-        })
-
-        if (minified.code) {
-          const originalSize = Buffer.byteLength(code, 'utf8')
-          const minifiedSize = Buffer.byteLength(minified.code, 'utf8')
-          const savings = originalSize - minifiedSize
-          const savingsPercent = ((savings / originalSize) * 100).toFixed(1)
-
-          fs.writeFileSync(filePath, minified.code)
-          console.log(
-            `📦 Minified ${file}: ${originalSize} → ${minifiedSize} bytes (saved ${savings} bytes, ${savingsPercent}%)`
-          )
-        }
-      }
+      await minifyJs()
     } catch (e) {
       console.error('Error while minifying JS:', e)
     }
@@ -122,7 +73,7 @@ export default function (eleventyConfig) {
 
   return {
     dir: {
-      input: 'pages',
+      input: inputDir,
       includes: '../includes',
       layouts: '../layouts',
       data: '../data',
