@@ -17,25 +17,21 @@ eleventyComputed:
 <header>
   {% assign parts = entry.scx_breadcrumb | split: '/' %}
   {% assign second_last = parts | size | minus: 1 %}
-  <nav aria-label="Breadcrumb">
-    <ul>
+  {% capture breadcrumbsList %}
+    {% for part in parts %}
+      {% assign path = path | append: '/' | append: part %}
       <li>
-        <a href="/" aria-label="Home">📚<span class="sr-only">Home</span></a>
+        {% if forloop.last %}
+          <span aria-current="page" data-pagefind-body data-pagefind-weight="10">{{ part }}</span>
+        {% elsif forloop.index == second_last %}
+          <a href="/{{ part }}">{{ part }}</a>
+        {% else %}
+          <a href="/pitaka{{ path }}">{{ part }}</a>
+        {% endif %}
       </li>
-      {% for part in parts %}
-        {% assign path = path | append: '/' | append: part %}
-        <li>
-          {% if forloop.last %}
-            <span aria-current="page">{{ part }}</span>
-          {% elsif forloop.index == second_last %}
-            <a href="/{{ part }}">{{ part }}</a>
-          {% else %}
-            <a href="/pitaka{{ path }}">{{ part }}</a>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ul>
-  </nav>
+    {% endfor %}
+  {% endcapture %}
+  {% include 'headerNav.liquid', breadcrumbsList: breadcrumbsList %}
 </header>
 
 <aside>
@@ -170,7 +166,17 @@ eleventyComputed:
   </fieldset>
 </aside>
 
-<main>
+
+<main 
+  data-pagefind-body 
+  data-acronym="{{ entry.acronym }}"
+  data-author="{{ entry.author }}"
+  data-lang="{{ entry.lang }}"
+  data-title="{{ entry.translated_title | default: entry.translated_name }}"
+  data-translatorstitle="{{ entry._suttas_data.translation.title | default: '' }}"
+  data-originaltitle="{{ entry.original_title }}" 
+  data-pagefind-meta="acronym[data-acronym], author[data-author], lang[data-lang], title[data-title], translatorsTitle[data-translatorstitle], originalTitle[data-originaltitle]"
+>
   {% if entry.is_root and entry._bilarasuttas_data.size > 0 %}
     {% assign comments = '' %}
     {% for key in entry._bilarasuttas_data.keys_order %}
@@ -181,7 +187,7 @@ eleventyComputed:
       {% if html %}
         {% capture replacement %}
           <span id="{{ key }}" class="segment">
-            <span class="reference" id="{{ ref }}">
+            <span class="reference" id="{{ ref }}" data-pagefind-ignore="all">
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
             </span>
             {% if text %}
@@ -199,7 +205,7 @@ eleventyComputed:
         {%- if comment -%}
           {% capture comments %}
             {{ comments }}
-            <article id="comment-{{ key }}" popover>
+            <article id="comment-{{ key }}" popover data-pagefind-ignore="all">
               Variant: {{ comment | replace: 'https://suttacentral.net', '' }}
             </article>
           {% endcapture %}
@@ -207,7 +213,7 @@ eleventyComputed:
       {% endif %}
     {% endfor %}
     {{ comments }}
-    <article id="info" popover>
+    <article id="info" popover data-pagefind-ignore="all">
       {% include 'publicationInfo.liquid', entry: entry %}
     </article>
   {% elsif entry.segmented %}
@@ -221,11 +227,11 @@ eleventyComputed:
       {% if html %}
         {% capture replacement %}
           <span id="{{ key }}" class="segment">
-            <span class="reference" id="{{ ref }}">
+            <span class="reference" id="{{ ref }}" data-pagefind-ignore="all">
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
             </span>
             {% if text %}
-            <span class="translation" lang="{{ entry.lang }}">
+            <span class="translation" lang="{{ entry.lang }}"{% if text == entry.translated_title or text == entry.translated_name %} data-pagefind-weight="8"{% endif %}>
               <span class="text">{{ text }}</span>
               {% unless comment == blank %}
                 <button popovertarget="comment-{{ key }}" aria-label="Show {{ entry.author }}'s footnote for segment {{ key }}">*</button>
@@ -233,7 +239,9 @@ eleventyComputed:
             </span>
             {% endif %}
             {% if rootText %}
-            <span class="root" lang="{{ entry.root_lang }}" translate="no">
+            {% assign normalisedRoot = rootText | normalise %}
+            {% assign normalisedTitle = entry.original_title | normalise %}
+            <span class="root" lang="{{ entry.root_lang }}" translate="no" {% unless normalisedRoot contains normalisedTitle %}data-pagefind-ignore="all"{% endunless %}>
               <span class="text">{{ rootText }}</span>
             </span>
             {% endif %}
@@ -243,7 +251,7 @@ eleventyComputed:
         {%- if comment -%}
           {% capture comments %}
             {{ comments }}
-            <article id="comment-{{ key }}" popover>
+            <article id="comment-{{ key }}" popover data-pagefind-ignore="all">
               {{ comment | replace: 'https://suttacentral.net', '' }}
             </article>
           {% endcapture %}
@@ -252,7 +260,7 @@ eleventyComputed:
     {% endfor %}
     {{ comments }}
     {% if entry._publication_info != blank %}
-      <article id="info" popover>
+      <article id="info" popover data-pagefind-ignore="all">
         {% include 'publicationInfo.liquid', entry: entry %}
       </article>
     {% endif %}
@@ -272,7 +280,7 @@ eleventyComputed:
       | replace: original_footer, ''
     %}
     {% assign modified_footer = original_footer
-      | replace: '<footer', '<article id="info" popover'
+      | replace: '<footer', '<article id="info" popover data-pagefind-ignore="all"'
       | replace: '</footer>', '</article>'
     %}
     {{ html_without_footer }}

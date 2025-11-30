@@ -3,14 +3,14 @@
   <hgroup>
     <h1>{{ title }}</h1>
     {%- if entry.acronym %}
-      <p>{{ entry.acronym }}</p>
+      <p data-pagefind-weight="10">{{ entry.acronym }}</p>
     {% endif -%}
   </hgroup>
 
-  <p>{{ entry.blurb }}</p>
+  <p data-pagefind-ignore="all">{{ entry.blurb }}</p>
 {% endunless %}
 
-<section class="texts-list">
+<section class="texts-list" data-pagefind-ignore="all">
   {% if translations.length %}
     {% assign english_versions = translations | where: 'lang', 'en' %}
     {% if english_versions.size > 0 %}
@@ -29,10 +29,7 @@
                 {{-
                   version.author
                   | default: version.author_uid
-                  | replace: '&nbsp;', ' '
-                  | replace: '&#160;', ' '
-                  | replace: '\u00A0', ' '
-                  | strip
+                  | normalise
                 -}}
               </a>
               {%- if version.publication_date -%}
@@ -61,14 +58,7 @@
                 href="/{{ entry.uid }}/{{ version.lang }}/{{ version.author_uid }}"
                 hreflang="{{ version.lang }}"
               >
-                {{-
-                  version.author
-                  | default: version.author_uid
-                  | replace: '&nbsp;', ' '
-                  | replace: '&#160;', ' '
-                  | replace: '\u00A0', ' '
-                  | strip
-                -}}
+                {{ version.author | default: version.author_uid | normalise }}
               </a>
               {%- if version.publication_date -%}
                 &nbsp;(<span>{{ version.publication_date }}</span>)
@@ -102,10 +92,7 @@
                 {{-
                   version.author
                   | default: version.author_uid
-                  | replace: '&nbsp;', ' '
-                  | replace: '&#160;', ' '
-                  | replace: '\u00A0', ' '
-                  | strip
+                  | normalise
                 -}}
               </a>
               {%- if version.publication_date -%}

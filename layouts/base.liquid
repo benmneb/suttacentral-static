@@ -20,9 +20,10 @@
       </script>
     {% endif %}
     <script defer src="https://scripts.simpleanalyticscdn.com/light.js"></script>
+    <script src="/scripts/search.js" defer></script>
     {% if scripts %}
       {% for script in scripts %}
-        <script src='/scripts/{{ script }}' defer></script>
+        <script src="/scripts/{{ script }}" defer></script>
       {% endfor %}
     {% endif %}
   </head>

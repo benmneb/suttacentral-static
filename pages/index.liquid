@@ -5,9 +5,7 @@ eleventyComputed:
   json_ld: '{{ indexData[0].scx_json_ld }}'
 ---
 <header>
-  <nav>
-    <span>📚</span>
-  </nav>
+  {% include 'headerNav.liquid', isHome: true %}
 </header>
 
 <main>
