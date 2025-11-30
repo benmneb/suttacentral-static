@@ -596,6 +596,35 @@ main {
         font-style: italic;
       }
     }
+    /*bilingual sutta title*/
+    .mirror {
+      display: table;
+      margin-right: auto;
+      margin-left: auto;
+    }
+    .mirror > * {
+      display: table-row;
+    }
+    .mirror-left {
+      display: table-cell;
+      width: 50%;
+      padding-right: 1rem;
+      text-align: right;
+      border-right: var(--sc-border);
+    }
+    .mirror-right {
+      display: table-cell;
+      padding-left: 1rem;
+      text-align: left;
+    }
+    .mirror-middle {
+      position: absolute;
+      margin-top: 0.2rem;
+      text-align: right;
+    }
+    .text-table td:first-child {
+      font-weight: inherit;
+   }
     .namo {
       font-style: italic;
       text-align: center;
@@ -626,9 +655,6 @@ main {
       letter-spacing: 0.02rem;
       /*font-variant-caps: all-small-caps; Doesn't fly with system fonts + diacritics */
       text-transform: uppercase;
-    }
-    .verse-line {
-      display: block;
     }
     .verse-line {
       display: block;
