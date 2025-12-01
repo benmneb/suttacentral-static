@@ -198,7 +198,7 @@ eleventyComputed:
       {% if html %}
         {% capture replacement %}
           <span id="{{ key }}" class="segment">
-            <span class="reference" id="{{ ref }}" data-pagefind-ignore="all">
+            <span class="reference" id="{{ ref }}">
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
             </span>
             {% if text %}
@@ -216,7 +216,7 @@ eleventyComputed:
         {%- if comment -%}
           {% capture comments %}
             {{ comments }}
-            <article id="comment-{{ key }}" popover data-pagefind-ignore="all">
+            <article id="comment-{{ key }}" popover>
               Variant: {{ comment | replace: 'https://suttacentral.net', '' }}
             </article>
           {% endcapture %}
@@ -224,7 +224,7 @@ eleventyComputed:
       {% endif %}
     {% endfor %}
     {{ comments }}
-    <article id="info" popover data-pagefind-ignore="all">
+    <article id="info" popover>
       {% include "publicationInfo.liquid", entry: entry %}
     </article>
   {% elsif entry.segmented %}
@@ -238,7 +238,7 @@ eleventyComputed:
       {% if html %}
         {% capture replacement %}
           <span id="{{ key }}" class="segment">
-            <span class="reference" id="{{ ref }}" data-pagefind-ignore="all">
+            <span class="reference" id="{{ ref }}">
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
             </span>
             {% if text %}
@@ -262,7 +262,7 @@ eleventyComputed:
         {%- if comment -%}
           {% capture comments %}
             {{ comments }}
-            <article id="comment-{{ key }}" popover data-pagefind-ignore="all">
+            <article id="comment-{{ key }}" popover>
               {{ comment | replace: 'https://suttacentral.net', '' }}
             </article>
           {% endcapture %}
@@ -271,7 +271,7 @@ eleventyComputed:
     {% endfor %}
     {{ comments }}
     {% if entry._publication_info != blank %}
-      <article id="info" popover data-pagefind-ignore="all">
+      <article id="info" popover>
         {% include "publicationInfo.liquid", entry: entry %}
       </article>
     {% endif %}
@@ -291,8 +291,7 @@ eleventyComputed:
       | replace: original_footer, ""
     %}
     {% assign modified_footer = original_footer
-      | replace: "<footer",
-        '<article id="info" popover data-pagefind-ignore="all"'
+      | replace: "<footer", '<article id="info" popover'
       | replace: "</footer>", "</article>"
     %}
     {{ html_without_footer }}
