@@ -11,7 +11,7 @@ permalink: '{{ entry.scx_path }}/index.html'
 eleventyComputed:
   title: '{{ entry.acronym }}: {{ entry.original_title }}—{{ entry.author }}'
   json_ld: '{{ entry.scx_json_ld }}'
-  scripts: 
+  scripts:
     - 'listen.js'
 ---
 <header>
@@ -69,7 +69,19 @@ eleventyComputed:
           {% unless entry.is_root or entry.segmented == blank %}
             <li role="menuitem">
               <label for="rooter">Show root text</label>
-              <input type="checkbox" id="rooter">
+              <input
+                type="checkbox"
+                id="rooter"
+                aria-controls="rooter-first rooter-side"
+              >
+            </li>
+            <li role="menuitem">
+              <label for="rooter-first">↳ Root first</label>
+              <input type="checkbox" id="rooter-first">
+            </li>
+            <li role="menuitem">
+              <label for="rooter-side">↳ Side by side</label>
+              <input type="checkbox" id="rooter-side">
             </li>
           {% endunless %}
           {% if entry.segmented

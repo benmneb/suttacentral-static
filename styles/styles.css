@@ -35,7 +35,7 @@
   --brown-dim: #b57642;
 
   /* Use these: */
-  --content-width: 600px;
+  --content-max-width: 600px;
   --rounding: 0.2rem;
 
   --background-color: var(--bg);
@@ -162,7 +162,7 @@ body {
   & > header {
     margin: 1rem auto;
     padding: 0 1rem;
-    max-width: var(--content-width);
+    max-width: var(--content-max-width);
     width: calc(100% - 2rem);
 
     > nav {
@@ -227,7 +227,7 @@ body {
     gap: 1rem;
     margin: 2rem 1rem;
     width: calc(100vw - 2rem);
-    max-width: calc(var(--content-width) * 1.2);
+    max-width: calc(var(--content-max-width) * 1.2);
 
     div {
       display: flex;
@@ -252,11 +252,10 @@ body {
   }
 
   &:has(aside #segmenter:checked)
-  article
-  .segment:not(header .segment)
-  .reference
-  > a,
-  /* This one below is for legacy texts. */
+    article
+    .segment:not(header .segment)
+    .reference
+    > a,
   &:has(aside #segmenter:checked) main article a.ref {
     display: initial;
   }
@@ -272,6 +271,72 @@ body {
     .root {
       grid-column: 1;
       display: initial;
+    }
+  }
+
+  &:has(aside #rooter:checked) {
+    li[role='menuitem']:has(#rooter-first) {
+      display: flex;
+    }
+
+    &:has(aside #rooter-side:checked) main {
+      max-width: calc(var(--content-max-width) * 2 + 1rem);
+    }
+
+    /* can't use `var(--content-max-width)` in media queries */
+    @media only screen and (min-width: 600px) {
+      li[role='menuitem']:has(#rooter-side) {
+        display: flex;
+      }
+
+      &:has(aside #rooter-side:checked) article .segment {
+        display: grid;
+        grid-template-columns: minmax(240px, var(--content-max-width)) minmax(
+            240px,
+            var(--content-max-width)
+          );
+        column-gap: 1rem;
+
+        .verse-line .translation,
+        .verse-line .root {
+          text-indent: 2em;
+        }
+
+        .translation {
+          grid-column: 1;
+        }
+
+        .root {
+          grid-column: 2;
+        }
+
+        br {
+          content: '';
+        }
+      }
+
+      &:has(aside #rooter-side:checked):has(aside #rooter-first:checked)
+        article
+        .segment {
+        .translation {
+          grid-column: 2;
+        }
+
+        .root {
+          grid-column: 1;
+        }
+      }
+    }
+
+    &:has(aside #rooter-first:checked) article .segment {
+      .root {
+        order: 1;
+        color: unset;
+      }
+      .translation {
+        order: 2;
+        color: var(--fg-alt-4);
+      }
     }
   }
 }
@@ -404,6 +469,11 @@ aside {
         input {
           cursor: pointer;
         }
+
+        &:has(#rooter-first),
+        &:has(#rooter-side) {
+          display: none;
+        }
       }
     }
 
@@ -420,7 +490,7 @@ main {
   margin: auto;
   flex: 1;
   padding: 0 1rem;
-  max-width: var(--content-width);
+  max-width: var(--content-max-width);
   width: calc(100% - 2rem);
 
   ul {
@@ -513,6 +583,8 @@ main {
 
   section,
   article {
+    overflow-wrap: anywhere;
+
     button[popovertarget] {
       display: none;
       user-select: none;
@@ -548,6 +620,7 @@ main {
       .root {
         display: none;
         color: var(--fg-alt-4);
+        word-break: break-all;
       }
 
       .reference {
@@ -859,7 +932,7 @@ body > footer {
   }
 
   ul {
-    max-width: var(--content-width);
+    max-width: var(--content-max-width);
     margin: 1rem auto;
     list-style: none;
     padding: 0;
