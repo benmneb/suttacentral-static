@@ -20,7 +20,7 @@
             {% for parallel in segment[1] %}
               <li
                 class="parallel-list-item-{{ parallel.to.type }}"
-                title="{% if parallel.to.type == 'full' %}Full parallel: different versions of the same text{% elsif parallel.to.type == 'mention' %}Mention: one text is quoted or mentioned in another{% endif %}"
+                title="{% if parallel.to.type == 'full' %}Full parallel: different versions of the same text{% elsif parallel.to.type == 'mention' %}Mention: one text is quoted or mentioned in another{% elsif parallel.to.type == 'retelling' %}Retelling: the events of one text are retold in another{% endif %}"
               >
                 {% if parallel.to.translations.size > 0 %}
                   <a
