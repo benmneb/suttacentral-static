@@ -817,7 +817,7 @@ main {
           padding: 0.2rem;
           text-decoration: none;
           color: var(--fg-alt-4);
-          font-size: 70%;
+          font-size: 0.7rem;
           font-weight: initial;
 
           &:hover {
@@ -839,6 +839,11 @@ main {
     a.ref:target {
       background-color: var(--primary-color);
       color: var(--background-color);
+    }
+
+    blockquote:has(.verse-line) {
+      margin-left: unset;
+      margin-right: unset;
     }
 
     /* These named classes all come through from Sutta Central.
@@ -932,10 +937,13 @@ main {
     }
     .verse-line {
       display: block;
-    }
-    .verse-line .translation {
-      hyphens: none;
-      margin-left: 2em;
+      .translation {
+        hyphens: none;
+        margin-left: 2em;
+      }
+      .root {
+        margin-left: 2em;
+      }
     }
     j {
       display: block;
@@ -1104,8 +1112,9 @@ main {
       padding: 0.2rem;
       text-decoration: none;
       color: var(--fg-alt-4);
-      font-size: 70%;
+      font-size: 0.7rem;
       margin-right: 0.3rem;
+      font-weight: initial;
 
       &:hover {
         background-color: var(--bg-soft);
