@@ -1,4 +1,18 @@
+/**
+ * Pagefind Search Integration
+ *
+ * Client-side full-text search using Pagefind static search index.
+ * Handles search queries, result rendering, pagination, and browser
+ * history management. Searches across all texts and displays results
+ * with excerpts and metadata. Syncs URL structure with SuttaCentral.net.
+ *
+ * @module PagefindSearch
+ * @requires /pagefind/pagefind.js - Static search index generated at build time
+ * @requires Intl.DisplayNames - For language name localization
+ */
 ;(async function () {
+  'use strict'
+
   // First, turn off default no-JS-so-use-external-search behaviour
   document
     .querySelector('button[popovertarget="search-modal"]')

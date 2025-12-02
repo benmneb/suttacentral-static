@@ -1,3 +1,31 @@
+/**
+ * Asset Minification Utilities
+ *
+ * Standalone build tool for minifying CSS and JavaScript files without
+ * requiring a full Eleventy build. Useful during development to quickly
+ * process and optimize static assets.
+ *
+ * CSS minification uses LightningCSS with browserslist targeting (last 2 years).
+ * JS minification uses Terser with dead code elimination and mangling.
+ *
+ * @module AssetMinifier
+ * @requires lightningcss - CSS parser and minifier
+ * @requires terser - JavaScript minifier
+ * @requires browserslist - Browser compatibility targeting
+ *
+ * @example
+ * // Via pnpm scripts
+ * pnpm run minify:css      // Minify CSS only
+ * pnpm run minify:js       // Minify JS only
+ * pnpm run minify:assets   // Minify both CSS and JS
+ *
+ * @example
+ * // Use programmatically
+ * import { minifyCss, minifyJs } from './minify.js'
+ * await minifyCss({ srcDir: './src/styles', destDir: './dist/styles' })
+ * await minifyJs({ srcDir: './src/scripts', destDir: './dist/scripts' })
+ */
+
 import browserslist from 'browserslist'
 import fs from 'fs'
 import { browserslistToTargets, transform } from 'lightningcss'

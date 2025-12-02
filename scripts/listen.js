@@ -1,3 +1,24 @@
+/**
+ * Text-to-Speech Player
+ *
+ * Provides speech synthesis controls for reading article content aloud.
+ * Features include play/pause/stop controls, navigation between segments,
+ * voice selection, pitch/rate adjustment, auto-scrolling, and click-to-jump.
+ *
+ * Handles both segmented text (via span.text elements) and non-segmented
+ * content by manually extracting visible text-containing elements.
+ *
+ * @module TextToSpeech
+ * @requires SpeechSynthesis API
+ *
+ * @example
+ * // Access debug state
+ * window._scx_listen.getState()
+ *
+ * @example
+ * // Cancel all playback
+ * window._scx_listen.cancel()
+ */
 ;(function () {
   'use strict'
 
