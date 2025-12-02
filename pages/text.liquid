@@ -63,7 +63,24 @@ eleventyComputed:
           %}
             <li role="menuitem">
               <label for="commenter">Show comments</label>
-              <input type="checkbox" id="commenter" checked>
+              <input
+                type="checkbox"
+                id="commenter"
+                checked
+                aria-controls="commenter-inline"
+              >
+            </li>
+            <li role="menuitem">
+              <label for="commenter-inline">↳ Inline</label>
+              <input
+                type="checkbox"
+                id="commenter-inline"
+                aria-controls="commenter-side"
+              >
+            </li>
+            <li role="menuitem">
+              <label for="commenter-side">↳ Side by side</label>
+              <input type="checkbox" id="commenter-side">
             </li>
           {% endif %}
           {% unless entry.is_root or entry.segmented == blank %}
@@ -207,6 +224,9 @@ eleventyComputed:
               <span class="text">{{ text }}</span>
               {% unless comment == blank %}
                 <button popovertarget="comment-{{ key }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
+                <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">
+                  {{ comment | replace: 'https://suttacentral.net', '' }}
+                </span>
               {% endunless %}
             </span>
             {% endif %}
@@ -246,6 +266,9 @@ eleventyComputed:
               <span class="text">{{ text }}</span>
               {% unless comment == blank %}
                 <button popovertarget="comment-{{ key }}" aria-label="Show {{ entry.author }}'s footnote for segment {{ key }}">*</button>
+                <span class="inline-comment" aria-label="{{ entry.author }}'s footnote for segment {{ key }}">
+                  {{ comment | replace: 'https://suttacentral.net', '' }}
+                </span>
               {% endunless %}
             </span>
             {% endif %}
