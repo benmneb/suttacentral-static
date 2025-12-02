@@ -1243,7 +1243,7 @@ form#search-form {
   display: flex;
   border: 1px solid;
   padding: 0.4rem;
-  border-radius: 0.2rem;
+  border-radius: var(--rounding);
   border-color: var(--bg-alt-4);
 
   &:focus-within {
@@ -1319,7 +1319,7 @@ ul#search-results {
 
 button#show-more {
   background-color: var(--background-color);
-  border-radius: 0.2rem;
+  border-radius: var(--rounding);
   border: 1px solid var(--primary-color);
   padding: 0.3rem 0.6rem;
   color: var(--primary-color);
