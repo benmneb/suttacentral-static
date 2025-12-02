@@ -834,6 +834,12 @@ main {
       padding-left: 0;
     }
 
+    .reference:target a,
+    a.ref:target {
+      background-color: var(--primary-color);
+      color: var(--background-color);
+    }
+
     /* These named classes all come through from Sutta Central.
        See: https://github.com/suttacentral/suttacentral/blob/d583b3364e9d94177343ad96cbab036f07bbba2d/client/elements/styles/sc-typography-common-styles.js#L647
     */
