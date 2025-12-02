@@ -1,6 +1,18 @@
 import masterData from './_masterData.js'
 import siteMetaData from './_siteMetaData.js'
 
+function generatePitakaOGTags(entry) {
+  const metadata = siteMetaData()
+  return JSON.stringify({
+    'og:title': `${entry.original_title || entry.root_name}—${entry.translated_title || entry.translated_name}`,
+    'og:description':
+      entry.blurb || 'Collection of Buddhist texts from the Pali Canon',
+    'og:url': `${metadata.origin}/pitaka/${entry.scx_path}`,
+    'og:type': 'website',
+    'og:site_name': metadata.title,
+  })
+}
+
 function generatePitakaJsonLd(entry) {
   return JSON.stringify(
     {
@@ -138,6 +150,7 @@ function flatten(nodes, parentPath = '') {
     const nodeWithJsonLd = {
       ...flatNode,
       scx_json_ld: generatePitakaJsonLd(flatNode),
+      scx_og_tags: generatePitakaOGTags(flatNode),
     }
 
     return node.children?.length

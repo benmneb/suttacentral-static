@@ -3,6 +3,7 @@ layout: base.liquid
 
 eleventyComputed:
   json_ld: '{{ indexData[0].scx_json_ld }}'
+  og_tags: '{{ indexData[0].scx_og_tags }}'
 ---
 <header>
   {% include "headerNav.liquid", isHome: true %}

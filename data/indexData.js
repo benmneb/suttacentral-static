@@ -1,6 +1,18 @@
 import masterData from './_masterData.js'
 import siteMetaData from './_siteMetaData.js'
 
+function generateIndexOGTags() {
+  const metadata = siteMetaData()
+  return JSON.stringify({
+    'og:title': 'Tipiṭaka—the Three Baskets of the Buddhist canon',
+    'og:description':
+      'A fast and minimal alternative frontend for SuttaCentral.net. Early Buddhist texts, translations, and parallels. The largest collection of Buddhist suttas available in translation.',
+    'og:url': `${metadata.origin}/`,
+    'og:type': 'website',
+    'og:site_name': metadata.title,
+  })
+}
+
 /*
  * Don't need this deep nesting, and logging them breaks dev server.
  */
@@ -119,5 +131,6 @@ export default async function () {
   return data.map(item => ({
     ...item,
     scx_json_ld: generateIndexJsonLd(data),
+    scx_og_tags: generateIndexOGTags(),
   }))
 }

@@ -3,6 +3,26 @@ import siteMetaData from './_siteMetaData.js'
 
 let usedPaths = []
 
+function generateTextOGTags(entry) {
+  const metadata = siteMetaData()
+  return JSON.stringify({
+    'og:title': `${entry.acronym}: ${entry.original_title}—${entry.author}`,
+    'og:description':
+      entry.blurb || 'Buddhist text from the Pali Canon with translation',
+    'og:url': `${metadata.origin}/${entry.scx_path}`,
+    'og:type': 'article',
+    'og:locale': entry.lang || 'en',
+    'og:site_name': metadata.title,
+    'article:author': entry.author?.trim(),
+    ...(entry.publication_date && {
+      'article:published_time': entry.publication_date,
+    }),
+    'article:section': 'Buddhist Texts',
+    'article:tag':
+      'Buddhism, Buddhist Texts, Pali Canon, Tipitaka, Early Buddhism, Theravada, Suttas',
+  })
+}
+
 function generateTextJsonLd(entry) {
   return JSON.stringify(
     {
@@ -175,6 +195,7 @@ function flatten(nodes, parent, parentPath) {
       return {
         ...entry,
         scx_json_ld: generateTextJsonLd(entry),
+        scx_og_tags: generateTextOGTags(entry),
       }
     }
 
@@ -190,7 +211,7 @@ function flatten(nodes, parent, parentPath) {
  * Returns just the "texts".
  *
  * Flattens the .translation info from `masterData`, with the root /suttaplex sutta data and
- * adds a `scx_path` key with the appropriate URL slug.
+ * adds a `scx_path` key with the appropriate URL slug to sync URL structure with SuttaCentral.net.
  *
  * Note: `id` is the unique identifier here because `uid` comes from the parent
  * and is no longer unique because this meta-data bas been merged with the .translations data.

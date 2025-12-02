@@ -1,6 +1,19 @@
 import masterData from './_masterData.js'
 import siteMetaData from './_siteMetaData.js'
 
+function generateTextMetaOGTags(entry) {
+  const metadata = siteMetaData()
+  return JSON.stringify({
+    'og:title': `${entry.original_title || entry.root_name}—${entry.translated_title || entry.translated_name}`,
+    'og:description':
+      entry.blurb ||
+      'Information about available translations and editions of this Buddhist text',
+    'og:url': `${metadata.origin}/${entry.scx_path}`,
+    'og:type': 'website',
+    'og:site_name': metadata.title,
+  })
+}
+
 function generateTextMetaJsonLd(entry) {
   return JSON.stringify(
     {
@@ -162,6 +175,7 @@ function flatten(nodes, parentPath = '') {
       return {
         ...entry,
         scx_json_ld: generateTextMetaJsonLd(entry),
+        scx_og_tags: generateTextMetaOGTags(entry),
       }
     }
 

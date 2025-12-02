@@ -40,6 +40,15 @@ export default function (eleventyConfig) {
     return value?.replace(/\s+/g, ' ').trim() ?? ''
   })
 
+  eleventyConfig.addFilter('parseJSON', function (value) {
+    try {
+      return JSON.parse(value)
+    } catch (e) {
+      console.error('parseJSON error:', e)
+      return {}
+    }
+  })
+
   eleventyConfig.addTransform('htmlmin', function (content) {
     if (!(this.page.outputPath || '').endsWith('.html')) return content
 

@@ -1,6 +1,18 @@
 import masterData from './_masterData.js'
 import siteMetaData from './_siteMetaData.js'
 
+function generateChapterOGTags(entry) {
+  const metadata = siteMetaData()
+  return JSON.stringify({
+    'og:title': `${entry.original_title || entry.root_name}${entry.translated_title || entry.translated_name ? `—${entry.translated_title || entry.translated_name}` : ''}`,
+    'og:description':
+      entry.blurb || 'Collection of Buddhist texts and translations',
+    'og:url': `${metadata.origin}/${entry.scx_path}`,
+    'og:type': 'website',
+    'og:site_name': metadata.title,
+  })
+}
+
 function generateChapterJsonLd(entry) {
   return JSON.stringify(
     {
@@ -168,6 +180,7 @@ function flatten(nodes, parentPath = '') {
       return {
         ...entry,
         scx_json_ld: generateChapterJsonLd(entry),
+        scx_og_tags: generateChapterOGTags(entry),
       }
     }
 
