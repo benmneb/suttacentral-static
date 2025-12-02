@@ -13,8 +13,8 @@ eleventyComputed:
   json_ld: '{{ entry.scx_json_ld }}'
   og_tags: '{{ entry.scx_og_tags }}'
   scripts:
-    - 'listen.js'
     - 'userPrefs.js'
+    - 'listen.js'
 ---
 <header>
   {% assign parts = entry.scx_breadcrumb | split: "/" %}
