@@ -7,7 +7,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "NODE_ENV=prod NODE_OPTIONS=\"--max-old-space-size=8192\" pnpm exec eleventy",
+    "build": "NODE_ENV=prod NODE_OPTIONS=\"--max-old-space-size=16384\" pnpm exec eleventy",
     "build:debug": "NODE_OPTIONS=\"--max-old-space-size=16384\" pnpm exec eleventy",
     "build:nav": "NODE_ENV=prod NODE_OPTIONS=\"--max-old-space-size=8192\" ONLY_NAV=1 pnpm exec eleventy",
     "build:nav:debug": "NODE_OPTIONS=\"--max-old-space-size=16384\" ONLY_NAV=1 pnpm exec eleventy",
