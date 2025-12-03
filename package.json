@@ -25,6 +25,8 @@
     "predeploy": "rm -rf _site && pnpm run build && pnpm run build:search",
     "deploy:dev": "vercel deploy --archive=tgz --cwd=_site",
     "deploy:prod": "vercel deploy --archive=tgz --cwd=_site --prod",
+    "archive:dry": "node -r dotenv/config tools/archive.js dry",
+    "archive:upload": "node -r dotenv/config tools/archive.js",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -38,6 +40,7 @@
   "devDependencies": {
     "@shopify/prettier-plugin-liquid": "^1.10.0",
     "browserslist": "^4.28.0",
+    "dotenv": "^17.2.3",
     "html-minifier-terser": "^7.2.0",
     "husky": "^9.1.7",
     "lightningcss": "^1.30.2",
