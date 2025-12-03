@@ -62,6 +62,8 @@
   const stopBtn = document.getElementById('stop')
   const autoScrollToggle = document.getElementById('auto-scroll')
 
+  const rootFirst = document.getElementById('rooter-first')
+
   // basic sanity
   if (!rootMenuEl) {
     console.warn('listen.js: required controls missing; aborting init.')
@@ -83,6 +85,46 @@
     visibleTextContent = visibleTextSpans?.map(s =>
       s.textContent.replace(/\n/g, '')
     )
+
+    // If rooter-first is checked, reorder spans within each segment to match CSS grid display order
+    if (rootFirst && rootFirst.checked && visibleTextSpans.length > 0) {
+      const segments = new Map()
+
+      // Group spans by their parent segment
+      visibleTextSpans.forEach((span, index) => {
+        const segment = span.closest('.segment')
+        if (segment) {
+          if (!segments.has(segment)) {
+            segments.set(segment, [])
+          }
+          segments.get(segment).push({ span, index })
+        }
+      })
+
+      // For each segment, if it has both translation and root text, swap their order
+      segments.forEach((items, segment) => {
+        if (items.length >= 2) {
+          const translationItem = items.find(item =>
+            item.span.closest('.translation')
+          )
+          const rootItem = items.find(item => item.span.closest('.root'))
+
+          // If both exist, swap them in the arrays
+          if (translationItem && rootItem) {
+            const tempSpan = visibleTextSpans[translationItem.index]
+            const tempContent = visibleTextContent[translationItem.index]
+
+            visibleTextSpans[translationItem.index] =
+              visibleTextSpans[rootItem.index]
+            visibleTextContent[translationItem.index] =
+              visibleTextContent[rootItem.index]
+
+            visibleTextSpans[rootItem.index] = tempSpan
+            visibleTextContent[rootItem.index] = tempContent
+          }
+        }
+      })
+    }
 
     // fallback for messy DOM in non segmented texts
     if (!visibleTextSpans.length || !visibleTextContent.length) {
