@@ -1,33 +1,45 @@
 <footer>
   <p>{{ _siteMetaData.description }}</p>
-  <ul>
-    <li>
-      View this page on
-      <a id="sc-redirect" href="https://suttacentral.net/{{ route }}"
-        >SuttaCentral.net</a
-      >
-    </li>
-    <li>
-      Donated to the public domain via
-      <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a>
-    </li>
-    <li>
-      View source on
-      <a href="https://git.sr.ht/~benmneb/suttacentral-static">SH</a>
-      <a href="https://codeberg.org/benmneb/suttacentral-static">CB</a>
-      <a href="https://github.com/benmneb/suttacentral-static">GH</a>
-    </li>
-    <li>
-      Suggestions? Bugs?
-      <a href="mailto:{{ _siteMetaData.contact }}?subject=%5BSCX%5D%20Re%3A%20{{ route | url_encode }}"
-        >Email me</a
-      >
-    </li>
-  </ul>
+  <p>
+    View this page on
+    <a id="sc-redirect" href="https://suttacentral.net/{{ route }}"
+      >SuttaCentral.net</a
+    >
+  </p>
   {% if fetchedAt %}
     <p>
       This page was last updated from SuttaCentral.net on<br>
       {{ fetchedAt | split: ", " | last }}
     </p>
   {% endif %}
+  {% unless _siteMetaData.source == blank
+    and _siteMetaData.analytics == blank
+    and _siteMetaData.archive == blank
+    and _siteMetaData.contact == blank
+  %}
+    <ul>
+      {% if _siteMetaData.source %}
+        <li>
+          <a href="{{ _siteMetaData.source }}">Open source</a>
+        </li>
+      {% endif %}
+      {% if _siteMetaData.analytics %}
+        <li>
+          <a href="{{ _siteMetaData.analytics }}">Open analytics</a>
+        </li>
+      {% endif %}
+      {% if _siteMetaData.archive %}
+        <li>
+          <a href="{{ _siteMetaData.archive }}">Offline archive</a>
+        </li>
+      {% endif %}
+      {% if _siteMetaData.contact %}
+        <li>
+          <a href="mailto:{{ _siteMetaData.contact }}?subject=%5BSCX%5D%20Re%3A%20{{ route | url_encode }}"
+            >Send feedback</a
+          >
+        </li>
+      {% endif %}
+    </ul>
+  {% endunless %}
 </footer>

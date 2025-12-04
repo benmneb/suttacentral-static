@@ -1144,12 +1144,27 @@ body > footer {
     font-weight: 800;
   }
 
+  p:nth-of-type(2) {
+    font-weight: 600;
+  }
+
   ul {
     max-width: var(--content-max-width);
     margin: 1rem auto;
     list-style: none;
     padding: 0;
-    font-weight: 600;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    li:not(li:last-of-type) {
+      margin-right: 0.5rem;
+
+      &::after {
+        content: '·';
+        margin-left: 0.5rem;
+      }
+    }
   }
 }
 
@@ -1304,7 +1319,7 @@ ul#search-results {
         display: inline;
 
         &:not(dd:last-of-type)::after {
-          content: '|';
+          content: '•';
           margin-left: 0.5rem;
         }
       }
