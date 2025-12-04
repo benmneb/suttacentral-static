@@ -1165,7 +1165,7 @@ body > footer {
       margin-right: 0.5rem;
 
       &::after {
-        content: '·';
+        content: '∙';
         margin-left: 0.5rem;
       }
     }
