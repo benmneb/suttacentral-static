@@ -772,6 +772,8 @@ main {
   hr {
     width: 30%;
     border-radius: var(--rounding);
+    border: none;
+    border-top: 1px solid var(--gray);
   }
 
   section,
