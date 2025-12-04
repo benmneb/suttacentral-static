@@ -1,11 +1,13 @@
 import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
 import ora from 'ora'
+import shortcutsData from './_shortcuts.json' with { type: 'json' }
 
 const CACHE_DURATION = '*' // https://www.11ty.dev/docs/plugins/fetch/#change-the-cache-duration
 const DEV_MODE = process.env.NODE_ENV !== 'prod'
 const MAX_CONCURRENT_REQUESTS = 50
 
 let cachedMasterData = null
+let shortcutsList = []
 let isBuilding = false
 
 const spinner = ora('Fetching...')
@@ -92,6 +94,21 @@ async function limitConcurrency(promises, limit) {
     results.push(...batchResults)
   }
   return results
+}
+
+async function fetchShortcutsList() {
+  try {
+    if (!shortcutsData[0]?.shortcuts) {
+      throw new Error('Invalid shortcuts data structure')
+    }
+    shortcutsList = shortcutsData[0].shortcuts
+    spinner.info('Loaded shortcuts from local file').start()
+  } catch (e) {
+    spinner
+      .fail('Could not load shortcuts.json, this will break "shortcut" links')
+      .start()
+    console.error(e)
+  }
 }
 
 async function fetchDataTree(uid, depth = 0) {
@@ -229,6 +246,11 @@ async function fetchDataTree(uid, depth = 0) {
     return await getTextData()
   }
 
+  // Assign marker for "Shortcut to all suttas" links. Only needed for `branch` nodes.
+  if (shortcutsList.includes(node.uid)) {
+    node = { ...node, scx_shortcut: true }
+  }
+
   // Recursion for children nodes.
   // These nodes are all type "root" or "branch".
   // The Pātimokkha's get /suttaplex data while still a branch node.
@@ -282,6 +304,7 @@ export default async function () {
 
   try {
     spinner.start()
+    await fetchShortcutsList()
     const roots = ['sutta', 'vinaya', 'abhidhamma']
     const tree = await Promise.all(roots.map(uid => fetchDataTree(uid)))
     cachedMasterData = tree

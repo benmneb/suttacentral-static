@@ -162,6 +162,22 @@ function flatten(nodes, parentPath = '') {
   return nodes.flatMap(node => {
     const currentPath = parentPath ? `${parentPath}/${node.uid}` : `${node.uid}`
 
+    const results = []
+
+    // Handle shortcut nodes - add them to results but continue recursion
+    if (node.scx_shortcut) {
+      const shortcutEntry = removeTranslationTexts({
+        ...node,
+        scx_path: node.uid,
+        scx_breadcrumb: currentPath,
+      })
+      results.push({
+        ...shortcutEntry,
+        scx_json_ld: generateChapterJsonLd(shortcutEntry),
+        scx_og_tags: generateChapterOGTags(shortcutEntry),
+      })
+    }
+
     // Stop recursion before it reaches leaf nodes (the actual texts)
     // to sync URL structure with SuttaCentral.net, while still accounting for:
     // 1) uneven tree structure, ie https://suttacentral.net/api/menu/dharmapadas?language=en,
@@ -177,14 +193,15 @@ function flatten(nodes, parentPath = '') {
         scx_path: `${node.uid}`,
         scx_breadcrumb: currentPath,
       })
-      return {
+      results.push({
         ...entry,
         scx_json_ld: generateChapterJsonLd(entry),
         scx_og_tags: generateChapterOGTags(entry),
-      }
+      })
+      return results
     }
 
-    return flatten(node.children || [], currentPath)
+    return [...results, ...flatten(node.children || [], currentPath)]
   })
 }
 
@@ -194,12 +211,16 @@ function flatten(nodes, parentPath = '') {
  * Flattens `masterData` and adds a `scx_path` key with the appropriate URL slug
  * to sync URL structure with SuttaCentral.net.
  *
+ * Accounts for "shortcut to all sutta" links (scx_shortcut) that return
+ * all the suttas in a given chapter or book, as per the SC /shortcuts API.
+ *
  * The root path here (ie `/dn-silakkhandhavagga`) is the next nested path
  * after the end of pitakaData, ie `sutta/long/dn/`,
  * or the first parent of the leaf nodes, however you want to look at it.
  *
  * @returns
  * [
+ *  { uid: 'dn', scx_path: '/dn', ... },
  *  { uid: 'dn-silakkhandhavagga', scx_path: '/dn-silakkhandhavagga', ... },
  *  { uid: 'dn-mahavagga', scx_path: '/dn-mahavagga', ... },
  *  { uid: 'dn-pathikavagga', scx_path: '/dn-pathikavagga', ... },

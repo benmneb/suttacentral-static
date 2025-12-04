@@ -65,124 +65,11 @@ eleventyComputed:
               <p>{{ child.acronym }}</p>
             {% endif %}
           </hgroup>
-          <p>{{ child.blurb }}</p>
+          {%- if child.blurb %}
+            <p>{{ child.blurb }}</p>
+          {% endif %}
           {% if child.translations.length %}
-            {% assign english_versions = child.translations
-              | where: "lang", "en"
-            %}
-            {% if english_versions.size > 0 %}
-              <details open>
-                <summary>
-                  <span
-                    >English translation
-                    {%- if english_versions.size > 1 %}s{% endif -%}
-                  </span>
-                  <span class="sr-only"
-                    >({{ english_versions.size }} available)</span
-                  >
-                </summary>
-                <ul>
-                  {% for version in english_versions %}
-                    <li>
-                      <a
-                        href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}"
-                        hreflang="{{ version.lang }}"
-                      >
-                        {{-
-                          version.author
-                          | default: version.author_uid
-                          | replace: "&nbsp;", " "
-                          | replace: "&#160;", " "
-                          | replace: "\u00A0", " "
-                          | strip
-                        -}}
-                      </a>
-                      {%- if version.publication_date -%}
-                        &nbsp;(<span>{{ version.publication_date }}</span>)
-                      {%- endif %}
-                    </li>
-                  {% endfor %}
-                </ul>
-              </details>
-            {% endif %}
-
-            {% assign root_versions = child.translations
-              | where: "is_root", true
-              | reject: "lang", "en"
-            %}
-            {% if root_versions.size > 0 %}
-              <details open>
-                <summary>
-                  Edition{% if root_versions.size > 1 %}s{% endif %} of the root
-                  text
-                </summary>
-                <ul>
-                  {% for version in root_versions %}
-                    <li>
-                      <span>{{ version.lang_name }}—</span
-                      ><a
-                        href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}"
-                        hreflang="{{ version.lang }}"
-                      >
-                        {% if version.author_uid == "sct" %}
-                          SuttaCentral Taishō
-                        {% else %}
-                          {{-
-                            version.author
-                            | default: version.author_uid
-                            | replace: "&nbsp;", " "
-                            | replace: "&#160;", " "
-                            | replace: "\u00A0", " "
-                            | strip
-                          -}}
-                        {% endif %}
-                      </a>
-                      {%- if version.publication_date -%}
-                        &nbsp;(<span>{{ version.publication_date }}</span>)
-                      {%- endif %}
-                    </li>
-                  {% endfor %}
-                </ul>
-              </details>
-            {% endif %}
-
-            {% assign remaining_versions = child.translations %}
-            {% assign remaining_versions = remaining_versions
-              | reject: "lang", "en"
-              | reject: "is_root", true
-            %}
-            {% if remaining_versions.size > 0 %}
-              <details>
-                <summary>
-                  Translations in other modern languages (
-                  {{- remaining_versions.size -}}
-                  )
-                </summary>
-                <ul>
-                  {% for version in remaining_versions %}
-                    <li>
-                      <span>{{ version.lang_name }}—</span
-                      ><a
-                        href="/{{ child.uid }}/{{ version.lang }}/{{ version.author_uid }}"
-                        hreflang="{{ version.lang }}"
-                      >
-                        {{-
-                          version.author
-                          | default: version.author_uid
-                          | replace: "&nbsp;", " "
-                          | replace: "&#160;", " "
-                          | replace: "\u00A0", " "
-                          | strip
-                        -}}
-                      </a>
-                      {%- if version.publication_date -%}
-                        &nbsp;(<span>{{ version.publication_date }}</span>)
-                      {%- endif %}
-                    </li>
-                  {% endfor %}
-                </ul>
-              </details>
-            {% endif %}
+            {% include "translationsDetails.liquid", entry: child %}
           {% endif %}
           {% if child._parallels_data and child._parallels_data.size > 0 %}
             {% include "parallelsDetails.liquid", entry: child %}
@@ -215,6 +102,78 @@ eleventyComputed:
                     <p>{{ grandchild.blurb }}</p>
                   {% endif %}
                   {% include "parallelsDetails.liquid", entry: grandchild %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+          {% if entry.scx_shortcut %}
+            <ul>
+              {% for grandchild in child.children %}
+                <li>
+                  <hgroup>
+                    <h3>
+                      {{
+                        grandchild.original_title
+                        | default: grandchild.root_name
+                      -}}
+                      {%- if grandchild.translated_title
+                        or grandchild.translated_name
+                      -%}
+                        —
+                        {{-
+                          grandchild.translated_title
+                          | default: grandchild.translated_name
+                        -}}
+                      {%- endif %}
+                    </h3>
+                    {%- if grandchild.acronym %}
+                      <p>{{ grandchild.acronym }}</p>
+                    {% endif %}
+                  </hgroup>
+                  {% if grandchild.blurb %}
+                    <p>{{ grandchild.blurb }}</p>
+                  {% endif %}
+                  {% include "translationsDetails.liquid", entry: grandchild %}
+                  {% if grandchild.parallel_count %}
+                    {% include "parallelsDetails.liquid", entry: grandchild %}
+                  {% endif %}
+                  <ul>
+                    {% for greatgrandchild in grandchild.children %}
+                      <li>
+                        <hgroup>
+                          <h4>
+                            {{
+                              greatgrandchild.original_title
+                              | default: greatgrandchild.root_name
+                            -}}
+                            {%- if greatgrandchild.translated_title
+                              or greatgrandchild.translated_name
+                            -%}
+                              —
+                              {{-
+                                greatgrandchild.translated_title
+                                | default: greatgrandchild.translated_name
+                              -}}
+                            {%- endif %}
+                          </h4>
+                          {%- if greatgrandchild.acronym %}
+                            <p>{{ greatgrandchild.acronym }}</p>
+                          {% endif %}
+                        </hgroup>
+                        {% if greatgrandchild.blurb %}
+                          <p>{{ greatgrandchild.blurb }}</p>
+                        {% endif %}
+                        {% include "translationsDetails.liquid",
+                          entry: greatgrandchild
+                        %}
+                        {% if greatgrandchild.parallel_count %}
+                          {% include "parallelsDetails.liquid",
+                            entry: greatgrandchild
+                          %}
+                        {% endif %}
+                      </li>
+                    {% endfor %}
+                  </ul>
                 </li>
               {% endfor %}
             </ul>
