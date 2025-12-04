@@ -778,7 +778,11 @@ main {
 
   section,
   article {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+
+    [lang='pli'] {
+      overflow-wrap: anywhere;
+    }
 
     button[popovertarget] {
       display: none;
