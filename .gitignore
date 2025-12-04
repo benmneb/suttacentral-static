@@ -14,3 +14,7 @@ node_modules
 
 # Deployment
 .vercel
+.dist
+
+# Environment
+.env
