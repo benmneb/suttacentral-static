@@ -227,7 +227,7 @@ eleventyComputed:
               {% unless comment == blank %}
                 <button popovertarget="comment-{{ key }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
                 <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">
-                  {{ comment | replace: 'https://suttacentral.net', '' }}
+                  Variant: {{ comment | replace: 'https://suttacentral.net', '' }}
                 </span>
               {% endunless %}
             </span>
