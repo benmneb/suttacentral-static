@@ -35,11 +35,7 @@ eleventyComputed:
 
 <main>
   <!-- This has it's own file because it's reused in text.liquid -->
-  {% include "textMetaContent.liquid",
-    entry: entry,
-    title: title,
-    translations: entry.translations
-  %}
+  {% include "textMetaContent.liquid", entry: entry, title: title %}
 </main>
 
 <nav aria-label="Article pagination">

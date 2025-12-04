@@ -1,4 +1,9 @@
-{% assign english_versions = entry.translations | where: "lang", "en" %}
+{% if translations %}
+  {% assign translationsList = translations %}
+{% else %}
+  {% assign translationsList = entry.translations %}
+{% endif %}
+{% assign english_versions = translationsList | where: "lang", "en" %}
 {% if english_versions.size > 0 %}
   <details open>
     <summary>
@@ -34,7 +39,7 @@
   </details>
 {% endif %}
 
-{% assign root_versions = entry.translations
+{% assign root_versions = translationsList
   | where: "is_root", true
   | reject: "lang", "en"
 %}
@@ -74,7 +79,7 @@
   </details>
 {% endif %}
 
-{% assign remaining_versions = entry.translations %}
+{% assign remaining_versions = translationsList %}
 {% assign remaining_versions = remaining_versions
   | reject: "lang", "en"
   | reject: "is_root", true

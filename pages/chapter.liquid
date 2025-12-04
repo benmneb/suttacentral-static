@@ -39,11 +39,7 @@ eleventyComputed:
 
   {% assign isPatimokkha = entry.uid | endswith: "-pm" %}
   {% if isPatimokkha %}
-    {% include "textMetaContent.liquid",
-      entry: entry,
-      translations: entry.translations,
-      isPatimokkha: true
-    %}
+    {% include "textMetaContent.liquid", entry: entry, isPatimokkha: true %}
   {% endif %}
 
   {% if isPatimokkha %}
