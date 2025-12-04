@@ -37,7 +37,7 @@ export default function () {
     host: 'suttacentral.express',
     source: 'https://git.sr.ht/~benmneb/suttacentral-static',
     analytics: 'https://dashboard.simpleanalytics.com/suttacentral.express',
-    archive: 'https://git.sr.ht/~benmneb/suttacentral-static/refs',
+    archive: 'https://codeberg.org/benmneb/suttacentral-static/releases',
     contact: 'scx.judge565@simplelogin.com',
     environment: process.env.NODE_ENV || 'dev',
   }
