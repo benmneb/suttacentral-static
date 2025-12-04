@@ -26,7 +26,15 @@
                 href="/{{ entry.uid }}/{{ version.lang }}/{{ version.author_uid }}"
                 hreflang="{{ version.lang }}"
               >
-                {{- version.author | default: version.author_uid | normalise -}}
+                {{-
+                  version.author
+                  | default: version.author_uid
+                  | replace: "&nbsp;", " "
+                  | replace: "&#160;", " "
+                  | replace: "\u00A0", " "
+                  | strip
+                  | normalise
+                -}}
               </a>
               {%- if version.publication_date -%}
                 &nbsp;(<span>{{ version.publication_date }}</span>)
@@ -54,7 +62,15 @@
                 href="/{{ entry.uid }}/{{ version.lang }}/{{ version.author_uid }}"
                 hreflang="{{ version.lang }}"
               >
-                {{ version.author | default: version.author_uid | normalise }}
+                {{-
+                  version.author
+                  | default: version.author_uid
+                  | replace: "&nbsp;", " "
+                  | replace: "&#160;", " "
+                  | replace: "\u00A0", " "
+                  | strip
+                  | normalise
+                -}}
               </a>
               {%- if version.publication_date -%}
                 &nbsp;(<span>{{ version.publication_date }}</span>)
@@ -85,7 +101,15 @@
                 href="/{{ entry.uid }}/{{ version.lang }}/{{ version.author_uid }}"
                 hreflang="{{ version.lang }}"
               >
-                {{- version.author | default: version.author_uid | normalise -}}
+                {{-
+                  version.author
+                  | default: version.author_uid
+                  | replace: "&nbsp;", " "
+                  | replace: "&#160;", " "
+                  | replace: "\u00A0", " "
+                  | strip
+                  | normalise
+                -}}
               </a>
               {%- if version.publication_date -%}
                 &nbsp;(<span>{{ version.publication_date }}</span>)
