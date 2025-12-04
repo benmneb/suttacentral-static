@@ -1187,7 +1187,6 @@ a {
   }
 
   &::selection {
-    color: var(--text-color);
     background-color: var(--blue-dim);
   }
 }
