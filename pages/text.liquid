@@ -64,7 +64,11 @@ eleventyComputed:
             or entry._bilarasuttas_data.variant_text.size > 0
           %}
             <li role="menuitem">
-              <label for="commenter">Show comments</label>
+              {% if entry.is_root %}
+                <label for="commenter">Show variants</label>
+              {% else %}
+                <label for="commenter">Show comments</label>
+              {% endif %}
               <input
                 type="checkbox"
                 id="commenter"
