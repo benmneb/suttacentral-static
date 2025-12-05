@@ -6,15 +6,13 @@
 
 ## A [fast](#fast) and [minimal](#minimal) alternative frontend for [SuttaCentral.net](https://suttacentral.net)
 
-Includes all the English and root language tipitaka texts (suttas, vinaya, abhidhamma) and their footnotes/comments, parallels, main reference/segmentation links, and root-text view where applicable.
+Includes all the English and root language tipitaka texts (suttas, vinaya, abhidhamma) and their footnotes/variants, parallels, main reference/segmentation links, and root-text views, where applicable.
 
-Mirrors the URL structure of suttacentral.net (eg `/dn2/en/sujato`, `/mn118`, `/pitika/vinaya`, `/pitaka/sutta/linked/sn` etc). Just switch the `.net` for `.express` in the URL.
+Mirrors the URL structure of suttacentral.net. Just switch the `.net` for `.express` in the URL.
 
 ### Fast
 
-Fully static HTML, zero JS, 15kB of CSS.
-
-Performance comparison for `/dn1/en/sujato` via <https://pagespeed.web.dev> on 19/11/2025:
+Desktop performance comparison for `/dn1/en/sujato` via <https://pagespeed.web.dev> on 19/11/2025:
 
 | &nbsp;                   | SuttaCentral.express | SuttaCentral.net | Performance Gain |
 | ------------------------ | -------------------- | ---------------- | ---------------- |
@@ -26,9 +24,9 @@ Performance comparison for `/dn1/en/sujato` via <https://pagespeed.web.dev> on 1
 
 ### Minimal
 
-- No editions, essays, guides, map, testimonies, dictionaries, subjects, similes, names or terms pages, and no search—it’s just the tipitaka.
+- No editions, essays, guides, map, testimonies, dictionaries, subjects, similes, names or terms pages—it’s just the tipitaka, Web 1.0 style.
 - No translations other than English.
-- No javascript.
+- No javascript needed for reading the texts, navigating between them, or adjusting view settings. If you want to your view settings to persist, to use the in-site text-to-speech or search, enable javascript.
 
 ### Alternative
 
@@ -46,11 +44,13 @@ Number of page loads to break even:
 
 - 1.231 ÷ 1.9 = **0.648 page loads**
 
-**Result**: Each user would recoup the extra typing time for the longer URL after only 0.65 page loads.
-
-In fact, they'd save a net 0.669 seconds on the first page load (1.9s - 1.231s), and 1.9 seconds on every subsequent page load.
+Each user recoups the extra typing time for the longer URL after only 0.65 page loads.
 
 The performance gain so dramatically outweighs the typing cost that each user breaks even before they even finish loading the first page.
+
+### Frontend
+
+This project uses the public SuttaCentral APIs at build time to generate a fully static site that displays their texts data minimally and accessibly. See DEVELOPMENT.md for more info on hosting your own instance, it can take only 3 CLI commands.
 
 ## License
 
