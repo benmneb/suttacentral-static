@@ -27,8 +27,12 @@
   form.querySelector('input[type="hidden"]')?.remove()
   input.name = 'query'
 
-  const pageSize = 5
+  // Don't load pagefind.js if not on the search results page
+  const resultsContainer = document.getElementById('search-results')
+  if (!resultsContainer) return
 
+  // Now handle actual search
+  const pageSize = 5
   const pagefind = await import('/pagefind/pagefind.js')
   await pagefind.options({
     pageSize,
@@ -41,7 +45,6 @@
   })
 
   const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
-  const resultsContainer = document.getElementById('search-results')
   const countEl = document.getElementById('search-count')
   const showMoreBtn = document.getElementById('show-more')
   const scRedirectLink = document.getElementById('sc-redirect')
