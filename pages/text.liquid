@@ -332,7 +332,11 @@ eleventyComputed:
     {% assign right_title = entry.translated_title
       | default: entry.translated_name
     %}
-    {% assign full_title = left_title | append: "—" | append: right_title %}
+    {% if right_title != blank %}
+      {% assign full_title = left_title | append: "—" | append: right_title %}
+    {% else %}
+      {% assign full_title = left_title %}
+    {% endif %}
     {% include "textMetaContent.liquid",
       entry: entry,
       title: full_title,
