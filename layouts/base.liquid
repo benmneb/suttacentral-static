@@ -28,12 +28,12 @@
       defer
       src="https://scripts.simpleanalyticscdn.com/light.js"
     ></script>
+    <script src="/scripts/preSearch.js" defer></script>
     {% if scripts %}
       {% for script in scripts %}
         <script src="/scripts/{{ script }}" defer></script>
       {% endfor %}
     {% endif %}
-    <script src="/scripts/search.js" defer></script>
   </head>
   <body>
     {{ content }}

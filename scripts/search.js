@@ -13,25 +13,6 @@
 ;(async function () {
   'use strict'
 
-  // First, turn off default no-JS-so-use-external-search behaviour
-  document
-    .querySelector('button[popovertarget="search-modal"]')
-    ?.setAttribute('type', 'button')
-  document
-    .querySelector('form:has(button[popovertarget="search-modal"])')
-    ?.addEventListener('submit', e => e.preventDefault())
-
-  const input = document.getElementById('search-input')
-  const form = document.getElementById('search-form')
-  form.action = '/search'
-  form.querySelector('input[type="hidden"]')?.remove()
-  input.name = 'query'
-
-  // Don't load pagefind.js if not on the search results page
-  const resultsContainer = document.getElementById('search-results')
-  if (!resultsContainer) return
-
-  // Now handle actual search
   const pageSize = 5
   const pagefind = await import('/pagefind/pagefind.js')
   await pagefind.options({
@@ -44,10 +25,13 @@
     },
   })
 
-  const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
+  const input = document.getElementById('search-input')
+  const form = document.getElementById('search-form')
   const countEl = document.getElementById('search-count')
+  const resultsContainer = document.getElementById('search-results')
   const showMoreBtn = document.getElementById('show-more')
   const scRedirectLink = document.getElementById('sc-redirect')
+  const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
 
   async function performSearch(query) {
     document.title = `${query} on SuttaCentral Express`
