@@ -1,12 +1,13 @@
 ## To run locally
 
 1. Clone repo, install [Node](https://nodejs.org/en/download) then [PNPM](https://pnpm.io/installation)
-2. Install packages: `pnpm i` (all commands should be run from the root directory)
-3. Build site: `pnpm run dev:fresh`. Note that running this for the first time will hit over 100,000 SuttaCentral API's, and can take quite a while. After that it caches the data indefinitely
+1. Install packages: `pnpm i` (all commands should be run from the root directory)
+1. Build site: `pnpm run dev:fresh` and practice patience while it hits over 100,000 SuttaCentral API's to get the data for the whole site, then builds it all. After fetching once it caches the data indefinitely
+1. You now have a fully functioning local version of the site that works offline, with the latest data
 
 ## To contribute
 
-See <https://todo.sr.ht/~benmneb/suttacentral-static> for inspiration, but note that this project is feature-complete and all future updates will be reserved for bug fixes and to refresh the content
+See <https://todo.sr.ht/~benmneb/suttacentral-static> for inspiration, but note that this project is feature-complete and all future updates will be reserved for fixes/enhancements and to refresh the content
 
 ## To deploy
 
