@@ -17,7 +17,7 @@
     "minify:css": "node tools/minifyAssets.js css",
     "minify:js": "node tools/minifyAssets.js js",
     "minify:assets": "node tools/minifyAssets.js",
-    "build:search": "pnpm pagefind",
+    "build:search": "pnpm pagefind && node tools/cleanupPagefind.js",
     "dev": "pnpm serve _site",
     "dev:fresh": "pnpm run predeploy && pnpm run dev",
     "format": "prettier --write .",
