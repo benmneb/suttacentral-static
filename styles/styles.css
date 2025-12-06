@@ -323,6 +323,9 @@ body {
         main {
           max-width: calc(var(--content-max-width) * 2 + 1rem);
         }
+        main ~ nav {
+          max-width: calc(var(--content-max-width) * 2);
+        }
 
         .translation {
           display: grid;
@@ -394,8 +397,13 @@ body {
     display: flex;
   }
 
-  &:has(#rooter-side:checked) main {
-    max-width: calc(var(--content-max-width) * 2 + 1rem);
+  &:has(#rooter-side:checked) {
+    main {
+      max-width: calc(var(--content-max-width) * 2 + 1rem);
+    }
+    main ~ nav {
+      max-width: calc(var(--content-max-width) * 2);
+    }
   }
 
   /* can't use `var(--content-max-width)` in media queries :'( */
