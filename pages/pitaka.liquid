@@ -67,7 +67,9 @@ eleventyComputed:
             <p>{{ child.blurb }}</p>
           {% endif %}
           {% if child.scx_shortcut %}
-            <a href="/{{ child.uid }}">Shortcut to all suttas →</a>
+            <p>
+              <a href="/{{ child.uid }}">Shortcut to all suttas →</a>
+            </p>
           {% endif %}
         </li>
       {% endfor %}
