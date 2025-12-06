@@ -16,4 +16,4 @@ exclude_selectors:
   - '.endvagga'
   - '.expansion-instructions' # ie /sn19.1/en/sujato
   - '.pe' # ie. inline legacy vinaya notes
-  - '.add' # ie. inline comments in legacy translations
+  - '.add' # ie. translator additions in suddhaso's translations
