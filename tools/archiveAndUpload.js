@@ -13,7 +13,10 @@
  *   SITE_BUILD_DIR   - Directory to archive (11ty's default: "_site")
  *
  * Usage:
- *   See package.json scripts
+ *   1. Add an annotated tag to a commit hash, ie `git tag -a v1.1.0 31615a1`, then a useful message
+ *   2. Push the tag to remotes, ie `git push origin v1.1.0`
+ *   3. Checkout that commit, ie `git checkout 31615a1`, if not already
+ *   4. Run this script with `pnpm run archive:upload`
  *
  * Notes:
  *   - Requires Node.js >= 18 (for fetch support) or uses execSync for curl-based SourceHut uploads.

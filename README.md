@@ -26,7 +26,7 @@ Desktop performance comparison for `/dn1/en/sujato` via <https://pagespeed.web.d
 
 - No editions, essays, guides, map, testimonies, dictionaries, subjects, similes, names or terms pages—it’s just the tipitaka, Web 1.0 style.
 - No translations other than English.
-- No javascript needed for reading the texts, navigating between them, or adjusting view settings. If you want to your view settings to persist, to use the in-site text-to-speech or search, enable javascript.
+- No javascript needed for reading the texts, navigating between them, or adjusting view settings. If you want your view settings to persist, to use the on-site text-to-speech or static search, enable javascript.
 
 ### Alternative
 
@@ -50,7 +50,7 @@ The performance gain so dramatically outweighs the typing cost that each user br
 
 ### Frontend
 
-This project uses the public SuttaCentral APIs at build time to generate a fully static site that displays their texts data minimally and accessibly. See DEVELOPMENT.md for more info on hosting your own instance, it can take only 3 CLI commands.
+This project uses the public SuttaCentral APIs at build time to generate a fully static site that displays their data minimally and accessibly. See [DEVELOPMENT.md](DEVELOPMENT.md) for more info on hosting your own instance, it can take only 3 CLI commands.
 
 ## License
 
