@@ -37,6 +37,9 @@
   /* Use these: */
   --content-max-width: 600px;
   --rounding: 0.2rem;
+  --width-minus-padding: calc(100% - 2rem);
+  --content-double-width: calc(var(--content-max-width) * 2);
+  --content-double-width-gap: calc(var(--content-max-width) * 2 + 1rem);
 
   --background-color: var(--bg);
   --background-color-secondary: var(--bg-soft);
@@ -169,7 +172,7 @@ body {
     margin: 1rem auto;
     padding: 0 1rem;
     max-width: var(--content-max-width);
-    width: calc(100% - 2rem);
+    width: var(--width-minus-padding);
 
     > nav {
       display: flex;
@@ -321,10 +324,10 @@ body {
 
       &:has(#commenter-side:checked) {
         main {
-          max-width: calc(var(--content-max-width) * 2 + 1rem);
+          max-width: var(--content-double-width-gap);
         }
         main ~ nav {
-          max-width: calc(var(--content-max-width) * 2);
+          max-width: var(--content-double-width);
         }
 
         .translation {
@@ -399,10 +402,10 @@ body {
 
   &:has(#rooter-side:checked) {
     main {
-      max-width: calc(var(--content-max-width) * 2 + 1rem);
+      max-width: var(--content-double-width-gap);
     }
     main ~ nav {
-      max-width: calc(var(--content-max-width) * 2);
+      max-width: var(--content-double-width);
     }
   }
 
@@ -716,7 +719,7 @@ main {
   flex: 1;
   padding: 0 1rem;
   max-width: var(--content-max-width);
-  width: calc(100% - 2rem);
+  width: var(--width-minus-padding);
 
   ul {
     padding-left: 0.75rem;
