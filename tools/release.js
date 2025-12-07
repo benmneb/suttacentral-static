@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * Creates a timestamped archive of the site build directory and optionally uploads it to
+ * Handle Codeberg/Github releases
+ *
+ * Creates an archive of the site build directory and uploads it to
  * Codeberg and GitHub releases. Supports dry-run mode for testing without uploads.
  * Sourcehut currently has 100mb file size limits so doesn't work there.
  *
@@ -10,23 +12,48 @@
  *   CODEBERG_REPO    - Codeberg repository in format "owner/repo"
  *   GITHUB_TOKEN     - Personal access token for GitHub API
  *   GITHUB_REPO      - GitHub repository in format "owner/repo"
- *   SITE_BUILD_DIR   - Directory to archive (11ty's default: "_site")
+ *   SITE_BUILD_DIR   - Directory to archive (default: "_site")
  *
  * Usage:
- *   1. Add an annotated tag to a commit hash, ie `git tag -a v1.1.0 31615a1`, then a useful message
- *   2. Push the tag to remotes, ie `git push origin v1.1.0`
- *   3. Checkout that commit, ie `git checkout 31615a1`, if not already
- *   4. Run this script with `pnpm run archive:upload`
+ *   With existing git tag:
+ *     1. Checkout a tagged commit
+ *     2. Run: `pnpm run release:upload`
  *
- * Notes:
- *   - Requires Node.js >= 18 (for fetch support) or uses execSync for curl-based SourceHut uploads.
- *   - Must be run on a git tag.
- *   - Archives are stored in `.dist` directory.
+ *   Without git tag (interactive workflow):
+ *     1. Run with version argument: `pnpm run release:upload v1.3.0`
+ *     2. Script updates package.json version
+ *     3. Script prompts to commit changes
+ *     4. Script opens editor to create annotated git tag
+ *     5. Script prompts to push tag to remotes
+ *     6. Script creates archive and uploads to configured platforms
+ *
+ *   Dry run mode:
+ *     - Use dry run script: `pnpm run release:dry v1.3.0`
+ *     - Creates archive but skips uploads and remote push
+ *
+ * Requirements:
+ *   - Version argument must start with lowercase "v" (e.g., v1.3.0)
+ *   - At least one platform (Codeberg or GitHub) must be configured
+ *   - Archives are stored in `.dist` directory
+ *   - Node.js >= 18 required
+ *
+ * Interactive workflow ensures:
+ *   - package.json version stays in sync with git tags
+ *   - Tags are pushed to remotes before creating releases
+ *   - All releases are associated with tagged commits
  */
 import { execSync } from 'child_process'
-import { createReadStream, existsSync, mkdirSync, statSync } from 'fs'
+import {
+  createReadStream,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from 'fs'
 import https from 'https'
 import { basename, join } from 'path'
+import * as readline from 'readline'
 
 // const SOURCEHUT_TOKEN = process.env.SOURCEHUT_TOKEN
 const CODEBERG_TOKEN = process.env.CODEBERG_TOKEN
@@ -36,19 +63,20 @@ const CODEBERG_REPO = process.env.CODEBERG_REPO // format: "owner/repo"
 const GITHUB_REPO = process.env.GITHUB_REPO // format: "owner/repo"
 
 const SITE_BUILD_DIR = process.env.SITE_DIR || '_site'
-const DRY_RUN = process.argv.includes('dry') // skips uploads
 
-function getGitTag(dryRun = false) {
+// Parse command-line arguments
+const args = process.argv.slice(2)
+const DRY_RUN = args.includes('dry')
+const versionArg = args.find(arg => arg.startsWith('v') && arg !== 'dry')
+
+function getGitTag(allowNull = false) {
   try {
     return execSync('git describe --tags --exact-match', {
       encoding: 'utf-8',
     }).trim()
   } catch (error) {
-    if (dryRun) {
-      console.warn(
-        "⚠️  Warning: No git tag found. Using 'dry-run' as tag (OK for dry runs)"
-      )
-      return 'dry-run'
+    if (allowNull) {
+      return null
     }
     console.error(
       "Error: No git tag found. Make sure you're on a tagged commit."
@@ -66,7 +94,7 @@ function getGitTagMessage(tag) {
     return message
   } catch (error) {
     console.warn('⚠️  Warning: Could not get tag message, using default')
-    return `Release ${tag}`
+    return `Version ${tag}`
   }
 }
 
@@ -83,10 +111,7 @@ function getTimestamp() {
 }
 
 function getArchiveName(tag) {
-  const timestamp = getTimestamp()
-  // Remove 'v' prefix from tag if present for cleaner filename
   const cleanTag = tag.startsWith('v') ? tag.substring(1) : tag
-  // return `scx_archive-${cleanTag}-${timestamp}.tar.gz`
   return `scx_archive-${cleanTag}.tar.gz`
 }
 
@@ -96,6 +121,198 @@ function formatBytes(bytes) {
   const sizes = ['Bytes', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
+}
+
+function updatePackageVersion(version) {
+  const packagePath = join(process.cwd(), 'package.json')
+
+  if (!existsSync(packagePath)) {
+    console.error(`✗ Error: package.json not found at ${packagePath}`)
+    process.exit(1)
+  }
+
+  try {
+    const packageContent = readFileSync(packagePath, 'utf-8')
+    const packageJson = JSON.parse(packageContent)
+
+    const cleanVersion = version.startsWith('v')
+      ? version.substring(1)
+      : version
+
+    const oldVersion = packageJson.version
+    packageJson.version = cleanVersion
+
+    writeFileSync(
+      packagePath,
+      JSON.stringify(packageJson, null, 2) + '\n',
+      'utf-8'
+    )
+
+    console.log(
+      `✓ Updated package.json version: ${oldVersion} → ${cleanVersion}`
+    )
+    return true
+  } catch (error) {
+    console.error(`✗ Error updating package.json: ${error.message}`)
+    process.exit(1)
+  }
+}
+
+function promptUser(question) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  })
+
+  return new Promise(resolve => {
+    rl.question(question, answer => {
+      rl.close()
+      resolve(answer.trim().toLowerCase())
+    })
+  })
+}
+
+function hasUncommittedChanges() {
+  try {
+    const status = execSync('git status --porcelain', { encoding: 'utf-8' })
+    return status.trim().length > 0
+  } catch (error) {
+    return false
+  }
+}
+
+async function createGitTagInteractively(version) {
+  if (hasUncommittedChanges()) {
+    console.log(
+      '\nℹ️  You have uncommitted changes (including the package.json update).'
+    )
+    const shouldCommit = await promptUser(
+      'Would you like to commit these changes now? (y/n): '
+    )
+
+    if (shouldCommit === 'y' || shouldCommit === 'yes') {
+      console.log('\nStaging all changes...')
+      execSync('git add -A', { stdio: 'inherit' })
+
+      const cleanVersion = version.startsWith('v')
+        ? version.substring(1)
+        : version
+      try {
+        execSync(`git commit -m "chore: release version ${cleanVersion}"`, {
+          stdio: 'inherit',
+        })
+        console.log('✓ Changes committed')
+      } catch (error) {
+        console.error('✗ Commit failed or was cancelled')
+        process.exit(1)
+      }
+    } else {
+      console.log('\n⚠️  Cannot create tag without committing changes first.')
+      console.log(
+        'Please commit your changes manually, then run this script again.'
+      )
+      process.exit(0)
+    }
+  }
+
+  console.log(`\nCreating annotated git tag: ${version}`)
+  console.log('Opening editor for tag message...')
+
+  try {
+    const cleanVersion = version.startsWith('v')
+      ? version.substring(1)
+      : version
+
+    // Create a temporary file with the default message
+    const { mkdtempSync, writeFileSync, rmSync } = await import('fs')
+    const { tmpdir } = await import('os')
+    const tempDir = mkdtempSync(join(tmpdir(), 'git-tag-'))
+    const tempFile = join(tempDir, 'TAG_EDITMSG')
+
+    writeFileSync(
+      tempFile,
+      `Version ${cleanVersion}\n\n# Add release notes below:\n`
+    )
+
+    // Use git tag with the pre-filled message file
+    execSync(`git tag -a ${version} -F ${tempFile} -e`, {
+      stdio: 'inherit',
+    })
+
+    // Clean up
+    rmSync(tempDir, { recursive: true })
+
+    console.log(`✓ Git tag '${version}' created successfully`)
+  } catch (error) {
+    console.error('✗ Tag creation failed or was cancelled')
+    process.exit(1)
+  }
+
+  console.log('\n' + '='.repeat(60))
+  console.log('✓ Tag creation complete')
+  console.log('='.repeat(60) + '\n')
+}
+
+async function pushTagToRemotes(tag) {
+  console.log('\n' + '='.repeat(60))
+  console.log('PUSHING TAG TO REMOTES')
+  console.log('='.repeat(60))
+
+  // Get list of remotes
+  let remotes
+  try {
+    remotes = execSync('git remote', { encoding: 'utf-8' })
+      .trim()
+      .split('\n')
+      .filter(r => r)
+  } catch (error) {
+    console.error('✗ Failed to get git remotes')
+    process.exit(1)
+  }
+
+  if (remotes.length === 0) {
+    console.log('⚠️  No git remotes configured. Skipping push.')
+    return
+  }
+
+  console.log(`\nFound remotes: ${remotes.join(', ')}`)
+  const shouldPush = await promptUser(
+    `\nPush commits and tag '${tag}' to all remotes? (y/n): `
+  )
+
+  if (shouldPush === 'y' || shouldPush === 'yes') {
+    console.log('\nPushing commits to remotes...')
+    for (const remote of remotes) {
+      try {
+        execSync(`git push ${remote}`, { stdio: 'inherit' })
+        console.log(`✓ Successfully pushed commits to ${remote}`)
+      } catch (error) {
+        console.warn(`⚠️  Warning: Failed to push commits to ${remote}`)
+      }
+    }
+
+    for (const remote of remotes) {
+      try {
+        console.log(`\nPushing to ${remote}...`)
+        execSync(`git push ${remote} ${tag}`, { stdio: 'inherit' })
+        console.log(`✓ Successfully pushed to ${remote}`)
+      } catch (error) {
+        console.error(`✗ Failed to push to ${remote}`)
+        console.error('Please push the tag manually before continuing.')
+        process.exit(1)
+      }
+    }
+    console.log('\n' + '='.repeat(60))
+    console.log('✓ Tag pushed to all remotes')
+    console.log('='.repeat(60) + '\n')
+  } else {
+    console.log('\n⚠️  Tag was not pushed to remotes.')
+    console.log(
+      'You must push the tag manually before the release can be created.'
+    )
+    console.log(`Run: git push origin ${tag}`)
+    process.exit(0)
+  }
 }
 
 function ensureDistDirectory() {
@@ -167,6 +384,21 @@ function makeHTTPRequest(options, data = null) {
     }
     req.end()
   })
+}
+
+async function uploadWithRetry(uploadFunc, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await uploadFunc()
+    } catch (error) {
+      if (error.code === 'EPIPE' && i < maxRetries - 1) {
+        console.log(`\n⚠️  Upload failed, retrying (${i + 1}/${maxRetries})...`)
+        await new Promise(resolve => setTimeout(resolve, 2000)) // wait 2s
+        continue
+      }
+      throw error
+    }
+  }
 }
 
 // /**
@@ -451,8 +683,35 @@ async function main() {
     else console.log('⊘ GitHub not configured (skipping)')
   }
 
-  const tag = getGitTag(DRY_RUN)
-  console.log(`Found git tag: ${tag}`)
+  // Check if we're on a git tag
+  let tag = getGitTag(true)
+  let tagWasCreated = false
+
+  if (!tag) {
+    // No git tag found
+    if (!versionArg) {
+      console.error('Error: No git tag found and no version argument provided.')
+      console.error(
+        "Either run on a tagged commit or provide a version argument starting with 'v'"
+      )
+      console.error('Example: pnpm release:upload v1.3.0')
+      process.exit(1)
+    }
+
+    // We have a version argument, so create tag interactively
+    console.log(
+      `\nNo git tag found. Starting interactive tag creation for version: ${versionArg}`
+    )
+
+    updatePackageVersion(versionArg)
+
+    await createGitTagInteractively(versionArg)
+    tagWasCreated = true
+
+    tag = getGitTag(false)
+  } else {
+    console.log(`Found git tag: ${tag}`)
+  }
 
   const tagMessage = getGitTagMessage(tag)
   console.log(
@@ -469,24 +728,31 @@ async function main() {
   if (DRY_RUN) {
     console.log('🔍 DRY RUN - Skipping uploads')
     console.log('\n✓ Dry run completed successfully!')
+    if (tagWasCreated) {
+      console.log(
+        `\nNote: Don't forget to push your tag with: git push origin ${tag}`
+      )
+    }
     return
   }
 
-  try {
-    // if (hasSourcehut) {
-    // 	await uploadToSourcehut(tag, archivePath)
-    // 	console.log('✓ Successfully uploaded to Sourcehut')
-    // }
+  // Need to have tags pushed before can do a release based on them, duh
+  if (tagWasCreated) {
+    await pushTagToRemotes(tag)
+  }
 
+  try {
     if (hasCodeberg) {
       const codebergRelease = await createCodebergRelease(tag, tagMessage)
-      await uploadToCodeberg(codebergRelease, archivePath)
+      await uploadWithRetry(() =>
+        uploadToCodeberg(codebergRelease, archivePath)
+      )
       console.log('✓ Successfully uploaded to Codeberg')
     }
 
     if (hasGitHub) {
       const githubRelease = await createGitHubRelease(tag, tagMessage)
-      await uploadToGitHub(githubRelease, archivePath)
+      await uploadWithRetry(() => uploadToGitHub(githubRelease, archivePath))
       console.log('✓ Successfully uploaded to GitHub')
     }
 
