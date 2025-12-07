@@ -2,6 +2,7 @@
   "name": "suttacentral-static",
   "description": "A fast and minimal alternative frontend for SuttaCentral.net",
   "author": "benmneb",
+  "version": "1.2.0",
   "license": "CC0",
   "packageManager": "pnpm@10.24.0",
   "type": "module",
@@ -26,8 +27,8 @@
     "predeploy": "rm -rf _site && pnpm run build && pnpm run build:search",
     "deploy:dev": "vercel deploy --archive=tgz --cwd=_site",
     "deploy:prod": "vercel deploy --archive=tgz --cwd=_site --prod",
-    "archive:dry": "node -r dotenv/config tools/archiveAndUpload.js dry",
-    "archive:upload": "node -r dotenv/config tools/archiveAndUpload.js",
+    "release:dry": "node -r dotenv/config tools/release.js dry",
+    "release:upload": "node -r dotenv/config tools/release.js",
     "prepare": "husky"
   },
   "lint-staged": {
