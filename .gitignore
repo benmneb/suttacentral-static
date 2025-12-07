@@ -1,5 +1,6 @@
 # 11ty
 .cache
+.backup_cache
 _site
 
 # Packages

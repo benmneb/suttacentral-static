@@ -2,7 +2,7 @@ import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
 import ora from 'ora'
 import shortcutsData from './_shortcuts.json' with { type: 'json' }
 
-const CACHE_DURATION = '*' // https://www.11ty.dev/docs/plugins/fetch/#change-the-cache-duration
+const CACHE_DURATION = process.env.REFETCH ? '0s' : '*' // https://www.11ty.dev/docs/plugins/fetch/#change-the-cache-duration
 const DEV_MODE = process.env.NODE_ENV !== 'prod'
 const MAX_CONCURRENT_REQUESTS = 50
 
