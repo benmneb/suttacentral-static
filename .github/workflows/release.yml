@@ -1,0 +1,316 @@
+name: Release and Deploy
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      refetch:
+        description: 'Force refetch data from APIs'
+        required: false
+        type: boolean
+        default: true
+  schedule:
+    - cron: '0 0 1 * *' # Monthly on 1st at midnight UTC
+
+jobs:
+  check-tag:
+    name: Check Tag Branch
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    outputs:
+      on-main: ${{ steps.check.outputs.on-main }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if tag is on main branch
+        id: check
+        run: |
+          if git branch -r --contains ${{ github.ref }} | grep -q 'origin/main'; then
+            echo "on-main=true" >> $GITHUB_OUTPUT
+            echo "✓ Tag ${{ github.ref_name }} is on main branch"
+          else
+            echo "on-main=false" >> $GITHUB_OUTPUT
+            echo "⊘ Tag ${{ github.ref_name }} is NOT on main branch - skipping production release"
+          fi
+
+  release-draft:
+    name: Create Draft Release
+    runs-on: ubuntu-latest
+    needs: check-tag
+    if: needs.check-tag.outputs.on-main == 'true'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.3.0'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10.24.0'
+
+      - name: Cache Eleventy data
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: eleventy-cache-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            eleventy-cache-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build site
+        run: pnpm run predeploy
+
+      - name: Get current version
+        id: version
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Generate datestamp
+        id: date
+        run: |
+          DATE=$(date +%Y%m%d)
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+          echo "Datestamp: $DATE"
+
+      - name: Create archive
+        id: archive
+        run: |
+          ARCHIVE_NAME="scx_archive-${{ steps.version.outputs.version }}.tar.gz"
+          echo "Creating archive: $ARCHIVE_NAME"
+          mkdir -p .dist
+          tar -czf .dist/$ARCHIVE_NAME _site
+          echo "archive_name=$ARCHIVE_NAME" >> $GITHUB_OUTPUT
+          echo "archive_path=.dist/$ARCHIVE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Get archive size and file count
+        id: size
+        run: |
+          SIZE=$(du -h .dist/${{ steps.archive.outputs.archive_name }} | cut -f1)
+          echo "size=$SIZE" >> $GITHUB_OUTPUT
+          echo "Archive size: $SIZE"
+
+          HTML_COUNT=$(find _site -type f -name "*.html" | wc -l | tr -d ' ')
+          TOTAL_COUNT=$(find _site -type f | wc -l | tr -d ' ')
+          echo "html_count=$HTML_COUNT" >> $GITHUB_OUTPUT
+          echo "total_count=$TOTAL_COUNT" >> $GITHUB_OUTPUT
+          echo "HTML files: $HTML_COUNT"
+          echo "Total files: $TOTAL_COUNT"
+
+      - name: Deploy to Vercel Preview
+        id: vercel_deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          OUTPUT=$(npx vercel deploy --archive=tgz --cwd=_site --token="$VERCEL_TOKEN" 2>&1 | tee /dev/stderr)
+          URL=$(echo "$OUTPUT" | grep -o 'https://[^ ]*vercel\.app[^ ]*' | head -1)
+          echo "preview_url=$URL" >> $GITHUB_OUTPUT
+          echo "Preview URL: $URL"
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: v${{ steps.version.outputs.version }}
+          draft: true
+          body: |
+            # v${{ steps.version.outputs.version }}
+
+            **Preview Deployment:** ${{ steps.vercel_deploy.outputs.preview_url }}
+
+            **Build Info:**
+            - Date: ${{ steps.date.outputs.date }}
+            - Trigger: Tag push to main
+            - Version: ${{ steps.version.outputs.version }}
+            - Files: ${{ steps.size.outputs.html_count }} HTML files (${{ steps.size.outputs.total_count }} total)
+            - Archive: ${{ steps.archive.outputs.archive_name }} (${{ steps.size.outputs.size }})
+
+            **Next Steps:**
+            1. Review the preview deployment above
+            2. If satisfied, click "Publish release" to deploy to production
+            3. Publishing will automatically:
+               - Deploy the exact same build to Vercel production
+               - Upload archive to Codeberg releases
+          files: .dist/${{ steps.archive.outputs.archive_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  release-dev:
+    name: PR Preview (Dry Run)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.3.0'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10.24.0'
+
+      - name: Cache Eleventy data
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: eleventy-cache-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            eleventy-cache-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build site
+        run: pnpm run predeploy
+
+      - name: Create test archive (dry run)
+        env:
+          CI: true
+        run: pnpm run release:dry
+
+      - name: Deploy to Vercel Preview
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx vercel deploy --archive=tgz --cwd=_site --token="$VERCEL_TOKEN"
+
+  refetch-content:
+    name: Refetch Content
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.3.0'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10.24.0'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build site (fresh data)
+        run: pnpm run predeploy
+
+      - name: Get current version
+        id: version
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Generate datestamp
+        id: date
+        run: |
+          DATE=$(date +%Y%m%d)
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+          echo "Datestamp: $DATE"
+
+      - name: Create archive with content-refresh naming
+        env:
+          CONTENT_REFRESH: true
+          CI: true
+        run: |
+          ARCHIVE_NAME="scx_archive-${{ steps.version.outputs.version }}-content-refresh-${{ steps.date.outputs.date }}.tar.gz"
+          echo "Creating archive: $ARCHIVE_NAME"
+          mkdir -p .dist
+          tar -czf .dist/$ARCHIVE_NAME _site
+          echo "archive_name=$ARCHIVE_NAME" >> $GITHUB_OUTPUT
+          echo "archive_path=.dist/$ARCHIVE_NAME" >> $GITHUB_OUTPUT
+        id: archive
+
+      - name: Deploy to Vercel Preview
+        id: vercel_deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          OUTPUT=$(npx vercel deploy --archive=tgz --cwd=_site --token="$VERCEL_TOKEN" 2>&1 | tee /dev/stderr)
+          URL=$(echo "$OUTPUT" | grep -o 'https://[^ ]*vercel\.app[^ ]*' | head -1)
+          echo "preview_url=$URL" >> $GITHUB_OUTPUT
+          echo "Preview URL: $URL"
+
+      - name: Get archive size and file count
+        id: size
+        run: |
+          SIZE=$(du -h .dist/${{ steps.archive.outputs.archive_name }} | cut -f1)
+          echo "size=$SIZE" >> $GITHUB_OUTPUT
+          echo "Archive size: $SIZE"
+
+          HTML_COUNT=$(find _site -type f -name "*.html" | wc -l | tr -d ' ')
+          TOTAL_COUNT=$(find _site -type f | wc -l | tr -d ' ')
+          echo "html_count=$HTML_COUNT" >> $GITHUB_OUTPUT
+          echo "total_count=$TOTAL_COUNT" >> $GITHUB_OUTPUT
+          echo "HTML files: $HTML_COUNT"
+          echo "Total files: $TOTAL_COUNT"
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: v${{ steps.version.outputs.version }} - Content Refresh (${{ steps.date.outputs.date }})
+          draft: true
+          body: |
+            # v${{ steps.version.outputs.version }} - Content Refresh (${{ steps.date.outputs.date }})
+
+            Fresh content fetched from SuttaCentral API
+
+            **Preview Deployment:** ${{ steps.vercel_deploy.outputs.preview_url }}
+
+            **Build Info:**
+            - Date: ${{ steps.date.outputs.date }}
+            - Trigger: ${{ github.event_name == 'schedule' && 'Monthly scheduled refetch' || 'Manual refetch' }}
+            - Version: ${{ steps.version.outputs.version }}
+            - Files: ${{ steps.size.outputs.html_count }} HTML files (${{ steps.size.outputs.total_count }} total)
+            - Archive: ${{ steps.archive.outputs.archive_name }} (${{ steps.size.outputs.size }})
+
+            **Next Steps:**
+            1. Review the preview deployment above
+            2. If satisfied, click "Publish release" to deploy to production
+            3. Publishing will automatically:
+               - Deploy the exact same build to Vercel production
+               - Upload archive to Codeberg releases
+          files: .dist/${{ steps.archive.outputs.archive_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -5,6 +5,7 @@
  *
  * Creates an archive of the site build directory and uploads it to
  * Codeberg and GitHub releases. Supports dry-run mode for testing without uploads.
+ * Supports CI mode for automated releases in GitHub Actions.
  * Sourcehut currently has 100mb file size limits so doesn't work there.
  *
  * Environment Variables:
@@ -13,13 +14,15 @@
  *   GITHUB_TOKEN     - Personal access token for GitHub API
  *   GITHUB_REPO      - GitHub repository in format "owner/repo"
  *   SITE_BUILD_DIR   - Directory to archive (default: "_site")
+ *   CI               - Set to enable CI mode (disables interactive prompts)
+ *   GITHUB_ACTIONS   - Auto-set by GitHub Actions (enables CI mode)
  *
  * Usage:
  *   With existing git tag:
  *     1. Checkout a tagged commit
  *     2. Run: `pnpm run release:upload`
  *
- *   Without git tag (interactive workflow):
+ *   Without git tag (local, interactive workflow):
  *     1. Run with version argument: `pnpm run release:upload v1.3.0`
  *     2. Script updates package.json version
  *     3. Script prompts to commit changes
@@ -30,6 +33,12 @@
  *   Dry run mode:
  *     - Use dry run script: `pnpm run release:dry v1.3.0`
  *     - Creates archive but skips uploads and remote push
+ *
+ *   CI mode (on Github, automated):
+ *     - Detected via CI or GITHUB_ACTIONS environment variables
+ *     - Requires git tag to already exist
+ *     - Skips all interactive prompts
+ *     - Skips git tag creation and push operations
  *
  * Requirements:
  *   - Version argument must start with lowercase "v" (e.g., v1.3.0)
@@ -68,6 +77,11 @@ const SITE_BUILD_DIR = process.env.SITE_DIR || '_site'
 const args = process.argv.slice(2)
 const DRY_RUN = args.includes('dry')
 const versionArg = args.find(arg => arg.startsWith('v') && arg !== 'dry')
+
+// Detect CI environment
+function isCI() {
+  return !!(process.env.CI || process.env.GITHUB_ACTIONS)
+}
 
 function getGitTag(allowNull = false) {
   try {
@@ -655,6 +669,10 @@ async function uploadToGitHub(release, archivePath) {
 }
 
 async function main() {
+  if (isCI()) {
+    console.log('🤖 Running in CI mode\n')
+  }
+
   if (DRY_RUN) {
     console.log('🔍 DRY RUN MODE - Archive will be created but not uploaded\n')
   }
@@ -687,28 +705,50 @@ async function main() {
   let tag = getGitTag(true)
   let tagWasCreated = false
 
+  // Validate tag format if tag exists
+  if (tag && !tag.startsWith('v')) {
+    console.error(`Error: Tag '${tag}' does not start with lowercase 'v'`)
+    console.error('Version tags must follow the format: v1.2.3')
+    process.exit(1)
+  }
+
   if (!tag) {
     // No git tag found
-    if (!versionArg) {
-      console.error('Error: No git tag found and no version argument provided.')
-      console.error(
-        "Either run on a tagged commit or provide a version argument starting with 'v'"
-      )
-      console.error('Example: pnpm release:upload v1.3.0')
+    if (isCI() && !DRY_RUN) {
+      // In CI (non-dry-run), we expect the tag to already exist
+      console.error('Error: No git tag found in CI environment.')
+      console.error('CI workflows should only run on tagged commits.')
       process.exit(1)
     }
 
-    // We have a version argument, so create tag interactively
-    console.log(
-      `\nNo git tag found. Starting interactive tag creation for version: ${versionArg}`
-    )
+    if (!versionArg) {
+      if (DRY_RUN) {
+        // For dry runs without a tag, use a test version
+        console.log('🔍 DRY RUN: Using test version v0.0.0-test')
+        tag = 'v0.0.0-test'
+      } else {
+        console.error(
+          'Error: No git tag found and no version argument provided.'
+        )
+        console.error(
+          "Either run on a tagged commit or provide a version argument starting with 'v'"
+        )
+        console.error('Example: pnpm release:upload v1.3.0')
+        process.exit(1)
+      }
+    } else {
+      // We have a version argument, so create tag interactively
+      console.log(
+        `\nNo git tag found. Starting interactive tag creation for version: ${versionArg}`
+      )
 
-    updatePackageVersion(versionArg)
+      updatePackageVersion(versionArg)
 
-    await createGitTagInteractively(versionArg)
-    tagWasCreated = true
+      await createGitTagInteractively(versionArg)
+      tagWasCreated = true
 
-    tag = getGitTag(false)
+      tag = getGitTag(false)
+    }
   } else {
     console.log(`Found git tag: ${tag}`)
   }
@@ -737,7 +777,8 @@ async function main() {
   }
 
   // Need to have tags pushed before can do a release based on them, duh
-  if (tagWasCreated) {
+  // Skip in CI as tags should already be pushed
+  if (tagWasCreated && !isCI()) {
     await pushTagToRemotes(tag)
   }
 

@@ -1,0 +1,91 @@
+name: Deploy Published Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy-release:
+    name: Deploy Release to Production
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Download release archive
+        run: |
+          ASSET_URL=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }} \
+            | jq -r '.assets[] | select(.name | endswith(".tar.gz")) | .browser_download_url')
+          ASSET_NAME=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }} \
+            | jq -r '.assets[] | select(.name | endswith(".tar.gz")) | .name')
+          echo "Downloading: $ASSET_URL"
+          echo "archive_name=$ASSET_NAME" >> $GITHUB_ENV
+          curl -L -o archive.tar.gz "$ASSET_URL"
+
+      - name: Extract archive
+        run: |
+          mkdir -p _site
+          tar -xzf archive.tar.gz -C .
+          ls -la _site
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.3.0'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10.24.0'
+
+      - name: Install dependencies (for Vercel CLI)
+        run: pnpm install
+
+      - name: Deploy to Vercel Production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx vercel deploy --archive=tgz --cwd=_site --prod --token="$VERCEL_TOKEN"
+
+      - name: Upload to Codeberg
+        env:
+          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
+          CODEBERG_REPO: ${{ secrets.CODEBERG_REPO }}
+        run: |
+          if [ -z "$CODEBERG_TOKEN" ]; then
+            echo "⊘ Codeberg token not configured, skipping upload"
+            exit 0
+          fi
+
+          TAG_NAME="${{ github.event.release.tag_name }}"
+
+          # Create release on Codeberg
+          RELEASE_DATA=$(cat <<EOF
+          {
+            "tag_name": "$TAG_NAME",
+            "name": "${{ github.event.release.name }}",
+            "body": "${{ github.event.release.body }}"
+          }
+          EOF
+          )
+
+          CODEBERG_RELEASE=$(curl -s -X POST \
+            -H "Authorization: token $CODEBERG_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$RELEASE_DATA" \
+            "https://codeberg.org/api/v1/repos/$CODEBERG_REPO/releases")
+
+          RELEASE_ID=$(echo "$CODEBERG_RELEASE" | jq -r '.id')
+
+          # Upload asset with the same filename as GitHub release
+          curl -X POST \
+            -H "Authorization: token $CODEBERG_TOKEN" \
+            -H "Content-Type: multipart/form-data" \
+            -F "attachment=@archive.tar.gz" \
+            "https://codeberg.org/api/v1/repos/$CODEBERG_REPO/releases/$RELEASE_ID/assets?name=${{ env.archive_name }}"
+
+          echo "✓ Uploaded to Codeberg as ${{ env.archive_name }}"
