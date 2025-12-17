@@ -98,7 +98,12 @@ jobs:
       - name: Get tag message
         id: tag_message
         run: |
-          TAG_MESSAGE=$(git tag -l --format='%(contents)' ${{ steps.version.outputs.tag }})
+          # Get the tag annotation message (not commit message)
+          # git cat-file gets the raw tag object, then we skip headers until blank line
+          TAG_MESSAGE=$(git cat-file tag ${{ steps.version.outputs.tag }} | sed '1,/^$/d')
+          if [ -z "$TAG_MESSAGE" ]; then
+            TAG_MESSAGE="Release ${{ steps.version.outputs.tag }}"
+          fi
           echo "message<<EOF" >> $GITHUB_OUTPUT
           echo "$TAG_MESSAGE" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
