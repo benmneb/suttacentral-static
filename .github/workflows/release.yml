@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       refetch:
-        description: 'Force refetch data from APIs'
+        description: 'Skip cache and refetch all data from SuttaCentral APIs'
         required: false
         type: boolean
         default: true
@@ -254,10 +254,21 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
+      - name: Cache Eleventy data
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.refetch != 'true'
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: eleventy-cache-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            eleventy-cache-
+
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build site (fresh data)
+      - name: Build site
+        env:
+          REFETCH: ${{ (github.event_name == 'schedule' || github.event.inputs.refetch == 'true') && '1' || '' }}
         run: pnpm run predeploy
 
       - name: Get current version
@@ -275,18 +286,23 @@ jobs:
           echo "date=$DATE" >> $GITHUB_OUTPUT
           echo "Datestamp: $DATE"
 
-      - name: Create archive with content-refresh naming
+      - name: Create archive
+        id: archive
         env:
-          CONTENT_REFRESH: true
           CI: true
         run: |
-          ARCHIVE_NAME="scx_archive-${{ steps.version.outputs.version }}-content-refresh-${{ steps.date.outputs.date }}.tar.gz"
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event.inputs.refetch }}" = "true" ]; then
+            ARCHIVE_NAME="scx_archive-${{ steps.version.outputs.version }}-content-refresh-${{ steps.date.outputs.date }}.tar.gz"
+            echo "build_type=Content Refresh" >> $GITHUB_OUTPUT
+          else
+            ARCHIVE_NAME="scx_archive-${{ steps.version.outputs.version }}-cached-rebuild-${{ steps.date.outputs.date }}.tar.gz"
+            echo "build_type=Cached Rebuild" >> $GITHUB_OUTPUT
+          fi
           echo "Creating archive: $ARCHIVE_NAME"
           mkdir -p .dist
           tar -czf .dist/$ARCHIVE_NAME _site
           echo "archive_name=$ARCHIVE_NAME" >> $GITHUB_OUTPUT
           echo "archive_path=.dist/$ARCHIVE_NAME" >> $GITHUB_OUTPUT
-        id: archive
 
       - name: Deploy to Vercel Preview
         id: vercel_deploy
@@ -318,18 +334,19 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
-          name: v${{ steps.version.outputs.version }} - Content Refresh (${{ steps.date.outputs.date }})
+          name: v${{ steps.version.outputs.version }} - ${{ steps.archive.outputs.build_type }} (${{ steps.date.outputs.date }})
           draft: true
           body: |
-            # v${{ steps.version.outputs.version }} - Content Refresh (${{ steps.date.outputs.date }})
+            # v${{ steps.version.outputs.version }} - ${{ steps.archive.outputs.build_type }} (${{ steps.date.outputs.date }})
 
-            Fresh content fetched from SuttaCentral API
+            ${{ (github.event_name == 'schedule' || github.event.inputs.refetch == 'true') && 'Fresh content fetched from SuttaCentral API' || 'Built using cached data (faster build, existing content)' }}
 
             **Preview Deployment:** ${{ steps.vercel_deploy.outputs.preview_url }}
 
             **Build Info:**
             - Date: ${{ steps.date.outputs.date }}
-            - Trigger: ${{ github.event_name == 'schedule' && 'Monthly scheduled refetch' || 'Manual refetch' }}
+            - Trigger: ${{ github.event_name == 'schedule' && 'Monthly scheduled refetch' || format('Manual trigger (cache: {0})', github.event.inputs.refetch == 'true' && 'skipped' || 'used') }}
+            - Cache Status: ${{ (github.event_name == 'schedule' || github.event.inputs.refetch == 'true') && 'Skipped - Fresh API data' || 'Used - Cached data' }}
             - Version: ${{ steps.version.outputs.version }}
             - Files: ${{ steps.size.outputs.html_count }} HTML files (${{ steps.size.outputs.total_count }} total)
             - Archive: ${{ steps.archive.outputs.archive_name }} (${{ steps.size.outputs.size }})
