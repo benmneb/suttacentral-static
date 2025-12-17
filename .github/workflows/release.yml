@@ -56,7 +56,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
+
+      - name: Fetch tag annotations
+        run: git fetch --tags --force
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -102,7 +106,7 @@ jobs:
           # git cat-file gets the raw tag object, then we skip headers until blank line
           TAG_MESSAGE=$(git cat-file tag ${{ steps.version.outputs.tag }} | sed '1,/^$/d')
           if [ -z "$TAG_MESSAGE" ]; then
-            TAG_MESSAGE="Release ${{ steps.version.outputs.tag }}"
+            TAG_MESSAGE="Version ${{ steps.version.outputs.tag }}"
           fi
           echo "message<<EOF" >> $GITHUB_OUTPUT
           echo "$TAG_MESSAGE" >> $GITHUB_OUTPUT
