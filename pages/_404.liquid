@@ -16,12 +16,14 @@ eleventyExcludeFromCollections: true
   <p>
     <a href="/search">Search for something</a>
   </p>
-  <p>
-    Should there be a page here?
-    <a href="mailto:{{ _siteMetaData.contact }}?subject=%5BSCX%5D%20Re%3A%20404"
-      >Let me know</a
-    >
-  </p>
+  {% if _siteMetaData.contact %}
+    <p>
+      Should there be a page here?
+      <a href="mailto:{{ _siteMetaData.contact }}?subject=%5BSCX%5D%20Re%3A%20404"
+        >Let me know</a
+      >
+    </p>
+  {% endif %}
 </main>
 
 {% include "footer.liquid", route: "404" %}
