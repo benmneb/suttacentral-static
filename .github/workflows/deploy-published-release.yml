@@ -38,8 +38,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: '10.24.0'
 
       - name: Install dependencies (for Vercel CLI)
         run: pnpm install
