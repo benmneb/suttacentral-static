@@ -53,37 +53,54 @@ jobs:
         env:
           CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
           CODEBERG_REPO: ${{ secrets.CODEBERG_REPO }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_NAME: ${{ github.event.release.name }}
+          RELEASE_BODY: ${{ github.event.release.body }}
         run: |
-          if [ -z "$CODEBERG_TOKEN" ]; then
-            echo "⊘ Codeberg token not configured, skipping upload"
+          if [ -z "$CODEBERG_TOKEN" ] || [ -z "$CODEBERG_REPO" ]; then
+            echo "⊘ Codeberg not configured, skipping upload"
             exit 0
           fi
 
-          TAG_NAME="${{ github.event.release.tag_name }}"
-
           # Create release on Codeberg
-          RELEASE_DATA=$(cat <<EOF
-          {
-            "tag_name": "$TAG_NAME",
-            "name": "${{ github.event.release.name }}",
-            "body": "${{ github.event.release.body }}"
-          }
-          EOF
-          )
+          # Use environment variables to avoid shell quoting issues
+          RELEASE_DATA=$(jq -n \
+            --arg tag "$RELEASE_TAG" \
+            --arg name "$RELEASE_NAME" \
+            --arg body "$RELEASE_BODY" \
+            '{tag_name: $tag, name: $name, body: $body}')
 
+          echo "Creating Codeberg release for $RELEASE_TAG..."
           CODEBERG_RELEASE=$(curl -s -X POST \
             -H "Authorization: token $CODEBERG_TOKEN" \
             -H "Content-Type: application/json" \
             -d "$RELEASE_DATA" \
             "https://codeberg.org/api/v1/repos/$CODEBERG_REPO/releases")
 
+          # Check if release was created successfully
           RELEASE_ID=$(echo "$CODEBERG_RELEASE" | jq -r '.id')
 
+          if [ "$RELEASE_ID" = "null" ] || [ -z "$RELEASE_ID" ]; then
+            echo "✗ Failed to create Codeberg release"
+            echo "Response: $CODEBERG_RELEASE"
+            exit 1
+          fi
+
+          echo "✓ Created Codeberg release (ID: $RELEASE_ID)"
+
           # Upload asset with the same filename as GitHub release
-          curl -X POST \
+          echo "Uploading archive to Codeberg..."
+          UPLOAD_RESPONSE=$(curl -s -X POST \
             -H "Authorization: token $CODEBERG_TOKEN" \
             -H "Content-Type: multipart/form-data" \
             -F "attachment=@archive.tar.gz" \
-            "https://codeberg.org/api/v1/repos/$CODEBERG_REPO/releases/$RELEASE_ID/assets?name=${{ env.archive_name }}"
+            "https://codeberg.org/api/v1/repos/$CODEBERG_REPO/releases/$RELEASE_ID/assets?name=${{ env.archive_name }}")
 
-          echo "✓ Uploaded to Codeberg as ${{ env.archive_name }}"
+          # Check if upload was successful
+          if echo "$UPLOAD_RESPONSE" | jq -e '.id' > /dev/null 2>&1; then
+            echo "✓ Uploaded to Codeberg as ${{ env.archive_name }}"
+          else
+            echo "✗ Failed to upload asset to Codeberg"
+            echo "Response: $UPLOAD_RESPONSE"
+            exit 1
+          fi
