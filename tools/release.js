@@ -9,13 +9,16 @@
  * Sourcehut currently has 100mb file size limits so doesn't work there.
  *
  * Environment Variables:
- *   CODEBERG_TOKEN   - Personal access token for Codeberg API
- *   CODEBERG_REPO    - Codeberg repository in format "owner/repo"
- *   GITHUB_TOKEN     - Personal access token for GitHub API
- *   GITHUB_REPO      - GitHub repository in format "owner/repo"
- *   SITE_BUILD_DIR   - Directory to archive (default: "_site")
- *   CI               - Set to enable CI mode (disables interactive prompts)
- *   GITHUB_ACTIONS   - Auto-set by GitHub Actions (enables CI mode)
+ *   CODEBERG_TOKEN    - Personal access token for Codeberg API
+ *   CODEBERG_REPO     - Codeberg repository in format "owner/repo"
+ *   GITHUB_TOKEN      - Personal access token for GitHub API
+ *   GITHUB_REPO       - GitHub repository in format "owner/repo"
+ *   VERCEL_TOKEN      - Authentication token for Vercel CLI
+ *   VERCEL_ORG_ID     - Vercel organization/user ID
+ *   VERCEL_PROJECT_ID - Vercel project ID
+ *   SITE_BUILD_DIR    - Directory to archive (default: "_site")
+ *   CI                - Set to enable CI mode (disables interactive prompts)
+ *   GITHUB_ACTIONS    - Auto-set by GitHub Actions (enables CI mode)
  *
  * Usage:
  *   With existing git tag:
@@ -70,6 +73,9 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN
 // const SOURCEHUT_REPO = process.env.SOURCEHUT_REPO // format: "~owner/repo"
 const CODEBERG_REPO = process.env.CODEBERG_REPO // format: "owner/repo"
 const GITHUB_REPO = process.env.GITHUB_REPO // format: "owner/repo"
+const VERCEL_TOKEN = process.env.VERCEL_TOKEN
+const VERCEL_ORG_ID = process.env.VERCEL_ORG_ID
+const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID
 
 const SITE_BUILD_DIR = process.env.SITE_DIR || '_site'
 
@@ -668,6 +674,31 @@ async function uploadToGitHub(release, archivePath) {
   })
 }
 
+async function deployToVercel(isDryRun = false) {
+  const deployType = isDryRun ? 'Preview' : 'Production'
+  console.log(`Deploying to Vercel ${deployType}...`)
+
+  const prodFlag = isDryRun ? '' : '--prod'
+  const command = `npx vercel deploy --archive=tgz --cwd=_site ${prodFlag} --token="${VERCEL_TOKEN}"`
+
+  try {
+    // Run deployment and capture output
+    const output = execSync(command, {
+      encoding: 'utf-8',
+      stdio: 'pipe',
+    })
+
+    // Extract deployment URL from output
+    // Vercel outputs the URL on a line by itself
+    const urlMatch = output.match(/https:\/\/[^\s]+/)
+    const deploymentUrl = urlMatch ? urlMatch[0] : null
+
+    return deploymentUrl
+  } catch (error) {
+    throw new Error(`Vercel deployment failed: ${error.message}`)
+  }
+}
+
 async function main() {
   if (isCI()) {
     console.log('🤖 Running in CI mode\n')
@@ -680,12 +711,14 @@ async function main() {
   // const hasSourcehut = SOURCEHUT_TOKEN && SOURCEHUT_REPO
   const hasCodeberg = CODEBERG_TOKEN && CODEBERG_REPO
   const hasGitHub = GITHUB_TOKEN && GITHUB_REPO
+  const hasVercel = VERCEL_TOKEN && VERCEL_ORG_ID && VERCEL_PROJECT_ID
 
-  // if (!DRY_RUN && !hasSourcehut && !hasCodeberg && !hasGitHub) {
-  if (!DRY_RUN && !hasCodeberg && !hasGitHub) {
+  // if (!DRY_RUN && !hasSourcehut && !hasCodeberg && !hasGitHub && !hasVercel) {
+  if (!DRY_RUN && !hasCodeberg && !hasGitHub && !hasVercel) {
     // console.log('⊘ Sourcehut not configured')
     console.log('⊘ Codeberg not configured')
     console.log('⊘ GitHub not configured')
+    console.log('⊘ Vercel not configured')
     console.error('Error: At least one platform must be configured.')
     process.exit(1)
   }
@@ -699,6 +732,9 @@ async function main() {
 
     if (hasGitHub) console.log('✓ GitHub configured')
     else console.log('⊘ GitHub not configured (skipping)')
+
+    if (hasVercel) console.log('✓ Vercel configured')
+    else console.log('⊘ Vercel not configured (skipping)')
   }
 
   // Check if we're on a git tag
@@ -795,6 +831,16 @@ async function main() {
       const githubRelease = await createGitHubRelease(tag, tagMessage)
       await uploadWithRetry(() => uploadToGitHub(githubRelease, archivePath))
       console.log('✓ Successfully uploaded to GitHub')
+    }
+
+    if (hasVercel) {
+      // Deploy to Vercel: preview for dry runs, production otherwise
+      const vercelUrl = await deployToVercel(DRY_RUN)
+      if (vercelUrl) {
+        console.log(`✓ Successfully deployed to Vercel: ${vercelUrl}`)
+      } else {
+        console.log('✓ Successfully deployed to Vercel')
+      }
     }
 
     console.log('\n✓ All uploads completed successfully!')

@@ -25,8 +25,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "predeploy": "rm -rf _site && pnpm run build && pnpm run build:search",
-    "deploy:dev": "vercel deploy --archive=tgz --cwd=_site",
-    "deploy:prod": "vercel deploy --archive=tgz --cwd=_site --prod",
+    "deploy:dev": "dotenv -e .env -- sh -c 'vercel deploy --archive=tgz --cwd=_site --token=\"$VERCEL_TOKEN\"'",
+    "deploy:prod": "dotenv -e .env -- sh -c 'vercel deploy --archive=tgz --cwd=_site --prod --token=\"$VERCEL_TOKEN\"'",
     "release:dry": "node -r dotenv/config tools/release.js dry",
     "release:upload": "node -r dotenv/config tools/release.js",
     "prepare": "husky"
@@ -43,6 +43,7 @@
     "@shopify/prettier-plugin-liquid": "^1.10.0",
     "browserslist": "^4.28.0",
     "dotenv": "^17.2.3",
+    "dotenv-cli": "^11.0.0",
     "html-minifier-terser": "^7.2.0",
     "husky": "^9.1.7",
     "lightningcss": "^1.30.2",
