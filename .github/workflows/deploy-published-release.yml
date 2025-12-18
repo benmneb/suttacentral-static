@@ -2,12 +2,13 @@ name: Deploy Published Release
 
 on:
   release:
-    types: [published]
+    types: [published, deleted]
 
 jobs:
   deploy-release:
     name: Deploy Release to Production
     runs-on: ubuntu-latest
+    if: github.event.action == 'published'
 
     steps:
       - name: Checkout repository
@@ -30,34 +31,6 @@ jobs:
           mkdir -p _site
           tar -xzf archive.tar.gz -C .
           ls -la _site
-
-      - name: Cleanup preview tag from all remotes
-        if: contains(github.event.release.tag_name, '-content-refresh-') || contains(github.event.release.tag_name, '-cached-rebuild-')
-        env:
-          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
-          CODEBERG_REPO: ${{ secrets.CODEBERG_REPO }}
-          SOURCEHUT_TOKEN: ${{ secrets.SOURCEHUT_TOKEN }}
-          SOURCEHUT_REPO: ${{ secrets.SOURCEHUT_REPO }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          echo "Cleaning up preview tag: ${{ github.event.release.tag_name }}"
-
-          # Delete from GitHub
-          git push --delete origin ${{ github.event.release.tag_name }} || echo "⊘ GitHub tag deletion failed"
-
-          # Delete from Codeberg (if configured)
-          if [ -n "$CODEBERG_TOKEN" ] && [ -n "$CODEBERG_REPO" ]; then
-            git push --delete https://oauth2:${CODEBERG_TOKEN}@codeberg.org/${CODEBERG_REPO} ${{ github.event.release.tag_name }} || echo "⊘ Codeberg tag deletion failed"
-          fi
-
-          # Delete from SourceHut (if configured)
-          if [ -n "$SOURCEHUT_TOKEN" ] && [ -n "$SOURCEHUT_REPO" ]; then
-            git push --delete https://${SOURCEHUT_TOKEN}:${SOURCEHUT_TOKEN}@git.sr.ht/${SOURCEHUT_REPO} ${{ github.event.release.tag_name }} || echo "⊘ SourceHut tag deletion failed"
-          fi
-
-          echo "✓ Preview tag cleanup complete"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -132,3 +105,42 @@ jobs:
             echo "Response: $UPLOAD_RESPONSE"
             exit 1
           fi
+
+  cleanup-preview-tag:
+    name: Cleanup Preview Tag
+    runs-on: ubuntu-latest
+    if: contains(github.event.release.tag_name, '-content-refresh-') || contains(github.event.release.tag_name, '-cached-rebuild-')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Delete preview tag from all remotes
+        env:
+          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
+          CODEBERG_REPO: ${{ secrets.CODEBERG_REPO }}
+          SOURCEHUT_TOKEN: ${{ secrets.SOURCEHUT_TOKEN }}
+          SOURCEHUT_REPO: ${{ secrets.SOURCEHUT_REPO }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          echo "Cleaning up preview tag: ${{ github.event.release.tag_name }}"
+
+          # Delete from GitHub
+          git push --delete origin ${{ github.event.release.tag_name }} || echo "⊘ GitHub tag deletion failed"
+
+          # Delete from Codeberg (if configured)
+          if [ -n "$CODEBERG_TOKEN" ] && [ -n "$CODEBERG_REPO" ]; then
+            git push --delete https://oauth2:${CODEBERG_TOKEN}@codeberg.org/${CODEBERG_REPO} ${{ github.event.release.tag_name }} || echo "⊘ Codeberg tag deletion failed"
+          fi
+
+          # Delete from SourceHut (if configured)
+          if [ -n "$SOURCEHUT_TOKEN" ] && [ -n "$SOURCEHUT_REPO" ]; then
+            git push --delete https://${SOURCEHUT_TOKEN}:${SOURCEHUT_TOKEN}@git.sr.ht/${SOURCEHUT_REPO} ${{ github.event.release.tag_name }} || echo "⊘ SourceHut tag deletion failed"
+          fi
+
+          echo "✓ Preview tag cleanup complete"
