@@ -122,8 +122,6 @@ jobs:
         env:
           CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
           CODEBERG_REPO: ${{ secrets.CODEBERG_REPO }}
-          SOURCEHUT_TOKEN: ${{ secrets.SOURCEHUT_TOKEN }}
-          SOURCEHUT_REPO: ${{ secrets.SOURCEHUT_REPO }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -136,11 +134,6 @@ jobs:
           # Delete from Codeberg (if configured)
           if [ -n "$CODEBERG_TOKEN" ] && [ -n "$CODEBERG_REPO" ]; then
             git push --delete https://oauth2:${CODEBERG_TOKEN}@codeberg.org/${CODEBERG_REPO} ${{ github.event.release.tag_name }} || echo "⊘ Codeberg tag deletion failed"
-          fi
-
-          # Delete from SourceHut (if configured)
-          if [ -n "$SOURCEHUT_TOKEN" ] && [ -n "$SOURCEHUT_REPO" ]; then
-            git push --delete https://${SOURCEHUT_TOKEN}:${SOURCEHUT_TOKEN}@git.sr.ht/${SOURCEHUT_REPO} ${{ github.event.release.tag_name }} || echo "⊘ SourceHut tag deletion failed"
           fi
 
           echo "✓ Preview tag cleanup complete"

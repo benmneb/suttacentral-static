@@ -279,10 +279,13 @@ jobs:
       - name: Get current version
         id: version
         run: |
-          VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
-          echo "Current version: $VERSION"
+          # Get the latest tag and extract only the base version (remove any preview suffixes)
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          # Extract base version (e.g., "1.3.0" from "v1.3.0-cached-rebuild-20251218-110205")
+          BASE_VERSION=$(echo "$LATEST_TAG" | sed 's/^v//' | sed 's/-content-refresh-.*$//' | sed 's/-cached-rebuild-.*$//')
+          echo "version=$BASE_VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$BASE_VERSION" >> $GITHUB_OUTPUT
+          echo "Base version: $BASE_VERSION"
 
       - name: Generate datestamp
         id: date
@@ -313,8 +316,6 @@ jobs:
         env:
           CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
           CODEBERG_REPO: ${{ secrets.CODEBERG_REPO }}
-          SOURCEHUT_TOKEN: ${{ secrets.SOURCEHUT_TOKEN }}
-          SOURCEHUT_REPO: ${{ secrets.SOURCEHUT_REPO }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -330,13 +331,6 @@ jobs:
             git push https://oauth2:${CODEBERG_TOKEN}@codeberg.org/${CODEBERG_REPO} ${{ steps.preview_tag.outputs.tag }} || echo "⊘ Codeberg push failed"
           else
             echo "⊘ Codeberg not configured, skipping tag push"
-          fi
-
-          # Push to SourceHut (if configured)
-          if [ -n "$SOURCEHUT_TOKEN" ] && [ -n "$SOURCEHUT_REPO" ]; then
-            git push https://${SOURCEHUT_TOKEN}:${SOURCEHUT_TOKEN}@git.sr.ht/${SOURCEHUT_REPO} ${{ steps.preview_tag.outputs.tag }} || echo "⊘ SourceHut push failed"
-          else
-            echo "⊘ SourceHut not configured, skipping tag push"
           fi
 
       - name: Create archive
