@@ -304,6 +304,7 @@ body {
   &:has(#commenter-inline:checked) {
     .inline-comment {
       display: block;
+      height: fit-content;
       margin: 0.5rem;
       padding: 0.5rem;
       color: var(--text-color-secondary);
