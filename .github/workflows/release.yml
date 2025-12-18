@@ -291,6 +291,54 @@ jobs:
           echo "date=$DATE" >> $GITHUB_OUTPUT
           echo "Datestamp: $DATE"
 
+      - name: Generate timestamp
+        id: timestamp
+        run: |
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+          echo "Timestamp: $TIMESTAMP"
+
+      - name: Create preview tag
+        id: preview_tag
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event.inputs.refetch }}" = "true" ]; then
+            TAG="${{ steps.version.outputs.tag }}-content-refresh-${{ steps.timestamp.outputs.timestamp }}"
+          else
+            TAG="${{ steps.version.outputs.tag }}-cached-rebuild-${{ steps.timestamp.outputs.timestamp }}"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Preview tag: $TAG"
+
+      - name: Push preview tag to all remotes
+        env:
+          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
+          CODEBERG_REPO: ${{ secrets.CODEBERG_REPO }}
+          SOURCEHUT_TOKEN: ${{ secrets.SOURCEHUT_TOKEN }}
+          SOURCEHUT_REPO: ${{ secrets.SOURCEHUT_REPO }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create the tag
+          git tag ${{ steps.preview_tag.outputs.tag }}
+
+          # Push to GitHub (origin)
+          git push origin ${{ steps.preview_tag.outputs.tag }}
+
+          # Push to Codeberg (if configured)
+          if [ -n "$CODEBERG_TOKEN" ] && [ -n "$CODEBERG_REPO" ]; then
+            git push https://oauth2:${CODEBERG_TOKEN}@codeberg.org/${CODEBERG_REPO} ${{ steps.preview_tag.outputs.tag }} || echo "⊘ Codeberg push failed"
+          else
+            echo "⊘ Codeberg not configured, skipping tag push"
+          fi
+
+          # Push to SourceHut (if configured)
+          if [ -n "$SOURCEHUT_TOKEN" ] && [ -n "$SOURCEHUT_REPO" ]; then
+            git push https://${SOURCEHUT_TOKEN}@git.sr.ht/${SOURCEHUT_REPO} ${{ steps.preview_tag.outputs.tag }} || echo "⊘ SourceHut push failed"
+          else
+            echo "⊘ SourceHut not configured, skipping tag push"
+          fi
+
       - name: Create archive
         id: archive
         env:
@@ -338,7 +386,7 @@ jobs:
       - name: Create draft release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
+          tag_name: ${{ steps.preview_tag.outputs.tag }}
           name: v${{ steps.version.outputs.version }} - ${{ steps.archive.outputs.build_type }} (${{ steps.date.outputs.date }})
           draft: true
           body: |
@@ -353,6 +401,7 @@ jobs:
             - Trigger: ${{ github.event_name == 'schedule' && 'Monthly scheduled refetch' || format('Manual trigger (cache: {0})', github.event.inputs.refetch == 'true' && 'skipped' || 'used') }}
             - Cache Status: ${{ (github.event_name == 'schedule' || github.event.inputs.refetch == 'true') && 'Skipped - Fresh API data' || 'Used - Cached data' }}
             - Version: ${{ steps.version.outputs.version }}
+            - Preview Tag: ${{ steps.preview_tag.outputs.tag }}
             - Files: ${{ steps.size.outputs.html_count }} HTML files (${{ steps.size.outputs.total_count }} total)
             - Archive: ${{ steps.archive.outputs.archive_name }} (${{ steps.size.outputs.size }})
 
@@ -362,5 +411,6 @@ jobs:
             3. Publishing will automatically:
                - Deploy the exact same build to Vercel production
                - Upload archive to Codeberg releases
+               - Clean up the preview tag from all remotes
           files: .dist/${{ steps.archive.outputs.archive_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
