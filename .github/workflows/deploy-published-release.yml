@@ -54,7 +54,7 @@ jobs:
 
           # Delete from SourceHut (if configured)
           if [ -n "$SOURCEHUT_TOKEN" ] && [ -n "$SOURCEHUT_REPO" ]; then
-            git push --delete https://${SOURCEHUT_TOKEN}@git.sr.ht/${SOURCEHUT_REPO} ${{ github.event.release.tag_name }} || echo "⊘ SourceHut tag deletion failed"
+            git push --delete https://${SOURCEHUT_TOKEN}:${SOURCEHUT_TOKEN}@git.sr.ht/${SOURCEHUT_REPO} ${{ github.event.release.tag_name }} || echo "⊘ SourceHut tag deletion failed"
           fi
 
           echo "✓ Preview tag cleanup complete"

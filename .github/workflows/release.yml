@@ -334,7 +334,7 @@ jobs:
 
           # Push to SourceHut (if configured)
           if [ -n "$SOURCEHUT_TOKEN" ] && [ -n "$SOURCEHUT_REPO" ]; then
-            git push https://${SOURCEHUT_TOKEN}@git.sr.ht/${SOURCEHUT_REPO} ${{ steps.preview_tag.outputs.tag }} || echo "⊘ SourceHut push failed"
+            git push https://${SOURCEHUT_TOKEN}:${SOURCEHUT_TOKEN}@git.sr.ht/${SOURCEHUT_REPO} ${{ steps.preview_tag.outputs.tag }} || echo "⊘ SourceHut push failed"
           else
             echo "⊘ SourceHut not configured, skipping tag push"
           fi
