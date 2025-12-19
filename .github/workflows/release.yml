@@ -75,8 +75,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: eleventy-cache-${{ hashFiles('pnpm-lock.yaml') }}
+          key: eleventy-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.run_id }}
           restore-keys: |
+            eleventy-cache-${{ hashFiles('pnpm-lock.yaml') }}-
             eleventy-cache-
 
       - name: Install dependencies
@@ -201,8 +202,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: eleventy-cache-${{ hashFiles('pnpm-lock.yaml') }}
+          key: eleventy-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.run_id }}
           restore-keys: |
+            eleventy-cache-${{ hashFiles('pnpm-lock.yaml') }}-
             eleventy-cache-
 
       - name: Install dependencies
@@ -264,8 +266,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: eleventy-cache-${{ hashFiles('pnpm-lock.yaml') }}
+          key: eleventy-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.run_id }}
           restore-keys: |
+            eleventy-cache-${{ hashFiles('pnpm-lock.yaml') }}-
             eleventy-cache-
 
       - name: Install dependencies
@@ -283,6 +286,25 @@ jobs:
           else
             echo "Using cached data"
             pnpm run predeploy
+          fi
+
+      - name: Debug cache directory
+        run: |
+          echo "Checking for .cache directory..."
+          if [ -d ".cache" ]; then
+            echo "✓ .cache directory exists"
+            echo "Contents:"
+            ls -la .cache | head -20
+            echo "Directory size:"
+            du -sh .cache
+            echo "File count:"
+            find .cache -type f | wc -l
+          else
+            echo "✗ .cache directory NOT found"
+            echo "Current directory:"
+            pwd
+            echo "Contents of current directory:"
+            ls -la
           fi
 
       - name: Get current version
