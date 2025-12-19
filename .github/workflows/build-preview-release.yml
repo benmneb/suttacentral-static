@@ -1,4 +1,4 @@
-name: Release and Deploy
+name: Build & Preview Release
 
 on:
   push:
@@ -164,8 +164,8 @@ jobs:
           files: .dist/${{ steps.archive.outputs.archive_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  release-dev:
-    name: PR Preview (Dry Run)
+  pr-preview:
+    name: Pull Request Preview
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
 
@@ -189,7 +189,7 @@ jobs:
       - name: Build site
         run: pnpm run predeploy
 
-      - name: Create test archive (dry run)
+      - name: Create archive for preview
         env:
           CI: true
         run: pnpm run release:dry
@@ -217,8 +217,8 @@ jobs:
               body: '## Preview Deployment\n\n🚀 Preview is ready: ${{ steps.vercel_preview.outputs.preview_url }}'
             })
 
-  refetch-content:
-    name: Refetch Content
+  content-refresh:
+    name: Content Refresh Build
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
 
@@ -350,7 +350,7 @@ jobs:
 
             **Build Info:**
             - Date: ${{ steps.date.outputs.date }}
-            - Trigger: ${{ github.event_name == 'schedule' && 'Monthly scheduled refetch' || 'Manual trigger' }}
+            - Trigger: ${{ github.event_name == 'schedule' && 'Monthly scheduled build' || 'Manual trigger' }}
             - Version: ${{ steps.version.outputs.version }}
             - Preview Tag: ${{ steps.preview_tag.outputs.tag }}
             - Files: ${{ steps.size.outputs.html_count }} HTML files (${{ steps.size.outputs.total_count }} total)
