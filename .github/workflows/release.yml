@@ -271,10 +271,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Delete cache directory if refetching
+        if: github.event_name == 'schedule' || github.event.inputs.refetch == 'true'
+        run: rm -rf .cache
+
       - name: Build site
-        env:
-          REFETCH: ${{ (github.event_name == 'schedule' || github.event.inputs.refetch == 'true') && '1' || '' }}
-        run: pnpm run predeploy
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event.inputs.refetch }}" = "true" ]; then
+            echo "Skipping cache - refetching all data from SuttaCentral APIs"
+            pnpm run build:refetch
+          else
+            echo "Using cached data"
+            pnpm run predeploy
+          fi
 
       - name: Get current version
         id: version
