@@ -109,7 +109,7 @@ jobs:
   cleanup-preview-tag:
     name: Cleanup Preview Tag
     runs-on: ubuntu-latest
-    if: contains(github.event.release.tag_name, '-content-refresh-') || contains(github.event.release.tag_name, '-cached-rebuild-')
+    if: contains(github.event.release.tag_name, '-content-refresh-')
 
     steps:
       - name: Checkout repository
