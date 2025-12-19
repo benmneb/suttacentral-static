@@ -382,7 +382,8 @@ jobs:
         with:
           tag_name: ${{ steps.preview_tag.outputs.tag }}
           name: v${{ steps.version.outputs.version }} - ${{ steps.archive.outputs.build_type }} (${{ steps.date.outputs.date }})
-          draft: true
+          draft: false
+          prerelease: true
           body: |
             # v${{ steps.version.outputs.version }} - ${{ steps.archive.outputs.build_type }} (${{ steps.date.outputs.date }})
 
