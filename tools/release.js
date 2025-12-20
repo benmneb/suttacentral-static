@@ -21,51 +21,31 @@
  *   GITHUB_ACTIONS    - Auto-set by GitHub Actions (enables CI mode)
  *
  * Usage:
- *   With existing git tag:
- *     1. Checkout a tagged commit
+ *   Manual workflow:
+ *     1. Create and push git tag: git tag -a v1.0.0 -m "Release notes"
  *     2. Run: `pnpm run release:upload`
+ *     3. Script creates archive and uploads to Codeberg/GitHub
+ *     4. Script deploys to Vercel production
  *
- *   Without git tag (local, interactive workflow):
- *     1. Run with version argument: `pnpm run release:upload v1.3.0`
- *     2. Script updates package.json version
- *     3. Script prompts to commit changes
- *     4. Script opens editor to create annotated git tag
- *     5. Script prompts to push tag to remotes
- *     6. Script creates archive and uploads to configured platforms
+ *   Dry run mode (testing):
+ *     - Run: `pnpm run release:dry`
+ *     - Creates archive but skips all uploads and deployments
+ *     - Uses test tag v0.0.0-test if no git tag exists
  *
- *   Dry run mode:
- *     - Use dry run script: `pnpm run release:dry v1.3.0`
- *     - Creates archive but skips uploads and remote push
- *
- *   CI mode (on Github, automated):
+ *   CI mode (GitHub Actions):
  *     - Detected via CI or GITHUB_ACTIONS environment variables
  *     - Requires git tag to already exist
- *     - Skips all interactive prompts
- *     - Skips git tag creation and push operations
  *
  * Requirements:
- *   - Version argument must start with lowercase "v" (e.g., v1.3.0)
+ *   - Git tag must exist and start with lowercase "v" (e.g., v1.3.0)
  *   - At least one platform (Codeberg or GitHub) must be configured
  *   - Archives are stored in `.dist` directory
  *   - Node.js >= 18 required
- *
- * Interactive workflow ensures:
- *   - package.json version stays in sync with git tags
- *   - Tags are pushed to remotes before creating releases
- *   - All releases are associated with tagged commits
  */
 import { execSync } from 'child_process'
-import {
-  createReadStream,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  statSync,
-  writeFileSync,
-} from 'fs'
+import { createReadStream, existsSync, mkdirSync, statSync } from 'fs'
 import https from 'https'
 import { basename, join } from 'path'
-import * as readline from 'readline'
 
 // const SOURCEHUT_TOKEN = process.env.SOURCEHUT_TOKEN
 const CODEBERG_TOKEN = process.env.CODEBERG_TOKEN
@@ -82,9 +62,7 @@ const SITE_BUILD_DIR = process.env.SITE_DIR || '_site'
 // Parse command-line arguments
 const args = process.argv.slice(2)
 const DRY_RUN = args.includes('dry')
-const versionArg = args.find(arg => arg.startsWith('v') && arg !== 'dry')
 
-// Detect CI environment
 function isCI() {
   return !!(process.env.CI || process.env.GITHUB_ACTIONS)
 }
@@ -141,198 +119,6 @@ function formatBytes(bytes) {
   const sizes = ['Bytes', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
-}
-
-function updatePackageVersion(version) {
-  const packagePath = join(process.cwd(), 'package.json')
-
-  if (!existsSync(packagePath)) {
-    console.error(`✗ Error: package.json not found at ${packagePath}`)
-    process.exit(1)
-  }
-
-  try {
-    const packageContent = readFileSync(packagePath, 'utf-8')
-    const packageJson = JSON.parse(packageContent)
-
-    const cleanVersion = version.startsWith('v')
-      ? version.substring(1)
-      : version
-
-    const oldVersion = packageJson.version
-    packageJson.version = cleanVersion
-
-    writeFileSync(
-      packagePath,
-      JSON.stringify(packageJson, null, 2) + '\n',
-      'utf-8'
-    )
-
-    console.log(
-      `✓ Updated package.json version: ${oldVersion} → ${cleanVersion}`
-    )
-    return true
-  } catch (error) {
-    console.error(`✗ Error updating package.json: ${error.message}`)
-    process.exit(1)
-  }
-}
-
-function promptUser(question) {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  })
-
-  return new Promise(resolve => {
-    rl.question(question, answer => {
-      rl.close()
-      resolve(answer.trim().toLowerCase())
-    })
-  })
-}
-
-function hasUncommittedChanges() {
-  try {
-    const status = execSync('git status --porcelain', { encoding: 'utf-8' })
-    return status.trim().length > 0
-  } catch (error) {
-    return false
-  }
-}
-
-async function createGitTagInteractively(version) {
-  if (hasUncommittedChanges()) {
-    console.log(
-      '\nℹ️  You have uncommitted changes (including the package.json update).'
-    )
-    const shouldCommit = await promptUser(
-      'Would you like to commit these changes now? (y/n): '
-    )
-
-    if (shouldCommit === 'y' || shouldCommit === 'yes') {
-      console.log('\nStaging all changes...')
-      execSync('git add -A', { stdio: 'inherit' })
-
-      const cleanVersion = version.startsWith('v')
-        ? version.substring(1)
-        : version
-      try {
-        execSync(`git commit -m "chore: release version ${cleanVersion}"`, {
-          stdio: 'inherit',
-        })
-        console.log('✓ Changes committed')
-      } catch (error) {
-        console.error('✗ Commit failed or was cancelled')
-        process.exit(1)
-      }
-    } else {
-      console.log('\n⚠️  Cannot create tag without committing changes first.')
-      console.log(
-        'Please commit your changes manually, then run this script again.'
-      )
-      process.exit(0)
-    }
-  }
-
-  console.log(`\nCreating annotated git tag: ${version}`)
-  console.log('Opening editor for tag message...')
-
-  try {
-    const cleanVersion = version.startsWith('v')
-      ? version.substring(1)
-      : version
-
-    // Create a temporary file with the default message
-    const { mkdtempSync, writeFileSync, rmSync } = await import('fs')
-    const { tmpdir } = await import('os')
-    const tempDir = mkdtempSync(join(tmpdir(), 'git-tag-'))
-    const tempFile = join(tempDir, 'TAG_EDITMSG')
-
-    writeFileSync(
-      tempFile,
-      `Version ${cleanVersion}\n\n# Add release notes below:\n`
-    )
-
-    // Use git tag with the pre-filled message file
-    execSync(`git tag -a ${version} -F ${tempFile} -e`, {
-      stdio: 'inherit',
-    })
-
-    // Clean up
-    rmSync(tempDir, { recursive: true })
-
-    console.log(`✓ Git tag '${version}' created successfully`)
-  } catch (error) {
-    console.error('✗ Tag creation failed or was cancelled')
-    process.exit(1)
-  }
-
-  console.log('\n' + '='.repeat(60))
-  console.log('✓ Tag creation complete')
-  console.log('='.repeat(60) + '\n')
-}
-
-async function pushTagToRemotes(tag) {
-  console.log('\n' + '='.repeat(60))
-  console.log('PUSHING TAG TO REMOTES')
-  console.log('='.repeat(60))
-
-  // Get list of remotes
-  let remotes
-  try {
-    remotes = execSync('git remote', { encoding: 'utf-8' })
-      .trim()
-      .split('\n')
-      .filter(r => r)
-  } catch (error) {
-    console.error('✗ Failed to get git remotes')
-    process.exit(1)
-  }
-
-  if (remotes.length === 0) {
-    console.log('⚠️  No git remotes configured. Skipping push.')
-    return
-  }
-
-  console.log(`\nFound remotes: ${remotes.join(', ')}`)
-  const shouldPush = await promptUser(
-    `\nPush commits and tag '${tag}' to all remotes? (y/n): `
-  )
-
-  if (shouldPush === 'y' || shouldPush === 'yes') {
-    console.log('\nPushing commits to remotes...')
-    for (const remote of remotes) {
-      try {
-        execSync(`git push ${remote}`, { stdio: 'inherit' })
-        console.log(`✓ Successfully pushed commits to ${remote}`)
-      } catch (error) {
-        console.warn(`⚠️  Warning: Failed to push commits to ${remote}`)
-      }
-    }
-
-    for (const remote of remotes) {
-      try {
-        console.log(`\nPushing to ${remote}...`)
-        execSync(`git push ${remote} ${tag}`, { stdio: 'inherit' })
-        console.log(`✓ Successfully pushed to ${remote}`)
-      } catch (error) {
-        console.error(`✗ Failed to push to ${remote}`)
-        console.error('Please push the tag manually before continuing.')
-        process.exit(1)
-      }
-    }
-    console.log('\n' + '='.repeat(60))
-    console.log('✓ Tag pushed to all remotes')
-    console.log('='.repeat(60) + '\n')
-  } else {
-    console.log('\n⚠️  Tag was not pushed to remotes.')
-    console.log(
-      'You must push the tag manually before the release can be created.'
-    )
-    console.log(`Run: git push origin ${tag}`)
-    process.exit(0)
-  }
 }
 
 function ensureDistDirectory() {
@@ -737,56 +523,29 @@ async function main() {
     else console.log('⊘ Vercel not configured (skipping)')
   }
 
-  // Check if we're on a git tag
+  // Require git tag to exist (allow test tag only in dry run mode)
   let tag = getGitTag(true)
-  let tagWasCreated = false
 
-  // Validate tag format if tag exists
+  if (!tag) {
+    if (DRY_RUN) {
+      console.log('🔍 DRY RUN: Using test version v0.0.0-test')
+      tag = 'v0.0.0-test'
+    } else {
+      console.error('Error: No git tag found.')
+      console.error(
+        'Create a git tag first: git tag -a v1.0.0 -m "Release notes"'
+      )
+      process.exit(1)
+    }
+  } else {
+    console.log(`Found git tag: ${tag}`)
+  }
+
+  // Validate tag format
   if (tag && !tag.startsWith('v')) {
     console.error(`Error: Tag '${tag}' does not start with lowercase 'v'`)
     console.error('Version tags must follow the format: v1.2.3')
     process.exit(1)
-  }
-
-  if (!tag) {
-    // No git tag found
-    if (isCI() && !DRY_RUN) {
-      // In CI (non-dry-run), we expect the tag to already exist
-      console.error('Error: No git tag found in CI environment.')
-      console.error('CI workflows should only run on tagged commits.')
-      process.exit(1)
-    }
-
-    if (!versionArg) {
-      if (DRY_RUN) {
-        // For dry runs without a tag, use a test version
-        console.log('🔍 DRY RUN: Using test version v0.0.0-test')
-        tag = 'v0.0.0-test'
-      } else {
-        console.error(
-          'Error: No git tag found and no version argument provided.'
-        )
-        console.error(
-          "Either run on a tagged commit or provide a version argument starting with 'v'"
-        )
-        console.error('Example: pnpm release:upload v1.3.0')
-        process.exit(1)
-      }
-    } else {
-      // We have a version argument, so create tag interactively
-      console.log(
-        `\nNo git tag found. Starting interactive tag creation for version: ${versionArg}`
-      )
-
-      updatePackageVersion(versionArg)
-
-      await createGitTagInteractively(versionArg)
-      tagWasCreated = true
-
-      tag = getGitTag(false)
-    }
-  } else {
-    console.log(`Found git tag: ${tag}`)
   }
 
   const tagMessage = getGitTagMessage(tag)
@@ -804,18 +563,7 @@ async function main() {
   if (DRY_RUN) {
     console.log('🔍 DRY RUN - Skipping uploads')
     console.log('\n✓ Dry run completed successfully!')
-    if (tagWasCreated) {
-      console.log(
-        `\nNote: Don't forget to push your tag with: git push origin ${tag}`
-      )
-    }
     return
-  }
-
-  // Need to have tags pushed before can do a release based on them, duh
-  // Skip in CI as tags should already be pushed
-  if (tagWasCreated && !isCI()) {
-    await pushTagToRemotes(tag)
   }
 
   try {
@@ -834,7 +582,6 @@ async function main() {
     }
 
     if (hasVercel) {
-      // Deploy to Vercel: preview for dry runs, production otherwise
       const vercelUrl = await deployToVercel(DRY_RUN)
       if (vercelUrl) {
         console.log(`✓ Successfully deployed to Vercel: ${vercelUrl}`)
