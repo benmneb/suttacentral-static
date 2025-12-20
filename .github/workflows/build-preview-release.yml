@@ -363,5 +363,7 @@ jobs:
                - Deploy the exact same build to Vercel production
                - Upload archive to Codeberg releases
                - Clean up the preview tag from all remotes
+            4. Deleting will automatically:
+               - Clean up the preview tag from all remotes
           files: .dist/${{ steps.archive.outputs.archive_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
