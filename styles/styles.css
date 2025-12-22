@@ -377,7 +377,17 @@ body {
   }
 }
 
-&:has(#segmenter:checked) .segment:not(header .segment) .reference > a,
+&:has(#segmenter:checked)
+  .segment:not(
+    header .segment,
+    h2 .segment,
+    h3 .segment,
+    h4 .segment,
+    h5 .segment,
+    h6 .segment
+  )
+  .reference
+  > a,
 &:has(#segmenter:checked) a.ref {
   display: initial;
 }
