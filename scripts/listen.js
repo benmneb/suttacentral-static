@@ -79,7 +79,9 @@
   function computeVisibleText() {
     // for segmented texts
     visibleTextSpans = Array.from(
-      document.querySelectorAll('main > article span.text')
+      document.querySelectorAll(
+        'main > article span.text, main > section span.text'
+      )
     ).filter(s => s.offsetParent !== null && s.textContent)
 
     visibleTextContent = visibleTextSpans?.map(s =>
