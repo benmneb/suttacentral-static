@@ -1,14 +1,14 @@
-[![SourceHut](https://img.shields.io/badge/-on_SourceHut-212529?logo=sourcehut&style=flat-square)](https://git.sr.ht/~benmneb/suttacentral-static)
-[![Codeberg](https://img.shields.io/badge/-on_Codeberg-4793cc.svg?logo=codeberg&logoColor=white&style=flat-square)](https://codeberg.org/benmneb/suttacentral-static)
-[![GitHub](https://img.shields.io/badge/-on_GitHub-010409.svg?logo=github&style=flat-square)](https://github.com/benmneb/suttacentral-static)
+[![SourceHut](https://img.shields.io/badge/-on_SourceHut-212529?logo=sourcehut&style=flat)](https://git.sr.ht/~benmneb/suttacentral-static)
+[![Codeberg](https://img.shields.io/badge/-on_Codeberg-4793cc.svg?logo=codeberg&logoColor=white&style=flat)](https://codeberg.org/benmneb/suttacentral-static)
+[![GitHub](https://img.shields.io/badge/-on_GitHub-010409.svg?logo=github&style=flat)](https://github.com/benmneb/suttacentral-static)
 
-# 📚 [SuttaCentral.Express](https://suttacentral.express) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/benmneb/suttacentral-static/deploy-published-release.yml?style=flat-square&logo=github)](https://github.com/benmneb/suttacentral-static/actions/workflows/deploy-published-release.yml)
+# 📚 [SuttaCentral.Express](https://suttacentral.express) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/benmneb/suttacentral-static/deploy-published-release.yml?style=flat&logo=github)](https://github.com/benmneb/suttacentral-static/actions/workflows/deploy-published-release.yml)
 
-## A [fast](#fast) and [minimal](#minimal) alternative frontend for [SuttaCentral.net](https://suttacentral.net)
+## A fast and minimal alternative frontend for [SuttaCentral.net](https://suttacentral.net)
 
-Includes all the English and root language sutta, vinaya, abhidhamma texts and their footnotes, parallels, main reference links, and root-text views where applicable.
+Includes all sutta, vinaya and abhidhamma texts in their root language, all English translations, all footnotes, parallels, main reference links and flexible text-view settings.
 
-Mirrors the URL structure of suttacentral.net. Just switch the `.net` for `.express`.
+Mirrors the URL structure of suttacentral.net. Just switch the `.net` for `.express`, or use the [browser extension](https://git.sr.ht/~benmneb/suttacentral-redirect) from the [Chrome](https://chromewebstore.google.com/detail/suttacentral-redirect/noaddajdfegpjfgpmbhcbahofgkceaan) or [Firefox](https://addons.mozilla.org/firefox/addon/suttacentral-redirect/) store.
 
 ### Fast
 
