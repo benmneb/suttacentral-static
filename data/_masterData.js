@@ -102,7 +102,6 @@ async function fetchShortcutsList() {
       throw new Error('Invalid shortcuts data structure')
     }
     shortcutsList = shortcutsData[0].shortcuts
-    spinner.info('Loaded shortcuts from local file').start()
   } catch (e) {
     spinner
       .fail('Could not load shortcuts.json, this will break "shortcut" links')
