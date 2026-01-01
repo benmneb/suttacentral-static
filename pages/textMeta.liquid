@@ -9,7 +9,7 @@ pagination:
 
 permalink: '{{ entry.scx_path }}/index.html'
 eleventyComputed:
-  title: '{{ entry.original_title | default: entry.root_name }}{% if entry.translated_title or entry.translated_name %}—{{ entry.translated_title | default: entry.translated_name }}{% endif %}'
+  title: '{% if entry.scx_range_sutta_individual %}{{ entry.scx_range_sutta_title }}{% else %}{{ entry.original_title | default: entry.root_name }}{% if entry.translated_title or entry.translated_name %}—{{ entry.translated_title | default: entry.translated_name }}{% endif %}{% endif %}'
   json_ld: '{{ entry.scx_json_ld }}'
   og_tags: '{{ entry.scx_og_tags }}'
 ---
@@ -40,26 +40,36 @@ eleventyComputed:
 
 <nav aria-label="Article pagination">
   <div>
-    {% if entry.previous.uid != blank %}
+    {% unless entry.previous.uid == blank
+      and entry.scx_range_sutta_pagination.prev.uid == blank
+    %}
       <span>Previous</span>
       <a
-        href="/{{ entry.previous.uid }}"
+        href="/{{ entry.scx_range_sutta_pagination.prev.uid | default: entry.previous.uid }}"
         rel="prev"
       >
-        {{- entry.previous.name -}}
+        {{-
+          entry.scx_range_sutta_pagination.prev.name
+          | default: entry.previous.name
+        -}}
       </a>
-    {% endif %}
+    {% endunless %}
   </div>
   <div>
-    {% if entry.next.uid != blank %}
+    {% unless entry.next.uid == blank
+      and entry.scx_range_sutta_pagination.next.uid == blank
+    %}
       <span>Next</span>
       <a
-        href="/{{ entry.next.uid }}"
+        href="/{{ entry.scx_range_sutta_pagination.next.uid | default: entry.next.uid }}"
         rel="next"
       >
-        {{- entry.next.name -}}
+        {{-
+          entry.scx_range_sutta_pagination.next.name
+          | default: entry.next.name
+        -}}
       </a>
-    {% endif %}
+    {% endunless %}
   </div>
 </nav>
 

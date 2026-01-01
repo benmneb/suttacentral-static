@@ -9,7 +9,7 @@ pagination:
 
 permalink: '{{ entry.scx_path }}/index.html'
 eleventyComputed:
-  title: '{{ entry.acronym }}: {{ entry.original_title }}—{{ entry.author }}'
+  title: '{{ entry.acronym }}{% unless entry.scx_range_sutta_individual %}: {{ entry.original_title }}{% endunless %}—{{ entry.author }}'
   json_ld: '{{ entry.scx_json_ld }}'
   og_tags: '{{ entry.scx_og_tags }}'
   scripts:
@@ -214,12 +214,125 @@ eleventyComputed:
   {% if entry.is_root and entry._bilarasuttas_data.size > 0 %}
     {% assign comments = "" %}
     {% for key in entry._bilarasuttas_data.keys_order %}
-      {% assign html = entry._bilarasuttas_data.html_text[key] %}
-      {% assign text = entry._bilarasuttas_data.root_text[key] %}
-      {% assign comment = entry._bilarasuttas_data.variant_text[key] %}
-      {% assign ref = key | split: ":" | last %}
-      {% if html %}
-        {% capture replacement %}
+      {% comment %}
+        First, decide whether or not to "process" a key for range-suttas
+        every other text should always process all keys and skips this intro
+      {% endcomment %}
+      {% assign should_process = true %}
+      {% assign is_header = false %}
+
+      {% if entry.scx_range_sutta_individual %}
+        {% comment %}
+          Check if this key is a :0.X header key, as this is where the headings are.
+          These are useful for all texts in the range as including this heading gives context to the text
+        {% endcomment %}
+        {% assign key_segment = key | split: ":" | last %}
+        {% if key_segment contains "0." %}
+          {% assign header_html = entry._bilarasuttas_data.html_text[key] %}
+
+          {% if header_html contains "<article id=" %}
+            {% comment %}
+              Article-specific header (e.g., "<article id='dhp1'>" or "<article id='an1.258-267'>")
+              Extract the id and check if it matches this `entry.uid` or `entry.scx_range_sutta_uid`
+            {% endcomment %}
+            {% assign article_id_parts = header_html | split: "id='" %}
+            {% assign article_id = article_id_parts[1] | split: "'" | first %}
+
+            {% if article_id == entry.scx_range_sutta_uid
+              or article_id == entry.uid
+            %}
+              {% assign is_header = true %}
+            {% endif %}
+          {% else %}
+            {% comment %}
+              Global range header (e.g., division, subdivision, range-title)
+              These apply to all suttas in the range
+            {% endcomment %}
+            {% assign is_header = true %}
+          {% endif %}
+        {% endif %}
+
+        {% comment %}
+          Check if this is the last key
+          (ie for the closing </article> and </section> tags)
+        {% endcomment %}
+        {% assign last_index = entry._bilarasuttas_data.keys_order.size
+          | minus: 1
+        %}
+        {% assign is_last_key = false %}
+        {% if forloop.index0 == last_index %}
+          {% assign is_last_key = true %}
+        {% endif %}
+
+        {% comment %}
+          Check if key matches the text uid or falls within a sub-range
+          (ie sub-ranges on /an1.575-615)
+        {% endcomment %}
+        {% assign key_id = key | split: ":" | first %}
+        {% assign matches_uid = false %}
+        {% if key_id == entry.uid %}
+          {% assign matches_uid = true %}
+        {% elsif key_id contains "-" %}
+          {% comment %} Check if entry.uid falls within this range {% endcomment %}
+          {% assign range_parts = key_id | split: "-" %}
+          {% assign range_start = range_parts[0] %}
+          {% assign range_end_str = range_parts[1] %}
+
+          {% comment %} Extract numeric parts for comparison {% endcomment %}
+          {% assign uid_num_str = entry.uid | split: "." | last %}
+          {% assign uid_num = uid_num_str | plus: 0 %}
+
+          {% assign start_num_str = range_start | split: "." | last %}
+          {% assign start_num = start_num_str | plus: 0 %}
+          {% assign end_num = range_end_str | plus: 0 %}
+
+          {% if uid_num >= start_num and uid_num <= end_num %}
+            {% assign matches_uid = true %}
+          {% endif %}
+        {% endif %}
+
+        {% comment %} Include if it's a header, last key, or matches uid {% endcomment %}
+        {% if is_header or is_last_key or matches_uid %}
+          {% assign should_process = true %}
+        {% else %}
+          {% assign should_process = false %}
+        {% endif %}
+      {% endif %}
+
+      {% if should_process %}
+        {% assign html = entry._bilarasuttas_data.html_text[key] %}
+        {% comment %} Handle individual range suttas some more... {% endcomment %}
+        {% if entry.scx_range_sutta_individual and is_last_key %}
+          {% assign last_key_prefix = key | split: ":" | first %}
+          {% unless last_key_prefix == entry.uid %}
+            {% comment %} These .end* <p> tag's are only needed on the last sutta in vagga/book {% endcomment %}
+            {% assign html = html | replace: "<p class='endvagga'>{}</p>", "" %}
+            {% assign html = html | replace: "<p class='end'>{}</p>", "" %}
+            {% assign html = html | replace: "<p class='endbook'>{}</p>", "" %}
+            {% comment %}
+              Stricter check to handle other cases...
+              ie an11.22/en/sujato to an11.29/en/sujato (/pli/ms also)
+            {% endcomment %}
+            {% comment %} But first exclude ie range an11.30/en/sujato to an11.69 where the last value is "{}</p></article>" {% endcomment %}
+            {% assign html_first_two_chars = html | slice: 0, 2 %}
+            {% if html contains "</article>" and html_first_two_chars != "{}" %}
+              {% unless html contains entry.uid %}
+                {% comment %} Remove everything except the closing tag(s) {% endcomment %}
+                {% assign html = html
+                  | split: "</article>"
+                  | last
+                  | prepend: "</article>"
+                %}
+              {% endunless %}
+            {% endif %}
+          {% endunless %}
+        {% endif %}
+        {% assign text = entry._bilarasuttas_data.root_text[key] %}
+        {% assign comment = entry._bilarasuttas_data.variant_text[key] %}
+        {% assign ref = key | split: ":" | last %}
+
+        {% if html %}
+          {% capture replacement %}
           <span id="{{ key }}" class="segment">
             <span class="reference" id="{{ ref }}">
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
@@ -227,6 +340,14 @@ eleventyComputed:
             {% if text %}
             <!-- This is not a translation, its the root text, the class is so it's not `display: none` by default. -->
             <span class="translation" lang="{{ entry.lang }}" translate="no">
+              {% if entry.scx_range_sutta_individual and is_header %}
+                {% comment %} Handle untitled root texts, eg range an11.22/pli/ms to 11.29 (and 30-69) has ~ as the title {% endcomment %}
+                {% if text contains '~' %}
+                  {% if html contains "class='range-title'" or html contains "class='sutta-title'" %}
+                    {% capture text %}{{ entry.scx_range_sutta_title }}{% endcapture %}
+                  {% endif %}
+                {% endif %}
+              {% endif %}
               <span class="text">{{ text }}</span>
               {% unless comment == blank %}
                 <button popovertarget="comment-{{ key }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
@@ -237,16 +358,17 @@ eleventyComputed:
             </span>
             {% endif %}
           </span>
-        {% endcapture %}
-        {{ html | replace: "{}", replacement }}
-        {%- if comment -%}
-          {% capture comments %}
+          {% endcapture %}
+          {{ html | replace: "{}", replacement }}
+          {%- if comment -%}
+            {% capture comments %}
             {{ comments }}
             <article id="comment-{{ key }}" popover>
               Variant: {{ comment | replace: 'https://suttacentral.net', '' }}
             </article>
-          {% endcapture %}
-        {%- endif -%}
+            {% endcapture %}
+          {%- endif -%}
+        {% endif %}
       {% endif %}
     {% endfor %}
     {{ comments }}
@@ -256,20 +378,138 @@ eleventyComputed:
   {% elsif entry.segmented %}
     {% assign comments = "" %}
     {% for key in entry._bilarasuttas_data.keys_order %}
-      {% assign html = entry._bilarasuttas_data.html_text[key] %}
-      {% assign text = entry._bilarasuttas_data.translation_text[key] %}
-      {% assign rootText = entry._bilarasuttas_data.root_text[key] %}
-      {% assign comment = entry._bilarasuttas_data.comment_text[key] %}
-      {% assign ref = key | split: ":" | last %}
-      {% if html %}
-        {% capture replacement %}
+      {% comment %}
+        First, decide whether or not to "process" a key for range-suttas
+        every other text should always process all keys and skips this intro
+      {% endcomment %}
+      {% assign should_process = true %}
+      {% assign is_header = false %}
+
+      {% if entry.scx_range_sutta_individual %}
+        {% comment %}
+          Check if this key is a :0.X header key, as this is where the headings are.
+          These are useful for all texts in the range as including this heading gives context to the text
+        {% endcomment %}
+        {% assign key_segment = key | split: ":" | last %}
+        {% if key_segment contains "0." %}
+          {% assign header_html = entry._bilarasuttas_data.html_text[key] %}
+
+          {% if header_html contains "<article id=" %}
+            {% comment %}
+              Article-specific header (e.g., "<article id='dhp1'>" or "<article id='an1.258-267'>")
+              Extract the id and check if it matches this `entry.uid` or `entry.scx_range_sutta_uid`
+            {% endcomment %}
+            {% assign article_id_parts = header_html | split: "id='" %}
+            {% assign article_id = article_id_parts[1] | split: "'" | first %}
+
+            {% if article_id == entry.scx_range_sutta_uid
+              or article_id == entry.uid
+            %}
+              {% assign is_header = true %}
+            {% endif %}
+          {% else %}
+            {% comment %}
+              Global range header (e.g., division, subdivision, range-title)
+              These apply to all suttas in the range
+            {% endcomment %}
+            {% assign is_header = true %}
+          {% endif %}
+        {% endif %}
+
+        {% comment %}
+          Check if this is the last key
+          (ie for the closing </article> and </section> tags)
+        {% endcomment %}
+        {% assign last_index = entry._bilarasuttas_data.keys_order.size
+          | minus: 1
+        %}
+        {% assign is_last_key = false %}
+        {% if forloop.index0 == last_index %}
+          {% assign is_last_key = true %}
+        {% endif %}
+
+        {% comment %}
+          Check if key matches the text uid or falls within a sub-range
+          (ie sub-ranges on /an1.575-615)
+        {% endcomment %}
+        {% assign key_id = key | split: ":" | first %}
+        {% assign matches_uid = false %}
+        {% if key_id == entry.uid %}
+          {% assign matches_uid = true %}
+        {% elsif key_id contains "-" %}
+          {% comment %} Check if entry.uid falls within this range {% endcomment %}
+          {% assign range_parts = key_id | split: "-" %}
+          {% assign range_start = range_parts[0] %}
+          {% assign range_end_str = range_parts[1] %}
+
+          {% comment %} Extract numeric parts for comparison {% endcomment %}
+          {% assign uid_num_str = entry.uid | split: "." | last %}
+          {% assign uid_num = uid_num_str | plus: 0 %}
+
+          {% assign start_num_str = range_start | split: "." | last %}
+          {% assign start_num = start_num_str | plus: 0 %}
+          {% assign end_num = range_end_str | plus: 0 %}
+
+          {% if uid_num >= start_num and uid_num <= end_num %}
+            {% assign matches_uid = true %}
+          {% endif %}
+        {% endif %}
+
+        {% comment %} Include if it's a header, last key, or matches uid {% endcomment %}
+        {% if is_header or is_last_key or matches_uid %}
+          {% assign should_process = true %}
+        {% else %}
+          {% assign should_process = false %}
+        {% endif %}
+      {% endif %}
+
+      {% if should_process %}
+        {% assign html = entry._bilarasuttas_data.html_text[key] %}
+        {% comment %} Handle individual range suttas some more... {% endcomment %}
+        {% if entry.scx_range_sutta_individual and is_last_key %}
+          {% assign last_key_prefix = key | split: ":" | first %}
+          {% unless last_key_prefix == entry.uid %}
+            {% comment %} These .end* <p> tag's are only needed on the last sutta in vagga/book {% endcomment %}
+            {% assign html = html | replace: "<p class='endvagga'>{}</p>", "" %}
+            {% assign html = html | replace: "<p class='end'>{}</p>", "" %}
+            {% assign html = html | replace: "<p class='endbook'>{}</p>", "" %}
+            {% comment %}
+              Stricter check to handle other cases...
+              ie an11.22/en/sujato to an11.29/en/sujato (/pli/ms also)
+            {% endcomment %}
+            {% comment %} But first exclude ie range an11.30/en/sujato to an11.69 where the last value is "{}</p></article>" {% endcomment %}
+            {% assign html_first_two_chars = html | slice: 0, 2 %}
+            {% if html contains "</article>" and html_first_two_chars != "{}" %}
+              {% unless html contains entry.uid %}
+                {% comment %} Remove everything except the closing tag(s) {% endcomment %}
+                {% assign html = html
+                  | split: "</article>"
+                  | last
+                  | prepend: "</article>"
+                %}
+              {% endunless %}
+            {% endif %}
+          {% endunless %}
+        {% endif %}
+        {% assign text = entry._bilarasuttas_data.translation_text[key] %}
+        {% assign rootText = entry._bilarasuttas_data.root_text[key] %}
+        {% assign comment = entry._bilarasuttas_data.comment_text[key] %}
+        {% assign ref = key | split: ":" | last %}
+
+        {% if html %}
+          {% capture replacement %}
           <span id="{{ key }}" class="segment">
             <span class="reference" id="{{ ref }}">
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
             </span>
             {% if text %}
-            <span class="translation" lang="{{ entry.lang }}"{% if text == entry.translated_title or text == entry.translated_name %} data-pagefind-weight="8"{% endif %}>
-              <span class="text">{{ text }}</span>
+              <span class="translation" lang="{{ entry.lang }}"{% if text == entry.translated_title or text == entry.translated_name %} data-pagefind-weight="8"{% endif %}>
+            {% if entry.scx_range_sutta_individual and is_header %}
+              {% if text == entry.translated_title or text == entry.translated_name %}
+                {% capture text %}{{ entry.scx_range_sutta_title }}{% endcapture %}
+              {% endif %}
+            {% endif %}
+            <span class="text">{{ text }}</span>
               {% unless comment == blank %}
                 <button popovertarget="comment-{{ key }}" aria-label="Show {{ entry.author }}'s footnote for segment {{ key }}">*</button>
                 <span class="inline-comment" aria-label="{{ entry.author }}'s footnote for segment {{ key }}">
@@ -279,23 +519,29 @@ eleventyComputed:
             </span>
             {% endif %}
             {% if rootText %}
-            {% assign normalisedRoot = rootText | normalise %}
-            {% assign normalisedTitle = entry.original_title | normalise %}
-            <span class="root" lang="{{ entry.root_lang }}" translate="no" {% unless normalisedRoot contains normalisedTitle %}data-pagefind-ignore="all"{% endunless %}>
-              <span class="text">{{ rootText }}</span>
-            </span>
+              {% assign normalisedRoot = rootText | normalise %}
+              {% assign normalisedTitle = entry.original_title | normalise %}
+              <span class="root" lang="{{ entry.root_lang }}" translate="no" {% unless normalisedRoot contains normalisedTitle %}data-pagefind-ignore="all"{% endunless %}>
+                {% if entry.scx_range_sutta_individual and is_header %}
+                  {% if text == entry.scx_range_sutta_title %}
+                    {% capture rootText %}{{ entry.scx_range_sutta_title }}{% endcapture %}
+                  {% endif %}
+                {% endif %}
+                <span class="text">{{ rootText }}</span>
+              </span>
             {% endif %}
           </span>
-        {% endcapture %}
-        {{ html | replace: "{}", replacement }}
-        {%- if comment -%}
-          {% capture comments %}
+          {% endcapture %}
+          {{ html | replace: "{}", replacement }}
+          {%- if comment -%}
+            {% capture comments %}
             {{ comments }}
             <article id="comment-{{ key }}" popover>
               {{ comment | replace: 'https://suttacentral.net', '' }}
             </article>
           {% endcapture %}
-        {%- endif -%}
+          {%- endif -%}
+        {% endif %}
       {% endif %}
     {% endfor %}
     {{ comments }}
@@ -348,26 +594,36 @@ eleventyComputed:
 
 <nav aria-label="Article pagination">
   <div>
-    {% if entry._suttas_data.translation.previous.uid != blank %}
+    {% unless entry._suttas_data.translation.previous.uid == blank
+      and entry.scx_range_sutta_pagination.prev.uid == blank
+    %}
       <span>Previous</span>
       <a
-        href="/{{ entry._suttas_data.translation.previous.uid }}/{{ entry._suttas_data.translation.previous.lang }}/{{ entry._suttas_data.translation.previous.author_uid }}"
+        href="/{{ entry.scx_range_sutta_pagination.prev.uid | default: entry._suttas_data.translation.previous.uid }}/{{ entry._suttas_data.translation.previous.lang }}/{{ entry._suttas_data.translation.previous.author_uid }}"
         rel="prev"
       >
-        {{- entry._suttas_data.translation.previous.name -}}
+        {{
+          entry.scx_range_sutta_pagination.prev.name
+          | default: entry._suttas_data.translation.previous.name
+        }}
       </a>
-    {% endif %}
+    {% endunless %}
   </div>
   <div>
-    {% if entry._suttas_data.translation.next.uid != blank %}
+    {% unless entry._suttas_data.translation.next.uid == blank
+      and entry.scx_range_sutta_pagination.next.uid == blank
+    %}
       <span>Next</span>
       <a
-        href="/{{ entry._suttas_data.translation.next.uid }}/{{ entry._suttas_data.translation.next.lang }}/{{ entry._suttas_data.translation.next.author_uid }}"
-        rel="next"
+        href="/{{ entry.scx_range_sutta_pagination.next.uid | default: entry._suttas_data.translation.next.uid }}/{{ entry._suttas_data.translation.next.lang }}/{{ entry._suttas_data.translation.next.author_uid }}"
+        rel="prev"
       >
-        {{- entry._suttas_data.translation.next.name -}}
+        {{
+          entry.scx_range_sutta_pagination.next.name
+          | default: entry._suttas_data.translation.next.name
+        }}
       </a>
-    {% endif %}
+    {% endunless %}
   </div>
 </nav>
 

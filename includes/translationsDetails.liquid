@@ -17,7 +17,7 @@
       {% for version in english_versions %}
         <li>
           <a
-            href="/{{ entry.uid }}/{{ version.lang }}/{{ version.author_uid }}"
+            href="/{% if entry.scx_range_sutta and version.segmented != true %}{{ entry.scx_range_sutta_uid }}{% else %}{{ entry.uid }}{% endif %}/{{ version.lang }}/{{ version.author_uid }}"
             hreflang="{{ version.lang }}"
           >
             {{-
@@ -54,7 +54,7 @@
           <span>{{ version.lang_name }}—</span>
           <!-- prettier-ignore -->
           <a
-            href="/{{ entry.uid }}/{{ version.lang }}/{{ version.author_uid }}"
+            href="/{% if entry.scx_range_sutta and version.segmented != true %}{{ entry.scx_range_sutta_uid }}{% else %}{{ entry.uid }}{% endif %}/{{ version.lang }}/{{ version.author_uid }}"
             hreflang="{{ version.lang }}"
           >{{- "" -}}{%- if version.author_uid == "sct" -%}
             SuttaCentral Taishō
@@ -95,7 +95,7 @@
         <li>
           <span>{{ version.lang_name }}—</span
           ><a
-            href="/{{ entry.uid }}/{{ version.lang }}/{{ version.author_uid }}"
+            href="/{% if entry.scx_range_sutta and version.segmented != true %}{{ entry.scx_range_sutta_uid }}{% else %}{{ entry.uid }}{% endif %}/{{ version.lang }}/{{ version.author_uid }}"
             hreflang="{{ version.lang }}"
           >
             {{-

@@ -242,6 +242,31 @@ async function fetchDataTree(uid, depth = 0) {
   }
 
   if (node.node_type === 'leaf') {
+    // Assign marker and add useful metadata for "range suttas",
+    // for use later to extract individual range suttas in `text(Meta)Data.js` files
+    if (
+      (node.uid?.startsWith('an') || node.uid?.startsWith('dhp')) &&
+      node.uid.includes('-')
+    ) {
+      const [ref, range] = node.uid.includes('.')
+        ? node.uid.split('.') // ie. ["an1","1-10"]
+        : (([, r, rng]) => [r, rng])(node.uid.match(/^([^\d]*)(.*)$/)) // ie. ["dhp","1-20"]
+      const flatRange = []
+      const [start, end] = range.split('-').map(Number)
+      for (let i = start; i <= end; i++) {
+        flatRange.push(node.uid.includes('.') ? `${ref}.${i}` : `${ref}${i}`) // ie. "an1.1" ... "an1.10"
+      }
+
+      node = {
+        ...node,
+        ...(!!flatRange.length && {
+          scx_range_sutta: true,
+          scx_range_sutta_uid: node.uid, // ie. "an1.1-10", the same as `_suttas_data.range_uid`, but _suttas_data is only available in translations
+          scx_range_sutta_range_uids: flatRange,
+        }),
+      }
+    }
+
     return await getTextData()
   }
 

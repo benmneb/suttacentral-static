@@ -3,9 +3,19 @@
     open
   {% endif %}
 >
-  <summary>Parallels ({{ entry.parallel_count }})</summary>
+  <summary>
+    Parallels (
+    {{-
+      entry.scx_range_sutta_parallels_count
+      | default: entry.parallel_count
+    -}}
+    )
+  </summary>
   <ul>
-    {% for segment in entry._parallels_data %}
+    {% assign parallels = entry.scx_range_sutta_parallels_data
+      | default: entry._parallels_data
+    %}
+    {% for segment in parallels %}
       {% unless segment[0] contains "scx_fetched_at" %}
         <li>
           {% assign root_trans = entry.translations
@@ -13,7 +23,15 @@
             | where: "is_root", true
             | first
           %}
-          <a href="/{% if segment[0] contains '#' %}{{ segment[0] | split: '#' | first }}/{{ root_trans.lang }}/{{ root_trans.author_uid }}#{{ segment[0] | split: '#' | last }}{% else %}{{ segment[0] }}/{{ root_trans.lang }}/{{ root_trans.author_uid }}{% endif %}">
+          {% comment %} TODO: Are there links with #'s and ranges?? {% endcomment %}
+          {% assign base_path = segment[0] %}
+          {% if segment[0] contains "#" %}
+            {% assign base_path = segment[0] | split: "#" | first %}
+          {% endif %}
+          {% if entry.scx_range_sutta and segment[0] contains "-" %}
+            {% assign base_path = entry.scx_range_sutta_uid %}
+          {% endif %}
+          <a href="/{{ base_path }}/{{ root_trans.lang }}/{{ root_trans.author_uid }}{% if segment[0] contains '#' %}#{{ segment[0] | split: '#' | last }}{% endif %}">
             {{- segment[0] -}}
           </a>
           <ul>
