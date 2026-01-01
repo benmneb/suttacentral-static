@@ -2,12 +2,11 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "SuttaCentral Express",
   "version": "0.1.0",
-  "identifier": "com.suttacentral.express",
+  "identifier": "express.suttacentral",
   "build": {
     "frontendDist": "../_site",
     "devUrl": "http://localhost:3000",
     "beforeDevCommand": "pnpm run dev",
-    "beforeBuildCommand": "pnpm run build && pnpm run build:search",
     "removeUnusedCommands": true
   },
   "app": {
