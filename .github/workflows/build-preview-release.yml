@@ -146,6 +146,13 @@ jobs:
           echo "preview_url=$URL" >> $GITHUB_OUTPUT
           echo "Preview URL: $URL"
 
+      - name: Upload site artifact for Tauri builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-build
+          path: _site
+          retention-days: 1
+
       - name: Create draft release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -202,6 +209,12 @@ jobs:
         with:
           ref: main
 
+      - name: Download site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: site-build
+          path: _site
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -212,9 +225,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
-
-      - name: Build site
-        run: pnpm run predeploy
 
       - name: Install Linux dependencies
         if: matrix.platform == 'ubuntu-22.04'
@@ -464,6 +474,13 @@ jobs:
           echo "HTML files: $HTML_COUNT"
           echo "Total files: $TOTAL_COUNT"
 
+      - name: Upload site artifact for Tauri builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-build-content-refresh
+          path: _site
+          retention-days: 1
+
       - name: Create pre-release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -522,6 +539,12 @@ jobs:
         with:
           ref: main
 
+      - name: Download site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: site-build-content-refresh
+          path: _site
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -532,9 +555,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
-
-      - name: Build site
-        run: pnpm run predeploy
 
       - name: Install Linux dependencies
         if: matrix.platform == 'ubuntu-22.04'
