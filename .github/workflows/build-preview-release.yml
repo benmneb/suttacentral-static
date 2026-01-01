@@ -189,26 +189,18 @@ jobs:
             args: '--target aarch64-apple-darwin'
             name: 'macOS ARM64'
             rust_target: 'aarch64-apple-darwin'
-            asset_platform: 'macos'
-            asset_arch: 'aarch64'
           - platform: macos-latest
             args: '--target x86_64-apple-darwin'
             name: 'macOS Intel'
             rust_target: 'x86_64-apple-darwin'
-            asset_platform: 'macos'
-            asset_arch: 'x64'
           - platform: ubuntu-22.04
             args: ''
             name: 'Linux'
             rust_target: ''
-            asset_platform: 'linux'
-            asset_arch: 'amd64'
           - platform: windows-latest
             args: ''
             name: 'Windows'
             rust_target: ''
-            asset_platform: 'windows'
-            asset_arch: 'x64'
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -271,7 +263,7 @@ jobs:
           tauriScript: pnpm tauri
           releaseId: ${{ needs.release-draft.outputs.release_id }}
           args: ${{ matrix.args }}
-          releaseAssetNamePattern: 'scx_app-[version]-${{ matrix.asset_platform }}_${{ matrix.asset_arch }}[ext]'
+          releaseAssetNamePattern: 'scx_app-[version]-[platform]_[arch][ext]'
 
   finalize-release:
     name: Finalize Release
@@ -540,26 +532,18 @@ jobs:
             args: '--target aarch64-apple-darwin'
             name: 'macOS ARM64'
             rust_target: 'aarch64-apple-darwin'
-            asset_platform: 'macos'
-            asset_arch: 'aarch64'
           - platform: macos-latest
             args: '--target x86_64-apple-darwin'
             name: 'macOS Intel'
             rust_target: 'x86_64-apple-darwin'
-            asset_platform: 'macos'
-            asset_arch: 'x64'
           - platform: ubuntu-22.04
             args: ''
             name: 'Linux'
             rust_target: ''
-            asset_platform: 'linux'
-            asset_arch: 'amd64'
           - platform: windows-latest
             args: ''
             name: 'Windows'
             rust_target: ''
-            asset_platform: 'windows'
-            asset_arch: 'x64'
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -604,7 +588,7 @@ jobs:
       - name: Update Tauri version
         shell: bash
         run: |
-          VERSION="${{ needs.content-refresh.outputs.version }}-content-refresh-${{ needs.content-refresh.outputs.date }}"
+          VERSION="${{ needs.content-refresh.outputs.version }}+${{ needs.content-refresh.outputs.date }}"
           if command -v jq &> /dev/null; then
             jq --arg v "$VERSION" '.version = $v' tauri/tauri.conf.json > tmp.json && mv tmp.json tauri/tauri.conf.json
           else
@@ -622,7 +606,7 @@ jobs:
           tauriScript: pnpm tauri
           releaseId: ${{ needs.content-refresh.outputs.release_id }}
           args: ${{ matrix.args }}
-          releaseAssetNamePattern: 'scx_app-[version]-${{ matrix.asset_platform }}_${{ matrix.asset_arch }}[ext]'
+          releaseAssetNamePattern: 'scx_app-[version]-[platform]_[arch][ext]'
 
   finalize-release-content-refresh:
     name: Finalize Content Refresh Release
