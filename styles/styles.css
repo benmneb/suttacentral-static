@@ -1363,7 +1363,7 @@ button#show-more {
   background-color: var(--background-color);
   border-radius: var(--rounding);
   border: 1px solid var(--primary-color);
-  padding: 0.3rem 0.6rem;
+  padding: 0.2rem 0.6rem;
   color: var(--primary-color);
   font-size: inherit;
   cursor: pointer;
