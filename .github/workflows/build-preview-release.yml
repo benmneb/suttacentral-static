@@ -46,6 +46,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: check-tag
     if: needs.check-tag.outputs.on-main == 'true'
+    outputs:
+      release_id: ${{ steps.create_release.outputs.id }}
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      preview_url: ${{ steps.vercel_deploy.outputs.preview_url }}
+      date: ${{ steps.date.outputs.date }}
+      tag_message: ${{ steps.tag_message.outputs.message }}
+      html_count: ${{ steps.size.outputs.html_count }}
+      total_count: ${{ steps.size.outputs.total_count }}
+      archive_name: ${{ steps.archive.outputs.archive_name }}
+      archive_size: ${{ steps.size.outputs.size }}
 
     steps:
       - name: Checkout repository
@@ -136,6 +147,7 @@ jobs:
           echo "Preview URL: $URL"
 
       - name: Create draft release
+        id: create_release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
@@ -148,21 +160,128 @@ jobs:
 
             **Preview Deployment:** ${{ steps.vercel_deploy.outputs.preview_url }}
 
+            > ⏳ **Desktop app builds in progress.** Please wait for all builds to complete before publishing.
+
             **Build Info:**
             - Date: ${{ steps.date.outputs.date }}
             - Trigger: Tag push to main
             - Version: ${{ steps.version.outputs.version }}
             - Files: ${{ steps.size.outputs.html_count }} HTML files (${{ steps.size.outputs.total_count }} total)
             - Archive: ${{ steps.archive.outputs.archive_name }} (${{ steps.size.outputs.size }})
+          files: .dist/${{ steps.archive.outputs.archive_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-tauri:
+    name: Build Tauri (${{ matrix.name }})
+    needs: release-draft
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            args: '--target aarch64-apple-darwin'
+            name: 'macOS ARM64'
+            rust_target: 'aarch64-apple-darwin'
+          - platform: macos-latest
+            args: '--target x86_64-apple-darwin'
+            name: 'macOS Intel'
+            rust_target: 'x86_64-apple-darwin'
+          - platform: ubuntu-22.04
+            args: ''
+            name: 'Linux'
+            rust_target: ''
+          - platform: windows-latest
+            args: ''
+            name: 'Windows'
+            rust_target: ''
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.3.0'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build site
+        run: pnpm run predeploy
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_target }}
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './tauri -> target'
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: ./tauri
+          tauriScript: pnpm tauri
+          releaseId: ${{ needs.release-draft.outputs.release_id }}
+          args: ${{ matrix.args }}
+
+  finalize-release:
+    name: Finalize Release
+    needs: [release-draft, build-tauri]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update release body
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tagMessage = `${{ needs.release-draft.outputs.tag_message }}`;
+            const body = `${tagMessage}
+
+            ---
+
+            **Preview Deployment:** ${{ needs.release-draft.outputs.preview_url }}
+
+            **Desktop Apps:** ✅ All platforms ready (macOS ARM64, macOS Intel, Windows, Linux)
+
+            **Build Info:**
+            - Date: ${{ needs.release-draft.outputs.date }}
+            - Trigger: Tag push to main
+            - Version: ${{ needs.release-draft.outputs.version }}
+            - Files: ${{ needs.release-draft.outputs.html_count }} HTML files (${{ needs.release-draft.outputs.total_count }} total)
+            - Archive: ${{ needs.release-draft.outputs.archive_name }} (${{ needs.release-draft.outputs.archive_size }})
 
             **Next Steps:**
             1. Review the preview deployment above
             2. If satisfied, click "Publish release" to deploy to production
             3. Publishing will automatically:
                - Deploy the exact same build to Vercel production
-               - Upload archive to Codeberg releases
-          files: .dist/${{ steps.archive.outputs.archive_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+               - Upload archive and desktop apps to Codeberg releases`;
+
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ needs.release-draft.outputs.release_id }},
+              body: body
+            });
+
+            console.log('✓ Release body updated - all desktop builds complete');
 
   pr-preview:
     name: Pull Request Preview
@@ -221,6 +340,17 @@ jobs:
     name: Content Refresh Build
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    outputs:
+      release_id: ${{ steps.create_release.outputs.id }}
+      version: ${{ steps.version.outputs.version }}
+      preview_tag: ${{ steps.preview_tag.outputs.tag }}
+      date: ${{ steps.date.outputs.date }}
+      preview_url: ${{ steps.vercel_deploy.outputs.preview_url }}
+      html_count: ${{ steps.size.outputs.html_count }}
+      total_count: ${{ steps.size.outputs.total_count }}
+      archive_name: ${{ steps.archive.outputs.archive_name }}
+      archive_size: ${{ steps.size.outputs.size }}
+      trigger: ${{ github.event_name == 'schedule' && 'Monthly scheduled build' || 'Manual trigger' }}
 
     steps:
       - name: Checkout repository
@@ -335,6 +465,7 @@ jobs:
           echo "Total files: $TOTAL_COUNT"
 
       - name: Create pre-release
+        id: create_release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.preview_tag.outputs.tag }}
@@ -348,6 +479,8 @@ jobs:
 
             **Preview Deployment:** ${{ steps.vercel_deploy.outputs.preview_url }}
 
+            > ⏳ **Desktop app builds in progress.** Please wait for all builds to complete before publishing.
+
             **Build Info:**
             - Date: ${{ steps.date.outputs.date }}
             - Trigger: ${{ github.event_name == 'schedule' && 'Monthly scheduled build' || 'Manual trigger' }}
@@ -355,15 +488,120 @@ jobs:
             - Preview Tag: ${{ steps.preview_tag.outputs.tag }}
             - Files: ${{ steps.size.outputs.html_count }} HTML files (${{ steps.size.outputs.total_count }} total)
             - Archive: ${{ steps.archive.outputs.archive_name }} (${{ steps.size.outputs.size }})
+          files: .dist/${{ steps.archive.outputs.archive_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-tauri-content-refresh:
+    name: Build Tauri Content Refresh (${{ matrix.name }})
+    needs: content-refresh
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            args: '--target aarch64-apple-darwin'
+            name: 'macOS ARM64'
+            rust_target: 'aarch64-apple-darwin'
+          - platform: macos-latest
+            args: '--target x86_64-apple-darwin'
+            name: 'macOS Intel'
+            rust_target: 'x86_64-apple-darwin'
+          - platform: ubuntu-22.04
+            args: ''
+            name: 'Linux'
+            rust_target: ''
+          - platform: windows-latest
+            args: ''
+            name: 'Windows'
+            rust_target: ''
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.3.0'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build site
+        run: pnpm run predeploy
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_target }}
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './tauri -> target'
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: ./tauri
+          tauriScript: pnpm tauri
+          releaseId: ${{ needs.content-refresh.outputs.release_id }}
+          args: ${{ matrix.args }}
+
+  finalize-release-content-refresh:
+    name: Finalize Content Refresh Release
+    needs: [content-refresh, build-tauri-content-refresh]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update release body
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `# v${{ needs.content-refresh.outputs.version }} - Content Refresh (${{ needs.content-refresh.outputs.date }})
+
+            Fresh content fetched from SuttaCentral API
+
+            **Preview Deployment:** ${{ needs.content-refresh.outputs.preview_url }}
+
+            **Desktop Apps:** ✅ All platforms ready (macOS ARM64, macOS Intel, Windows, Linux)
+
+            **Build Info:**
+            - Date: ${{ needs.content-refresh.outputs.date }}
+            - Trigger: ${{ needs.content-refresh.outputs.trigger }}
+            - Version: ${{ needs.content-refresh.outputs.version }}
+            - Preview Tag: ${{ needs.content-refresh.outputs.preview_tag }}
+            - Files: ${{ needs.content-refresh.outputs.html_count }} HTML files (${{ needs.content-refresh.outputs.total_count }} total)
+            - Archive: ${{ needs.content-refresh.outputs.archive_name }} (${{ needs.content-refresh.outputs.archive_size }})
 
             **Next Steps:**
             1. Review the preview deployment above
             2. If satisfied, edit this release and uncheck "Set as a pre-release" to promote to production
             3. Publishing will automatically:
                - Deploy the exact same build to Vercel production
-               - Upload archive to Codeberg releases
+               - Upload archive and desktop apps to Codeberg releases
                - Clean up the preview tag from all remotes
             4. Deleting will automatically:
-               - Clean up the preview tag from all remotes
-          files: .dist/${{ steps.archive.outputs.archive_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+               - Clean up the preview tag from all remotes`;
+
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ needs.content-refresh.outputs.release_id }},
+              body: body
+            });
+
+            console.log('✓ Release body updated - all desktop builds complete');

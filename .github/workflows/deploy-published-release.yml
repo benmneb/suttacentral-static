@@ -16,20 +16,34 @@ jobs:
         with:
           ref: main
 
-      - name: Download release archive
+      - name: Download release assets
         run: |
-          ASSET_URL=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }} \
-            | jq -r '.assets[] | select(.name | endswith(".tar.gz")) | .browser_download_url')
-          ASSET_NAME=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }} \
-            | jq -r '.assets[] | select(.name | endswith(".tar.gz")) | .name')
-          echo "Downloading: $ASSET_URL"
-          echo "archive_name=$ASSET_NAME" >> $GITHUB_ENV
-          curl -L -o archive.tar.gz "$ASSET_URL"
+          mkdir -p .assets
+
+          # Get all release assets
+          ASSETS=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }} \
+            | jq -r '.assets[] | "\(.name)|\(.browser_download_url)"')
+
+          # Download each asset
+          echo "$ASSETS" | while IFS='|' read -r name url; do
+            if [ -n "$name" ] && [ -n "$url" ]; then
+              echo "Downloading: $name"
+              curl -L -o ".assets/$name" "$url"
+
+              # Track archive name for extraction
+              if [[ "$name" == *.tar.gz ]]; then
+                echo "archive_name=$name" >> $GITHUB_ENV
+              fi
+            fi
+          done
+
+          echo "Downloaded assets:"
+          ls -la .assets/
 
       - name: Extract archive
         run: |
           mkdir -p _site
-          tar -xzf archive.tar.gz -C .
+          tar -xzf ".assets/${{ env.archive_name }}" -C .
           ls -la _site
 
       - name: Setup Node.js
@@ -89,22 +103,28 @@ jobs:
 
           echo "✓ Created Codeberg release (ID: $RELEASE_ID)"
 
-          # Upload asset with the same filename as GitHub release
-          echo "Uploading archive to Codeberg..."
-          UPLOAD_RESPONSE=$(curl -s -X POST \
-            -H "Authorization: token $CODEBERG_TOKEN" \
-            -H "Content-Type: multipart/form-data" \
-            -F "attachment=@archive.tar.gz" \
-            "https://codeberg.org/api/v1/repos/$CODEBERG_REPO/releases/$RELEASE_ID/assets?name=${{ env.archive_name }}")
+          # Upload all assets to Codeberg
+          for asset in .assets/*; do
+            if [ -f "$asset" ]; then
+              asset_name=$(basename "$asset")
+              echo "Uploading $asset_name to Codeberg..."
+              UPLOAD_RESPONSE=$(curl -s -X POST \
+                -H "Authorization: token $CODEBERG_TOKEN" \
+                -H "Content-Type: multipart/form-data" \
+                -F "attachment=@$asset" \
+                "https://codeberg.org/api/v1/repos/$CODEBERG_REPO/releases/$RELEASE_ID/assets?name=$asset_name")
 
-          # Check if upload was successful
-          if echo "$UPLOAD_RESPONSE" | jq -e '.id' > /dev/null 2>&1; then
-            echo "✓ Uploaded to Codeberg as ${{ env.archive_name }}"
-          else
-            echo "✗ Failed to upload asset to Codeberg"
-            echo "Response: $UPLOAD_RESPONSE"
-            exit 1
-          fi
+              # Check if upload was successful
+              if echo "$UPLOAD_RESPONSE" | jq -e '.id' > /dev/null 2>&1; then
+                echo "✓ Uploaded $asset_name"
+              else
+                echo "✗ Failed to upload $asset_name"
+                echo "Response: $UPLOAD_RESPONSE"
+              fi
+            fi
+          done
+
+          echo "✓ All assets uploaded to Codeberg"
 
   cleanup-preview-tag:
     name: Cleanup Preview Tag
