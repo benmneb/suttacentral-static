@@ -4,7 +4,7 @@
   "author": "benmneb",
   "version": "1.3.0",
   "license": "CC0",
-  "packageManager": "pnpm@10.26.0",
+  "packageManager": "pnpm@10.27.0",
   "type": "module",
   "private": true,
   "scripts": {
@@ -22,6 +22,8 @@
     "build:refetch": "REFETCH=1 pnpm run predeploy",
     "dev": "pnpm serve _site",
     "dev:fresh": "pnpm run predeploy && pnpm run dev",
+    "tauri:dev": "pnpm tauri dev",
+    "tauri:build": "pnpm tauri build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "predeploy": "rm -rf _site && pnpm run build && pnpm run build:search",
@@ -41,6 +43,8 @@
   },
   "devDependencies": {
     "@shopify/prettier-plugin-liquid": "^1.10.0",
+    "@tauri-apps/cli": "^2.9.6",
+    "@tauri-apps/plugin-window-state": "~2.4.1",
     "browserslist": "^4.28.0",
     "dotenv": "^17.2.3",
     "dotenv-cli": "^11.0.0",
