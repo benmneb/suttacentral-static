@@ -24,8 +24,8 @@
     "dev:fresh": "pnpm run predeploy && pnpm run dev",
     "tauri:dev": "pnpm tauri dev",
     "tauri:build": "pnpm tauri build",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "prettier --write . && cargo fmt --manifest-path tauri/Cargo.toml && taplo format **/*.toml",
+    "format:check": "prettier --check . && cargo fmt --manifest-path tauri/Cargo.toml --check && taplo format --check **/*.toml",
     "predeploy": "rm -rf _site && pnpm run build && pnpm run build:search",
     "deploy:dev": "dotenv -e .env -- sh -c 'vercel deploy --archive=tgz --cwd=_site --token=\"$VERCEL_TOKEN\"'",
     "deploy:prod": "dotenv -e .env -- sh -c 'vercel deploy --archive=tgz --cwd=_site --prod --token=\"$VERCEL_TOKEN\"'",
@@ -34,7 +34,9 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{js,liquid,json,md,css,yml}": "prettier --write"
+    "*.{js,liquid,json,md,css,yml}": "prettier --write",
+    "*.rs": "cargo fmt --manifest-path tauri/Cargo.toml --",
+    "*.toml": "taplo format"
   },
   "dependencies": {
     "@11ty/eleventy": "^3.1.2",
@@ -43,6 +45,7 @@
   },
   "devDependencies": {
     "@shopify/prettier-plugin-liquid": "^1.10.0",
+    "@taplo/cli": "^0.7.0",
     "@tauri-apps/cli": "^2.9.6",
     "@tauri-apps/plugin-opener": "~2.5.2",
     "@tauri-apps/plugin-window-state": "~2.4.1",

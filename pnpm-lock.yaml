@@ -21,6 +21,9 @@ importers:
       '@shopify/prettier-plugin-liquid':
         specifier: ^1.10.0
         version: 1.10.0(prettier@3.7.3)
+      '@taplo/cli':
+        specifier: ^0.7.0
+        version: 0.7.0
       '@tauri-apps/cli':
         specifier: ^2.9.6
         version: 2.9.6
@@ -730,6 +733,10 @@ packages:
   '@sindresorhus/transliterate@1.6.0':
     resolution: {integrity: sha512-doH1gimEu3A46VX6aVxpHTeHrytJAG6HgdxntYnCFiIFHEM/ZGpG8KiZGBChchjQmG0XFIBL552kBTjVcMZXwQ==}
     engines: {node: '>=12'}
+
+  '@taplo/cli@0.7.0':
+    resolution: {integrity: sha512-Ck3zFhQhIhi02Hl6T4ZmJsXdnJE+wXcJz5f8klxd4keRYgenMnip3JDPMGDRLbnC/2iGd8P0sBIQqI3KxfVjBg==}
+    hasBin: true
 
   '@tauri-apps/api@2.9.1':
     resolution: {integrity: sha512-IGlhP6EivjXHepbBic618GOmiWe4URJiIeZFlB7x3czM0yDHHYviH1Xvoiv4FefdkQtn6v7TuwWCRfOGdnVUGw==}
@@ -3371,6 +3378,8 @@ snapshots:
   '@sindresorhus/transliterate@1.6.0':
     dependencies:
       escape-string-regexp: 5.0.0
+
+  '@taplo/cli@0.7.0': {}
 
   '@tauri-apps/api@2.9.1': {}
 
