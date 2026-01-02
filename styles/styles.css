@@ -612,6 +612,7 @@ body {
 aside {
   display: flex;
   justify-content: end;
+  pointer-events: none;
 
   &:has(#positioner:checked) {
     position: sticky;
@@ -626,6 +627,7 @@ aside {
     background-color: var(--bg-alt-1);
     border-top-left-radius: var(--rounding);
     border-bottom-left-radius: var(--rounding);
+    pointer-events: auto;
 
     button {
       height: 100%;
