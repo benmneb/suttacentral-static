@@ -1346,7 +1346,7 @@ ul#search-results {
         display: inline;
 
         &:not(dd:last-of-type)::after {
-          content: '•';
+          content: '∙';
           margin-left: 0.5rem;
         }
       }

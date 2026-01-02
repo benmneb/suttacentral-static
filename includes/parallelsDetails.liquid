@@ -69,17 +69,17 @@
                 %}
                   {{ parallel.to.original_title | strip }}
                   {% if parallel.to.acronym != blank %}
-                    | {{ parallel.to.acronym | strip -}}
+                    ∙ {{ parallel.to.acronym | strip -}}
                   {%- endif %}
                   {% if pretty_volpages != blank %}
-                    | {{ pretty_volpages | strip -}}
+                    ∙ {{ pretty_volpages | strip -}}
                   {%- endif %}
                 {% elsif parallel.to.original_title != blank %}
                   {% if parallel.to.acronym != blank %}
                     {{- parallel.to.acronym | strip -}}
                   {%- endif %}
                   {% if pretty_volpages != blank %}
-                    | {{ pretty_volpages | strip -}}
+                    ∙ {{ pretty_volpages | strip -}}
                   {%- endif %}
                 {% elsif parallel.to.acronym != blank %}
                   {% if pretty_volpages != blank %}
