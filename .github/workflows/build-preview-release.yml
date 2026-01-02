@@ -174,7 +174,6 @@ jobs:
             - Trigger: Tag push to main
             - Version: ${{ steps.version.outputs.version }}
             - Files: ${{ steps.size.outputs.html_count }} HTML files (${{ steps.size.outputs.total_count }} total)
-            - Archive: ${{ steps.archive.outputs.archive_name }} (${{ steps.size.outputs.size }})
           files: .dist/${{ steps.archive.outputs.archive_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -320,14 +319,13 @@ jobs:
             - Trigger: Tag push to main
             - Version: ${{ needs.release-draft.outputs.version }}
             - Files: ${{ needs.release-draft.outputs.html_count }} HTML files (${{ needs.release-draft.outputs.total_count }} total)
-            - Archive: ${{ needs.release-draft.outputs.archive_name }} (${{ needs.release-draft.outputs.archive_size }})
 
             **Next Steps:**
             1. Review the preview deployment above
             2. If satisfied, click "Publish release" to deploy to production
             3. Publishing will automatically:
                - Deploy the exact same build to Vercel production
-               - Upload archive and desktop apps to Codeberg releases`;
+               - Upload assets to Codeberg releases`;
 
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,
@@ -535,9 +533,7 @@ jobs:
           draft: false
           prerelease: true
           body: |
-            # v${{ steps.version.outputs.version }} - Content Refresh (${{ steps.date.outputs.date }})
-
-            Fresh content fetched from SuttaCentral API
+            Fresh content fetched from SuttaCentral APIs
 
             **Preview Deployment:** ${{ steps.vercel_deploy.outputs.preview_url }}
 
@@ -549,7 +545,6 @@ jobs:
             - Version: ${{ steps.version.outputs.version }}
             - Preview Tag: ${{ steps.preview_tag.outputs.tag }}
             - Files: ${{ steps.size.outputs.html_count }} HTML files (${{ steps.size.outputs.total_count }} total)
-            - Archive: ${{ steps.archive.outputs.archive_name }} (${{ steps.size.outputs.size }})
           files: .dist/${{ steps.archive.outputs.archive_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -681,9 +676,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const body = `# v${{ needs.content-refresh.outputs.version }} - Content Refresh (${{ needs.content-refresh.outputs.date }})
-
-            Fresh content fetched from SuttaCentral API
+            const body = `Fresh content fetched from SuttaCentral APIs
 
             **Preview Deployment:** ${{ needs.content-refresh.outputs.preview_url }}
 
@@ -695,14 +688,13 @@ jobs:
             - Version: ${{ needs.content-refresh.outputs.version }}
             - Preview Tag: ${{ needs.content-refresh.outputs.preview_tag }}
             - Files: ${{ needs.content-refresh.outputs.html_count }} HTML files (${{ needs.content-refresh.outputs.total_count }} total)
-            - Archive: ${{ needs.content-refresh.outputs.archive_name }} (${{ needs.content-refresh.outputs.archive_size }})
 
             **Next Steps:**
             1. Review the preview deployment above
             2. If satisfied, edit this release and uncheck "Set as a pre-release" to promote to production
             3. Publishing will automatically:
                - Deploy the exact same build to Vercel production
-               - Upload archive and desktop apps to Codeberg releases
+               - Upload assets to Codeberg releases
                - Clean up the preview tag from all remotes
             4. Deleting will automatically:
                - Clean up the preview tag from all remotes`;
