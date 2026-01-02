@@ -361,13 +361,27 @@ jobs:
           script: |
             const signed = '${{ needs.sign-release.outputs.signed }}' === 'true';
             const tagMessage = `${{ needs.release-draft.outputs.tag_message }}`;
-            const gpgLines = signed ? '\n# Import public key (one-time)\ngpg --keyserver keys.openpgp.org --recv-keys AECABD60A4CB5BE900864AF2C8DAB4CE409C4AB8\ngpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt' : '';
+            const gpgSection = signed ? `
+
+            Import my public key, one time (same key used to sign all commits to this repo)
+            \`\`\`bash
+            gpg --keyserver keys.openpgp.org --recv-keys AECABD60A4CB5BE900864AF2C8DAB4CE409C4AB8
+            \`\`\`
+
+            Verify signature
+            \`\`\`bash
+            gpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt
+            \`\`\`` : '';
             const body = `${tagMessage}
 
-            **Verify Asset Downloads:**
+            <details>
+            <summary><strong>Verify Asset Downloads</strong></summary>
+
+            Verify checksum matches
             \`\`\`bash
-            sha256sum -c --ignore-missing SHA256SUMS.txt${gpgLines}
-            \`\`\`
+            sha256sum -c --ignore-missing SHA256SUMS.txt
+            \`\`\`${gpgSection}
+            </details>
 
             ---
 
@@ -799,13 +813,27 @@ jobs:
         with:
           script: |
             const signed = '${{ needs.sign-release-content-refresh.outputs.signed }}' === 'true';
-            const gpgLines = signed ? '\n# Import public key (one-time)\ngpg --keyserver keys.openpgp.org --recv-keys AECABD60A4CB5BE900864AF2C8DAB4CE409C4AB8\ngpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt' : '';
+            const gpgSection = signed ? `
+
+            Import my public key, one time (same key used to sign all commits to this repo)
+            \`\`\`bash
+            gpg --keyserver keys.openpgp.org --recv-keys AECABD60A4CB5BE900864AF2C8DAB4CE409C4AB8
+            \`\`\`
+
+            Verify signature
+            \`\`\`bash
+            gpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt
+            \`\`\`` : '';
             const body = `Fresh content fetched from SuttaCentral APIs
 
-            **Verify Asset Downloads:**
+            <details>
+            <summary><strong>Verify Asset Downloads</strong></summary>
+
+            Verify checksum matches
             \`\`\`bash
-            sha256sum -c --ignore-missing SHA256SUMS.txt${gpgLines}
-            \`\`\`
+            sha256sum -c --ignore-missing SHA256SUMS.txt
+            \`\`\`${gpgSection}
+            </details>
 
             ---
 
