@@ -296,17 +296,78 @@ jobs:
           files: artifacts/*
           token: ${{ secrets.GITHUB_TOKEN }}
 
+  sign-release:
+    name: Sign Release Artifacts
+    needs: [release-draft, build-tauri]
+    runs-on: ubuntu-latest
+    outputs:
+      signed: ${{ steps.sign.outputs.signed }}
+    steps:
+      - name: Download release artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p artifacts
+          gh release download "${{ needs.release-draft.outputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "scx_app-*" \
+            --dir artifacts
+          echo "Downloaded artifacts:"
+          ls -la artifacts/
+
+      - name: Generate SHA256 checksums
+        run: |
+          cd artifacts
+          sha256sum scx_app-* > SHA256SUMS.txt
+          echo "Generated checksums:"
+          cat SHA256SUMS.txt
+
+      - name: Sign checksums with PGP
+        id: sign
+        env:
+          PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+        run: |
+          if [ -n "$PGP_PRIVATE_KEY" ]; then
+            echo "$PGP_PRIVATE_KEY" | gpg --batch --import
+            cd artifacts
+            echo "$PGP_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback \
+              --passphrase-fd 0 --armor --detach-sign SHA256SUMS.txt
+            echo "Created signature: SHA256SUMS.txt.asc"
+            echo "signed=true" >> $GITHUB_OUTPUT
+          else
+            echo "PGP_PRIVATE_KEY not configured, skipping signing"
+            echo "signed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload checksums and signature
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.release-draft.outputs.tag }}
+          files: |
+            artifacts/SHA256SUMS.txt
+            artifacts/SHA256SUMS.txt.asc
+          fail_on_unmatched_files: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
   finalize-release:
     name: Finalize Release
-    needs: [release-draft, build-tauri]
+    needs: [release-draft, build-tauri, sign-release]
     runs-on: ubuntu-latest
     steps:
       - name: Update release body
         uses: actions/github-script@v7
         with:
           script: |
+            const signed = '${{ needs.sign-release.outputs.signed }}' === 'true';
             const tagMessage = `${{ needs.release-draft.outputs.tag_message }}`;
+            const gpgLines = signed ? '\n# Import public key (one-time)\ngpg --keyserver keys.openpgp.org --recv-keys AECABD60A4CB5BE900864AF2C8DAB4CE409C4AB8\ngpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt' : '';
             const body = `${tagMessage}
+
+            **Verify Asset Downloads:**
+            \`\`\`bash
+            sha256sum -c --ignore-missing SHA256SUMS.txt${gpgLines}
+            \`\`\`
 
             ---
 
@@ -322,7 +383,7 @@ jobs:
 
             **Next Steps:**
             1. Review the preview deployment above
-            2. If satisfied, click "Publish release" to deploy to production
+            2. If satisfied, edit this release body and click "Publish release" to deploy to production
             3. Publishing will automatically:
                - Deploy the exact same build to Vercel production
                - Upload assets to Codeberg releases`;
@@ -535,6 +596,8 @@ jobs:
           body: |
             Fresh content fetched from SuttaCentral APIs
 
+            ---
+
             **Preview Deployment:** ${{ steps.vercel_deploy.outputs.preview_url }}
 
             > ⏳ **Desktop app builds in progress.** Please wait for all builds to complete before publishing.
@@ -667,16 +730,84 @@ jobs:
           files: artifacts/*
           token: ${{ secrets.GITHUB_TOKEN }}
 
+  sign-release-content-refresh:
+    name: Sign Content Refresh Artifacts
+    needs: [content-refresh, build-tauri-content-refresh]
+    runs-on: ubuntu-latest
+    outputs:
+      signed: ${{ steps.sign.outputs.signed }}
+    steps:
+      - name: Download release artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p artifacts
+          gh release download "${{ needs.content-refresh.outputs.preview_tag }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "scx_app-*" \
+            --dir artifacts
+          echo "Downloaded artifacts:"
+          ls -la artifacts/
+
+      - name: Generate SHA256 checksums
+        run: |
+          cd artifacts
+          sha256sum scx_app-* > SHA256SUMS.txt
+          echo "Generated checksums:"
+          cat SHA256SUMS.txt
+
+      - name: Sign checksums with PGP
+        id: sign
+        env:
+          PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+        run: |
+          if [ -n "$PGP_PRIVATE_KEY" ]; then
+            echo "$PGP_PRIVATE_KEY" | gpg --batch --import
+            cd artifacts
+            echo "$PGP_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback \
+              --passphrase-fd 0 --armor --detach-sign SHA256SUMS.txt
+            echo "Created signature: SHA256SUMS.txt.asc"
+            echo "signed=true" >> $GITHUB_OUTPUT
+          else
+            echo "PGP_PRIVATE_KEY not configured, skipping signing"
+            echo "signed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload checksums and signature
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.content-refresh.outputs.preview_tag }}
+          files: |
+            artifacts/SHA256SUMS.txt
+            artifacts/SHA256SUMS.txt.asc
+          fail_on_unmatched_files: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
   finalize-release-content-refresh:
     name: Finalize Content Refresh Release
-    needs: [content-refresh, build-tauri-content-refresh]
+    needs:
+      [
+        content-refresh,
+        build-tauri-content-refresh,
+        sign-release-content-refresh,
+      ]
     runs-on: ubuntu-latest
     steps:
       - name: Update release body
         uses: actions/github-script@v7
         with:
           script: |
+            const signed = '${{ needs.sign-release-content-refresh.outputs.signed }}' === 'true';
+            const gpgLines = signed ? '\n# Import public key (one-time)\ngpg --keyserver keys.openpgp.org --recv-keys AECABD60A4CB5BE900864AF2C8DAB4CE409C4AB8\ngpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt' : '';
             const body = `Fresh content fetched from SuttaCentral APIs
+
+            **Verify Asset Downloads:**
+            \`\`\`bash
+            sha256sum -c --ignore-missing SHA256SUMS.txt${gpgLines}
+            \`\`\`
+
+            ---
 
             **Preview Deployment:** ${{ needs.content-refresh.outputs.preview_url }}
 
@@ -691,7 +822,7 @@ jobs:
 
             **Next Steps:**
             1. Review the preview deployment above
-            2. If satisfied, edit this release and uncheck "Set as a pre-release" to promote to production
+            2. If satisfied, edit this release body and uncheck "Set as a pre-release" to promote to production
             3. Publishing will automatically:
                - Deploy the exact same build to Vercel production
                - Upload assets to Codeberg releases
