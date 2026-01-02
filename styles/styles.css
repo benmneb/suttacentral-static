@@ -905,6 +905,10 @@ main {
     a.ref:target {
       background-color: var(--primary-color);
       color: var(--background-color);
+
+      &:hover {
+        color: unset;
+      }
     }
 
     blockquote:has(.verse-line) {
