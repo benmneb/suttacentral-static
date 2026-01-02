@@ -261,9 +261,41 @@ jobs:
         with:
           projectPath: ./tauri
           tauriScript: pnpm tauri
-          releaseId: ${{ needs.release-draft.outputs.release_id }}
           args: ${{ matrix.args }}
-          releaseAssetNamePattern: 'scx_app-[version]-[platform]_[arch][ext]'
+
+      - name: Rename artifacts
+        shell: bash
+        run: |
+          VERSION="${{ needs.release-draft.outputs.version }}"
+          mkdir -p artifacts
+
+          # macOS
+          shopt -s nullglob
+          for f in tauri/target/*/release/bundle/dmg/*.dmg; do
+            if [[ "$f" == *"aarch64"* ]]; then ARCH="aarch64"; else ARCH="x64"; fi
+            cp "$f" "artifacts/scx_app-${VERSION}-macos_${ARCH}.dmg"
+          done
+
+          # Windows
+          for f in tauri/target/release/bundle/nsis/*.exe; do
+            cp "$f" "artifacts/scx_app-${VERSION}-windows_x64.exe"
+          done
+
+          # Linux
+          for f in tauri/target/release/bundle/appimage/*.AppImage; do
+            cp "$f" "artifacts/scx_app-${VERSION}-linux_amd64.AppImage"
+          done
+          shopt -u nullglob
+
+          echo "Artifacts:"
+          ls -la artifacts/ || echo "No artifacts found"
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.release-draft.outputs.tag }}
+          files: artifacts/*
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   finalize-release:
     name: Finalize Release
@@ -588,7 +620,7 @@ jobs:
       - name: Update Tauri version
         shell: bash
         run: |
-          VERSION="${{ needs.content-refresh.outputs.version }}+${{ needs.content-refresh.outputs.date }}"
+          VERSION="${{ needs.content-refresh.outputs.version }}-content-refresh-${{ needs.content-refresh.outputs.date }}"
           if command -v jq &> /dev/null; then
             jq --arg v "$VERSION" '.version = $v' tauri/tauri.conf.json > tmp.json && mv tmp.json tauri/tauri.conf.json
           else
@@ -604,9 +636,41 @@ jobs:
         with:
           projectPath: ./tauri
           tauriScript: pnpm tauri
-          releaseId: ${{ needs.content-refresh.outputs.release_id }}
           args: ${{ matrix.args }}
-          releaseAssetNamePattern: 'scx_app-[version]-[platform]_[arch][ext]'
+
+      - name: Rename artifacts
+        shell: bash
+        run: |
+          VERSION="${{ needs.content-refresh.outputs.version }}-content-refresh-${{ needs.content-refresh.outputs.date }}"
+          mkdir -p artifacts
+
+          # macOS
+          shopt -s nullglob
+          for f in tauri/target/*/release/bundle/dmg/*.dmg; do
+            if [[ "$f" == *"aarch64"* ]]; then ARCH="aarch64"; else ARCH="x64"; fi
+            cp "$f" "artifacts/scx_app-${VERSION}-macos_${ARCH}.dmg"
+          done
+
+          # Windows
+          for f in tauri/target/release/bundle/nsis/*.exe; do
+            cp "$f" "artifacts/scx_app-${VERSION}-windows_x64.exe"
+          done
+
+          # Linux
+          for f in tauri/target/release/bundle/appimage/*.AppImage; do
+            cp "$f" "artifacts/scx_app-${VERSION}-linux_amd64.AppImage"
+          done
+          shopt -u nullglob
+
+          echo "Artifacts:"
+          ls -la artifacts/ || echo "No artifacts found"
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.content-refresh.outputs.preview_tag }}
+          files: artifacts/*
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   finalize-release-content-refresh:
     name: Finalize Content Refresh Release
