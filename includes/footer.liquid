@@ -1,5 +1,7 @@
 <footer>
-  <p>{{ _siteMetaData.description }}</p>
+  {% if _siteMetaData.description %}
+    <p>{{ _siteMetaData.description }}</p>
+  {% endif %}
   <p>
     View this page on
     <a id="sc-redirect" href="https://suttacentral.net/{{ route }}"
