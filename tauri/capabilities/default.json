@@ -3,5 +3,9 @@
   "identifier": "default",
   "description": "enables the default permissions",
   "windows": ["main"],
-  "permissions": ["core:default", "core:webview:allow-set-webview-zoom"]
+  "permissions": [
+    "core:default",
+    "core:webview:allow-set-webview-zoom",
+    "opener:default"
+  ]
 }
