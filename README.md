@@ -6,9 +6,9 @@
 
 ## A fast and minimal alternative frontend for [SuttaCentral.net](https://suttacentral.net)
 
-Includes all sutta, vinaya and abhidhamma texts in their root language, all English translations, all footnotes, parallels, main reference links and flexible text-view settings.
-
-Mirrors the URL structure of suttacentral.net. Just switch the `.net` for `.express`, or use the [browser extension](https://git.sr.ht/~benmneb/suttacentral-redirect) from the [Chrome](https://chromewebstore.google.com/detail/suttacentral-redirect/noaddajdfegpjfgpmbhcbahofgkceaan) or [Firefox](https://addons.mozilla.org/firefox/addon/suttacentral-redirect/) store.
+- Includes all sutta, vinaya and abhidhamma texts in their root languages, all English translations, footnotes, parallels, main reference links and flexible text view settings
+- Mirrors the URL structure of suttacentral.net. Just switch the `.net` for `.express`, or use the [browser extension](https://git.sr.ht/~benmneb/suttacentral-redirect) from the [Chrome](https://chromewebstore.google.com/detail/suttacentral-redirect/noaddajdfegpjfgpmbhcbahofgkceaan) or [Firefox](https://addons.mozilla.org/firefox/addon/suttacentral-redirect/) store
+- Desktop apps and site archives for offline use are available for download in [Github](https://github.com/benmneb/suttacentral-static/releases/latest) and [Codeberg](https://codeberg.org/benmneb/suttacentral-static/releases/latest) releases
 
 ### Fast
 
@@ -20,35 +20,24 @@ Desktop performance comparison for `/dn1/en/sujato` via <https://pagespeed.web.d
 | Largest Contentful Paint | 0.3s                 | 2.2s             | 633% faster      |
 | Total Blocking Time      | 0ms                  | 160ms            | 100% reduction   |
 | Cumulative Layout Shift  | 0                    | 0.643            | 100% reduction   |
-| Speed Index              | 0.6s                 | 1.0s             | 67% faster       |
 
 ### Minimal
 
-- No editions, essays, guides, map, testimonies, dictionaries, subjects, similes, names or terms pages—it’s just the tipitaka, Web 1.0 style.
-- No translations other than English.
-- No javascript needed for reading the texts, navigating between them, or adjusting view settings. If you want your view settings to persist, to use the on-site text-to-speech or static search, enable javascript.
+- No editions, essays, guides, map, testimonies, dictionaries, subjects, similes, names or terms pages—it’s just the tipitaka, Web 1.0 style
+- No translations other than English
+- No javascript needed for reading the texts, navigating between them, or adjusting view settings. If you want your view settings to persist, to use the on-site text-to-speech or static search, enable javascript
 
 ### Alternative
 
-Time to type 4 extra characters in `.express` vs `.net`:
+- Typing `.express` vs `.net`: +1.231 seconds (38-40 WPM)
+- Faster page load: −1.9 seconds (using the most user-perceivable metric—Largest Contentful Paint)
+- Break even: 0.648 page loads
 
-- 4 characters ÷ 3.25 characters/second (38-40 WPM) = **1.231 seconds extra**
-
-Time saved per page load (using the most user-perceivable metric - Largest Contentful Paint):
-
-- 2.2s - 0.3s = **1.9 seconds saved per page load**
-
-Number of page loads to break even:
-
-- 1.231 ÷ 1.9 = **0.648 page loads**
-
-You recoup the extra typing time for the longer URL after only 0.65 page loads.
-
-The performance gain so dramatically outweighs the typing cost that you break even before you even finish loading the first page.
+The performance gain so dramatically outweighs the typing cost that you break even before you even finish loading the first page
 
 ### Frontend
 
-This project uses the public SuttaCentral APIs at build time to generate a fully static site that displays their data minimally and accessibly. See [DEVELOPMENT.md](DEVELOPMENT.md) for more info on hosting your own instance, it can take only 3 CLI commands.
+This project uses the public SuttaCentral APIs at build time to generate a fully static site that displays their data minimally and accessibly. See [DEVELOPMENT.md](DEVELOPMENT.md) for more info on hosting your own instance, it can take only 3 CLI commands
 
 ## License
 
