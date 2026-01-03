@@ -290,12 +290,13 @@ jobs:
           ls -la artifacts/ || echo "No artifacts found"
 
       - name: Upload to release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.release-draft.outputs.tag }}
-          files: artifacts/*
-          draft: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ needs.release-draft.outputs.tag }}" \
+            artifacts/* \
+            --repo "${{ github.repository }}" \
+            --clobber
 
   sign-release:
     name: Sign Release Artifacts
@@ -342,15 +343,19 @@ jobs:
           fi
 
       - name: Upload checksums and signature
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.release-draft.outputs.tag }}
-          files: |
-            artifacts/SHA256SUMS.txt
-            artifacts/SHA256SUMS.txt.asc
-          draft: true
-          fail_on_unmatched_files: false
-          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ needs.release-draft.outputs.tag }}" \
+            artifacts/SHA256SUMS.txt \
+            --repo "${{ github.repository }}" \
+            --clobber
+          if [ -f artifacts/SHA256SUMS.txt.asc ]; then
+            gh release upload "${{ needs.release-draft.outputs.tag }}" \
+              artifacts/SHA256SUMS.txt.asc \
+              --repo "${{ github.repository }}" \
+              --clobber
+          fi
 
   finalize-release:
     name: Finalize Release
