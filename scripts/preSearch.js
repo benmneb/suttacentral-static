@@ -13,12 +13,13 @@
  *
  * @module preSearch
  */
-;(async function () {
+;(function () {
   'use strict'
 
-  document
-    .querySelector('button[popovertarget="search-modal"]')
-    ?.setAttribute('type', 'button')
+  const button = document.querySelector('button[popovertarget="search-modal"]')
+  button?.setAttribute('type', 'button')
+  button?.setAttribute('title', 'Cmd/Ctrl+K')
+
   document
     .querySelector('form:has(button[popovertarget="search-modal"])')
     ?.addEventListener('submit', e => e.preventDefault())
@@ -26,15 +27,15 @@
   const input = document.getElementById('search-input')
   const form = document.getElementById('search-form')
   const popover = document.getElementById('search-modal')
-  const icon = document.querySelector('button[popovertarget="search-modal"]')
 
-  form.action = '/search'
-  form.querySelector('input[type="hidden"]')?.remove()
-  input.name = 'query'
-  icon.title = 'Cmd/Ctrl+K'
+  if (form) {
+    form.action = '/search'
+    form.querySelector('input[type="hidden"]')?.remove()
+  }
+  if (input) input.name = 'query'
 
   document.addEventListener('keydown', function (event) {
-    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+    if (popover && (event.metaKey || event.ctrlKey) && event.key === 'k') {
       event.preventDefault()
       popover.togglePopover()
     }
