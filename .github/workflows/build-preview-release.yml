@@ -294,6 +294,7 @@ jobs:
         with:
           tag_name: ${{ needs.release-draft.outputs.tag }}
           files: artifacts/*
+          draft: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
   sign-release:
@@ -347,6 +348,7 @@ jobs:
           files: |
             artifacts/SHA256SUMS.txt
             artifacts/SHA256SUMS.txt.asc
+          draft: true
           fail_on_unmatched_files: false
           token: ${{ secrets.GITHUB_TOKEN }}
 
