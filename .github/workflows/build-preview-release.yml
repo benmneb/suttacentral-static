@@ -363,7 +363,7 @@ jobs:
             const tagMessage = `${{ needs.release-draft.outputs.tag_message }}`;
             const gpgSection = signed ? `
 
-            Import my public key, one time (same key used to sign all commits to this repo)
+            Import my public key (same key used to sign all commits to this repo)
             \`\`\`bash
             gpg --keyserver keys.openpgp.org --recv-keys AECABD60A4CB5BE900864AF2C8DAB4CE409C4AB8
             \`\`\`
@@ -374,8 +374,33 @@ jobs:
             \`\`\`` : '';
             const body = `${tagMessage}
 
+            ---
+
             <details>
-            <summary><strong>Verify Asset Downloads</strong></summary>
+            <summary><strong>App Installation Instructions</strong></summary>
+
+            The attached \`scx_app*\` builds are not code-signed to avoid $200-500 USD/year in certificate costs (Apple Developer $99/year + Windows certificates $100-400/year). The apps are safe and built from public source code, but your OS will require manual approval on first launch.
+
+            **macOS:**
+
+            - Download and open the \`.dmg\` file appropriate for your machine
+            - You'll see _"cannot be opened because it is from an unidentified developer"_
+            - Go to **System Settings → Privacy & Security**
+            - Click **"Open Anyway"** next to the blocked app message
+            - Click **"Open"** in the confirmation dialog
+
+            **Windows:**
+
+            - Download and extract the \`.exe\` file
+            - You'll see _"Windows protected your PC"_
+            - Click **"More info"**
+            - Click **"Run anyway"**
+
+            **Linux:** No security warnings - just download and run.
+            </details>
+
+            <details>
+            <summary><strong>App Verification Instruction (optional)</strong></summary>
 
             Verify checksum matches
             \`\`\`bash
@@ -815,7 +840,7 @@ jobs:
             const signed = '${{ needs.sign-release-content-refresh.outputs.signed }}' === 'true';
             const gpgSection = signed ? `
 
-            Import my public key, one time (same key used to sign all commits to this repo)
+            Import my public key (same key used to sign all commits to this repo)
             \`\`\`bash
             gpg --keyserver keys.openpgp.org --recv-keys AECABD60A4CB5BE900864AF2C8DAB4CE409C4AB8
             \`\`\`
@@ -826,8 +851,33 @@ jobs:
             \`\`\`` : '';
             const body = `Fresh content fetched from SuttaCentral APIs
 
+            ---
+
             <details>
-            <summary><strong>Verify Asset Downloads</strong></summary>
+            <summary><strong>App Installation Instructions</strong></summary>
+
+            The attached \`scx_app*\` builds are not code-signed to avoid $200-500 USD/year in certificate costs (Apple Developer $99/year + Windows certificates $100-400/year). The apps are safe and built from public source code, but your OS will require manual approval on first launch.
+
+            **macOS:**
+
+            - Download and open the \`.dmg\` file appropriate for your machine
+            - You'll see _"cannot be opened because it is from an unidentified developer"_
+            - Go to **System Settings → Privacy & Security**
+            - Click **"Open Anyway"** next to the blocked app message
+            - Click **"Open"** in the confirmation dialog
+
+            **Windows:**
+
+            - Download and extract the \`.exe\` file
+            - You'll see _"Windows protected your PC"_
+            - Click **"More info"**
+            - Click **"Run anyway"**
+
+            **Linux:** No security warnings - just download and run.
+            </details>
+
+            <details>
+            <summary><strong>App Verification Instruction (optional)</strong></summary>
 
             Verify checksum matches
             \`\`\`bash
