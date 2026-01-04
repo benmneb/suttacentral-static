@@ -29,15 +29,13 @@ Desktop performance comparison for `/dn1/en/sujato` via <https://pagespeed.web.d
 
 ### Alternative
 
-- Typing `.express` vs `.net`: +1.231 seconds (38-40 WPM)
-- Faster page load: −1.9 seconds (using the most user-perceivable metric—Largest Contentful Paint)
-- Break even: 0.648 page loads
-
-The performance gain so dramatically outweighs the typing cost that you break even before you even finish loading the first page
+1. Typing `.express` vs `.net`: **+1.231 seconds** (38-40 WPM)
+1. Faster page load: **−1.9 seconds** (using the most user-perceivable metric—Largest Contentful Paint)
+1. The performance gain so dramatically outweighs the typing cost that you break even before you even finish loading the first page
 
 ### Frontend
 
-This project uses the public SuttaCentral APIs at build time to generate a fully static site that displays their data minimally and accessibly. See [DEVELOPMENT.md](DEVELOPMENT.md) for more info on hosting your own instance, it can take only 3 CLI commands
+This project uses the public SuttaCentral APIs at build time to generate a fully static site that displays their data minimally and accessibly. See [DEVELOPMENT.md](DEVELOPMENT.md) for more info
 
 ## License
 
