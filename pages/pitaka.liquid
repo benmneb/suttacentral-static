@@ -9,7 +9,7 @@ pagination:
 
 permalink: '/pitaka/{{ entry.scx_path }}/index.html'
 eleventyComputed:
-  title: '{{ entry.original_title | default: entry.root_name }}—{{ entry.translated_title | default: entry.translated_name }}'
+  title: '{{ entry.original_title | default: entry.root_name }}{% if entry.translated_title or entry.translated_name %}—{{ entry.translated_title | default: entry.translated_name }}{% endif %}'
   json_ld: '{{ entry.scx_json_ld }}'
   og_tags: '{{ entry.scx_og_tags }}'
 ---
