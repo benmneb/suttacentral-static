@@ -1,4 +1,6 @@
 :root {
+  color-scheme: light dark;
+
   /* Both palettes adapted from: https://github.com/YV31/gruvbox-css */
   --bg-hard: #1d2021;
   --bg: #282828;
