@@ -80,7 +80,7 @@ jobs:
         run: pnpm install
 
       - name: Build site
-        run: pnpm run predeploy
+        run: pnpm predeploy
 
       - name: Get current version
         id: version
@@ -466,12 +466,12 @@ jobs:
         run: pnpm install
 
       - name: Build site
-        run: pnpm run predeploy
+        run: pnpm predeploy
 
       - name: Create archive for preview
         env:
           CI: true
-        run: pnpm run release:dry
+        run: pnpm release:dry
 
       - name: Deploy to Vercel Preview
         id: vercel_preview
@@ -531,7 +531,7 @@ jobs:
         run: pnpm install
 
       - name: Build site
-        run: pnpm run predeploy
+        run: pnpm predeploy
 
       - name: Get current version
         id: version

@@ -23,12 +23,12 @@
  * Usage:
  *   Manual workflow:
  *     1. Create and push git tag: git tag -a v1.0.0 -m "Release notes"
- *     2. Run: `pnpm run release:upload`
+ *     2. Run: `pnpm release:upload`
  *     3. Script creates archive and uploads to Codeberg/GitHub
  *     4. Script deploys to Vercel production
  *
  *   Dry run mode (testing):
- *     - Run: `pnpm run release:dry`
+ *     - Run: `pnpm release:dry`
  *     - Creates archive but skips all uploads and deployments
  *     - Uses test tag v0.0.0-test if no git tag exists
  *
@@ -132,7 +132,7 @@ function ensureDistDirectory() {
 function createArchive(sourceDir, archivePath) {
   if (!existsSync(sourceDir)) {
     console.error(`Error: Source directory ${sourceDir} does not exist!`)
-    console.error('Make sure to run `pnpm run build` first.')
+    console.error('Make sure to run `pnpm build` first.')
     process.exit(1)
   }
   if (existsSync(archivePath)) {

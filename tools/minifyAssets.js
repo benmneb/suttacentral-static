@@ -15,9 +15,9 @@
  *
  * @example
  * // Via pnpm scripts
- * pnpm run minify:css      // Minify CSS only
- * pnpm run minify:js       // Minify JS only
- * pnpm run minify:assets   // Minify both CSS and JS
+ * pnpm minify:css      // Minify CSS only
+ * pnpm minify:js       // Minify JS only
+ * pnpm minify:assets   // Minify both CSS and JS
  *
  * @example
  * // Use programmatically

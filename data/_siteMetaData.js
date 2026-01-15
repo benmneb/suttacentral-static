@@ -26,7 +26,7 @@
  * // 1. Clone the repository
  * // 2. Edit this file with your site details
  * // 3. Run `pnpm install`
- * // 4. Run `pnpm run build`
+ * // 4. Run `pnpm build`
  * // 5. Deploy the `_site` folder to your web host
  */
 export default function () {
