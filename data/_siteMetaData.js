@@ -35,7 +35,7 @@ export default function () {
     description: 'A fast and minimal alternative frontend for SuttaCentral.net',
     origin: 'https://suttacentral.express',
     host: 'suttacentral.express',
-    source: 'https://git.sr.ht/~benmneb/suttacentral-static',
+    source: 'https://sr.ht/~benmneb/suttacentral-static',
     analytics: 'https://dashboard.simpleanalytics.com/suttacentral.express',
     archive: 'https://codeberg.org/benmneb/suttacentral-static/releases/latest',
     contact: 'scx.judge565@simplelogin.com',

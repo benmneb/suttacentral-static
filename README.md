@@ -1,4 +1,4 @@
-[![SourceHut](https://img.shields.io/badge/-on_SourceHut-212529?logo=sourcehut&style=flat)](https://git.sr.ht/~benmneb/suttacentral-static)
+[![SourceHut](https://img.shields.io/badge/-on_SourceHut-212529?logo=sourcehut&style=flat)](https://sr.ht/~benmneb/suttacentral-static)
 [![Codeberg](https://img.shields.io/badge/-on_Codeberg-4793cc.svg?logo=codeberg&logoColor=white&style=flat)](https://codeberg.org/benmneb/suttacentral-static)
 [![GitHub](https://img.shields.io/badge/-on_GitHub-010409.svg?logo=github&style=flat)](https://github.com/benmneb/suttacentral-static)
 
