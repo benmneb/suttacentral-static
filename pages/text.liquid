@@ -24,7 +24,7 @@ eleventyComputed:
       {% assign path = path | append: '/' | append: part %}
       <li>
         {% if forloop.last %}
-          <span aria-current="page" data-pagefind-body data-pagefind-weight="10">{{ part }}</span>
+          <a href="/{{ part }}" data-pagefind-body data-pagefind-weight="10">{{ part }}</a>
         {% elsif forloop.index == second_last %}
           <a href="/{{ part }}">{{ part }}</a>
         {% else %}
@@ -32,6 +32,9 @@ eleventyComputed:
         {% endif %}
       </li>
     {% endfor %}
+    <li>
+      <span aria-current="page">{{ entry.author_uid }}</span>
+    </li>
   {% endcapture %}
   {% include "headerNav.liquid", breadcrumbsList: breadcrumbsList %}
 </header>
