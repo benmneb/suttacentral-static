@@ -386,7 +386,7 @@ jobs:
             <details>
             <summary><strong>App Installation Instructions</strong></summary>
 
-            The attached \`scx_app*\` builds are not code-signed to avoid $200-500 USD/year in certificate costs (Apple Developer $99/year + Windows certificates $100-400/year). The apps are safe and built from public source code, but your OS will require manual approval on first launch.
+            The attached \`scx_app*\` builds are fully featured offline archives. They are not code-signed to avoid $200-500 USD/year in certificate costs (Apple Developer $99/year + Windows certificates $100-400/year). The apps are safe and built from public source code, but your OS will require manual approval on first launch.
 
             **macOS:**
 
@@ -863,7 +863,7 @@ jobs:
             <details>
             <summary><strong>App Installation Instructions</strong></summary>
 
-            The attached \`scx_app*\` builds are not code-signed to avoid $200-500 USD/year in certificate costs (Apple Developer $99/year + Windows certificates $100-400/year). The apps are safe and built from public source code, but your OS will require manual approval on first launch.
+            The attached \`scx_app*\` builds are fully featured offline archives. They are not code-signed to avoid $200-500 USD/year in certificate costs (Apple Developer $99/year + Windows certificates $100-400/year). The apps are safe and built from public source code, but your OS will require manual approval on first launch.
 
             **macOS:**
 
