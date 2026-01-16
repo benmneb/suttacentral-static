@@ -13,7 +13,7 @@ See <https://todo.sr.ht/~benmneb/suttacentral-static> for inspiration, but note 
 
 ## Deploying and releasing
 
-The final build is 46,000+ HTML files at over 715mb uncompressed. This is pretty big for a static site, and the only free-tier I know for sure that can handle it is Vercel. But, to get around their free-tier [limits](https://vercel.com/docs/limits) of build time (45 mins), static file count (15,000), and total files size (100mb), the trick is to first build it somewhere other than their servers, then compress the result and upload it to Vercel for hosting
+The final build is 68,000+ HTML files at about 1.8gb uncompressed. This is pretty big for a static site, and the only free-tier I know for sure that can handle it is Vercel. But, to get around their free-tier [limits](https://vercel.com/docs/limits) of build time (45 mins), static file count (15,000), and total files size (100mb), the trick is to first build it somewhere other than their servers, then compress the result and upload it to Vercel for hosting
 
 Following are two options to do that. The first builds locally on your machine, and the second builds on GitHub Actions. They both then deploy to a free [Vercel account](https://vercel.com/signup) via the corresponding environment variables/secrets (see each section below)
 
