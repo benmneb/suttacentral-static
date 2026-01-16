@@ -68,6 +68,15 @@ jobs:
       - name: Fetch tag annotations
         run: git fetch --tags --force
 
+      - name: Verify tag exists
+        run: |
+          TAG="${{ github.ref_name }}"
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "✗ Tag $TAG not found after fetch"
+            exit 1
+          fi
+          echo "✓ Tag $TAG verified"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -85,9 +94,11 @@ jobs:
       - name: Get current version
         id: version
         run: |
-          VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
+          # Use github.ref_name directly since this job only runs on tag push
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "Current version: $VERSION"
 
       - name: Generate datestamp
@@ -301,11 +312,14 @@ jobs:
   sign-release:
     name: Sign Release Artifacts
     needs: [release-draft, build-tauri]
+    if: always() && needs.release-draft.result == 'success'
     runs-on: ubuntu-latest
     outputs:
       signed: ${{ steps.sign.outputs.signed }}
     steps:
       - name: Download release artifacts
+        id: download
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -313,11 +327,20 @@ jobs:
           gh release download "${{ needs.release-draft.outputs.tag }}" \
             --repo "${{ github.repository }}" \
             --pattern "scx_app-*" \
-            --dir artifacts
+            --dir artifacts || true
+
+          if [ -z "$(ls -A artifacts 2>/dev/null)" ]; then
+            echo "⚠️ No Tauri build artifacts found - all builds may have failed"
+            echo "has_artifacts=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "has_artifacts=true" >> $GITHUB_OUTPUT
           echo "Downloaded artifacts:"
           ls -la artifacts/
 
       - name: Generate SHA256 checksums
+        if: steps.download.outputs.has_artifacts == 'true'
         run: |
           cd artifacts
           sha256sum scx_app-* > SHA256SUMS.txt
@@ -325,6 +348,7 @@ jobs:
           cat SHA256SUMS.txt
 
       - name: Sign checksums with PGP
+        if: steps.download.outputs.has_artifacts == 'true'
         id: sign
         env:
           PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
@@ -343,6 +367,7 @@ jobs:
           fi
 
       - name: Upload checksums and signature
+        if: steps.download.outputs.has_artifacts == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -359,15 +384,50 @@ jobs:
 
   finalize-release:
     name: Finalize Release
-    needs: [release-draft, build-tauri, sign-release]
+    needs: [release-draft, sign-release]
+    if: always() && needs.release-draft.result == 'success'
     runs-on: ubuntu-latest
     steps:
+      - name: Check which platforms succeeded
+        id: platforms
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get list of uploaded artifacts
+          ARTIFACTS=$(gh release view "${{ needs.release-draft.outputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --json assets --jq '.assets[].name')
+
+          echo "Available artifacts:"
+          echo "$ARTIFACTS"
+
+          # Detect platforms
+          PLATFORMS=""
+          [[ "$ARTIFACTS" =~ macos_aarch64 ]] && PLATFORMS="${PLATFORMS}- macOS (Apple Silicon)\n"
+          [[ "$ARTIFACTS" =~ macos_x64 ]] && PLATFORMS="${PLATFORMS}- macOS (Intel)\n"
+          [[ "$ARTIFACTS" =~ linux ]] && PLATFORMS="${PLATFORMS}- Linux\n"
+          [[ "$ARTIFACTS" =~ windows ]] && PLATFORMS="${PLATFORMS}- Windows\n"
+
+          if [ -z "$PLATFORMS" ]; then
+            echo "platforms_available=false" >> $GITHUB_OUTPUT
+            echo "platforms_list=No platform builds succeeded" >> $GITHUB_OUTPUT
+          else
+            echo "platforms_available=true" >> $GITHUB_OUTPUT
+            echo "platforms_list<<EOF" >> $GITHUB_OUTPUT
+            echo -e "$PLATFORMS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
       - name: Update release body
         uses: actions/github-script@v7
         with:
           script: |
             const signed = '${{ needs.sign-release.outputs.signed }}' === 'true';
             const tagMessage = `${{ needs.release-draft.outputs.tag_message }}`;
+            const platformsAvailable = '${{ steps.platforms.outputs.platforms_available }}' === 'true';
+            const platformsList = `${{ steps.platforms.outputs.platforms_list }}`;
+
+            // Build GPG section if signed
             const gpgSection = signed ? `
 
             Import my public key (same key used to sign all commits to this repo)
@@ -379,6 +439,32 @@ jobs:
             \`\`\`bash
             gpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt
             \`\`\`` : '';
+
+            // Build platform warning section if needed
+            let platformSection = '';
+            if (!platformsAvailable) {
+              platformSection = `**⚠️ App Build Failure**
+
+            All platform builds failed for this release. Please check the [Actions tab](https://github.com/${context.repo.owner}/${context.repo.repo}/actions) for details.
+
+            ---
+
+            `;
+            } else if (!platformsList.includes('Windows') || !platformsList.includes('Linux') || !platformsList.includes('macOS')) {
+              platformSection = `**⚠️ App Partial Build**
+
+            Some platform builds failed. Available platforms:
+
+            ${platformsList}
+
+            Missing platforms may be added later if the build issue is resolved.
+
+            ---
+
+            `;
+            }
+
+            // Build complete body with installation instructions
             const body = `${tagMessage}
 
             ---
@@ -417,9 +503,8 @@ jobs:
 
             ---
 
+            ${platformSection}
             **Preview Deployment:** ${{ needs.release-draft.outputs.preview_url }}
-
-            **Desktop Apps:** ✅ All platforms ready (macOS ARM64, macOS Intel, Windows, Linux)
 
             **Build Info:**
             - Date: ${{ needs.release-draft.outputs.date }}
@@ -441,7 +526,7 @@ jobs:
               body: body
             });
 
-            console.log('✓ Release body updated - all desktop builds complete');
+            console.log('✓ Release body updated');
 
   pr-preview:
     name: Pull Request Preview
@@ -779,11 +864,14 @@ jobs:
   sign-release-content-refresh:
     name: Sign Content Refresh Artifacts
     needs: [content-refresh, build-tauri-content-refresh]
+    if: always() && needs.content-refresh.result == 'success'
     runs-on: ubuntu-latest
     outputs:
       signed: ${{ steps.sign.outputs.signed }}
     steps:
       - name: Download release artifacts
+        id: download
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -791,11 +879,20 @@ jobs:
           gh release download "${{ needs.content-refresh.outputs.preview_tag }}" \
             --repo "${{ github.repository }}" \
             --pattern "scx_app-*" \
-            --dir artifacts
+            --dir artifacts || true
+
+          if [ -z "$(ls -A artifacts 2>/dev/null)" ]; then
+            echo "⚠️ No Tauri build artifacts found - all builds may have failed"
+            echo "has_artifacts=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "has_artifacts=true" >> $GITHUB_OUTPUT
           echo "Downloaded artifacts:"
           ls -la artifacts/
 
       - name: Generate SHA256 checksums
+        if: steps.download.outputs.has_artifacts == 'true'
         run: |
           cd artifacts
           sha256sum scx_app-* > SHA256SUMS.txt
@@ -803,6 +900,7 @@ jobs:
           cat SHA256SUMS.txt
 
       - name: Sign checksums with PGP
+        if: steps.download.outputs.has_artifacts == 'true'
         id: sign
         env:
           PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
@@ -821,6 +919,7 @@ jobs:
           fi
 
       - name: Upload checksums and signature
+        if: steps.download.outputs.has_artifacts == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.content-refresh.outputs.preview_tag }}
@@ -832,19 +931,49 @@ jobs:
 
   finalize-release-content-refresh:
     name: Finalize Content Refresh Release
-    needs:
-      [
-        content-refresh,
-        build-tauri-content-refresh,
-        sign-release-content-refresh,
-      ]
+    needs: [content-refresh, sign-release-content-refresh]
+    if: always() && needs.content-refresh.result == 'success'
     runs-on: ubuntu-latest
     steps:
+      - name: Check which platforms succeeded
+        id: platforms
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get list of uploaded artifacts
+          ARTIFACTS=$(gh release view "${{ needs.content-refresh.outputs.preview_tag }}" \
+            --repo "${{ github.repository }}" \
+            --json assets --jq '.assets[].name')
+
+          echo "Available artifacts:"
+          echo "$ARTIFACTS"
+
+          # Detect platforms
+          PLATFORMS=""
+          [[ "$ARTIFACTS" =~ macos_aarch64 ]] && PLATFORMS="${PLATFORMS}- macOS (Apple Silicon)\n"
+          [[ "$ARTIFACTS" =~ macos_x64 ]] && PLATFORMS="${PLATFORMS}- macOS (Intel)\n"
+          [[ "$ARTIFACTS" =~ linux ]] && PLATFORMS="${PLATFORMS}- Linux\n"
+          [[ "$ARTIFACTS" =~ windows ]] && PLATFORMS="${PLATFORMS}- Windows\n"
+
+          if [ -z "$PLATFORMS" ]; then
+            echo "platforms_available=false" >> $GITHUB_OUTPUT
+            echo "platforms_list=No platform builds succeeded" >> $GITHUB_OUTPUT
+          else
+            echo "platforms_available=true" >> $GITHUB_OUTPUT
+            echo "platforms_list<<EOF" >> $GITHUB_OUTPUT
+            echo -e "$PLATFORMS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
       - name: Update release body
         uses: actions/github-script@v7
         with:
           script: |
             const signed = '${{ needs.sign-release-content-refresh.outputs.signed }}' === 'true';
+            const platformsAvailable = '${{ steps.platforms.outputs.platforms_available }}' === 'true';
+            const platformsList = `${{ steps.platforms.outputs.platforms_list }}`;
+
+            // Build GPG section if signed
             const gpgSection = signed ? `
 
             Import my public key (same key used to sign all commits to this repo)
@@ -856,6 +985,32 @@ jobs:
             \`\`\`bash
             gpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt
             \`\`\`` : '';
+
+            // Build platform warning section if needed
+            let platformSection = '';
+            if (!platformsAvailable) {
+              platformSection = `** ⚠️ App Build Failure**
+
+            All platform builds failed for this release. Please check the [Actions tab](https://github.com/${context.repo.owner}/${context.repo.repo}/actions) for details.
+
+            ---
+
+            `;
+            } else if (!platformsList.includes('Windows') || !platformsList.includes('Linux') || !platformsList.includes('macOS')) {
+              platformSection = `**⚠️ App Partial Build**
+
+            Some platform builds failed. Available platforms:
+
+            ${platformsList}
+
+            Missing platforms may be added later if the build issue is resolved.
+
+            ---
+
+            `;
+            }
+
+            // Build complete body with installation instructions
             const body = `Fresh content fetched from SuttaCentral APIs
 
             ---
@@ -894,9 +1049,8 @@ jobs:
 
             ---
 
+            ${platformSection}
             **Preview Deployment:** ${{ needs.content-refresh.outputs.preview_url }}
-
-            **Desktop Apps:** ✅ All platforms ready (macOS ARM64, macOS Intel, Windows, Linux)
 
             **Build Info:**
             - Date: ${{ needs.content-refresh.outputs.date }}
@@ -922,4 +1076,4 @@ jobs:
               body: body
             });
 
-            console.log('✓ Release body updated - all desktop builds complete');
+            console.log('✓ Release body updated');

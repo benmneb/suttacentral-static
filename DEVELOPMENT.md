@@ -202,6 +202,42 @@ Desktop builds run in parallel with the main release workflow. The release is cr
 
 **Note for Linux users**: Text-to-speech may not be available in the desktop app on Linux due to WebKitGTK limitations on the Web Speech API. You can always use the website in a browser for the "Listen" feature
 
+#### Handling partial builds and build failures
+
+The workflow is designed to gracefully handle situations where some platform builds fail (e.g., Windows build fails but macOS/Linux succeed):
+
+**Automatic graceful degradation:**
+
+- If any Tauri build fails, the workflow continues (doesn't stop)
+- `sign-release` job runs and signs whatever artifacts exist (skips if all builds failed)
+- `finalize-release` job runs and updates the release body to show which platforms succeeded
+- Release is marked with a warning showing available vs. missing platforms
+
+**Example scenarios:**
+
+1. **All builds succeed** - Release shows "✅ All platforms ready" as normal
+2. **Windows build fails** - Release shows "⚠️ Partial Build" with list of available platforms (macOS, Linux)
+3. **All builds fail** - Release shows "⚠️ Build Failure" warning with link to Actions tab for debugging
+
+**Recovering from failed builds:**
+
+If a build fails, can try again to add it to the existing release:
+
+1. Go to the workflow run in GitHub Actions
+2. Click "Re-run failed jobs" to rebuild only the failed platform(s)
+3. Wait for the failed build(s) to complete (artifacts upload to the same release)
+4. Find the `sign-release` job and click ⋮ → "Re-run job" (one click)
+5. The `finalize-release` job automatically reruns as well
+6. Checksums regenerate to include all current artifacts
+7. Release body updates to show the newly available platforms
+
+**Important notes:**
+
+- You only need to click "Re-run job" once (on `sign-release`)
+- The release body automatically updates - old warnings are replaced, not appended
+- No need to rerun the expensive 1+ hour site build
+- This works for both tag-based releases and content-refresh releases
+
 #### Release signing and verification
 
 These builds are not code-signed to avoid $200-500 USD/year in certificate costs (Apple Developer $99/year + Windows certificates $100-400/year). The apps are safe and built from public source code, but your OS will require manual approval on first launch
