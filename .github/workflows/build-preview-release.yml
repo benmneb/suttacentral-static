@@ -299,13 +299,12 @@ jobs:
           ls -la artifacts/ || echo "No artifacts found"
 
       - name: Upload to release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload "${{ needs.release-draft.outputs.tag }}" \
-            artifacts/* \
-            --repo "${{ github.repository }}" \
-            --clobber
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.release-draft.outputs.tag }}
+          files: artifacts/*
+          draft: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   sign-release:
     name: Sign Release Artifacts
@@ -366,19 +365,15 @@ jobs:
 
       - name: Upload checksums and signature
         if: steps.download.outputs.has_artifacts == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload "${{ needs.release-draft.outputs.tag }}" \
-            artifacts/SHA256SUMS.txt \
-            --repo "${{ github.repository }}" \
-            --clobber
-          if [ -f artifacts/SHA256SUMS.txt.asc ]; then
-            gh release upload "${{ needs.release-draft.outputs.tag }}" \
-              artifacts/SHA256SUMS.txt.asc \
-              --repo "${{ github.repository }}" \
-              --clobber
-          fi
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.release-draft.outputs.tag }}
+          files: |
+            artifacts/SHA256SUMS.txt
+            artifacts/SHA256SUMS.txt.asc
+          draft: true
+          fail_on_unmatched_files: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   finalize-release:
     name: Finalize Release
@@ -521,6 +516,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               release_id: ${{ needs.release-draft.outputs.release_id }},
+              tag_name: '${{ needs.release-draft.outputs.tag }}',
               body: body
             });
 
@@ -1069,6 +1065,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               release_id: ${{ needs.content-refresh.outputs.release_id }},
+              tag_name: '${{ needs.content-refresh.outputs.preview_tag }}',
               body: body
             });
 
