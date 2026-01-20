@@ -846,7 +846,7 @@ main {
     button[popovertarget] {
       display: none;
       user-select: none;
-      cursor: help;
+      cursor: zoom-in;
       background: none;
       border: none;
       color: var(--primary-color);
@@ -1006,10 +1006,14 @@ main {
     .add:not(h1 .add) {
       color: var(--text-color-secondary);
     }
-    .evam:not(:has(.inline-comment)) {
+    .evam {
       letter-spacing: 0.02rem;
       /*font-variant-caps: all-small-caps; Doesn't fly with system fonts + diacritics */
       text-transform: uppercase;
+
+      .inline-comment {
+        text-transform: initial;
+      }
     }
     .verse-line {
       display: block;
