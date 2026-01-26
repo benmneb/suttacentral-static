@@ -1388,3 +1388,9 @@ input[type='range'],
 input[type='checkbox'] {
   accent-color: var(--primary-color);
 }
+
+[popover]#search-modal::backdrop,
+[popover]#info::backdrop,
+[popover]#parallels::backdrop {
+  backdrop-filter: blur(3px);
+}
