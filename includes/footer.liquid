@@ -32,10 +32,16 @@
       {% endif %}
       {% if _siteMetaData.archive %}
         <li>
-          <a href="{{ _siteMetaData.archive }}">Desktop apps</a>
+          <a href="{{ _siteMetaData.archive }}" title="For desktop only"
+            >Offline apps</a
+          >
         </li>
       {% endif %}
-      {% if _siteMetaData.contact %}
+      {% if _siteMetaData.suggestions %}
+        <li>
+          <a href="{{ _siteMetaData.suggestions }}">Report bugs</a>
+        </li>
+      {% elsif _siteMetaData.contact %}
         <li>
           <a href="mailto:{{ _siteMetaData.contact }}?subject=%5BSCX%5D%20Re%3A%20{{ route | url_encode }}"
             >Send feedback</a

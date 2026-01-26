@@ -38,7 +38,8 @@ export default function () {
     source: 'https://sr.ht/~benmneb/suttacentral-static',
     analytics: 'https://dashboard.simpleanalytics.com/suttacentral.express',
     archive: 'https://codeberg.org/benmneb/suttacentral-static/releases/latest',
-    contact: 'scx.judge565@simplelogin.com',
+    // contact: 'email@example.com',
+    suggestions: 'https://todo.sr.ht/~benmneb/suttacentral-static',
     environment: process.env.NODE_ENV || 'dev',
   }
 }

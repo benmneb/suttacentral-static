@@ -20,7 +20,12 @@ eleventyComputed:
   <p>
     <a href="/search">Search for something</a>
   </p>
-  {% if _siteMetaData.contact %}
+  {% if _siteMetaData.suggestions %}
+    <p>
+      Should there be a page here?
+      <a href="{{ _siteMetaData.suggestions }}">Report it</a>
+    </p>
+  {% elsif _siteMetaData.contact %}
     <p>
       Should there be a page here?
       <a
