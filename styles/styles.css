@@ -1,5 +1,6 @@
 :root {
   color-scheme: light dark;
+  scrollbar-gutter: stable;
 
   /* Both palettes adapted from: https://github.com/YV31/gruvbox-css */
   --bg-hard: #1d2021;
@@ -1393,4 +1394,10 @@ input[type='checkbox'] {
 [popover]#info::backdrop,
 [popover]#parallels::backdrop {
   backdrop-filter: blur(3px);
+}
+
+body:has([popover]#search-modal:popover-open),
+body:has([popover]#info:popover-open),
+body:has([popover]#parallels:popover-open) {
+  overflow: hidden;
 }
