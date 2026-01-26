@@ -1383,3 +1383,8 @@ button#show-more {
     background-color: var(--primary-color);
   }
 }
+
+input[type='range'],
+input[type='checkbox'] {
+  accent-color: var(--primary-color);
+}
