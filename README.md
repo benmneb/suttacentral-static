@@ -12,14 +12,14 @@
 
 ### Fast
 
-Desktop performance comparison for `/dn1/en/sujato` via <https://pagespeed.web.dev> on 19/11/2025:
+Desktop performance comparison for `/dn1/en/sujato` via <https://pagespeed.web.dev> on 22/01/2026:
 
 | &nbsp;                   | SuttaCentral.express | SuttaCentral.net | Performance Gain |
 | ------------------------ | -------------------- | ---------------- | ---------------- |
-| First Contentful Paint   | 0.3s                 | 0.6s             | 100% faster      |
-| Largest Contentful Paint | 0.3s                 | 2.2s             | 633% faster      |
-| Total Blocking Time      | 0ms                  | 160ms            | 100% reduction   |
-| Cumulative Layout Shift  | 0                    | 0.643            | 100% reduction   |
+| First Contentful Paint   | 0.4s                 | 0.6s             | 33% faster       |
+| Largest Contentful Paint | 0.4s                 | 2.3s             | 5.8x faster      |
+| Total Blocking Time      | 20ms                 | 240ms            | 92% reduction    |
+| Cumulative Layout Shift  | 0                    | 0.608            | 100% reduction   |
 
 ### Minimal
 
