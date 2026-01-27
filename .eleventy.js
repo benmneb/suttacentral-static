@@ -62,6 +62,8 @@ export default function (eleventyConfig) {
     return minified
   })
 
+  eleventyConfig.addPassthroughCopy('images')
+
   eleventyConfig.addPassthroughCopy('styles')
   eleventyConfig.on('eleventy.after', async () => {
     try {

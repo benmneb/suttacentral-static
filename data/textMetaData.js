@@ -11,6 +11,7 @@ function generateTextMetaOGTags(entry) {
     'og:url': `${metadata.origin}/${entry.scx_path}`,
     'og:type': 'website',
     'og:site_name': metadata.title,
+    'og:image': '/images/og-image2.jpg',
   })
 }
 

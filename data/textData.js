@@ -13,6 +13,7 @@ function generateTextOGTags(entry) {
     'og:type': 'article',
     'og:locale': entry.lang || 'en',
     'og:site_name': metadata.title,
+    'og:image': '/images/og-image2.jpg',
     'article:author': entry.author?.trim(),
     ...(entry.publication_date && {
       'article:published_time': entry.publication_date,

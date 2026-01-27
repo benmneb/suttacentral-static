@@ -10,6 +10,7 @@ function generatePitakaOGTags(entry) {
     'og:url': `${metadata.origin}/pitaka/${entry.scx_path}`,
     'og:type': 'website',
     'og:site_name': metadata.title,
+    'og:image': '/images/og-image2.jpg',
   })
 }
 
