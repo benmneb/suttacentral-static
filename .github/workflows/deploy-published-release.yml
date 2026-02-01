@@ -2,13 +2,17 @@ name: Deploy Published Release
 
 on:
   release:
-    types: [published, deleted]
+    types: [published, edited, deleted]
 
 jobs:
   deploy-release:
     name: Deploy Release to Production
     runs-on: ubuntu-latest
-    if: github.event.action == 'published'
+    if: >
+      github.event.action == 'published' ||
+      (github.event.action == 'edited' &&
+       !github.event.release.prerelease &&
+       contains(github.event.release.tag_name, '-content-refresh-'))
 
     steps:
       - name: Checkout repository
@@ -135,7 +139,9 @@ jobs:
   cleanup-preview-tag:
     name: Cleanup Preview Tag
     runs-on: ubuntu-latest
-    if: contains(github.event.release.tag_name, '-content-refresh-')
+    if: >
+      github.event.action == 'deleted' &&
+      contains(github.event.release.tag_name, '-content-refresh-')
 
     steps:
       - name: Checkout repository
