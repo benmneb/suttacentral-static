@@ -1091,7 +1091,7 @@ main {
     li {
       padding: 0;
     }
-    dt {
+    dt:not([popover] dt) {
       font-weight: bold;
     }
     dd {
