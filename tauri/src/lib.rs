@@ -17,7 +17,7 @@ pub fn run() {
             }
 
             // Create main window with navigation handler
-            let _window = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
+            let window = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
                 .title("SuttaCentral Express")
                 .inner_size(800.0, 600.0)
                 .resizable(true)
@@ -52,6 +52,13 @@ pub fn run() {
                     }
                 })
                 .build()?;
+
+            #[cfg(target_os = "macos")]
+            window.with_webview(|webview| unsafe {
+                use objc2_web_kit::WKWebView;
+                let wkwebview = &*(webview.inner() as *const WKWebView);
+                wkwebview.setAllowsBackForwardNavigationGestures(true);
+            })?;
 
             Ok(())
         })

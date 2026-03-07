@@ -28,6 +28,9 @@ tauri-plugin-opener = "2"
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-window-state = "2"
 
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-web-kit = "0.3"
+
 # One of the simplest frontend agnostic size improvements you can do to your project is adding a Cargo profile to it.
 # from https://v2.tauri.app/concept/size/#cargo-configuration
 
