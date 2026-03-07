@@ -171,10 +171,7 @@ body {
   }
 
   & > header {
-    margin: 1rem auto;
-    padding: 0 1rem;
-    max-width: var(--content-max-width);
-    width: var(--width-minus-padding);
+    margin: 1rem;
 
     > nav {
       display: flex;
