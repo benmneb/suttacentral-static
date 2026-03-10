@@ -310,6 +310,7 @@ body {
       background-color: var(--comments-background-color);
       border-radius: var(--rounding);
       border: 1px solid var(--comments-border-color);
+      font-weight: initial;
     }
 
     .segment button[popovertarget] {
