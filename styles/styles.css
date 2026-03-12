@@ -1003,7 +1003,7 @@ main {
       font-style: italic;
       color: var(--text-color-secondary);
     }
-    .add:not(h1 .add) {
+    .add:not(h1 .add):not(h2 .add):not(h3 .add) {
       color: var(--text-color-secondary);
     }
     .evam {
