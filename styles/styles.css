@@ -1200,6 +1200,11 @@ main {
         background-color: var(--bg-soft);
       }
     }
+
+    a:not([href])[title] {
+      /* Used in legacy texts, ie in /an3.77/en/thanissaro */
+      cursor: help;
+    }
   }
 
   /* search results pagination */
