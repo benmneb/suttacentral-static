@@ -3596,6 +3596,7 @@ name = "suttacentral-express"
 version = "0.1.0"
 dependencies = [
  "log",
+ "objc2-app-kit",
  "objc2-web-kit",
  "serde",
  "serde_json",
