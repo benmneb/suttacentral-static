@@ -148,6 +148,7 @@ fn open_in_new_tab(app: tauri::AppHandle, url: String) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
@@ -155,7 +156,23 @@ pub fn run() {
             show_link_context_menu
         ])
         .on_menu_event(|app, event| {
-            if let Some(url) = event.id().as_ref().strip_prefix("new_tab:") {
+            if event.id() == "copy_link" {
+                let focused = app
+                    .webview_windows()
+                    .into_values()
+                    .find(|w| w.is_focused().unwrap_or(false));
+                if let Some(window) = focused {
+                    if let Ok(url) = window.url() {
+                        let web_url = url
+                            .as_str()
+                            .replacen("http://localhost:3000", "https://suttacentral.express", 1)
+                            .replacen("http://localhost", "https://suttacentral.express", 1)
+                            .replacen("tauri://localhost", "https://suttacentral.express", 1);
+                        use tauri_plugin_clipboard_manager::ClipboardExt;
+                        let _ = app.clipboard().write_text(web_url);
+                    }
+                }
+            } else if let Some(url) = event.id().as_ref().strip_prefix("new_tab:") {
                 let url = url.to_string();
                 let label = format!("tab_{}", TAB_COUNTER.fetch_add(1, Ordering::SeqCst));
                 if let Ok(webview_url) = url.parse() {
@@ -170,6 +187,30 @@ pub fn run() {
                         .level(log::LevelFilter::Info)
                         .build(),
                 )?;
+            }
+
+            {
+                use tauri::menu::{
+                    Menu, MenuItemBuilder, MenuItemKind, PredefinedMenuItem, SubmenuBuilder,
+                };
+                let menu = Menu::default(app.handle())?;
+                let copy_link =
+                    MenuItemBuilder::with_id("copy_link", "Copy Web Link").build(app)?;
+                let file_submenu = menu.items()?.into_iter().find_map(|item| {
+                    if let MenuItemKind::Submenu(s) = item {
+                        s.text().ok().filter(|t| t == "File").map(|_| s)
+                    } else {
+                        None
+                    }
+                });
+                if let Some(submenu) = file_submenu {
+                    submenu.append(&PredefinedMenuItem::separator(app)?)?;
+                    submenu.append(&copy_link)?;
+                } else {
+                    let fallback = SubmenuBuilder::new(app, "File").item(&copy_link).build()?;
+                    menu.append(&fallback)?;
+                }
+                app.set_menu(menu)?;
             }
 
             let saved = load_session(app.handle());
