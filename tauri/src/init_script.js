@@ -37,18 +37,4 @@
     },
     true
   )
-
-  // Right-click: native context menu on links
-  document.addEventListener(
-    'contextmenu',
-    function (e) {
-      const a = getAnchor(e.target)
-      if (!a || !a.href) return
-      e.preventDefault()
-      window.__TAURI_INTERNALS__.invoke('show_link_context_menu', {
-        url: a.href,
-      })
-    },
-    true
-  )
 })()

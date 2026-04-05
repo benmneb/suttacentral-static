@@ -114,30 +114,6 @@ fn apply_macos_config<R: tauri::Runtime>(window: &WebviewWindow<R>) {
 }
 
 #[tauri::command]
-fn show_link_context_menu(app: tauri::AppHandle, url: String) -> Result<(), String> {
-    use tauri::menu::{MenuBuilder, MenuItemBuilder};
-
-    let item = MenuItemBuilder::with_id(format!("new_tab:{url}"), "Open in New Tab")
-        .build(&app)
-        .map_err(|e| e.to_string())?;
-
-    let menu = MenuBuilder::new(&app)
-        .item(&item)
-        .build()
-        .map_err(|e| e.to_string())?;
-
-    if let Some(window) = app
-        .webview_windows()
-        .into_values()
-        .find(|w| w.is_focused().unwrap_or(false))
-    {
-        window.popup_menu(&menu).map_err(|e| e.to_string())?;
-    }
-
-    Ok(())
-}
-
-#[tauri::command]
 fn open_in_new_tab(app: tauri::AppHandle, url: String) -> Result<(), String> {
     let label = format!("tab_{}", TAB_COUNTER.fetch_add(1, Ordering::SeqCst));
     let webview_url = WebviewUrl::External(url.parse().map_err(|e| format!("{e}"))?);
@@ -151,10 +127,7 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_window_state::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![
-            open_in_new_tab,
-            show_link_context_menu
-        ])
+        .invoke_handler(tauri::generate_handler![open_in_new_tab])
         .on_menu_event(|app, event| {
             if event.id() == "copy_link" {
                 let focused = app
@@ -171,12 +144,6 @@ pub fn run() {
                         use tauri_plugin_clipboard_manager::ClipboardExt;
                         let _ = app.clipboard().write_text(web_url);
                     }
-                }
-            } else if let Some(url) = event.id().as_ref().strip_prefix("new_tab:") {
-                let url = url.to_string();
-                let label = format!("tab_{}", TAB_COUNTER.fetch_add(1, Ordering::SeqCst));
-                if let Ok(webview_url) = url.parse() {
-                    let _ = build_window(app, &label, WebviewUrl::External(webview_url));
                 }
             }
         })
