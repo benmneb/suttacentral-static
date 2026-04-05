@@ -2,6 +2,13 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use tauri::webview::WebviewWindow;
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 
+#[cfg(target_os = "macos")]
+use objc2::DefinedClass;
+#[cfg(target_os = "macos")]
+use objc2_foundation::NSObjectProtocol;
+#[cfg(target_os = "macos")]
+use objc2_web_kit::WKUIDelegate;
+
 static TAB_COUNTER: AtomicU32 = AtomicU32::new(0);
 static SESSION_SAVED: AtomicBool = AtomicBool::new(false);
 
@@ -100,9 +107,68 @@ fn build_window<R: tauri::Runtime, M: Manager<R>>(
 }
 
 #[cfg(target_os = "macos")]
+struct ScUIDelegateIvars {
+    open_url: Box<dyn Fn(String) + Send + 'static>,
+}
+
+#[cfg(target_os = "macos")]
+objc2::define_class!(
+    #[unsafe(super(objc2::runtime::NSObject))]
+    #[name = "SuttaCentralExpressUIDelegate"]
+    #[thread_kind = objc2::MainThreadOnly]
+    #[ivars = ScUIDelegateIvars]
+    struct ScUIDelegate;
+
+    unsafe impl NSObjectProtocol for ScUIDelegate {}
+
+    unsafe impl WKUIDelegate for ScUIDelegate {
+        #[cfg(target_os = "macos")]
+        #[unsafe(method_id(webView:createWebViewWithConfiguration:forNavigationAction:windowFeatures:))]
+        unsafe fn create_web_view(
+            &self,
+            _web_view: &objc2_web_kit::WKWebView,
+            _config: &objc2_web_kit::WKWebViewConfiguration,
+            action: &objc2_web_kit::WKNavigationAction,
+            _window_features: &objc2_web_kit::WKWindowFeatures,
+        ) -> Option<objc2::rc::Retained<objc2_web_kit::WKWebView>> {
+            let request = action.request();
+            if let Some(url) = request.URL() {
+                if let Some(s) = url.absoluteString() {
+                    (self.ivars().open_url)(s.to_string());
+                }
+            }
+            None
+        }
+    }
+);
+
+#[cfg(target_os = "macos")]
+impl ScUIDelegate {
+    fn new(
+        mtm: objc2_foundation::MainThreadMarker,
+        open_url: Box<dyn Fn(String) + Send + 'static>,
+    ) -> objc2::rc::Retained<Self> {
+        let delegate = mtm
+            .alloc::<ScUIDelegate>()
+            .set_ivars(ScUIDelegateIvars { open_url });
+        unsafe { objc2::msg_send![super(delegate), init] }
+    }
+}
+
+#[cfg(target_os = "macos")]
 fn apply_macos_config<R: tauri::Runtime>(window: &WebviewWindow<R>) {
-    let _ = window.with_webview(|webview| unsafe {
+    let app_handle = window.app_handle().clone();
+    let open_url = Box::new(move |url: String| {
+        let label = format!("tab_{}", TAB_COUNTER.fetch_add(1, Ordering::SeqCst));
+        if let Ok(parsed) = url.parse() {
+            let _ = build_window(&app_handle, &label, WebviewUrl::External(parsed));
+        }
+    });
+
+    let _ = window.with_webview(move |webview| unsafe {
+        use objc2::runtime::ProtocolObject;
         use objc2_app_kit::{NSWindow, NSWindowTabbingMode};
+        use objc2_foundation::MainThreadMarker;
         use objc2_web_kit::WKWebView;
 
         let wk = &*(webview.inner() as *const WKWebView);
@@ -110,6 +176,14 @@ fn apply_macos_config<R: tauri::Runtime>(window: &WebviewWindow<R>) {
 
         let ns = &*(webview.ns_window() as *const NSWindow);
         ns.setTabbingMode(NSWindowTabbingMode::Preferred);
+
+        // WKWebView holds only a weak reference to its UIDelegate, so we
+        // must keep the delegate alive. std::mem::forget gives the ObjC object
+        // a permanent retain count of 1 (one small object per window — fine).
+        let mtm = MainThreadMarker::new_unchecked();
+        let delegate = ScUIDelegate::new(mtm, open_url);
+        wk.setUIDelegate(Some(ProtocolObject::from_ref(&*delegate)));
+        std::mem::forget(delegate);
     });
 }
 
