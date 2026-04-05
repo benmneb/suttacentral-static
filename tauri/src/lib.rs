@@ -1,8 +1,43 @@
-use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use tauri::webview::WebviewWindow;
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 
 static TAB_COUNTER: AtomicU32 = AtomicU32::new(0);
+static SESSION_SAVED: AtomicBool = AtomicBool::new(false);
+
+fn save_session<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
+    let mut windows: Vec<_> = app.webview_windows().into_iter().collect();
+    windows.sort_by(|(a, _), (b, _)| {
+        if a == "main" {
+            std::cmp::Ordering::Less
+        } else if b == "main" {
+            std::cmp::Ordering::Greater
+        } else {
+            a.cmp(b)
+        }
+    });
+    let urls: Vec<String> = windows
+        .iter()
+        .filter_map(|(_, w)| w.url().ok())
+        .map(|u| u.to_string())
+        .collect();
+    if let Ok(dir) = app.path().app_data_dir() {
+        let _ = std::fs::create_dir_all(&dir);
+        let _ = std::fs::write(
+            dir.join("session.json"),
+            serde_json::to_string(&urls).unwrap_or_default(),
+        );
+    }
+}
+
+fn load_session(app: &tauri::AppHandle) -> Vec<String> {
+    app.path()
+        .app_data_dir()
+        .ok()
+        .and_then(|dir| std::fs::read_to_string(dir.join("session.json")).ok())
+        .and_then(|s| serde_json::from_str(&s).ok())
+        .unwrap_or_default()
+}
 
 fn is_internal_url(url: &tauri::Url) -> bool {
     let s = url.as_str();
@@ -48,6 +83,18 @@ fn build_window<R: tauri::Runtime, M: Manager<R>>(
 
     #[cfg(target_os = "macos")]
     apply_macos_config(&window);
+
+    let app_handle = manager.app_handle().clone();
+    window.on_window_event(move |event| {
+        if let tauri::WindowEvent::CloseRequested { .. } = event {
+            if SESSION_SAVED
+                .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+                .is_ok()
+            {
+                save_session(&app_handle);
+            }
+        }
+    });
 
     Ok(window)
 }
@@ -124,7 +171,25 @@ pub fn run() {
                         .build(),
                 )?;
             }
-            build_window(app, "main", WebviewUrl::default())?;
+
+            let saved = load_session(app.handle());
+            if saved.is_empty() {
+                build_window(app, "main", WebviewUrl::default())?;
+            } else {
+                for (i, url_str) in saved.iter().enumerate() {
+                    let label = if i == 0 {
+                        "main".to_string()
+                    } else {
+                        format!("tab_{}", TAB_COUNTER.fetch_add(1, Ordering::SeqCst))
+                    };
+                    let url = url_str
+                        .parse()
+                        .map(WebviewUrl::External)
+                        .unwrap_or_else(|_| WebviewUrl::default());
+                    build_window(app, &label, url)?;
+                }
+            }
+
             Ok(())
         })
         .run(tauri::generate_context!())
