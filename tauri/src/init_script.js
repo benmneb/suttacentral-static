@@ -37,4 +37,17 @@
     },
     true
   )
+
+  // Right-click: tell Rust which link was under the cursor so the native
+  // "Copy Link" menu item can copy the public web URL instead of localhost.
+  document.addEventListener(
+    'contextmenu',
+    function (e) {
+      const a = getAnchor(e.target)
+      window.__TAURI_INTERNALS__.invoke('store_context_link', {
+        url: a && a.href ? a.href : '',
+      })
+    },
+    true
+  )
 })()

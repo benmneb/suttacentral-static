@@ -1,4 +1,5 @@
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use std::sync::Mutex;
 use tauri::webview::WebviewWindow;
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 
@@ -11,6 +12,11 @@ use objc2_web_kit::WKUIDelegate;
 
 static TAB_COUNTER: AtomicU32 = AtomicU32::new(0);
 static SESSION_SAVED: AtomicBool = AtomicBool::new(false);
+// URL of the link most recently right-clicked; set from JS via store_context_link.
+static CONTEXT_LINK: Mutex<String> = Mutex::new(String::new());
+// Original IMP of WKWebView's willOpenMenu:withEvent:, saved during swizzle.
+#[cfg(target_os = "macos")]
+static ORIG_WILL_OPEN_MENU: std::sync::OnceLock<objc2::runtime::Imp> = std::sync::OnceLock::new();
 
 fn save_session<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
     let mut windows: Vec<_> = app.webview_windows().into_iter().collect();
@@ -52,6 +58,12 @@ fn is_internal_url(url: &tauri::Url) -> bool {
         || s.starts_with("http://localhost")
         || s.starts_with("tauri://localhost")
         || url.scheme() == "tauri"
+}
+
+fn to_web_url(url: &str) -> String {
+    url.replacen("http://localhost:3000", "https://suttacentral.express", 1)
+        .replacen("http://localhost", "https://suttacentral.express", 1)
+        .replacen("tauri://localhost", "https://suttacentral.express", 1)
 }
 
 fn make_nav_handler() -> impl Fn(&tauri::Url) -> bool + Send + 'static {
@@ -108,7 +120,8 @@ fn build_window<R: tauri::Runtime, M: Manager<R>>(
 
 #[cfg(target_os = "macos")]
 struct ScUIDelegateIvars {
-    open_url: Box<dyn Fn(String) + Send + 'static>,
+    open_tab: Box<dyn Fn(String) + Send + 'static>,
+    copy_link: Box<dyn Fn() + Send + 'static>,
 }
 
 #[cfg(target_os = "macos")]
@@ -134,10 +147,17 @@ objc2::define_class!(
             let request = action.request();
             if let Some(url) = request.URL() {
                 if let Some(s) = url.absoluteString() {
-                    (self.ivars().open_url)(s.to_string());
+                    (self.ivars().open_tab)(s.to_string());
                 }
             }
             None
+        }
+    }
+
+    impl ScUIDelegate {
+        #[unsafe(method(copyWebLink:))]
+        fn copy_web_link(&self, _sender: &objc2::runtime::AnyObject) {
+            (self.ivars().copy_link)();
         }
     }
 );
@@ -146,22 +166,116 @@ objc2::define_class!(
 impl ScUIDelegate {
     fn new(
         mtm: objc2_foundation::MainThreadMarker,
-        open_url: Box<dyn Fn(String) + Send + 'static>,
+        open_tab: Box<dyn Fn(String) + Send + 'static>,
+        copy_link: Box<dyn Fn() + Send + 'static>,
     ) -> objc2::rc::Retained<Self> {
-        let delegate = mtm
-            .alloc::<ScUIDelegate>()
-            .set_ivars(ScUIDelegateIvars { open_url });
+        let delegate = mtm.alloc::<ScUIDelegate>().set_ivars(ScUIDelegateIvars {
+            open_tab,
+            copy_link,
+        });
         unsafe { objc2::msg_send![super(delegate), init] }
+    }
+}
+
+/// Swizzles WKWebView's willOpenMenu:withEvent: once so we can intercept the
+/// native context menu and redirect "Copy Link" to copy the public web URL.
+#[cfg(target_os = "macos")]
+fn install_menu_swizzle() {
+    static ONCE: std::sync::Once = std::sync::Once::new();
+    ONCE.call_once(|| unsafe {
+        use objc2::ffi;
+        use objc2::runtime::{AnyClass, Imp};
+        use std::ffi::CStr;
+
+        let name = CStr::from_bytes_with_nul(b"WKWebView\0").unwrap();
+        let Some(cls) = AnyClass::get(name) else {
+            return;
+        };
+        let sel = objc2::sel!(willOpenMenu:withEvent:);
+        let method = ffi::class_getInstanceMethod(cls as *const AnyClass, sel);
+        if method.is_null() {
+            return;
+        }
+        let our_imp: Imp = std::mem::transmute(
+            our_will_open_menu
+                as unsafe extern "C-unwind" fn(
+                    *mut objc2::runtime::AnyObject,
+                    objc2::runtime::Sel,
+                    *mut objc2::runtime::AnyObject,
+                    *mut objc2::runtime::AnyObject,
+                ),
+        );
+        if let Some(orig) = ffi::method_setImplementation(method, our_imp) {
+            let _ = ORIG_WILL_OPEN_MENU.set(orig);
+        }
+    });
+}
+
+#[cfg(target_os = "macos")]
+unsafe extern "C-unwind" fn our_will_open_menu(
+    this: *mut objc2::runtime::AnyObject,
+    sel: objc2::runtime::Sel,
+    menu: *mut objc2::runtime::AnyObject,
+    event: *mut objc2::runtime::AnyObject,
+) {
+    use objc2::runtime::AnyObject;
+
+    // Call the original WebKit implementation first.
+    if let Some(orig) = ORIG_WILL_OPEN_MENU.get() {
+        type F = unsafe extern "C-unwind" fn(
+            *mut AnyObject,
+            objc2::runtime::Sel,
+            *mut AnyObject,
+            *mut AnyObject,
+        );
+        let f: F = std::mem::transmute(*orig);
+        f(this, sel, menu, event);
+    }
+
+    // Locate our ScUIDelegate attached to this WKWebView.
+    let wk = &*(this as *const objc2_web_kit::WKWebView);
+    let Some(ui_delegate) = wk.UIDelegate() else {
+        return;
+    };
+
+    // Iterate the NSMenu items and redirect "Copy Link" to our copyWebLink: action.
+    use objc2_app_kit::{NSMenu, NSUserInterfaceItemIdentification};
+    let ns_menu = &*(menu as *const NSMenu);
+    for i in 0..ns_menu.numberOfItems() {
+        let Some(item) = ns_menu.itemAtIndex(i) else {
+            continue;
+        };
+        let is_copy_link = item
+            .identifier()
+            .map(|id| id.to_string() == "WKMenuItemIdentifierCopyLink")
+            .unwrap_or(false);
+        if !is_copy_link {
+            continue;
+        }
+        item.setAction(Some(objc2::sel!(copyWebLink:)));
+        // ProtocolObject<dyn WKUIDelegate> is repr(C) over AnyObject — safe cast.
+        let target: &AnyObject = &*(objc2::rc::Retained::as_ptr(&ui_delegate) as *const AnyObject);
+        item.setTarget(Some(target));
     }
 }
 
 #[cfg(target_os = "macos")]
 fn apply_macos_config<R: tauri::Runtime>(window: &WebviewWindow<R>) {
-    let app_handle = window.app_handle().clone();
-    let open_url = Box::new(move |url: String| {
+    let app_for_tab = window.app_handle().clone();
+    let open_tab = Box::new(move |url: String| {
         let label = format!("tab_{}", TAB_COUNTER.fetch_add(1, Ordering::SeqCst));
         if let Ok(parsed) = url.parse() {
-            let _ = build_window(&app_handle, &label, WebviewUrl::External(parsed));
+            let _ = build_window(&app_for_tab, &label, WebviewUrl::External(parsed));
+        }
+    });
+
+    let app_for_copy = window.app_handle().clone();
+    let copy_link = Box::new(move || {
+        let url = CONTEXT_LINK.lock().map(|g| g.clone()).unwrap_or_default();
+        let web_url = to_web_url(&url);
+        if !web_url.is_empty() {
+            use tauri_plugin_clipboard_manager::ClipboardExt;
+            let _ = app_for_copy.clipboard().write_text(web_url);
         }
     });
 
@@ -181,9 +295,11 @@ fn apply_macos_config<R: tauri::Runtime>(window: &WebviewWindow<R>) {
         // must keep the delegate alive. std::mem::forget gives the ObjC object
         // a permanent retain count of 1 (one small object per window — fine).
         let mtm = MainThreadMarker::new_unchecked();
-        let delegate = ScUIDelegate::new(mtm, open_url);
+        let delegate = ScUIDelegate::new(mtm, open_tab, copy_link);
         wk.setUIDelegate(Some(ProtocolObject::from_ref(&*delegate)));
         std::mem::forget(delegate);
+
+        install_menu_swizzle();
     });
 }
 
@@ -195,13 +311,23 @@ fn open_in_new_tab(app: tauri::AppHandle, url: String) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+fn store_context_link(url: String) {
+    if let Ok(mut g) = CONTEXT_LINK.lock() {
+        *g = url;
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_window_state::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![open_in_new_tab])
+        .invoke_handler(tauri::generate_handler![
+            open_in_new_tab,
+            store_context_link
+        ])
         .on_menu_event(|app, event| {
             if event.id() == "copy_link" {
                 let focused = app
@@ -210,11 +336,7 @@ pub fn run() {
                     .find(|w| w.is_focused().unwrap_or(false));
                 if let Some(window) = focused {
                     if let Ok(url) = window.url() {
-                        let web_url = url
-                            .as_str()
-                            .replacen("http://localhost:3000", "https://suttacentral.express", 1)
-                            .replacen("http://localhost", "https://suttacentral.express", 1)
-                            .replacen("tauri://localhost", "https://suttacentral.express", 1);
+                        let web_url = to_web_url(url.as_str());
                         use tauri_plugin_clipboard_manager::ClipboardExt;
                         let _ = app.clipboard().write_text(web_url);
                     }
