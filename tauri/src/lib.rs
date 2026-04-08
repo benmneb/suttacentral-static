@@ -284,8 +284,9 @@ fn build_window<R: tauri::Runtime, M: Manager<R>>(
     manager: &M,
     label: &str,
     url: WebviewUrl,
-    initial_zoom: f64,
+    #[cfg_attr(not(target_os = "macos"), allow(unused_variables))] initial_zoom: f64,
 ) -> tauri::Result<WebviewWindow<R>> {
+    #[allow(unused_mut)]
     let mut builder = WebviewWindowBuilder::new(manager, label, url)
         .title("SuttaCentral Express")
         .inner_size(800.0, 600.0)
@@ -463,6 +464,7 @@ unsafe extern "C-unwind" fn our_will_open_menu(
     }
 }
 
+#[cfg(target_os = "macos")]
 unsafe extern "C" fn fbs_find_bar_view(
     this: *mut objc2::runtime::AnyObject,
     _sel: objc2::runtime::Sel,
@@ -470,6 +472,7 @@ unsafe extern "C" fn fbs_find_bar_view(
     get_associated_obj(this, &FIND_BAR_VIEW_KEY)
 }
 
+#[cfg(target_os = "macos")]
 unsafe extern "C" fn fbs_set_find_bar_view(
     _this: *mut objc2::runtime::AnyObject,
     _sel: objc2::runtime::Sel,
@@ -498,6 +501,7 @@ unsafe extern "C" fn fbs_set_find_bar_view(
     }
 }
 
+#[cfg(target_os = "macos")]
 unsafe extern "C" fn fbs_is_find_bar_visible(
     this: *mut objc2::runtime::AnyObject,
     _sel: objc2::runtime::Sel,
@@ -505,6 +509,7 @@ unsafe extern "C" fn fbs_is_find_bar_visible(
     !get_associated_obj(this, &FIND_BAR_VISIBLE_KEY).is_null()
 }
 
+#[cfg(target_os = "macos")]
 unsafe extern "C" fn fbs_set_find_bar_visible(
     this: *mut objc2::runtime::AnyObject,
     _sel: objc2::runtime::Sel,
@@ -556,6 +561,7 @@ unsafe extern "C" fn fbs_set_find_bar_visible(
     }
 }
 
+#[cfg(target_os = "macos")]
 unsafe extern "C" fn fbs_find_bar_view_did_change_height(
     this: *mut objc2::runtime::AnyObject,
     _sel: objc2::runtime::Sel,
@@ -682,8 +688,9 @@ fn apply_macos_config<R: tauri::Runtime>(window: &WebviewWindow<R>, initial_zoom
 
 #[tauri::command]
 fn open_in_new_tab(app: tauri::AppHandle, url: String) -> Result<(), String> {
-    // Inherit zoom from the focused tab. with_webview dispatches to the main thread;
-    // rx.recv() blocks this background thread until the value arrives — no deadlock.
+    // Inherit zoom from the focused tab (macOS only). with_webview dispatches to the
+    // main thread; rx.recv() blocks this background thread until the value arrives.
+    #[cfg(target_os = "macos")]
     let zoom = {
         let focused = app
             .webview_windows()
@@ -701,6 +708,8 @@ fn open_in_new_tab(app: tauri::AppHandle, url: String) -> Result<(), String> {
             1.0
         }
     };
+    #[cfg(not(target_os = "macos"))]
+    let zoom = 1.0_f64;
 
     let label = format!("tab_{}", TAB_COUNTER.fetch_add(1, Ordering::SeqCst));
     let webview_url = WebviewUrl::External(url.parse().map_err(|e| format!("{e}"))?);
