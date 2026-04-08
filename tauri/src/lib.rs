@@ -18,6 +18,207 @@ static CONTEXT_LINK: Mutex<String> = Mutex::new(String::new());
 #[cfg(target_os = "macos")]
 static ORIG_WILL_OPEN_MENU: std::sync::OnceLock<objc2::runtime::Imp> = std::sync::OnceLock::new();
 
+// Per-webview associated object keys — address of each static is the unique ObjC key.
+#[cfg(target_os = "macos")]
+static TEXT_FINDER_KEY: u8 = 0; // RETAIN — current NSTextFinder (replaced on each open)
+#[cfg(target_os = "macos")]
+static TFC_KEY: u8 = 0; // ASSIGN — WKTextFinderClient (set once, never changes)
+#[cfg(target_os = "macos")]
+static FIND_BAR_VIEW_KEY: u8 = 0; // ASSIGN — weak ptr to bar NSView (NSTextFinder owns it)
+#[cfg(target_os = "macos")]
+static FIND_BAR_VISIBLE_KEY: u8 = 0; // ASSIGN — non-null = visible, null = hidden
+
+// ObjC associated-object runtime functions.
+#[cfg(target_os = "macos")]
+extern "C" {
+    fn objc_getAssociatedObject(
+        object: *const std::ffi::c_void,
+        key: *const std::ffi::c_void,
+    ) -> *mut std::ffi::c_void;
+    fn objc_setAssociatedObject(
+        object: *mut std::ffi::c_void,
+        key: *const std::ffi::c_void,
+        value: *mut std::ffi::c_void,
+        policy: usize,
+    );
+}
+
+// OBJC_ASSOCIATION_RETAIN_NONATOMIC — retains value, released when host is deallocated.
+#[cfg(target_os = "macos")]
+const OBJC_ASSOCIATION_RETAIN_NONATOMIC: usize = 1;
+// OBJC_ASSOCIATION_ASSIGN — weak, no retain/release (caller manages lifetime).
+#[cfg(target_os = "macos")]
+const OBJC_ASSOCIATION_ASSIGN: usize = 0;
+
+#[cfg(target_os = "macos")]
+unsafe fn get_associated_obj(
+    obj: *mut objc2::runtime::AnyObject,
+    key: &u8,
+) -> *mut objc2::runtime::AnyObject {
+    objc_getAssociatedObject(obj as *const _, key as *const u8 as *const _)
+        as *mut objc2::runtime::AnyObject
+}
+
+#[cfg(target_os = "macos")]
+unsafe fn set_associated_obj(
+    obj: *mut objc2::runtime::AnyObject,
+    key: &u8,
+    value: *mut objc2::runtime::AnyObject,
+    policy: usize,
+) {
+    objc_setAssociatedObject(
+        obj as *mut _,
+        key as *const u8 as *const _,
+        value as *mut _,
+        policy,
+    );
+}
+
+// NSRect/NSPoint/NSSize — identical to CGRect/CGPoint/CGSize on 64-bit macOS.
+#[cfg(target_os = "macos")]
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct NSPoint {
+    x: f64,
+    y: f64,
+}
+#[cfg(target_os = "macos")]
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct NSSize {
+    width: f64,
+    height: f64,
+}
+#[cfg(target_os = "macos")]
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct NSRect {
+    origin: NSPoint,
+    size: NSSize,
+}
+// NSEdgeInsets — top, left, bottom, right.
+#[cfg(target_os = "macos")]
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct NSEdgeInsets {
+    top: f64,
+    left: f64,
+    bottom: f64,
+    right: f64,
+}
+
+// Implement objc2::encode::Encode so these types can be used with msg_send!.
+#[cfg(target_os = "macos")]
+unsafe impl objc2::encode::Encode for NSPoint {
+    const ENCODING: objc2::encode::Encoding =
+        objc2::encode::Encoding::Struct("CGPoint", &[f64::ENCODING, f64::ENCODING]);
+}
+#[cfg(target_os = "macos")]
+unsafe impl objc2::encode::RefEncode for NSPoint {
+    const ENCODING_REF: objc2::encode::Encoding =
+        objc2::encode::Encoding::Pointer(&<Self as objc2::encode::Encode>::ENCODING);
+}
+#[cfg(target_os = "macos")]
+unsafe impl objc2::encode::Encode for NSSize {
+    const ENCODING: objc2::encode::Encoding =
+        objc2::encode::Encoding::Struct("CGSize", &[f64::ENCODING, f64::ENCODING]);
+}
+#[cfg(target_os = "macos")]
+unsafe impl objc2::encode::RefEncode for NSSize {
+    const ENCODING_REF: objc2::encode::Encoding =
+        objc2::encode::Encoding::Pointer(&<Self as objc2::encode::Encode>::ENCODING);
+}
+#[cfg(target_os = "macos")]
+unsafe impl objc2::encode::Encode for NSRect {
+    const ENCODING: objc2::encode::Encoding =
+        objc2::encode::Encoding::Struct("CGRect", &[NSPoint::ENCODING, NSSize::ENCODING]);
+}
+#[cfg(target_os = "macos")]
+unsafe impl objc2::encode::RefEncode for NSRect {
+    const ENCODING_REF: objc2::encode::Encoding =
+        objc2::encode::Encoding::Pointer(&<Self as objc2::encode::Encode>::ENCODING);
+}
+#[cfg(target_os = "macos")]
+unsafe impl objc2::encode::Encode for NSEdgeInsets {
+    const ENCODING: objc2::encode::Encoding = objc2::encode::Encoding::Struct(
+        "NSEdgeInsets",
+        &[f64::ENCODING, f64::ENCODING, f64::ENCODING, f64::ENCODING],
+    );
+}
+#[cfg(target_os = "macos")]
+unsafe impl objc2::encode::RefEncode for NSEdgeInsets {
+    const ENCODING_REF: objc2::encode::Encoding =
+        objc2::encode::Encoding::Pointer(&<Self as objc2::encode::Encode>::ENCODING);
+}
+
+/// Position the find bar at the top of `container` (full width) and push the
+/// WKWebView scroll-content down so the bar does not overlap the page.
+/// Call with `bar_height = 0.0` to reset (when the bar is hidden/removed).
+#[cfg(target_os = "macos")]
+unsafe fn layout_find_bar(container: *mut objc2::runtime::AnyObject, bar_height: f64) {
+    use objc2::ffi;
+    use objc2::runtime::AnyClass;
+    use std::ffi::CStr;
+
+    // WryWebView extends under the title bar (fullSizeContentView).
+    // safeAreaInsets.top gives the title bar height so we can position below it.
+    let safe_area: NSEdgeInsets = objc2::msg_send![container, safeAreaInsets];
+    let title_bar_h = safe_area.top;
+
+    // Position the bar view frame just below the title bar, centered horizontally
+    // at its natural (intrinsic) width.
+    let view = get_associated_obj(container, &FIND_BAR_VIEW_KEY);
+    if !view.is_null() && bar_height > 0.0 {
+        let bounds: NSRect = objc2::msg_send![container, bounds];
+        let natural: NSRect = objc2::msg_send![view, frame];
+        let bar_width = if natural.size.width > 0.0 {
+            natural.size.width
+        } else {
+            bounds.size.width
+        };
+        let bar_x = ((bounds.size.width - bar_width) / 2.0).max(0.0);
+        let is_flipped: bool = objc2::msg_send![container, isFlipped];
+        let bar_y = if is_flipped {
+            title_bar_h
+        } else {
+            bounds.size.height - title_bar_h - bar_height
+        };
+        let bar_rect = NSRect {
+            origin: NSPoint { x: bar_x, y: bar_y },
+            size: NSSize {
+                width: bar_width,
+                height: bar_height,
+            },
+        };
+        let _: () = objc2::msg_send![view, setFrame: bar_rect];
+    }
+
+    // _setTopContentInset: tells WKWebView to offset the rendered content downward,
+    // exactly like Safari does when its toolbar overlaps the webview.
+    let wk_cls_name = CStr::from_bytes_with_nul(b"WKWebView\0").unwrap();
+    let Some(wk_cls) = AnyClass::get(wk_cls_name) else {
+        return;
+    };
+    let sel_name = CStr::from_bytes_with_nul(b"_setTopContentInset:\0").unwrap();
+    let Some(sel) = ffi::sel_registerName(sel_name.as_ptr()) else {
+        return;
+    };
+    let m = ffi::class_getInstanceMethod(wk_cls as *const AnyClass, sel);
+    if m.is_null() {
+        return;
+    }
+    let imp = ffi::method_getImplementation(m);
+    type FnSetF64 =
+        unsafe extern "C-unwind" fn(*mut objc2::runtime::AnyObject, objc2::runtime::Sel, f64);
+    let set_inset: FnSetF64 = std::mem::transmute(imp);
+    // Include title_bar_h because _setTopContentInset: replaces (not adds to)
+    // WKWebView's existing title bar inset. Without it, content slides up behind
+    // the title bar. When bar_height is 0 (bar hidden) this restores the original inset.
+    let _ = objc2::exception::catch(std::panic::AssertUnwindSafe(|| {
+        set_inset(container, sel, title_bar_h + bar_height);
+    }));
+}
+
 fn save_session<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
     let mut windows: Vec<_> = app.webview_windows().into_iter().collect();
     windows.sort_by(|(a, _), (b, _)| {
@@ -259,6 +460,174 @@ unsafe extern "C-unwind" fn our_will_open_menu(
     }
 }
 
+unsafe extern "C" fn fbs_find_bar_view(
+    this: *mut objc2::runtime::AnyObject,
+    _sel: objc2::runtime::Sel,
+) -> *mut objc2::runtime::AnyObject {
+    get_associated_obj(this, &FIND_BAR_VIEW_KEY)
+}
+
+unsafe extern "C" fn fbs_set_find_bar_view(
+    _this: *mut objc2::runtime::AnyObject,
+    _sel: objc2::runtime::Sel,
+    view: *mut objc2::runtime::AnyObject,
+) {
+    // Just store the view pointer. Do NOT addSubview or change visibility here —
+    // NSTextFinder calls setFindBarView: first to hand us the view, then immediately
+    // calls setFindBarVisible: false (initialising state), then setFindBarVisible: true
+    // to actually show it. If we addSubview here, isFindBarVisible returns true and
+    // NSTextFinder skips the setFindBarVisible: true call, leaving the bar hidden.
+    if view.is_null() {
+        set_associated_obj(
+            _this,
+            &FIND_BAR_VISIBLE_KEY,
+            std::ptr::null_mut(),
+            OBJC_ASSOCIATION_ASSIGN,
+        );
+        set_associated_obj(
+            _this,
+            &FIND_BAR_VIEW_KEY,
+            std::ptr::null_mut(),
+            OBJC_ASSOCIATION_ASSIGN,
+        );
+    } else {
+        set_associated_obj(_this, &FIND_BAR_VIEW_KEY, view, OBJC_ASSOCIATION_ASSIGN);
+    }
+}
+
+unsafe extern "C" fn fbs_is_find_bar_visible(
+    this: *mut objc2::runtime::AnyObject,
+    _sel: objc2::runtime::Sel,
+) -> bool {
+    !get_associated_obj(this, &FIND_BAR_VISIBLE_KEY).is_null()
+}
+
+unsafe extern "C" fn fbs_set_find_bar_visible(
+    this: *mut objc2::runtime::AnyObject,
+    _sel: objc2::runtime::Sel,
+    visible: bool,
+) {
+    let view = get_associated_obj(this, &FIND_BAR_VIEW_KEY);
+    if view.is_null() {
+        return;
+    }
+    let vis_ptr: *mut objc2::runtime::AnyObject = if visible {
+        1usize as *mut _
+    } else {
+        std::ptr::null_mut()
+    };
+    set_associated_obj(
+        this,
+        &FIND_BAR_VISIBLE_KEY,
+        vis_ptr,
+        OBJC_ASSOCIATION_ASSIGN,
+    );
+    if visible {
+        // addSubview: is idempotent if already a subview, so safe to call every time.
+        let _ = objc2::exception::catch(std::panic::AssertUnwindSafe(|| {
+            let _: () = objc2::msg_send![this, addSubview: view];
+            let _: () = objc2::msg_send![view, setHidden: false];
+        }));
+        let bar_frame: NSRect = objc2::msg_send![view, frame];
+        let bar_height = if bar_frame.size.height > 0.0 {
+            bar_frame.size.height
+        } else {
+            44.0
+        };
+        layout_find_bar(this, bar_height);
+    } else {
+        // Remove the bar view from the hierarchy and clear our pointer.
+        // This ensures findBarView returns nil on the next open, so the next
+        // NSTextFinder goes through the full init sequence (setFindBarView: +
+        // setFindBarVisible: true) rather than trying to reuse a stale view.
+        set_associated_obj(
+            this,
+            &FIND_BAR_VIEW_KEY,
+            std::ptr::null_mut(),
+            OBJC_ASSOCIATION_ASSIGN,
+        );
+        let _ = objc2::exception::catch(std::panic::AssertUnwindSafe(|| {
+            let _: () = objc2::msg_send![view, removeFromSuperview];
+        }));
+        layout_find_bar(this, 0.0);
+    }
+}
+
+unsafe extern "C" fn fbs_find_bar_view_did_change_height(
+    this: *mut objc2::runtime::AnyObject,
+    _sel: objc2::runtime::Sel,
+) {
+    let view = get_associated_obj(this, &FIND_BAR_VIEW_KEY);
+    if view.is_null() {
+        return;
+    }
+    let bar_frame: NSRect = objc2::msg_send![view, frame];
+    let bar_height = if bar_frame.size.height > 0.0 {
+        bar_frame.size.height
+    } else {
+        44.0
+    };
+    layout_find_bar(this, bar_height);
+}
+
+/// Patches the actual runtime class of an object (and its superview's class)
+/// with NSTextFinderBarContainer methods. Must be called with the live instance
+/// because KVO generates subclasses (NSKVONotifying_*) that shadow the original.
+#[cfg(target_os = "macos")]
+unsafe fn install_find_bar_support_on(instance: *mut objc2::runtime::AnyObject) {
+    use objc2::ffi;
+    use objc2::runtime::AnyClass;
+    use std::ffi::CStr;
+
+    let methods: &[(&[u8], &[u8], usize)] = &[
+        (
+            b"findBarView\0",
+            b"@@:\0",
+            fbs_find_bar_view as *const () as usize,
+        ),
+        (
+            b"setFindBarView:\0",
+            b"v@:@\0",
+            fbs_set_find_bar_view as *const () as usize,
+        ),
+        (
+            b"isFindBarVisible\0",
+            b"B@:\0",
+            fbs_is_find_bar_visible as *const () as usize,
+        ),
+        (
+            b"setFindBarVisible:\0",
+            b"v@:B\0",
+            fbs_set_find_bar_visible as *const () as usize,
+        ),
+        (
+            b"findBarViewDidChangeHeight\0",
+            b"v@:\0",
+            fbs_find_bar_view_did_change_height as *const () as usize,
+        ),
+    ];
+
+    // Patch the actual runtime class of instance + its superview's class.
+    let superview: *mut objc2::runtime::AnyObject = objc2::msg_send![instance, superview];
+    let targets: &[*mut objc2::runtime::AnyObject] = &[instance, superview];
+
+    for &obj in targets {
+        if obj.is_null() {
+            continue;
+        }
+        let cls = (*obj).class() as *const AnyClass as *mut AnyClass;
+        for &(sel_bytes, types_bytes, imp_usize) in methods {
+            let sel_name = CStr::from_bytes_with_nul(sel_bytes).unwrap();
+            let types = CStr::from_bytes_with_nul(types_bytes).unwrap();
+            if let Some(sel) = ffi::sel_registerName(sel_name.as_ptr()) {
+                let imp: objc2::runtime::Imp = std::mem::transmute(imp_usize);
+                // Use class_replaceMethod so we override even inherited implementations.
+                ffi::class_replaceMethod(cls, sel, imp, types.as_ptr());
+            }
+        }
+    }
+}
+
 #[cfg(target_os = "macos")]
 fn apply_macos_config<R: tauri::Runtime>(window: &WebviewWindow<R>) {
     let app_for_tab = window.app_handle().clone();
@@ -300,6 +669,7 @@ fn apply_macos_config<R: tauri::Runtime>(window: &WebviewWindow<R>) {
         std::mem::forget(delegate);
 
         install_menu_swizzle();
+        install_find_bar_support_on(webview.inner() as *mut objc2::runtime::AnyObject);
     });
 }
 
@@ -329,6 +699,141 @@ pub fn run() {
             store_context_link
         ])
         .on_menu_event(|app, event| {
+            #[cfg(target_os = "macos")]
+            if event.id() == "find" {
+                let focused = app
+                    .webview_windows()
+                    .into_values()
+                    .find(|w| w.is_focused().unwrap_or(false));
+                if let Some(window) = focused {
+                    let _ = window.with_webview(|webview| unsafe {
+                        use objc2::ffi;
+                        use objc2::runtime::AnyClass;
+                        use std::ffi::CStr;
+
+                        let wk = webview.inner() as *mut objc2::runtime::AnyObject;
+
+                        // One-time WKWebView setup: call private APIs to enable the
+                        // platform find UI and init the WKTextFinderClient ivar.
+                        // Guard with TFC_KEY so we only do this once per webview.
+                        // IMPORTANT: must NOT repeat after the first time — doing so
+                        // invalidates the WKTextFinderClient pointer.
+                        let tfc: *mut objc2::runtime::AnyObject =
+                            if !get_associated_obj(wk, &TFC_KEY).is_null() {
+                                get_associated_obj(wk, &TFC_KEY)
+                            } else {
+                                let wk_cls_name =
+                                    CStr::from_bytes_with_nul(b"WKWebView\0").unwrap();
+                                let Some(wk_cls) = AnyClass::get(wk_cls_name) else {
+                                    return;
+                                };
+
+                                let imp_from = |cls: &AnyClass, sel: objc2::runtime::Sel| {
+                                    let m =
+                                        ffi::class_getInstanceMethod(cls as *const AnyClass, sel);
+                                    if m.is_null() {
+                                        None
+                                    } else {
+                                        Some(ffi::method_getImplementation(m))
+                                    }
+                                };
+
+                                type Fn0 = unsafe extern "C-unwind" fn(
+                                    *mut objc2::runtime::AnyObject,
+                                    objc2::runtime::Sel,
+                                );
+                                type Fn1Bool = unsafe extern "C-unwind" fn(
+                                    *mut objc2::runtime::AnyObject,
+                                    objc2::runtime::Sel,
+                                    bool,
+                                );
+
+                                let sel_platform = objc2::sel!(_setUsePlatformFindUI:);
+                                let sel_ensure = objc2::sel!(_ensureTextFinderClient);
+                                if let Some(imp) = imp_from(wk_cls, sel_platform) {
+                                    let f: Fn1Bool = std::mem::transmute(imp);
+                                    f(wk, sel_platform, true);
+                                }
+                                if let Some(imp) = imp_from(wk_cls, sel_ensure) {
+                                    let f: Fn0 = std::mem::transmute(imp);
+                                    f(wk, sel_ensure);
+                                }
+
+                                let ivar_name =
+                                    CStr::from_bytes_with_nul(b"_textFinderClient\0").unwrap();
+                                let iv = ffi::class_getInstanceVariable(
+                                    wk_cls as *const AnyClass,
+                                    ivar_name.as_ptr(),
+                                );
+                                if iv.is_null() {
+                                    return;
+                                }
+                                let ptr: *mut objc2::runtime::AnyObject =
+                                    ffi::object_getIvar(wk, iv) as *mut _;
+                                if ptr.is_null() {
+                                    return;
+                                }
+                                // ASSIGN — WKWebView owns the client; we just borrow the pointer.
+                                set_associated_obj(wk, &TFC_KEY, ptr, OBJC_ASSOCIATION_ASSIGN);
+                                ptr
+                            };
+
+                        if tfc.is_null() {
+                            return;
+                        }
+
+                        let bar_visible = !get_associated_obj(wk, &FIND_BAR_VISIBLE_KEY).is_null();
+                        let tf_existing = get_associated_obj(wk, &TEXT_FINDER_KEY);
+
+                        if bar_visible && !tf_existing.is_null() {
+                            // Bar is visible — close via performAction: 11.
+                            // NSTextFinder will call setFindBarView: nil which clears
+                            // FIND_BAR_VIEW_KEY and FIND_BAR_VISIBLE_KEY for us.
+                            // The next open will create a fresh NSTextFinder.
+                            let r = objc2::exception::catch(std::panic::AssertUnwindSafe(|| {
+                                let _: () = objc2::msg_send![tf_existing, performAction: 11usize];
+                            }));
+                            if let Err(e) = r {
+                                eprintln!("[find] error: {:?}", e);
+                            }
+                        } else {
+                            // Bar is not visible — create a fresh NSTextFinder and open.
+                            // This handles: first open, after Cmd+F close, after Done button.
+                            // NSTextFinder becomes inert after setFindBarView: nil so we
+                            // always create a new one rather than trying to reuse.
+                            let tf_cls_name = CStr::from_bytes_with_nul(b"NSTextFinder\0").unwrap();
+                            let Some(tf_class) = AnyClass::get(tf_cls_name) else {
+                                return;
+                            };
+                            // Null → releases old NSTextFinder via RETAIN_NONATOMIC policy.
+                            set_associated_obj(
+                                wk,
+                                &TEXT_FINDER_KEY,
+                                std::ptr::null_mut(),
+                                OBJC_ASSOCIATION_RETAIN_NONATOMIC,
+                            );
+                            let new_tf: *mut objc2::runtime::AnyObject =
+                                objc2::msg_send![tf_class, new];
+                            let _: () = objc2::msg_send![new_tf, setClient: tfc];
+                            let _: () = objc2::msg_send![new_tf, setFindBarContainer: wk];
+                            // `new` gives +1; RETAIN_NONATOMIC adds +1 → balance with release.
+                            set_associated_obj(
+                                wk,
+                                &TEXT_FINDER_KEY,
+                                new_tf,
+                                OBJC_ASSOCIATION_RETAIN_NONATOMIC,
+                            );
+                            let _: () = objc2::msg_send![new_tf, release];
+                            let r = objc2::exception::catch(std::panic::AssertUnwindSafe(|| {
+                                let _: () = objc2::msg_send![new_tf, performAction: 1usize];
+                            }));
+                            if let Err(e) = r {
+                                eprintln!("[find] error: {:?}", e);
+                            }
+                        }
+                    });
+                }
+            }
             if event.id() == "copy_link" {
                 let focused = app
                     .webview_windows()
@@ -373,6 +878,28 @@ pub fn run() {
                     let fallback = SubmenuBuilder::new(app, "File").item(&copy_link).build()?;
                     menu.append(&fallback)?;
                 }
+
+                #[cfg(target_os = "macos")]
+                {
+                    let find_item = MenuItemBuilder::with_id("find", "Find...")
+                        .accelerator("cmd+f")
+                        .build(app)?;
+                    let edit_submenu = menu.items()?.into_iter().find_map(|item| {
+                        if let MenuItemKind::Submenu(s) = item {
+                            s.text().ok().filter(|t| t == "Edit").map(|_| s)
+                        } else {
+                            None
+                        }
+                    });
+                    if let Some(submenu) = edit_submenu {
+                        submenu.append(&PredefinedMenuItem::separator(app)?)?;
+                        submenu.append(&find_item)?;
+                    } else {
+                        let fallback = SubmenuBuilder::new(app, "Edit").item(&find_item).build()?;
+                        menu.append(&fallback)?;
+                    }
+                }
+
                 app.set_menu(menu)?;
             }
 
