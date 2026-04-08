@@ -981,6 +981,74 @@ pub fn run() {
                 }
 
                 app.set_menu(menu)?;
+
+                // Set a blank 16×16 image on our custom items that have no icon,
+                // so their text aligns with neighbouring items that do have icons.
+                // Uses itemWithTitle: for direct lookup — no inner item loop needed.
+                #[cfg(target_os = "macos")]
+                let _ = objc2::exception::catch(std::panic::AssertUnwindSafe(|| unsafe {
+                    use objc2::runtime::{AnyClass, AnyObject};
+                    use std::ffi::{c_char, CStr};
+
+                    let Some(app_cls) =
+                        AnyClass::get(CStr::from_bytes_with_nul(b"NSApplication\0").unwrap())
+                    else {
+                        return;
+                    };
+                    let ns_app: *mut AnyObject = objc2::msg_send![app_cls, sharedApplication];
+                    let main_menu: *mut AnyObject = objc2::msg_send![ns_app, mainMenu];
+                    if main_menu.is_null() {
+                        return;
+                    }
+
+                    let Some(img_cls) =
+                        AnyClass::get(CStr::from_bytes_with_nul(b"NSImage\0").unwrap())
+                    else {
+                        return;
+                    };
+                    let blank: *mut AnyObject = objc2::msg_send![img_cls, new];
+                    let _: () =
+                        objc2::msg_send![blank, setSize: NSSize { width: 16.0, height: 16.0 }];
+
+                    let Some(str_cls) =
+                        AnyClass::get(CStr::from_bytes_with_nul(b"NSString\0").unwrap())
+                    else {
+                        let _: () = objc2::msg_send![blank, release];
+                        return;
+                    };
+
+                    // Top-level menu names are localised by macOS so we can't look
+                    // them up by English title via itemWithTitle:.
+                    // Within each submenu, itemWithTitle: gives a direct O(1) lookup.
+                    let targets: &[&[u8]] = &[b"Find...\0", b"Copy Web Link\0"];
+                    let n: isize = objc2::msg_send![main_menu, numberOfItems];
+                    for i in 0..n {
+                        let top: *mut AnyObject = objc2::msg_send![main_menu, itemAtIndex: i];
+                        if top.is_null() {
+                            continue;
+                        }
+                        let sub: *mut AnyObject = objc2::msg_send![top, submenu];
+                        if sub.is_null() {
+                            continue;
+                        }
+                        for &title_bytes in targets {
+                            let ns_title: *mut AnyObject = objc2::msg_send![
+                                str_cls, stringWithUTF8String: title_bytes.as_ptr() as *const c_char
+                            ];
+                            if ns_title.is_null() {
+                                continue;
+                            }
+                            let item: *mut AnyObject =
+                                objc2::msg_send![sub, itemWithTitle: ns_title];
+                            if !item.is_null() {
+                                let _: () = objc2::msg_send![item, setImage: blank];
+                            }
+                        }
+                    }
+
+                    // Release our +1 from `new`; each setImage: retained its own ref.
+                    let _: () = objc2::msg_send![blank, release];
+                }));
             }
 
             let saved = load_session(app.handle());
