@@ -6,6 +6,7 @@
 1. Install packages: `pnpm i` (all commands should be run from the root directory)
 1. Build site: `pnpm dev:fresh` and practice patience while it hits over 127,000 SuttaCentral API's to get the data for the whole site, then builds it all (after fetching once it caches the data indefinitely)
 1. You now have a fully functioning local version of the site that works offline, with the latest data
+1. Run `pnpm tauri:build` to build this into a native desktop app for your platform (macOS, Windows, Linux)
 
 ## Contributing
 
