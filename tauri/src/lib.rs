@@ -284,13 +284,13 @@ fn build_window<R: tauri::Runtime, M: Manager<R>>(
     manager: &M,
     label: &str,
     url: WebviewUrl,
+    initial_zoom: f64,
 ) -> tauri::Result<WebviewWindow<R>> {
     let mut builder = WebviewWindowBuilder::new(manager, label, url)
         .title("SuttaCentral Express")
         .inner_size(800.0, 600.0)
         .resizable(true)
         .fullscreen(false)
-        .zoom_hotkeys_enabled(true)
         .initialization_script(include_str!("init_script.js"))
         .on_navigation(make_nav_handler());
 
@@ -302,7 +302,7 @@ fn build_window<R: tauri::Runtime, M: Manager<R>>(
     let window = builder.build()?;
 
     #[cfg(target_os = "macos")]
-    apply_macos_config(&window);
+    apply_macos_config(&window, initial_zoom);
 
     let app_handle = manager.app_handle().clone();
     window.on_window_event(move |event| {
@@ -321,7 +321,7 @@ fn build_window<R: tauri::Runtime, M: Manager<R>>(
 
 #[cfg(target_os = "macos")]
 struct ScUIDelegateIvars {
-    open_tab: Box<dyn Fn(String) + Send + 'static>,
+    open_tab: Box<dyn Fn(String, f64) + Send + 'static>,
     copy_link: Box<dyn Fn() + Send + 'static>,
 }
 
@@ -340,15 +340,18 @@ objc2::define_class!(
         #[unsafe(method_id(webView:createWebViewWithConfiguration:forNavigationAction:windowFeatures:))]
         unsafe fn create_web_view(
             &self,
-            _web_view: &objc2_web_kit::WKWebView,
+            web_view: &objc2_web_kit::WKWebView,
             _config: &objc2_web_kit::WKWebViewConfiguration,
             action: &objc2_web_kit::WKNavigationAction,
             _window_features: &objc2_web_kit::WKWindowFeatures,
         ) -> Option<objc2::rc::Retained<objc2_web_kit::WKWebView>> {
+            // Read pageZoom from source webview (we're on the main thread here).
+            let zoom: f64 = objc2::msg_send![web_view, pageZoom];
+            let zoom = if zoom > 0.0 { zoom } else { 1.0 };
             let request = action.request();
             if let Some(url) = request.URL() {
                 if let Some(s) = url.absoluteString() {
-                    (self.ivars().open_tab)(s.to_string());
+                    (self.ivars().open_tab)(s.to_string(), zoom);
                 }
             }
             None
@@ -367,7 +370,7 @@ objc2::define_class!(
 impl ScUIDelegate {
     fn new(
         mtm: objc2_foundation::MainThreadMarker,
-        open_tab: Box<dyn Fn(String) + Send + 'static>,
+        open_tab: Box<dyn Fn(String, f64) + Send + 'static>,
         copy_link: Box<dyn Fn() + Send + 'static>,
     ) -> objc2::rc::Retained<Self> {
         let delegate = mtm.alloc::<ScUIDelegate>().set_ivars(ScUIDelegateIvars {
@@ -629,12 +632,12 @@ unsafe fn install_find_bar_support_on(instance: *mut objc2::runtime::AnyObject) 
 }
 
 #[cfg(target_os = "macos")]
-fn apply_macos_config<R: tauri::Runtime>(window: &WebviewWindow<R>) {
+fn apply_macos_config<R: tauri::Runtime>(window: &WebviewWindow<R>, initial_zoom: f64) {
     let app_for_tab = window.app_handle().clone();
-    let open_tab = Box::new(move |url: String| {
+    let open_tab = Box::new(move |url: String, zoom: f64| {
         let label = format!("tab_{}", TAB_COUNTER.fetch_add(1, Ordering::SeqCst));
         if let Ok(parsed) = url.parse() {
-            let _ = build_window(&app_for_tab, &label, WebviewUrl::External(parsed));
+            let _ = build_window(&app_for_tab, &label, WebviewUrl::External(parsed), zoom);
         }
     });
 
@@ -670,14 +673,38 @@ fn apply_macos_config<R: tauri::Runtime>(window: &WebviewWindow<R>) {
 
         install_menu_swizzle();
         install_find_bar_support_on(webview.inner() as *mut objc2::runtime::AnyObject);
+
+        if initial_zoom != 1.0 {
+            let _: () = objc2::msg_send![webview.inner() as *mut objc2::runtime::AnyObject, setPageZoom: initial_zoom];
+        }
     });
 }
 
 #[tauri::command]
 fn open_in_new_tab(app: tauri::AppHandle, url: String) -> Result<(), String> {
+    // Inherit zoom from the focused tab. with_webview dispatches to the main thread;
+    // rx.recv() blocks this background thread until the value arrives — no deadlock.
+    let zoom = {
+        let focused = app
+            .webview_windows()
+            .into_values()
+            .find(|w| w.is_focused().unwrap_or(false));
+        if let Some(w) = focused {
+            let (tx, rx) = std::sync::mpsc::channel();
+            let _ = w.with_webview(move |webview| unsafe {
+                let wk = webview.inner() as *mut objc2::runtime::AnyObject;
+                let z: f64 = objc2::msg_send![wk, pageZoom];
+                let _ = tx.send(if z > 0.0 { z } else { 1.0 });
+            });
+            rx.recv().unwrap_or(1.0)
+        } else {
+            1.0
+        }
+    };
+
     let label = format!("tab_{}", TAB_COUNTER.fetch_add(1, Ordering::SeqCst));
     let webview_url = WebviewUrl::External(url.parse().map_err(|e| format!("{e}"))?);
-    build_window(&app, &label, webview_url).map_err(|e| e.to_string())?;
+    build_window(&app, &label, webview_url, zoom).map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -834,6 +861,29 @@ pub fn run() {
                     });
                 }
             }
+            #[cfg(target_os = "macos")]
+            if event.id() == "zoom_in" || event.id() == "zoom_out" || event.id() == "zoom_reset" {
+                let focused = app
+                    .webview_windows()
+                    .into_values()
+                    .find(|w| w.is_focused().unwrap_or(false));
+                if let Some(window) = focused {
+                    let is_reset = event.id() == "zoom_reset";
+                    let zoom_in = event.id() == "zoom_in";
+                    let _ = window.with_webview(move |webview| unsafe {
+                        let wk = webview.inner() as *mut objc2::runtime::AnyObject;
+                        let current: f64 = objc2::msg_send![wk, pageZoom];
+                        let new_zoom = if is_reset {
+                            1.0
+                        } else if zoom_in {
+                            (current * 1.1_f64).min(5.0)
+                        } else {
+                            (current / 1.1_f64).max(0.25)
+                        };
+                        let _: () = objc2::msg_send![wk, setPageZoom: new_zoom];
+                    });
+                }
+            }
             if event.id() == "copy_link" {
                 let focused = app
                     .webview_windows()
@@ -898,6 +948,36 @@ pub fn run() {
                         let fallback = SubmenuBuilder::new(app, "Edit").item(&find_item).build()?;
                         menu.append(&fallback)?;
                     }
+
+                    let zoom_in = MenuItemBuilder::with_id("zoom_in", "Zoom In")
+                        .accelerator("cmd+=")
+                        .build(app)?;
+                    let zoom_out = MenuItemBuilder::with_id("zoom_out", "Zoom Out")
+                        .accelerator("cmd+-")
+                        .build(app)?;
+                    let zoom_reset = MenuItemBuilder::with_id("zoom_reset", "Actual Size")
+                        .accelerator("cmd+0")
+                        .build(app)?;
+                    let view_submenu = menu.items()?.into_iter().find_map(|item| {
+                        if let MenuItemKind::Submenu(s) = item {
+                            s.text().ok().filter(|t| t == "View").map(|_| s)
+                        } else {
+                            None
+                        }
+                    });
+                    if let Some(submenu) = view_submenu {
+                        submenu.append(&PredefinedMenuItem::separator(app)?)?;
+                        submenu.append(&zoom_in)?;
+                        submenu.append(&zoom_out)?;
+                        submenu.append(&zoom_reset)?;
+                    } else {
+                        let fallback = SubmenuBuilder::new(app, "View")
+                            .item(&zoom_in)
+                            .item(&zoom_out)
+                            .item(&zoom_reset)
+                            .build()?;
+                        menu.append(&fallback)?;
+                    }
                 }
 
                 app.set_menu(menu)?;
@@ -905,7 +985,7 @@ pub fn run() {
 
             let saved = load_session(app.handle());
             if saved.is_empty() {
-                build_window(app, "main", WebviewUrl::default())?;
+                build_window(app, "main", WebviewUrl::default(), 1.0)?;
             } else {
                 for (i, url_str) in saved.iter().enumerate() {
                     let label = if i == 0 {
@@ -917,7 +997,7 @@ pub fn run() {
                         .parse()
                         .map(WebviewUrl::External)
                         .unwrap_or_else(|_| WebviewUrl::default());
-                    build_window(app, &label, url)?;
+                    build_window(app, &label, url, 1.0)?;
                 }
             }
 
