@@ -38,6 +38,14 @@
     true
   )
 
+  // Save session on every page load so session.json stays current even if
+  // the app is killed without a clean shutdown (SIGTERM, SIGKILL, etc.).
+  window.addEventListener('load', function () {
+    window.__TAURI_INTERNALS__
+      .invoke('save_session_on_nav')
+      .catch(function () {})
+  })
+
   // Right-click: tell Rust which link was under the cursor so the native
   // "Copy Link" menu item can copy the public web URL instead of localhost.
   document.addEventListener(

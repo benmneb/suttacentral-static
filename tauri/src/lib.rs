@@ -1,4 +1,4 @@
-use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Mutex;
 use tauri::webview::WebviewWindow;
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
@@ -11,7 +11,9 @@ use objc2_foundation::NSObjectProtocol;
 use objc2_web_kit::WKUIDelegate;
 
 static TAB_COUNTER: AtomicU32 = AtomicU32::new(0);
-static SESSION_SAVED: AtomicBool = AtomicBool::new(false);
+// Monotonic counter bumped on every CloseRequested. The debounce thread compares
+// its captured value against the current one to detect batched tab closes.
+static CLOSE_SEQ: AtomicU32 = AtomicU32::new(0);
 // URL of the link most recently right-clicked; set from JS via store_context_link.
 static CONTEXT_LINK: Mutex<String> = Mutex::new(String::new());
 // Original IMP of WKWebView's willOpenMenu:withEvent:, saved during swizzle.
@@ -219,8 +221,12 @@ unsafe fn layout_find_bar(container: *mut objc2::runtime::AnyObject, bar_height:
     }));
 }
 
-fn save_session<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
-    let mut windows: Vec<_> = app.webview_windows().into_iter().collect();
+fn save_session<R: tauri::Runtime>(app: &tauri::AppHandle<R>, exclude_label: Option<&str>) {
+    let mut windows: Vec<_> = app
+        .webview_windows()
+        .into_iter()
+        .filter(|(label, _)| Some(label.as_str()) != exclude_label)
+        .collect();
     windows.sort_by(|(a, _), (b, _)| {
         if a == "main" {
             std::cmp::Ordering::Less
@@ -230,16 +236,34 @@ fn save_session<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
             a.cmp(b)
         }
     });
-    let urls: Vec<String> = windows
+    // Save path+query+fragment only — works across dev and prod since
+    // WebviewUrl::App resolves the path to the right origin in each context.
+    let paths: Vec<String> = windows
         .iter()
         .filter_map(|(_, w)| w.url().ok())
-        .map(|u| u.to_string())
+        .map(|u| {
+            let mut s = u.path().to_owned();
+            if let Some(q) = u.query() {
+                s.push('?');
+                s.push_str(q);
+            }
+            if let Some(f) = u.fragment() {
+                s.push('#');
+                s.push_str(f);
+            }
+            s
+        })
         .collect();
+    // Never overwrite with an empty list — a spurious call during teardown
+    // (e.g. WKWebView navigating to blank before destruction) would lose the session.
+    if paths.is_empty() {
+        return;
+    }
     if let Ok(dir) = app.path().app_data_dir() {
         let _ = std::fs::create_dir_all(&dir);
         let _ = std::fs::write(
             dir.join("session.json"),
-            serde_json::to_string(&urls).unwrap_or_default(),
+            serde_json::to_string(&paths).unwrap_or_default(),
         );
     }
 }
@@ -305,15 +329,23 @@ fn build_window<R: tauri::Runtime, M: Manager<R>>(
     #[cfg(target_os = "macos")]
     apply_macos_config(&window, initial_zoom);
 
+    // Debounced session save on tab close. Bumping CLOSE_SEQ and sleeping 100 ms
+    // means batched closes (red X / Cmd+Q) all land in the same window: only the
+    // last thread finds seq == CLOSE_SEQ and fires. By then the window is already
+    // destroyed, so save_session sees only the remaining tabs. If every tab closes
+    // (seq still matches but paths is empty) the !paths.is_empty() guard skips the
+    // write and the nav save is preserved.
     let app_handle = manager.app_handle().clone();
     window.on_window_event(move |event| {
         if let tauri::WindowEvent::CloseRequested { .. } = event {
-            if SESSION_SAVED
-                .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
-                .is_ok()
-            {
-                save_session(&app_handle);
-            }
+            let seq = CLOSE_SEQ.fetch_add(1, Ordering::SeqCst).wrapping_add(1);
+            let app_clone = app_handle.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(100));
+                if CLOSE_SEQ.load(Ordering::SeqCst) == seq {
+                    save_session(&app_clone, None);
+                }
+            });
         }
     });
 
@@ -717,6 +749,13 @@ fn open_in_new_tab(app: tauri::AppHandle, url: String) -> Result<(), String> {
     Ok(())
 }
 
+/// Called from init_script.js on every page load so session.json stays current
+/// even if the app is killed without a clean close (SIGTERM, SIGKILL, etc.).
+#[tauri::command]
+fn save_session_on_nav(app: tauri::AppHandle) {
+    save_session(&app, None);
+}
+
 #[tauri::command]
 fn store_context_link(url: String) {
     if let Ok(mut g) = CONTEXT_LINK.lock() {
@@ -732,7 +771,8 @@ pub fn run() {
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             open_in_new_tab,
-            store_context_link
+            store_context_link,
+            save_session_on_nav
         ])
         .on_menu_event(|app, event| {
             #[cfg(target_os = "macos")]
@@ -1064,16 +1104,13 @@ pub fn run() {
             if saved.is_empty() {
                 build_window(app, "main", WebviewUrl::default(), 1.0)?;
             } else {
-                for (i, url_str) in saved.iter().enumerate() {
+                for (i, path_str) in saved.iter().enumerate() {
                     let label = if i == 0 {
                         "main".to_string()
                     } else {
                         format!("tab_{}", TAB_COUNTER.fetch_add(1, Ordering::SeqCst))
                     };
-                    let url = url_str
-                        .parse()
-                        .map(WebviewUrl::External)
-                        .unwrap_or_else(|_| WebviewUrl::default());
+                    let url = WebviewUrl::App(path_str.trim_start_matches('/').into());
                     build_window(app, &label, url, 1.0)?;
                 }
             }
