@@ -609,6 +609,11 @@ body {
   width: 100%;
 }
 
+[popover]#search-modal {
+  max-width: calc(min(420px, 100vw) - 2rem);
+  width: 100%;
+}
+
 aside {
   display: flex;
   justify-content: end;
