@@ -46,6 +46,19 @@
       .catch(function () {})
   })
 
+  // Update the macOS tab label as soon as the <title> tag is parsed — well
+  // before window.load (which waits for images/styles). The window title bar
+  // always shows the app name via NSWindow.title; NSWindow.tab.title is
+  // independent and only visible in the tab strip.
+  document.addEventListener('DOMContentLoaded', function () {
+    var title = document.title
+    if (title) {
+      window.__TAURI_INTERNALS__
+        .invoke('set_tab_title', { title })
+        .catch(function () {})
+    }
+  })
+
   // Right-click: tell Rust which link was under the cursor so the native
   // "Copy Link" menu item can copy the public web URL instead of localhost.
   document.addEventListener(

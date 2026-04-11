@@ -780,6 +780,23 @@ fn save_session_on_nav(app: tauri::AppHandle) {
     save_session(&app, None);
 }
 
+/// Called from init_script.js on every page load to keep the macOS tab label in
+/// sync with the HTML page title. NSWindow.tab.title sets the tab strip label
+/// independently of NSWindow.title (the window title bar always shows the app name).
+#[tauri::command]
+fn set_tab_title(window: tauri::WebviewWindow, title: String) {
+    #[cfg(target_os = "macos")]
+    {
+        let _ = window.with_webview(move |webview| unsafe {
+            use objc2_app_kit::NSWindow;
+            use objc2_foundation::NSString;
+            let ns = &*(webview.ns_window() as *const NSWindow);
+            let ns_title = NSString::from_str(&title);
+            ns.tab().setTitle(Some(&ns_title));
+        });
+    }
+}
+
 #[tauri::command]
 fn store_context_link(url: String) {
     if let Ok(mut g) = CONTEXT_LINK.lock() {
@@ -803,7 +820,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             open_in_new_tab,
             store_context_link,
-            save_session_on_nav
+            save_session_on_nav,
+            set_tab_title
         ])
         .on_menu_event(|app, event| {
             #[cfg(target_os = "macos")]
