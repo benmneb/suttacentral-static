@@ -429,10 +429,18 @@ fn install_menu_swizzle() {
             return;
         };
         let sel = objc2::sel!(willOpenMenu:withEvent:);
+        // class_getInstanceMethod walks the inheritance chain — for WKWebView this
+        // finds NSView's implementation (WKWebView doesn't define its own).
         let method = ffi::class_getInstanceMethod(cls as *const AnyClass, sel);
         if method.is_null() {
             return;
         }
+        // Save the original IMP (NSView's implementation) before we replace it.
+        let Some(orig_imp) = ffi::method_getImplementation(method) else {
+            return;
+        };
+        let _ = ORIG_WILL_OPEN_MENU.set(orig_imp);
+
         let our_imp: Imp = std::mem::transmute(
             our_will_open_menu
                 as unsafe extern "C-unwind" fn(
@@ -442,9 +450,13 @@ fn install_menu_swizzle() {
                     *mut objc2::runtime::AnyObject,
                 ),
         );
-        if let Some(orig) = ffi::method_setImplementation(method, our_imp) {
-            let _ = ORIG_WILL_OPEN_MENU.set(orig);
-        }
+        let types = ffi::method_getTypeEncoding(method);
+        // Use class_replaceMethod on WKWebView directly — this adds the method to
+        // WKWebView's OWN method table rather than modifying the inherited NSView
+        // method. Without this, method_setImplementation would patch NSView's table
+        // and our swizzle would fire for every NSView subclass (including the
+        // internal view AppKit uses for <select> dropdowns, which has no UIDelegate).
+        ffi::class_replaceMethod(cls as *const AnyClass as *mut AnyClass, sel, our_imp, types);
     });
 }
 
@@ -457,43 +469,55 @@ unsafe extern "C-unwind" fn our_will_open_menu(
 ) {
     use objc2::runtime::AnyObject;
 
-    // Call the original WebKit implementation first.
-    if let Some(orig) = ORIG_WILL_OPEN_MENU.get() {
-        type F = unsafe extern "C-unwind" fn(
-            *mut AnyObject,
-            objc2::runtime::Sel,
-            *mut AnyObject,
-            *mut AnyObject,
-        );
-        let f: F = std::mem::transmute(*orig);
-        f(this, sel, menu, event);
-    }
-
-    // Locate our ScUIDelegate attached to this WKWebView.
-    let wk = &*(this as *const objc2_web_kit::WKWebView);
-    let Some(ui_delegate) = wk.UIDelegate() else {
-        return;
-    };
-
-    // Iterate the NSMenu items and redirect "Copy Link" to our copyWebLink: action.
-    use objc2_app_kit::{NSMenu, NSUserInterfaceItemIdentification};
-    let ns_menu = &*(menu as *const NSMenu);
-    for i in 0..ns_menu.numberOfItems() {
-        let Some(item) = ns_menu.itemAtIndex(i) else {
-            continue;
-        };
-        let is_copy_link = item
-            .identifier()
-            .map(|id| id.to_string() == "WKMenuItemIdentifierCopyLink")
-            .unwrap_or(false);
-        if !is_copy_link {
-            continue;
+    // Two layers of protection:
+    // 1. catch_unwind — catches Rust panics. objc2's catch-all feature converts ObjC
+    //    exceptions inside msg_send calls (e.g. UIDelegate) into Rust panics, which
+    //    propagate straight through exception::catch. catch_unwind handles those.
+    // 2. exception::catch (inner, around f only) — the raw IMP call f() bypasses
+    //    msg_send, so ObjC exceptions from the original implementation need explicit
+    //    exception::catch to prevent them crossing the C-unwind boundary.
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        // Call the original implementation (NSView's willOpenMenu:withEvent:).
+        if let Some(orig) = ORIG_WILL_OPEN_MENU.get() {
+            type F = unsafe extern "C-unwind" fn(
+                *mut AnyObject,
+                objc2::runtime::Sel,
+                *mut AnyObject,
+                *mut AnyObject,
+            );
+            let f: F = unsafe { std::mem::transmute(*orig) };
+            let _ = unsafe {
+                objc2::exception::catch(std::panic::AssertUnwindSafe(|| f(this, sel, menu, event)))
+            };
         }
-        item.setAction(Some(objc2::sel!(copyWebLink:)));
-        // ProtocolObject<dyn WKUIDelegate> is repr(C) over AnyObject — safe cast.
-        let target: &AnyObject = &*(objc2::rc::Retained::as_ptr(&ui_delegate) as *const AnyObject);
-        item.setTarget(Some(target));
-    }
+
+        // Locate our ScUIDelegate attached to this WKWebView.
+        let wk = unsafe { &*(this as *const objc2_web_kit::WKWebView) };
+        let Some(ui_delegate) = (unsafe { wk.UIDelegate() }) else {
+            return;
+        };
+
+        // Iterate the NSMenu items and redirect "Copy Link" to our copyWebLink: action.
+        use objc2_app_kit::{NSMenu, NSUserInterfaceItemIdentification};
+        let ns_menu = unsafe { &*(menu as *const NSMenu) };
+        for i in 0..ns_menu.numberOfItems() {
+            let Some(item) = (unsafe { ns_menu.itemAtIndex(i) }) else {
+                continue;
+            };
+            let is_copy_link = item
+                .identifier()
+                .map(|id| id.to_string() == "WKMenuItemIdentifierCopyLink")
+                .unwrap_or(false);
+            if !is_copy_link {
+                continue;
+            }
+            item.setAction(Some(objc2::sel!(copyWebLink:)));
+            // ProtocolObject<dyn WKUIDelegate> is repr(C) over AnyObject — safe cast.
+            let target: &AnyObject =
+                unsafe { &*(objc2::rc::Retained::as_ptr(&ui_delegate) as *const AnyObject) };
+            item.setTarget(Some(target));
+        }
+    }));
 }
 
 #[cfg(target_os = "macos")]
