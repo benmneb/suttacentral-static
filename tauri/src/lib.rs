@@ -768,7 +768,14 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_window_state::Builder::new().build())
+        // Only track window state for "main". Tab windows share the tab group's
+        // frame — saving/restoring their individual state (especially fullscreen:false)
+        // causes them to fight the tab group and exit fullscreen on every new tab open.
+        .plugin(
+            tauri_plugin_window_state::Builder::new()
+                .with_filter(|label| label == "main")
+                .build(),
+        )
         .invoke_handler(tauri::generate_handler![
             open_in_new_tab,
             store_context_link,
