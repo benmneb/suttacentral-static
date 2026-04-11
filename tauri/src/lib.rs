@@ -19,6 +19,17 @@ static CONTEXT_LINK: Mutex<String> = Mutex::new(String::new());
 // Original IMP of WKWebView's willOpenMenu:withEvent:, saved during swizzle.
 #[cfg(target_os = "macos")]
 static ORIG_WILL_OPEN_MENU: std::sync::OnceLock<objc2::runtime::Imp> = std::sync::OnceLock::new();
+// Original IMP of WKWebView's setPageZoom:, saved during swizzle.
+#[cfg(target_os = "macos")]
+static ORIG_SET_PAGE_ZOOM: std::sync::OnceLock<objc2::runtime::Imp> = std::sync::OnceLock::new();
+// Callback invoked by the setPageZoom: swizzle to persist the new zoom level.
+// Stored as a type-erased Arc so the generic AppHandle<R> can live in a static.
+#[cfg(target_os = "macos")]
+static ZOOM_SAVE_CB: std::sync::OnceLock<std::sync::Arc<dyn Fn(f64) + Send + Sync>> =
+    std::sync::OnceLock::new();
+// Debounce counter for zoom saves — only the last change in a burst is written.
+#[cfg(target_os = "macos")]
+static ZOOM_SAVE_SEQ: AtomicU32 = AtomicU32::new(0);
 
 // Per-webview associated object keys — address of each static is the unique ObjC key.
 #[cfg(target_os = "macos")]
@@ -264,6 +275,26 @@ fn save_session<R: tauri::Runtime>(app: &tauri::AppHandle<R>, exclude_label: Opt
         let _ = std::fs::write(
             dir.join("session.json"),
             serde_json::to_string(&paths).unwrap_or_default(),
+        );
+    }
+}
+
+fn load_zoom(app: &tauri::AppHandle) -> f64 {
+    app.path()
+        .app_data_dir()
+        .ok()
+        .and_then(|dir| std::fs::read_to_string(dir.join("zoom.json")).ok())
+        .and_then(|s| serde_json::from_str::<f64>(&s).ok())
+        .filter(|&z| z > 0.0)
+        .unwrap_or(1.0)
+}
+
+fn save_zoom(app: &tauri::AppHandle, zoom: f64) {
+    if let Ok(dir) = app.path().app_data_dir() {
+        let _ = std::fs::create_dir_all(&dir);
+        let _ = std::fs::write(
+            dir.join("zoom.json"),
+            serde_json::to_string(&zoom).unwrap_or_default(),
         );
     }
 }
@@ -520,6 +551,66 @@ unsafe extern "C-unwind" fn our_will_open_menu(
     }));
 }
 
+/// Swizzled replacement for WKWebView's setPageZoom:. Calls the original, then
+/// debounces a disk save so zoom persists across sessions.
+#[cfg(target_os = "macos")]
+unsafe extern "C-unwind" fn our_set_page_zoom(
+    this: *mut objc2::runtime::AnyObject,
+    sel: objc2::runtime::Sel,
+    zoom: f64,
+) {
+    if let Some(orig) = ORIG_SET_PAGE_ZOOM.get() {
+        type F =
+            unsafe extern "C-unwind" fn(*mut objc2::runtime::AnyObject, objc2::runtime::Sel, f64);
+        let f: F = std::mem::transmute(*orig);
+        f(this, sel, zoom);
+    }
+    if let Some(cb) = ZOOM_SAVE_CB.get() {
+        let seq = ZOOM_SAVE_SEQ.fetch_add(1, Ordering::SeqCst).wrapping_add(1);
+        let cb = cb.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_millis(300));
+            if ZOOM_SAVE_SEQ.load(Ordering::SeqCst) == seq {
+                cb(zoom);
+            }
+        });
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn install_zoom_swizzle() {
+    static ONCE: std::sync::Once = std::sync::Once::new();
+    ONCE.call_once(|| unsafe {
+        use objc2::ffi;
+        use objc2::runtime::{AnyClass, Imp};
+        use std::ffi::CStr;
+
+        let name = CStr::from_bytes_with_nul(b"WKWebView\0").unwrap();
+        let Some(cls) = AnyClass::get(name) else {
+            return;
+        };
+        let sel = objc2::sel!(setPageZoom:);
+        let method = ffi::class_getInstanceMethod(cls as *const AnyClass, sel);
+        if method.is_null() {
+            return;
+        }
+        let Some(orig_imp) = ffi::method_getImplementation(method) else {
+            return;
+        };
+        let _ = ORIG_SET_PAGE_ZOOM.set(orig_imp);
+        let our_imp: Imp = std::mem::transmute(
+            our_set_page_zoom
+                as unsafe extern "C-unwind" fn(
+                    *mut objc2::runtime::AnyObject,
+                    objc2::runtime::Sel,
+                    f64,
+                ),
+        );
+        let types = ffi::method_getTypeEncoding(method);
+        ffi::class_replaceMethod(cls as *const AnyClass as *mut AnyClass, sel, our_imp, types);
+    });
+}
+
 #[cfg(target_os = "macos")]
 unsafe extern "C" fn fbs_find_bar_view(
     this: *mut objc2::runtime::AnyObject,
@@ -695,6 +786,21 @@ unsafe fn install_find_bar_support_on(instance: *mut objc2::runtime::AnyObject) 
 
 #[cfg(target_os = "macos")]
 fn apply_macos_config<R: tauri::Runtime>(window: &WebviewWindow<R>, initial_zoom: f64) {
+    // Register the zoom-save callback once (OnceLock — only the first window sets it;
+    // all windows share the same zoom). Capture the data dir path rather than the
+    // generic AppHandle<R> so the Arc<dyn Fn> closure is concrete / 'static.
+    let zoom_dir = window.app_handle().path().app_data_dir().ok();
+    let _ = ZOOM_SAVE_CB.set(std::sync::Arc::new(move |zoom: f64| {
+        if let Some(ref dir) = zoom_dir {
+            let _ = std::fs::create_dir_all(dir);
+            let _ = std::fs::write(
+                dir.join("zoom.json"),
+                serde_json::to_string(&zoom).unwrap_or_default(),
+            );
+        }
+    }));
+    install_zoom_swizzle();
+
     let app_for_tab = window.app_handle().clone();
     let open_tab = Box::new(move |url: String, zoom: f64| {
         let label = format!("tab_{}", TAB_COUNTER.fetch_add(1, Ordering::SeqCst));
@@ -1149,9 +1255,10 @@ pub fn run() {
                 }));
             }
 
+            let zoom = load_zoom(app.handle());
             let saved = load_session(app.handle());
             if saved.is_empty() {
-                build_window(app, "main", WebviewUrl::default(), 1.0)?;
+                build_window(app, "main", WebviewUrl::default(), zoom)?;
             } else {
                 for (i, path_str) in saved.iter().enumerate() {
                     let label = if i == 0 {
@@ -1160,7 +1267,7 @@ pub fn run() {
                         format!("tab_{}", TAB_COUNTER.fetch_add(1, Ordering::SeqCst))
                     };
                     let url = WebviewUrl::App(path_str.trim_start_matches('/').into());
-                    build_window(app, &label, url, 1.0)?;
+                    build_window(app, &label, url, zoom)?;
                 }
             }
 
