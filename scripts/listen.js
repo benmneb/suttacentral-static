@@ -462,6 +462,15 @@
     playPauseBtnIcon.textContent = ICON_PAUSE
     setNavControlsEnabled(true)
     updateClickableSpans()
+    // Reset stuck paused state (Safari/Brave keep synth.paused=true after cancel)
+    if (synth.paused) {
+      try {
+        synth.cancel()
+      } catch (e) {}
+      try {
+        synth.resume()
+      } catch (e) {}
+    }
     speakNext()
   }
 
@@ -587,6 +596,11 @@
 
   // single button behavior
   function togglePlayPause() {
+    // Check state first — synth.paused can be stale after cancel() in Safari/Brave
+    if (!isPlaying) {
+      startSessionFrom(currentIndex || 0)
+      return
+    }
     if (synth.paused) {
       // if paused, resume immediately and update label
       resumeSession()
@@ -595,11 +609,6 @@
     if (isPlaying && synth.speaking && !synth.paused) {
       // pause immediately and update label
       pauseSession()
-      return
-    }
-    // not started -> start session from currentIndex (or 0)
-    if (!isPlaying) {
-      startSessionFrom(currentIndex || 0)
       return
     }
     // if idle but there's remaining content, continue
