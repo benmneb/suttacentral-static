@@ -289,16 +289,6 @@ fn load_zoom(app: &tauri::AppHandle) -> f64 {
         .unwrap_or(1.0)
 }
 
-fn save_zoom(app: &tauri::AppHandle, zoom: f64) {
-    if let Ok(dir) = app.path().app_data_dir() {
-        let _ = std::fs::create_dir_all(&dir);
-        let _ = std::fs::write(
-            dir.join("zoom.json"),
-            serde_json::to_string(&zoom).unwrap_or_default(),
-        );
-    }
-}
-
 fn load_session(app: &tauri::AppHandle) -> Vec<String> {
     app.path()
         .app_data_dir()
