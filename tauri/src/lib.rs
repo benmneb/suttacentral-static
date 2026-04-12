@@ -522,7 +522,7 @@ unsafe extern "C-unwind" fn our_will_open_menu(
         use objc2_app_kit::{NSMenu, NSUserInterfaceItemIdentification};
         let ns_menu = unsafe { &*(menu as *const NSMenu) };
         for i in 0..ns_menu.numberOfItems() {
-            let Some(item) = (unsafe { ns_menu.itemAtIndex(i) }) else {
+            let Some(item) = ns_menu.itemAtIndex(i) else {
                 continue;
             };
             let is_copy_link = item
