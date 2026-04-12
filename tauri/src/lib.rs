@@ -1078,6 +1078,30 @@ pub fn run() {
                     });
                 }
             }
+            if event.id() == "new_tab" {
+                #[cfg(target_os = "macos")]
+                let zoom = {
+                    let focused = app
+                        .webview_windows()
+                        .into_values()
+                        .find(|w| w.is_focused().unwrap_or(false));
+                    if let Some(w) = focused {
+                        let (tx, rx) = std::sync::mpsc::channel();
+                        let _ = w.with_webview(move |webview| unsafe {
+                            let wk = webview.inner() as *mut objc2::runtime::AnyObject;
+                            let z: f64 = objc2::msg_send![wk, pageZoom];
+                            let _ = tx.send(if z > 0.0 { z } else { 1.0 });
+                        });
+                        rx.recv().unwrap_or(1.0)
+                    } else {
+                        1.0
+                    }
+                };
+                #[cfg(not(target_os = "macos"))]
+                let zoom = 1.0_f64;
+                let label = format!("tab_{}", TAB_COUNTER.fetch_add(1, Ordering::SeqCst));
+                let _ = build_window(app, &label, WebviewUrl::default(), zoom);
+            }
             if event.id() == "copy_link" {
                 let focused = app
                     .webview_windows()
@@ -1106,6 +1130,9 @@ pub fn run() {
                     Menu, MenuItemBuilder, MenuItemKind, PredefinedMenuItem, SubmenuBuilder,
                 };
                 let menu = Menu::default(app.handle())?;
+                let new_tab = MenuItemBuilder::with_id("new_tab", "New Tab")
+                    .accelerator("CmdOrCtrl+T")
+                    .build(app)?;
                 let copy_link =
                     MenuItemBuilder::with_id("copy_link", "Copy Web Link").build(app)?;
                 let file_submenu = menu.items()?.into_iter().find_map(|item| {
@@ -1116,10 +1143,15 @@ pub fn run() {
                     }
                 });
                 if let Some(submenu) = file_submenu {
+                    submenu.prepend(&new_tab)?;
                     submenu.append(&PredefinedMenuItem::separator(app)?)?;
                     submenu.append(&copy_link)?;
                 } else {
-                    let fallback = SubmenuBuilder::new(app, "File").item(&copy_link).build()?;
+                    let fallback = SubmenuBuilder::new(app, "File")
+                        .item(&new_tab)
+                        .separator()
+                        .item(&copy_link)
+                        .build()?;
                     menu.append(&fallback)?;
                 }
 
