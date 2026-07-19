@@ -463,9 +463,27 @@ jobs:
             ---
 
             <details>
+            <summary><strong>About the Archive</strong></summary>
+
+            The attached \`scx_archive*.tar.gz\` file is a fully-featured, offline-first, compressed archive of the whole site.
+
+            To use it locally:
+
+            1. Download the \`scx_archive*.tar.gz\` file to your device
+            2. Extract its contents (open it with your OS's built-in archive utility or a free unzip tool from the App Store / Play Store)
+            3. Serve the extracted folder over a local HTTP server, then visit the server's local URL in your browser
+
+            Note: opening \`index.html\` directly (double-clicking it) will **not** work — the site uses absolute references to its other files which only resolve correctly when served over HTTP, not when loaded via the \`file://\` protocol.
+
+            A local HTTP server can be set up for free on any computer, tablet, or smartphone. For example:
+            - **Desktop:** run \`python3 -m http.server\` inside the extracted folder, then visit the provided URL in your browser
+            - **Mobile or tablet:** free HTTP server apps are available on the App Store / Play Store
+            </details>
+
+            <details>
             <summary><strong>App Installation Instructions</strong></summary>
 
-            The attached \`scx_app*\` builds are fully featured offline archives. They are not code-signed to avoid $200-500 USD/year in certificate costs (Apple Developer $99/year + Windows certificates $100-400/year). The apps are safe and built from public source code, but your OS will require manual approval on first launch.
+            The attached \`scx_app*\` builds are native wrappers around the offline archive. They are not code-signed to avoid $200-500 USD/year in certificate costs (Apple Developer $99/year + Windows certificates $100-400/year). The apps are safe and built from public source code, but your OS will require manual approval on first launch.
 
             **macOS:**
 
@@ -1008,9 +1026,27 @@ jobs:
             ---
 
             <details>
+            <summary><strong>About the Archive</strong></summary>
+
+            The attached \`scx_archive*.tar.gz\` file is a fully-featured, offline-first, compressed archive of the whole site.
+
+            To use it locally:
+
+            1. Download the \`scx_archive*.tar.gz\` file to your device
+            2. Extract its contents (open it with your OS's built-in archive utility or a free unzip tool from the App Store / Play Store)
+            3. Serve the extracted folder over a local HTTP server, then visit the server's local URL in your browser
+
+            Note: opening \`index.html\` directly (double-clicking it) will **not** work — the site uses absolute references to its other files which only resolve correctly when served over HTTP, not when loaded via the \`file://\` protocol.
+
+            A local HTTP server can be set up for free on any computer, tablet, or smartphone. For example:
+            - **Desktop:** run \`python3 -m http.server\` inside the extracted folder, then visit the provided URL in your browser
+            - **Mobile or tablet:** free HTTP server apps are available on the App Store / Play Store
+            </details>
+
+            <details>
             <summary><strong>App Installation Instructions</strong></summary>
 
-            The attached \`scx_app*\` builds are fully featured offline archives. They are not code-signed to avoid $200-500 USD/year in certificate costs (Apple Developer $99/year + Windows certificates $100-400/year). The apps are safe and built from public source code, but your OS will require manual approval on first launch.
+            The attached \`scx_app*\` builds are native wrappers around the offline archive. They are not code-signed to avoid $200-500 USD/year in certificate costs (Apple Developer $99/year + Windows certificates $100-400/year). The apps are safe and built from public source code, but your OS will require manual approval on first launch.
 
             **macOS:**
 
