@@ -1216,7 +1216,7 @@ main {
   nav {
     display: flex;
     justify-content: space-between;
-    margin-top: 1.5rem;
+    margin: 2.4rem 0 0.8rem;
   }
 }
 
