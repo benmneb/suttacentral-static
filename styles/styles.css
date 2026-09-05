@@ -1268,6 +1268,10 @@ a {
   li[role='menuitem'] {
     display: none;
   }
+
+  noscript {
+    padding: 0.4rem;
+  }
 }
 
 .tts-highlight {
