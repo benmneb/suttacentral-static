@@ -607,6 +607,10 @@ body {
 [popover]#parallels {
   max-width: calc(min(60ch, 100vw) - 2rem);
   width: 100%;
+
+  h1:first-of-type {
+    margin-top: 0;
+  }
 }
 
 [popover]#search-modal {
