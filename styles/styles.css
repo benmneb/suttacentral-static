@@ -612,6 +612,7 @@ body {
 [popover]#search-modal {
   max-width: calc(min(420px, 100vw) - 2rem);
   width: 100%;
+  padding: 0;
 }
 
 aside {
