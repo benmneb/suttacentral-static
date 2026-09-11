@@ -411,6 +411,12 @@ body {
     display: flex;
   }
 
+  main article .endbook,
+  .endvagga,
+  .endkanda {
+    color: unset;
+  }
+
   &:has(#rooter-side:checked) {
     main {
       max-width: var(--content-double-width-gap);
