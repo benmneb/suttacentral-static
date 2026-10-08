@@ -35,6 +35,12 @@ eleventyComputed:
 
   <p>{{ entry.blurb }}</p>
 
+  {% if entry.scx_shortcut %}
+    <p>
+      <a href="/{{ entry.uid }}">Shortcut to all suttas →</a>
+    </p>
+  {% endif %}
+
   {% if entry.children.length %}
     <ul>
       {% for child in entry.children %}
