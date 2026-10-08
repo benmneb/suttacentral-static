@@ -33,6 +33,22 @@
           {%- if version.publication_date -%}
             &nbsp;(<span>{{ version.publication_date }}</span>)
           {%- endif %}
+          {%- if version.segmented or version.has_comment -%}
+            {%- if version.segmented -%}
+              &nbsp;<span
+                title="Aligned: translations are matched segment by segment with the root text"
+                role="icon"
+                >🔗</span
+              >
+            {%- endif %}
+            {%- if version.has_comment -%}
+              &nbsp;<span
+                title="Annotated: translation shows comments from translator, root text shows any variants"
+                role="icon"
+                >📝</span
+              >
+            {%- endif %}
+          {%- endif %}
         </li>
       {% endfor %}
     </ul>
@@ -72,6 +88,13 @@
           {%- if version.publication_date -%}
             &nbsp;(<span>{{ version.publication_date }}</span>)
           {%- endif %}
+          {%- if entry._bilarasuttas_data.variant_text.size > 0 -%}
+            &nbsp;<span
+              title="Annotated with text-critical variants between different historical manuscripts"
+              role="icon"
+              >📝</span
+            >
+          {%- endif %}
         </li>
       {% endfor %}
     </ul>
@@ -110,6 +133,22 @@
           </a>
           {%- if version.publication_date -%}
             &nbsp;(<span>{{ version.publication_date }}</span>)
+          {%- endif %}
+          {%- if version.segmented or version.has_comment -%}
+            {%- if version.segmented -%}
+              &nbsp;<span
+                title="Aligned: translations are matched segment by segment with the root text"
+                role="icon"
+                >🔗</span
+              >
+            {%- endif %}
+            {%- if version.has_comment -%}
+              &nbsp;<span
+                title="Annotated: translations shows comments from translator, root texts shows any variants"
+                role="icon"
+                >📝</span
+              >
+            {%- endif %}
           {%- endif %}
         </li>
       {% endfor %}

@@ -758,7 +758,11 @@ main {
 
     li {
       list-style-type: upper-roman;
-      margin: 0.3rem;
+      margin-left: 0.14rem;
+
+      span[title] {
+        cursor: help;
+      }
 
       ul li {
         list-style-type: disc;
