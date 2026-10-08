@@ -353,7 +353,7 @@ eleventyComputed:
               {% endif %}
               <span class="text">{{ text }}</span>
               {% unless comment == blank %}
-                <button popovertarget="comment-{{ key }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
+                <button class="variant-btn" popovertarget="comment-{{ key }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
                 <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">
                   Variant: {{ comment | replace: 'https://suttacentral.net', '' }}
                 </span>
@@ -497,6 +497,7 @@ eleventyComputed:
         {% assign text = entry._bilarasuttas_data.translation_text[key] %}
         {% assign rootText = entry._bilarasuttas_data.root_text[key] %}
         {% assign comment = entry._bilarasuttas_data.comment_text[key] %}
+        {% assign variant = entry._bilarasuttas_data.variant_text[key] %}
         {% assign ref = key | split: ":" | last %}
 
         {% if html %}
@@ -531,6 +532,12 @@ eleventyComputed:
                   {% endif %}
                 {% endif %}
                 <span class="text">{{ rootText }}</span>
+                {% unless variant == blank %}
+                  <button class="variant-btn" popovertarget="variant-{{ key }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
+                  <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">
+                    Variant: {{ variant | replace: 'https://suttacentral.net', '' }}
+                  </span>
+                {% endunless %}
               </span>
             {% endif %}
           </span>
@@ -542,7 +549,15 @@ eleventyComputed:
             <article id="comment-{{ key }}" popover>
               {{ comment | replace: 'https://suttacentral.net', '' }}
             </article>
-          {% endcapture %}
+            {% endcapture %}
+          {%- endif -%}
+          {%- if variant -%}
+            {% capture comments %}
+            {{ comments }}
+            <article id="variant-{{ key }}" popover>
+              Variant: {{ variant | replace: 'https://suttacentral.net', '' }}
+            </article>
+            {% endcapture %}
           {%- endif -%}
         {% endif %}
       {% endif %}

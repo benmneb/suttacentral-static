@@ -53,6 +53,7 @@
   --headings-color: var(--fg);
   --primary-color: var(--yellow);
   --primary-color-alt: var(--yellow-dim);
+  --variant-btn-color: var(--blue);
   --shadow-color: var(--bg-hard);
   --tts-highlight-text-color: var(--headings-color);
   --tts-highlight-background-color: var(--bg-alt-1);
@@ -122,6 +123,7 @@
     --headings-color: var(--fg);
     --primary-color: var(--orange);
     --primary-color-alt: var(--orange-alt);
+    --variant-btn-color: var(--blue);
     --shadow-color: var(--gray-dim);
     --tts-highlight-text-color: var(--headings-color);
     --tts-highlight-background-color: var(--bg);
@@ -878,6 +880,15 @@ main {
         background-color: var(--primary-color);
         color: var(--background-color);
       }
+
+      &.variant-btn {
+        color: var(--variant-btn-color);
+
+        &:focus {
+          background-color: var(--variant-btn-color);
+          color: var(--background-color);
+        }
+      }
     }
 
     ul li {
@@ -920,6 +931,7 @@ main {
 
       .inline-comment {
         display: none;
+        font-size: initial;
       }
     }
 
