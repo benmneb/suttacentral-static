@@ -46,11 +46,14 @@ objc2-app-kit = { version = "0.3", features = [
 incremental = true # Compile your binary in smaller steps.
 
 [profile.release]
-codegen-units = 1 # Allows LLVM to perform better optimization.
-lto = true        # Enables link-time-optimizations.
-opt-level = "s"   # Prioritizes small binary size. Use `3` if you prefer speed.
-panic = "abort"   # Higher performance by disabling panic handlers.
-strip = true      # Ensures debug symbols are removed.
+lto = true      # Enables link-time-optimizations.
+opt-level = "s" # Prioritizes small binary size. Use `3` if you prefer speed.
+panic = "abort" # Higher performance by disabling panic handlers.
+strip = true    # Ensures debug symbols are removed.
 # Disabling debug suggested here https://github.com/rust-lang/rust/issues/151184#issuecomment-3760336933 to fix windows build bug
 # More info: https://kobzol.github.io/rust/rustc/2025/05/20/disable-debuginfo-to-improve-rust-compile-times.html
 debug = false
+# Normally 1 here (lets LLVM optimize better), but 16 also works around the same
+# windows build bug: https://github.com/rust-lang/rust/issues/151184#issuecomment-5346370220
+# Fat LTO above recovers most of the cross-unit optimization anyway.
+codegen-units = 16
