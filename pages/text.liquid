@@ -256,8 +256,14 @@ eleventyComputed:
       {% endcomment %}
       {% assign should_process = true %}
       {% assign is_header = false %}
+      {% assign is_last_key = false %}
 
-      {% if entry.scx_range_sutta_individual %}
+      {% comment %}
+        A uid in no document at all gets the whole response, unfiltered
+      {% endcomment %}
+      {% if entry.scx_range_sutta_individual
+        and entry.scx_range_sutta_shown_uid
+      %}
         {% comment %}
           Check if this key is a :0.X header key, as this is where the headings are.
           These are useful for all texts in the range as including this heading gives context to the text
@@ -276,6 +282,7 @@ eleventyComputed:
 
             {% if article_id == entry.scx_range_sutta_uid
               or article_id == entry.uid
+              or article_id == entry.scx_range_sutta_shown_uid
             %}
               {% assign is_header = true %}
             {% endif %}
@@ -301,30 +308,13 @@ eleventyComputed:
         {% endif %}
 
         {% comment %}
-          Check if key matches the text uid or falls within a sub-range
-          (ie sub-ranges on /an1.575-615)
+          Check if key belongs to the bilara document holding the text uid: its own,
+          or the (sub-)range it's part of, ie /sn45.52 is in sn45.50-54, /an1.180 in an1.175-186
         {% endcomment %}
-        {% assign key_id = key | split: ":" | first %}
+        {% assign key_id = key | split: ":" | first | downcase %}
         {% assign matches_uid = false %}
-        {% if key_id == entry.uid %}
+        {% if key_id == entry.scx_range_sutta_shown_uid %}
           {% assign matches_uid = true %}
-        {% elsif key_id contains "-" %}
-          {% comment %} Check if entry.uid falls within this range {% endcomment %}
-          {% assign range_parts = key_id | split: "-" %}
-          {% assign range_start = range_parts[0] %}
-          {% assign range_end_str = range_parts[1] %}
-
-          {% comment %} Extract numeric parts for comparison {% endcomment %}
-          {% assign uid_num_str = entry.uid | split: "." | last %}
-          {% assign uid_num = uid_num_str | plus: 0 %}
-
-          {% assign start_num_str = range_start | split: "." | last %}
-          {% assign start_num = start_num_str | plus: 0 %}
-          {% assign end_num = range_end_str | plus: 0 %}
-
-          {% if uid_num >= start_num and uid_num <= end_num %}
-            {% assign matches_uid = true %}
-          {% endif %}
         {% endif %}
 
         {% comment %} Include if it's a header, last key, or matches uid {% endcomment %}
@@ -340,7 +330,7 @@ eleventyComputed:
         {% comment %} Handle individual range suttas some more... {% endcomment %}
         {% if entry.scx_range_sutta_individual and is_last_key %}
           {% assign last_key_prefix = key | split: ":" | first %}
-          {% unless last_key_prefix == entry.uid %}
+          {% unless last_key_prefix == entry.scx_range_sutta_shown_uid %}
             {% comment %} These .end* <p> tag's are only needed on the last sutta in vagga/book {% endcomment %}
             {% assign html = html | replace: "<p class='endvagga'>{}</p>", "" %}
             {% assign html = html | replace: "<p class='end'>{}</p>", "" %}
@@ -352,7 +342,7 @@ eleventyComputed:
             {% comment %} But first exclude ie range an11.30/en/sujato to an11.69 where the last value is "{}</p></article>" {% endcomment %}
             {% assign html_first_two_chars = html | slice: 0, 2 %}
             {% if html contains "</article>" and html_first_two_chars != "{}" %}
-              {% unless html contains entry.uid %}
+              {% unless html contains entry.scx_range_sutta_shown_uid %}
                 {% comment %} Remove everything except the closing tag(s) {% endcomment %}
                 {% assign html = html
                   | split: "</article>"
@@ -376,7 +366,10 @@ eleventyComputed:
             {% if text %}
             <!-- This is not a translation, its the root text, the class is so it's not `display: none` by default. -->
             <span class="translation" lang="{{ entry.lang }}" translate="no">
-              {% if entry.scx_range_sutta_individual and is_header %}
+              {% if entry.scx_range_sutta_individual
+                and is_header
+                and entry.scx_range_sutta_shown_uid == entry.uid
+              %}
                 {% comment %} Handle untitled root texts, eg range an11.22/pli/ms to 11.29 (and 30-69) has ~ as the title {% endcomment %}
                 {% if text contains '~' %}
                   {% if html contains "class='range-title'" or html contains "class='sutta-title'" %}
@@ -420,8 +413,14 @@ eleventyComputed:
       {% endcomment %}
       {% assign should_process = true %}
       {% assign is_header = false %}
+      {% assign is_last_key = false %}
 
-      {% if entry.scx_range_sutta_individual %}
+      {% comment %}
+        A uid in no document at all gets the whole response, unfiltered
+      {% endcomment %}
+      {% if entry.scx_range_sutta_individual
+        and entry.scx_range_sutta_shown_uid
+      %}
         {% comment %}
           Check if this key is a :0.X header key, as this is where the headings are.
           These are useful for all texts in the range as including this heading gives context to the text
@@ -440,6 +439,7 @@ eleventyComputed:
 
             {% if article_id == entry.scx_range_sutta_uid
               or article_id == entry.uid
+              or article_id == entry.scx_range_sutta_shown_uid
             %}
               {% assign is_header = true %}
             {% endif %}
@@ -465,30 +465,13 @@ eleventyComputed:
         {% endif %}
 
         {% comment %}
-          Check if key matches the text uid or falls within a sub-range
-          (ie sub-ranges on /an1.575-615)
+          Check if key belongs to the bilara document holding the text uid: its own,
+          or the (sub-)range it's part of, ie /sn45.52 is in sn45.50-54, /an1.180 in an1.175-186
         {% endcomment %}
-        {% assign key_id = key | split: ":" | first %}
+        {% assign key_id = key | split: ":" | first | downcase %}
         {% assign matches_uid = false %}
-        {% if key_id == entry.uid %}
+        {% if key_id == entry.scx_range_sutta_shown_uid %}
           {% assign matches_uid = true %}
-        {% elsif key_id contains "-" %}
-          {% comment %} Check if entry.uid falls within this range {% endcomment %}
-          {% assign range_parts = key_id | split: "-" %}
-          {% assign range_start = range_parts[0] %}
-          {% assign range_end_str = range_parts[1] %}
-
-          {% comment %} Extract numeric parts for comparison {% endcomment %}
-          {% assign uid_num_str = entry.uid | split: "." | last %}
-          {% assign uid_num = uid_num_str | plus: 0 %}
-
-          {% assign start_num_str = range_start | split: "." | last %}
-          {% assign start_num = start_num_str | plus: 0 %}
-          {% assign end_num = range_end_str | plus: 0 %}
-
-          {% if uid_num >= start_num and uid_num <= end_num %}
-            {% assign matches_uid = true %}
-          {% endif %}
         {% endif %}
 
         {% comment %} Include if it's a header, last key, or matches uid {% endcomment %}
@@ -504,7 +487,7 @@ eleventyComputed:
         {% comment %} Handle individual range suttas some more... {% endcomment %}
         {% if entry.scx_range_sutta_individual and is_last_key %}
           {% assign last_key_prefix = key | split: ":" | first %}
-          {% unless last_key_prefix == entry.uid %}
+          {% unless last_key_prefix == entry.scx_range_sutta_shown_uid %}
             {% comment %} These .end* <p> tag's are only needed on the last sutta in vagga/book {% endcomment %}
             {% assign html = html | replace: "<p class='endvagga'>{}</p>", "" %}
             {% assign html = html | replace: "<p class='end'>{}</p>", "" %}
@@ -516,7 +499,7 @@ eleventyComputed:
             {% comment %} But first exclude ie range an11.30/en/sujato to an11.69 where the last value is "{}</p></article>" {% endcomment %}
             {% assign html_first_two_chars = html | slice: 0, 2 %}
             {% if html contains "</article>" and html_first_two_chars != "{}" %}
-              {% unless html contains entry.uid %}
+              {% unless html contains entry.scx_range_sutta_shown_uid %}
                 {% comment %} Remove everything except the closing tag(s) {% endcomment %}
                 {% assign html = html
                   | split: "</article>"
@@ -541,7 +524,10 @@ eleventyComputed:
             </span>
             {% if text %}
               <span class="translation" lang="{{ entry.lang }}"{% if text == entry.translated_title or text == entry.translated_name %} data-pagefind-weight="8"{% endif %}>
-            {% if entry.scx_range_sutta_individual and is_header %}
+            {% if entry.scx_range_sutta_individual
+              and is_header
+              and entry.scx_range_sutta_shown_uid == entry.uid
+            %}
               {% if text == entry.translated_title or text == entry.translated_name %}
                 {% capture text %}{{ entry.scx_range_sutta_title }}{% endcapture %}
               {% endif %}
@@ -559,7 +545,10 @@ eleventyComputed:
               {% assign normalisedRoot = rootText | normalise %}
               {% assign normalisedTitle = entry.original_title | normalise %}
               <span class="root" lang="{{ entry.root_lang }}" translate="no" {% unless normalisedRoot contains normalisedTitle %}data-pagefind-ignore="all"{% endunless %}>
-                {% if entry.scx_range_sutta_individual and is_header %}
+                {% if entry.scx_range_sutta_individual
+                  and is_header
+                  and entry.scx_range_sutta_shown_uid == entry.uid
+                %}
                   {% if text == entry.scx_range_sutta_title %}
                     {% capture rootText %}{{ entry.scx_range_sutta_title }}{% endcapture %}
                   {% endif %}

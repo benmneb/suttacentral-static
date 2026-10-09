@@ -1,5 +1,10 @@
 import masterData from './_masterData.js'
 import siteMetaData from './_siteMetaData.js'
+import {
+  parseUidNumbers,
+  uidIsInRange,
+  uidToAcronym,
+} from '../tools/rangeSuttas.js'
 
 function generateTextMetaOGTags(entry) {
   const metadata = siteMetaData()
@@ -172,63 +177,24 @@ function flatten(nodes, parentPath = '') {
       if (node.scx_range_sutta) {
         const rangeEntries = node.scx_range_sutta_range_uids.map(
           (uid, index, arr) => {
-            function uidToAcronym(uidInput) {
-              if (!uidInput) return ''
-              // I think it's only AN and Dhp that have range suttas, but anyway...
-              return String(uidInput).replace(
-                /^([a-zA-Z]+)(.*)$/,
-                (_, l, n) => l.toUpperCase().replace('DHP', 'Dhp') + ' ' + n
-              ) // eg "AN 1.1", "Dhp 1"...
-            }
-
             function uidToTitle(uidInput) {
               return uidToAcronym(uidInput).replace('Dhp', 'Dhammapada') // eg "AN 1.1", "Dhammapada 1"... as per .net
             }
 
             function getPrevUid() {
-              if (index > 0) {
-                // Previous item exists in current range
-                return arr[index - 1]
-              } else if (node.previous?.uid) {
-                // At start of range - get last item from previous range
-                const prevRangeUid = node.previous.uid
-                if (prevRangeUid.includes('-')) {
-                  // It's a range like "an1.250-257" or "dhp1-20"
-                  const [start, end] = prevRangeUid.split('-')
-
-                  if (start.includes('.')) {
-                    // Format: "an1.250-257" -> "an1.257"
-                    const prefix = start.split('.')[0] + '.'
-                    return prefix + end
-                  } else {
-                    // Format: "dhp1-20" -> "dhp20"
-                    const prefix = start.replace(/[0-9]/g, '')
-                    return prefix + end
-                  }
-                } else {
-                  // Single uid? Not sure if this is used...
-                  return prevRangeUid
-                }
-              }
-              return null
+              if (index > 0) return arr[index - 1] // Previous item exists in current range
+              // At start of range - get last item from previous range, ie "an1.250-257" -> "an1.257"
+              const prev = parseUidNumbers(node.previous?.uid)
+              if (!prev) return node.previous?.uid || null
+              return `${prev.prefix}${prev.end}`
             }
 
             function getNextUid() {
-              if (index < arr.length - 1) {
-                // Next item exists in current range
-                return arr[index + 1]
-              } else if (node.next?.uid) {
-                // At end of range - get first item from next range
-                const nextRangeUid = node.next.uid
-                if (nextRangeUid.includes('-')) {
-                  // It's a range like "an1.11-20", so use "an1.11"
-                  return nextRangeUid.split('-')[0]
-                } else {
-                  // Single uid? Should never get here...
-                  return nextRangeUid
-                }
-              }
-              return null
+              if (index < arr.length - 1) return arr[index + 1] // Next item exists in current range
+              // At end of range - get first item from next range, ie "an1.11-20" -> "an1.11"
+              const next = parseUidNumbers(node.next?.uid)
+              if (!next) return node.next?.uid || null
+              return `${next.prefix}${next.start}`
             }
 
             // Filtered to include only relevant parallels for this individual range entry
@@ -258,51 +224,7 @@ function flatten(nodes, parentPath = '') {
                 }
 
                 // Check if uid is WITHIN a range (an1.189 should match an1.188-197 and dhp2 should match dhp1-3)
-                const kBase = k.split('#')[0]
-                const rangeMatch = kBase.match(/^(.+?)(\d+)(?:\.(\d+))?-(\d+)$/)
-                if (rangeMatch) {
-                  const [
-                    ,
-                    rangePrefix,
-                    rangeNumIfDecimalOrStart,
-                    rangeStartIfDecimal,
-                    rangeEnd,
-                  ] = rangeMatch
-                  const uidMatch = uid.match(/^(.+?)(\d+)(?:\.(\d+))?$/)
-
-                  if (uidMatch) {
-                    const [, currentPrefix, currentNum, currentDecimal] =
-                      uidMatch
-
-                    // Same prefix (eg. an, dhp)
-                    if (rangePrefix === currentPrefix) {
-                      // For ranges with decimals (an1.188-197)
-                      if (rangeStartIfDecimal) {
-                        // Only match if the main numbers match (an1.* only matches an1.*)
-                        if (rangeNumIfDecimalOrStart === currentNum) {
-                          const start = parseInt(rangeStartIfDecimal)
-                          const end = parseInt(rangeEnd)
-                          const current = parseInt(currentDecimal)
-
-                          if (current >= start && current <= end) {
-                            return true
-                          }
-                        }
-                      } else {
-                        // For simple ranges without decimals (dhp1-2)
-                        const start = parseInt(rangeNumIfDecimalOrStart)
-                        const end = parseInt(rangeEnd)
-                        const current = parseInt(currentNum)
-
-                        if (current >= start && current <= end) {
-                          return true
-                        }
-                      }
-                    }
-                  }
-                }
-
-                return false
+                return uidIsInRange(uid, k.split('#')[0])
               })
 
             return removeTranslationTexts({

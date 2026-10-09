@@ -1,5 +1,14 @@
 import masterData from './_masterData.js'
 import siteMetaData from './_siteMetaData.js'
+import {
+  findShownUid,
+  getKeyPrefixes,
+  getShownSpan,
+  parseUidNumbers,
+  rangeUidToAcronym,
+  uidIsInRange,
+  uidToAcronym,
+} from '../tools/rangeSuttas.js'
 
 let usedPaths = []
 
@@ -192,21 +201,16 @@ function getRangeKeyInfo(entry, key) {
     if (html?.includes('<article id=')) {
       const articleId = html.split("id='")[1]?.split("'")[0]
       isHeader =
-        articleId === entry.scx_range_sutta_uid || articleId === entry.uid
+        articleId === entry.scx_range_sutta_uid ||
+        articleId === entry.uid ||
+        articleId === entry.scx_range_sutta_shown_uid
     } else {
       isHeader = true
     }
   }
 
-  const keyId = key.split(':')[0]
-  let matchesUid = keyId === entry.uid
-  if (!matchesUid && keyId.includes('-')) {
-    const [rangeStart, rangeEnd] = keyId.split('-')
-    const uidNum = Number(entry.uid.split('.').at(-1))
-    const startNum = Number(rangeStart.split('.').at(-1))
-    const endNum = Number(rangeEnd)
-    matchesUid = uidNum >= startNum && uidNum <= endNum
-  }
+  const matchesUid =
+    key.split(':')[0].toLowerCase() === entry.scx_range_sutta_shown_uid
 
   // The last key is also processed by the template, but only for its closing tags
   return { isRendered: isHeader || matchesUid, isHeader }
@@ -228,11 +232,14 @@ function collectSegmentedToc(entry, useRootText) {
       ? data.root_text?.[key]
       : data.translation_text?.[key]
 
-    if (entry.scx_range_sutta_individual) {
+    if (entry.scx_range_sutta_individual && entry.scx_range_sutta_shown_uid) {
       const { isRendered, isHeader } = getRangeKeyInfo(entry, key)
       if (!isRendered) continue
-      // Same title substitutions as the template
-      if (isHeader && useRootText) {
+      // Same title substitutions as the template. A whole range document
+      // (ie sn45.50-54) is shown as is, so its own headings are already right
+      const isRetitled =
+        isHeader && entry.scx_range_sutta_shown_uid === entry.uid
+      if (isRetitled && useRootText) {
         if (
           text?.includes('~') &&
           (html.includes("class='range-title'") ||
@@ -241,7 +248,7 @@ function collectSegmentedToc(entry, useRootText) {
           text = entry.scx_range_sutta_title
         }
       } else if (
-        isHeader &&
+        isRetitled &&
         (text === entry.translated_title || text === entry.translated_name)
       ) {
         text = entry.scx_range_sutta_title
@@ -338,167 +345,113 @@ function flatten(nodes, parent, parentPath) {
       // Manually create individual range suttas, from eg: /an1.1-10 and /dhp1-20
       // Only segmented texts can have individual range suttas
       if (parent.scx_range_sutta && node.segmented) {
-        const rangeEntries = parent.scx_range_sutta_range_uids.map(
-          (uid, index, arr) => {
-            function uidToAcronym(uidInput) {
-              if (!uidInput) return ''
-              // I think it's only AN and Dhp that have range suttas, but anyway...
-              return String(uidInput).replace(
-                /^([a-zA-Z]+)(.*)$/,
-                (_, l, n) => l.toUpperCase().replace('DHP', 'Dhp') + ' ' + n
-              ) // eg "AN 1.1", "Dhp 1"...
-            }
+        const keyPrefixes = getKeyPrefixes(node._bilarasuttas_data)
+        const rangeEntries = parent.scx_range_sutta_range_uids.map(uid => {
+          function uidToTitle(uidInput) {
+            if (uidInput.includes('.')) return uidInput.split('.')[1] // "AN 1.1" -> "1" as per .net
+            return uidToAcronym(uidInput).split('Dhp ')[1] // just the number too (.net just leaves the chapter title...)
+          }
 
-            function uidToTitle(uidInput) {
-              if (uidInput.includes('.')) return uidInput.split('.')[1] // "AN 1.1" -> "1" as per .net
-              return uidToAcronym(uidInput).split('Dhp ')[1] // just the number too (.net just leaves the chapter title...)
-            }
+          // The bilara document that actually gets rendered, which is the whole of it
+          // (and so named for all it holds) when the uid has no prefix of its own.
+          // Should a uid be in no document at all, the whole response is shown rather than an empty page
+          const shownUid = findShownUid(keyPrefixes, uid)
+          const spanOf = prefix => getShownSpan(keyPrefixes, prefix, parent.uid) // ie "an1.329-332"
+          const acronym =
+            !shownUid || shownUid === parent.uid
+              ? parent.acronym // eg "SN 45.50–54", straight from the API
+              : spanOf(shownUid) !== uid
+                ? rangeUidToAcronym(spanOf(shownUid)) // nested, eg "AN 1.175–186"
+                : uidToAcronym(uid)
 
-            function getPrevUid() {
-              if (index > 0) {
-                // Previous item exists in current range
-                return arr[index - 1]
-              } else if (node._suttas_data?.translation?.previous?.uid) {
-                // At start of range - get last item from previous range
-                const prevRangeUid = node._suttas_data.translation.previous.uid
-                if (prevRangeUid.includes('-')) {
-                  // It's a range like "an1.250-257" or "dhp1-20"
-                  const [start, end] = prevRangeUid.split('-')
-
-                  if (start.includes('.')) {
-                    // Format: "an1.250-257" -> "an1.257"
-                    const prefix = start.split('.')[0] + '.'
-                    return prefix + end
-                  } else {
-                    // Format: "dhp1-20" -> "dhp20"
-                    const prefix = start.replace(/[0-9]/g, '')
-                    return prefix + end
-                  }
-                } else {
-                  // Single uid? Not sure if this is used...
-                  return prevRangeUid
-                }
-              }
-              return null
-            }
-
-            function getNextUid() {
-              if (index < arr.length - 1) {
-                // Next item exists in current range
-                return arr[index + 1]
-              } else if (node._suttas_data?.translation?.next?.uid) {
-                // At end of range - get first item from next range
-                const nextRangeUid = node._suttas_data.translation.next.uid
-                if (nextRangeUid.includes('-')) {
-                  // It's a range like "an1.11-20", so use "an1.11"
-                  return nextRangeUid.split('-')[0]
-                } else {
-                  // Single uid? Should never get here...
-                  return nextRangeUid
-                }
-              }
-              return null
-            }
-
-            // Filtered to include only relevant parallels for this individual range entry
-            const filteredParallels =
-              parent._parallels_data &&
-              Object.entries(parent._parallels_data).filter(([k, v]) => {
-                // Direct matches, and start of range
-                if (
-                  k === uid ||
-                  k.startsWith(`${uid}-`) ||
-                  k.startsWith(`${uid}#`)
-                ) {
-                  return true
-                }
-
-                // Check if uid is at the END of a range
-                // So if uid is dhp20, will match dhp*-20, and if uid is an1.197, will match an1.*-197, and both with # links
-                const uidPrefix = uid.split(/(\d+)/)[0]
-                const uidEndNum = uid.match(/\d+$/)?.[0]
-                if (
-                  uidEndNum &&
-                  new RegExp(
-                    `^${uidPrefix}(\\d+)(\\.\\d+)?-${uidEndNum}(#.*)?$`
-                  ).test(k)
-                ) {
-                  return true
-                }
-
-                // Check if uid is WITHIN a range (an1.189 should match an1.188-197 and dhp2 should match dhp1-3)
-                const kBase = k.split('#')[0]
-                const rangeMatch = kBase.match(/^(.+?)(\d+)(?:\.(\d+))?-(\d+)$/)
-                if (rangeMatch) {
-                  const [
-                    ,
-                    rangePrefix,
-                    rangeNumIfDecimalOrStart,
-                    rangeStartIfDecimal,
-                    rangeEnd,
-                  ] = rangeMatch
-                  const uidMatch = uid.match(/^(.+?)(\d+)(?:\.(\d+))?$/)
-
-                  if (uidMatch) {
-                    const [, currentPrefix, currentNum, currentDecimal] =
-                      uidMatch
-
-                    // Same prefix (eg. an, dhp)
-                    if (rangePrefix === currentPrefix) {
-                      // For ranges with decimals (an1.188-197)
-                      if (rangeStartIfDecimal) {
-                        // Only match if the main numbers match (an1.* only matches an1.*)
-                        if (rangeNumIfDecimalOrStart === currentNum) {
-                          const start = parseInt(rangeStartIfDecimal)
-                          const end = parseInt(rangeEnd)
-                          const current = parseInt(currentDecimal)
-
-                          if (current >= start && current <= end) {
-                            return true
-                          }
-                        }
-                      } else {
-                        // For simple ranges without decimals (dhp1-2)
-                        const start = parseInt(rangeNumIfDecimalOrStart)
-                        const end = parseInt(rangeEnd)
-                        const current = parseInt(currentNum)
-
-                        if (current >= start && current <= end) {
-                          return true
-                        }
-                      }
-                    }
-                  }
-                }
-
-                return false
-              })
-
+          // Inside the response the neighbours are known exactly, its key prefixes being
+          // the documents in order - so a nested range gets linked as the one page it is,
+          // and not as whichever of its numbers happens to come next
+          const shownIndex = keyPrefixes.indexOf(shownUid ?? uid)
+          function linkTo(prefix) {
+            const { prefix: ref, start } = parseUidNumbers(prefix)
             return {
-              ...parentWithoutTranslations,
-              ...node,
-              uid,
-              acronym: uidToAcronym(uid),
-              scx_path: `${uid}/${node.lang}/${node.author_uid}`,
-              scx_breadcrumb: currentPath
-                .split('/')
-                .toSpliced(-1, 1, uid)
-                .join('/'),
-              scx_range_sutta_individual: true,
-              scx_range_sutta_title: uidToTitle(uid),
-              scx_range_sutta_pagination: {
-                prev: { uid: getPrevUid(), name: uidToAcronym(getPrevUid()) },
-                next: { uid: getNextUid(), name: uidToAcronym(getNextUid()) },
-              },
-              scx_range_sutta_parallels_data:
-                filteredParallels && Object.fromEntries(filteredParallels),
-              scx_range_sutta_parallels_count: filteredParallels?.reduce(
-                (sum, [k, v]) => sum + v.length,
-                0
-              ),
+              uid: `${ref}${start}`,
+              name: rangeUidToAcronym(spanOf(prefix)),
             }
           }
-        )
+
+          function getPrev() {
+            if (shownIndex > 0) return linkTo(keyPrefixes[shownIndex - 1])
+            // At start of response - get last item from previous range, ie "an1.250-257" -> "an1.257"
+            const prevUid = node._suttas_data?.translation?.previous?.uid
+            const prev = parseUidNumbers(prevUid)
+            if (!prev)
+              return { uid: prevUid || null, name: uidToAcronym(prevUid) }
+            const uid = `${prev.prefix}${prev.end}`
+            return { uid, name: uidToAcronym(uid) }
+          }
+
+          function getNext() {
+            if (shownIndex > -1 && shownIndex < keyPrefixes.length - 1) {
+              return linkTo(keyPrefixes[shownIndex + 1])
+            }
+            // At end of response - get first item from next range, ie "an1.11-20" -> "an1.11"
+            const nextUid = node._suttas_data?.translation?.next?.uid
+            const next = parseUidNumbers(nextUid)
+            if (!next)
+              return { uid: nextUid || null, name: uidToAcronym(nextUid) }
+            const uid = `${next.prefix}${next.start}`
+            return { uid, name: uidToAcronym(uid) }
+          }
+
+          // Filtered to include only relevant parallels for this individual range entry
+          const filteredParallels =
+            parent._parallels_data &&
+            Object.entries(parent._parallels_data).filter(([k, v]) => {
+              // Direct matches, and start of range
+              if (
+                k === uid ||
+                k.startsWith(`${uid}-`) ||
+                k.startsWith(`${uid}#`)
+              ) {
+                return true
+              }
+
+              // Check if uid is at the END of a range
+              // So if uid is dhp20, will match dhp*-20, and if uid is an1.197, will match an1.*-197, and both with # links
+              const uidPrefix = uid.split(/(\d+)/)[0]
+              const uidEndNum = uid.match(/\d+$/)?.[0]
+              if (
+                uidEndNum &&
+                new RegExp(
+                  `^${uidPrefix}(\\d+)(\\.\\d+)?-${uidEndNum}(#.*)?$`
+                ).test(k)
+              ) {
+                return true
+              }
+
+              // Check if uid is WITHIN a range (an1.189 should match an1.188-197 and dhp2 should match dhp1-3)
+              return uidIsInRange(uid, k.split('#')[0])
+            })
+
+          return {
+            ...parentWithoutTranslations,
+            ...node,
+            uid,
+            acronym,
+            scx_path: `${uid}/${node.lang}/${node.author_uid}`,
+            scx_breadcrumb: currentPath
+              .split('/')
+              .toSpliced(-1, 1, uid)
+              .join('/'),
+            scx_range_sutta_individual: true,
+            scx_range_sutta_shown_uid: shownUid,
+            scx_range_sutta_title: uidToTitle(uid),
+            scx_range_sutta_pagination: { prev: getPrev(), next: getNext() },
+            scx_range_sutta_parallels_data:
+              filteredParallels && Object.fromEntries(filteredParallels),
+            scx_range_sutta_parallels_count: filteredParallels?.reduce(
+              (sum, [k, v]) => sum + v.length,
+              0
+            ),
+          }
+        })
         results.push(
           ...rangeEntries.map(entry => ({
             ...entry,

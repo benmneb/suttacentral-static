@@ -1,6 +1,7 @@
 import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
 import ora from 'ora'
 import { recordStat } from '../tools/buildStats.js'
+import { parseUidNumbers } from '../tools/rangeSuttas.js'
 import shortcutsData from './_shortcuts.json' with { type: 'json' }
 
 const CACHE_DURATION = process.env.REFETCH ? '0s' : '*' // https://www.11ty.dev/docs/plugins/fetch/#change-the-cache-duration
@@ -261,17 +262,11 @@ async function fetchDataTree(uid, depth = 0) {
   if (node.node_type === 'leaf') {
     // Assign marker and add useful metadata for "range suttas",
     // for use later to extract individual range suttas in `text(Meta)Data.js` files
-    if (
-      (node.uid?.startsWith('an') || node.uid?.startsWith('dhp')) &&
-      node.uid.includes('-')
-    ) {
-      const [ref, range] = node.uid.includes('.')
-        ? node.uid.split('.') // ie. ["an1","1-10"]
-        : (([, r, rng]) => [r, rng])(node.uid.match(/^([^\d]*)(.*)$/)) // ie. ["dhp","1-20"]
+    const range = /^(an|sn|dhp)\d/.test(node.uid) && parseUidNumbers(node.uid)
+    if (range && range.start !== range.end) {
       const flatRange = []
-      const [start, end] = range.split('-').map(Number)
-      for (let i = start; i <= end; i++) {
-        flatRange.push(node.uid.includes('.') ? `${ref}.${i}` : `${ref}${i}`) // ie. "an1.1" ... "an1.10"
+      for (let i = range.start; i <= range.end; i++) {
+        flatRange.push(`${range.prefix}${i}`) // ie. "an1.1" ... "an1.10"
       }
 
       node = {
