@@ -1,4 +1,5 @@
 import htmlmin from 'html-minifier-terser'
+import { recordStat } from './tools/buildStats.js'
 import { minifyCss, minifyJs } from './tools/minifyAssets.js'
 
 const inputDir = 'pages'
@@ -60,6 +61,17 @@ export default function (eleventyConfig) {
     })
 
     return minified
+  })
+
+  let buildStart
+  eleventyConfig.on('eleventy.before', () => {
+    buildStart = Date.now()
+  })
+  eleventyConfig.on('eleventy.after', ({ results }) => {
+    recordStat('eleventy', {
+      files: results?.length,
+      seconds: (Date.now() - buildStart) / 1000,
+    })
   })
 
   eleventyConfig.addPassthroughCopy('images')

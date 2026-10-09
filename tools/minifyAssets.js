@@ -32,6 +32,7 @@ import { browserslistToTargets, transform } from 'lightningcss'
 import path from 'path'
 import { minify as terserMinify } from 'terser'
 import { fileURLToPath } from 'url'
+import { recordStat } from './buildStats.js'
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
@@ -51,6 +52,7 @@ export async function minifyCss({
   const targets = browserslistToTargets(browserslist('last 2 years'))
 
   const files = fs.readdirSync(srcDir).filter(f => f.endsWith('.css'))
+  const stats = []
 
   for (const file of files) {
     const src = path.join(srcDir, file)
@@ -74,7 +76,10 @@ export async function minifyCss({
     console.log(
       `📦 Minified ${file}: ${originalSize} → ${minifiedSize} bytes (saved ${savings} bytes, ${savingsPercent}%)`
     )
+    stats.push({ file, originalSize, minifiedSize })
   }
+
+  recordStat('assetsCss', stats)
 }
 
 export async function minifyJs({
@@ -89,6 +94,7 @@ export async function minifyJs({
   ensureDir(destDir)
 
   const files = fs.readdirSync(srcDir).filter(f => f.endsWith('.js'))
+  const stats = []
 
   for (const file of files) {
     const filePath = path.join(srcDir, file)
@@ -116,8 +122,11 @@ export async function minifyJs({
       console.log(
         `📦 Minified ${file}: ${originalSize} → ${minifiedSize} bytes (saved ${savings} bytes, ${savingsPercent}%)`
       )
+      stats.push({ file, originalSize, minifiedSize })
     }
   }
+
+  recordStat('assetsJs', stats)
 }
 
 // Handle CLI execution

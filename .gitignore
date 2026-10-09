@@ -16,6 +16,8 @@ node_modules
 # Deployment
 .vercel
 .dist
+.build-stats.json
+build.log
 
 # Environment
 .env

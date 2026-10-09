@@ -57,6 +57,15 @@ jobs:
       total_count: ${{ steps.size.outputs.total_count }}
       archive_name: ${{ steps.archive.outputs.archive_name }}
       archive_size: ${{ steps.size.outputs.size }}
+      build_duration: ${{ steps.stats.outputs.build_duration }}
+      eleventy_duration: ${{ steps.stats.outputs.eleventy_duration }}
+      search_duration: ${{ steps.stats.outputs.search_duration }}
+      eleventy_files: ${{ steps.stats.outputs.eleventy_files }}
+      fetch_summary: ${{ steps.stats.outputs.fetch_summary }}
+      fetch_failures: ${{ steps.stats.outputs.fetch_failures }}
+      assets_summary: ${{ steps.stats.outputs.assets_summary }}
+      search_pages: ${{ steps.stats.outputs.search_pages }}
+      search_words: ${{ steps.stats.outputs.search_words }}
 
     steps:
       - name: Checkout repository
@@ -89,7 +98,19 @@ jobs:
         run: pnpm install
 
       - name: Build site
-        run: pnpm predeploy
+        id: build
+        shell: bash
+        run: |
+          START=$(date +%s)
+          pnpm predeploy 2>&1 | tee build.log
+          echo "seconds=$(( $(date +%s) - START ))" >> $GITHUB_OUTPUT
+
+      - name: Collect build stats
+        id: stats
+        continue-on-error: true
+        env:
+          BUILD_SECONDS: ${{ steps.build.outputs.seconds }}
+        run: node tools/buildStats.js
 
       - name: Get current version
         id: version
@@ -416,6 +437,8 @@ jobs:
         with:
           script: |
             const signed = '${{ needs.sign-release.outputs.signed }}' === 'true';
+            const fetchFailures = '${{ needs.release-draft.outputs.fetch_failures }}';
+            const fetchFailuresLine = fetchFailures && fetchFailures !== 'n/a' ? `\n  - ${fetchFailures}` : '';
             const tagMessage = `${{ needs.release-draft.outputs.tag_message }}`;
             const platformsAvailable = '${{ steps.platforms.outputs.platforms_available }}' === 'true';
             const platformsList = `${{ steps.platforms.outputs.platforms_list }}`;
@@ -520,6 +543,12 @@ jobs:
             - Trigger: Tag push to main
             - Version: ${{ needs.release-draft.outputs.version }}
             - Files: ${{ needs.release-draft.outputs.html_count }} HTML files (${{ needs.release-draft.outputs.total_count }} total)
+            - Archive size: ${{ needs.release-draft.outputs.archive_size || 'n/a' }}
+            - Build time: ${{ needs.release-draft.outputs.build_duration || 'n/a' }} (11ty: ${{ needs.release-draft.outputs.eleventy_duration || 'n/a' }}, search index: ${{ needs.release-draft.outputs.search_duration || 'n/a' }})
+            - API fetch: ${{ needs.release-draft.outputs.fetch_summary || 'n/a' }}${fetchFailuresLine}
+            - Pages written: ${{ needs.release-draft.outputs.eleventy_files || 'n/a' }}
+            - Assets minified: ${{ needs.release-draft.outputs.assets_summary || 'n/a' }}
+            - Search index: ${{ needs.release-draft.outputs.search_pages || 'n/a' }} pages, ${{ needs.release-draft.outputs.search_words || 'n/a' }} words
 
             </details>
 
@@ -612,6 +641,15 @@ jobs:
       total_count: ${{ steps.size.outputs.total_count }}
       archive_name: ${{ steps.archive.outputs.archive_name }}
       archive_size: ${{ steps.size.outputs.size }}
+      build_duration: ${{ steps.stats.outputs.build_duration }}
+      eleventy_duration: ${{ steps.stats.outputs.eleventy_duration }}
+      search_duration: ${{ steps.stats.outputs.search_duration }}
+      eleventy_files: ${{ steps.stats.outputs.eleventy_files }}
+      fetch_summary: ${{ steps.stats.outputs.fetch_summary }}
+      fetch_failures: ${{ steps.stats.outputs.fetch_failures }}
+      assets_summary: ${{ steps.stats.outputs.assets_summary }}
+      search_pages: ${{ steps.stats.outputs.search_pages }}
+      search_words: ${{ steps.stats.outputs.search_words }}
       trigger: ${{ github.event_name == 'schedule' && 'Monthly scheduled build' || 'Manual trigger' }}
 
     steps:
@@ -633,7 +671,19 @@ jobs:
         run: pnpm install
 
       - name: Build site
-        run: pnpm predeploy
+        id: build
+        shell: bash
+        run: |
+          START=$(date +%s)
+          pnpm predeploy 2>&1 | tee build.log
+          echo "seconds=$(( $(date +%s) - START ))" >> $GITHUB_OUTPUT
+
+      - name: Collect build stats
+        id: stats
+        continue-on-error: true
+        env:
+          BUILD_SECONDS: ${{ steps.build.outputs.seconds }}
+        run: node tools/buildStats.js
 
       - name: Get current version
         id: version
@@ -985,6 +1035,8 @@ jobs:
         with:
           script: |
             const signed = '${{ needs.sign-release-content-refresh.outputs.signed }}' === 'true';
+            const fetchFailures = '${{ needs.content-refresh.outputs.fetch_failures }}';
+            const fetchFailuresLine = fetchFailures && fetchFailures !== 'n/a' ? `\n  - ${fetchFailures}` : '';
             const platformsAvailable = '${{ steps.platforms.outputs.platforms_available }}' === 'true';
             const platformsList = `${{ steps.platforms.outputs.platforms_list }}`;
 
@@ -1089,6 +1141,12 @@ jobs:
             - Version: ${{ needs.content-refresh.outputs.version }}
             - Preview Tag: ${{ needs.content-refresh.outputs.preview_tag }}
             - Files: ${{ needs.content-refresh.outputs.html_count }} HTML files (${{ needs.content-refresh.outputs.total_count }} total)
+            - Archive size: ${{ needs.content-refresh.outputs.archive_size || 'n/a' }}
+            - Build time: ${{ needs.content-refresh.outputs.build_duration || 'n/a' }} (11ty: ${{ needs.content-refresh.outputs.eleventy_duration || 'n/a' }}, search index: ${{ needs.content-refresh.outputs.search_duration || 'n/a' }})
+            - API fetch: ${{ needs.content-refresh.outputs.fetch_summary || 'n/a' }}${fetchFailuresLine}
+            - Pages written: ${{ needs.content-refresh.outputs.eleventy_files || 'n/a' }}
+            - Assets minified: ${{ needs.content-refresh.outputs.assets_summary || 'n/a' }}
+            - Search index: ${{ needs.content-refresh.outputs.search_pages || 'n/a' }} pages, ${{ needs.content-refresh.outputs.search_words || 'n/a' }} words
 
             </details>
 

@@ -1,5 +1,6 @@
 import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
 import ora from 'ora'
+import { recordStat } from '../tools/buildStats.js'
 import shortcutsData from './_shortcuts.json' with { type: 'json' }
 
 const CACHE_DURATION = process.env.REFETCH ? '0s' : '*' // https://www.11ty.dev/docs/plugins/fetch/#change-the-cache-duration
@@ -358,6 +359,15 @@ export default async function () {
       .info(
         `Results: ${successCount}/${endpointsHit} successful (${successRate}%)${errorDetails}`
       )
+
+    recordStat('fetch', {
+      endpointsHit,
+      successCount,
+      fetchErrors,
+      pubInfoErrors,
+      cacheTimeErrors,
+      elapsedMins: Number(elapsedMins),
+    })
 
     isBuilding = false
     endpointsHit = 0
