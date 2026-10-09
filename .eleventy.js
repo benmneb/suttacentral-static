@@ -69,6 +69,9 @@ export default function (eleventyConfig) {
       useShortDoctype: true,
       removeComments: true,
       collapseWhitespace: true,
+      collapseBooleanAttributes: true,
+      // Not removeOptionalTags: browsers build the same DOM without them, but Pagefind takes a closing tag
+      // as a word break, so text running into one (ie "possessions?’</p><p>SC") gets indexed as one word
     })
 
     return minified
