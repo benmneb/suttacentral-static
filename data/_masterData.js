@@ -1,6 +1,7 @@
 import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
 import ora from 'ora'
 import { recordStat } from '../tools/buildStats.js'
+import { fixCommentLinks } from '../tools/commentLinks.js'
 import { parseUidNumbers } from '../tools/rangeSuttas.js'
 import shortcutsData from './_shortcuts.json' with { type: 'json' }
 
@@ -327,6 +328,8 @@ export default async function () {
     await fetchShortcutsList()
     const roots = ['sutta', 'vinaya', 'abhidhamma']
     const tree = await Promise.all(roots.map(uid => fetchDataTree(uid)))
+    const fixedLinks = fixCommentLinks(tree)
+    spinner.info(`Pointed ${fixedLinks} links in comments at texts that exist`)
     cachedMasterData = tree
     return tree
   } catch (e) {
