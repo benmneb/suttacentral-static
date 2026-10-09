@@ -88,7 +88,7 @@
           {%- if version.publication_date -%}
             &nbsp;(<span>{{ version.publication_date }}</span>)
           {%- endif %}
-          {%- if entry._bilarasuttas_data.variant_text.size > 0 -%}
+          {%- if version.scx_has_variants -%}
             &nbsp;<span
               title="Annotated with text-critical variants between different historical manuscripts"
               role="icon"
