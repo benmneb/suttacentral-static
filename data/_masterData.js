@@ -227,8 +227,6 @@ async function fetchDataTree(uid, depth = 0) {
         ...(!publicationData.error && {
           _publication_info: publicationData[0],
         }),
-        scx_has_variants:
-          Object.keys(bilaraData?.variant_text ?? {}).length > 0,
       }
     })
 
@@ -236,20 +234,6 @@ async function fetchDataTree(uid, depth = 0) {
       translationPromises,
       MAX_CONCURRENT_REQUESTS
     )
-
-    // Flag which versions have root text variants, for the icon in `translationsDetails.liquid`.
-    // It can't check the bilara data itself: the lists on text pages come straight from `/suttas`,
-    // which has none, and on the meta and chapter pages it's redacted by `removeTranslationTexts`.
-    const withVariants = new Set(
-      mergedTranslations
-        .filter(t => t?.scx_has_variants)
-        .map(t => `${t.lang}/${t.author_uid}`)
-    )
-    for (const trans of mergedTranslations) {
-      for (const t of trans?._suttas_data.suttaplex.translations ?? []) {
-        t.scx_has_variants = withVariants.has(`${t.lang}/${t.author_uid}`)
-      }
-    }
 
     return {
       ...node,

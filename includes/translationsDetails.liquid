@@ -88,13 +88,6 @@
           {%- if version.publication_date -%}
             &nbsp;(<span>{{ version.publication_date }}</span>)
           {%- endif %}
-          {%- if version.scx_has_variants -%}
-            &nbsp;<span
-              title="Annotated with text-critical variants between different historical manuscripts"
-              role="icon"
-              >📝</span
-            >
-          {%- endif %}
         </li>
       {% endfor %}
     </ul>
