@@ -1,6 +1,7 @@
 import htmlmin from 'html-minifier-terser'
 import { recordStat } from './tools/buildStats.js'
 import { minifyCss, minifyJs } from './tools/minifyAssets.js'
+import { parseUidNumbers } from './tools/rangeSuttas.js'
 
 const inputDir = 'pages'
 const textTemplate = `${inputDir}/text.liquid`
@@ -39,6 +40,16 @@ export default function (eleventyConfig) {
 
   eleventyConfig.addFilter('normalise', function (value) {
     return value?.replace(/\s+/g, ' ').trim() ?? ''
+  })
+
+  // A parallel's key says which span of this text it covers. That span can run across two suttas -
+  // sn36.31 is keyed sn36.30-31, because the parallel covers the pair - and such a span is no uid at all,
+  // so it gets swapped for the text on screen, as on .net. A key naming one sutta is kept, so the rows of
+  // a range page like /an1.170-187 still point at an1.173, an1.174 and so on, one each
+  eleventyConfig.addFilter('parallelPath', function (key, uid) {
+    const base = String(key).split('#')[0]
+    const span = parseUidNumbers(base)
+    return span && span.start !== span.end ? uid : base
   })
 
   eleventyConfig.addFilter('parseJSON', function (value) {

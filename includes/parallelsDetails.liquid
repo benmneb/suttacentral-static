@@ -23,14 +23,7 @@
             | where: "is_root", true
             | first
           %}
-          {% comment %} TODO: Are there links with #'s and ranges?? {% endcomment %}
-          {% assign base_path = segment[0] %}
-          {% if segment[0] contains "#" %}
-            {% assign base_path = segment[0] | split: "#" | first %}
-          {% endif %}
-          {% if entry.scx_range_sutta and segment[0] contains "-" %}
-            {% assign base_path = entry.scx_range_sutta_uid %}
-          {% endif %}
+          {% assign base_path = segment[0] | parallelPath: entry.uid %}
           <a href="/{{ base_path }}/{{ root_trans.lang }}/{{ root_trans.author_uid }}{% if segment[0] contains '#' %}#{{ segment[0] | split: '#' | last }}{% endif %}">
             {{- segment[0] -}}
           </a>
