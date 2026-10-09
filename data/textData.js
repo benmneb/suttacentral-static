@@ -249,6 +249,7 @@ function collectSegmentedToc(entry, useRootText) {
         }
       } else if (
         isRetitled &&
+        entry.scx_range_sutta_untitled &&
         (text === entry.translated_title || text === entry.translated_name)
       ) {
         text = entry.scx_range_sutta_title
@@ -364,6 +365,16 @@ function flatten(nodes, parent, parentPath) {
                 ? rangeUidToAcronym(spanOf(shownUid)) // nested, eg "AN 1.175–186"
                 : uidToAcronym(uid)
 
+          // Whether the sutta has a translated heading of its own. Dhp verses don't (theirs is
+          // Pāli only), so the vagga heading gets swapped for the number to title the page instead
+          const bilara = node._bilarasuttas_data
+          const suttaTitleKey = bilara?.keys_order?.find(
+            key =>
+              key.split(':')[0].toLowerCase() === shownUid &&
+              bilara.html_text[key]?.includes("class='sutta-title'")
+          )
+          const isUntitled = !bilara?.translation_text?.[suttaTitleKey]?.trim()
+
           // Inside the response the neighbours are known exactly, its key prefixes being
           // the documents in order - so a nested range gets linked as the one page it is,
           // and not as whichever of its numbers happens to come next
@@ -442,6 +453,7 @@ function flatten(nodes, parent, parentPath) {
               .join('/'),
             scx_range_sutta_individual: true,
             scx_range_sutta_shown_uid: shownUid,
+            scx_range_sutta_untitled: isUntitled,
             scx_range_sutta_title: uidToTitle(uid),
             scx_range_sutta_pagination: { prev: getPrev(), next: getNext() },
             scx_range_sutta_parallels_data:
