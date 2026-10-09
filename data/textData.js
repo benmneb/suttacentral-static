@@ -173,6 +173,154 @@ function generateTextJsonLd(entry) {
   )
 }
 
+function tocLabel(text) {
+  const stripped = text.trim().replace(/^\d+(?:\.\d+)*\.\s*/, '')
+  // A heading that is only a number would leave a link with no name
+  return stripped || text.trim()
+}
+
+/*
+ * Mirrors the `should_process` logic in `pages/text.liquid` for individual range suttas,
+ * so only headings that actually get rendered on the page end up in the ToC.
+ * Keep the two in sync.
+ */
+function getRangeKeyInfo(entry, key) {
+  const html = entry._bilarasuttas_data.html_text[key]
+
+  let isHeader = false
+  if (key.split(':').at(-1).includes('0.')) {
+    if (html?.includes('<article id=')) {
+      const articleId = html.split("id='")[1]?.split("'")[0]
+      isHeader =
+        articleId === entry.scx_range_sutta_uid || articleId === entry.uid
+    } else {
+      isHeader = true
+    }
+  }
+
+  const keyId = key.split(':')[0]
+  let matchesUid = keyId === entry.uid
+  if (!matchesUid && keyId.includes('-')) {
+    const [rangeStart, rangeEnd] = keyId.split('-')
+    const uidNum = Number(entry.uid.split('.').at(-1))
+    const startNum = Number(rangeStart.split('.').at(-1))
+    const endNum = Number(rangeEnd)
+    matchesUid = uidNum >= startNum && uidNum <= endNum
+  }
+
+  // The last key is also processed by the template, but only for its closing tags
+  return { isRendered: isHeader || matchesUid, isHeader }
+}
+
+/*
+ * Collects the h2-h4 headings of a segmented text, anchored to the segment span that already carries an id.
+ */
+function collectSegmentedToc(entry, useRootText) {
+  const data = entry._bilarasuttas_data
+  const toc = []
+
+  for (const key of data.keys_order ?? []) {
+    const html = data.html_text[key]
+    const heading = html?.match(/<h([2-4])([^>]*)>(?=\{\})/)
+    if (!heading) continue
+
+    let text = useRootText
+      ? data.root_text?.[key]
+      : data.translation_text?.[key]
+
+    if (entry.scx_range_sutta_individual) {
+      const { isRendered, isHeader } = getRangeKeyInfo(entry, key)
+      if (!isRendered) continue
+      // Same title substitutions as the template
+      if (isHeader && useRootText) {
+        if (
+          text?.includes('~') &&
+          (html.includes("class='range-title'") ||
+            html.includes("class='sutta-title'"))
+        ) {
+          text = entry.scx_range_sutta_title
+        }
+      } else if (
+        isHeader &&
+        (text === entry.translated_title || text === entry.translated_name)
+      ) {
+        text = entry.scx_range_sutta_title
+      }
+    }
+
+    if (!text?.trim()) continue
+
+    toc.push({
+      level: Number(heading[1]),
+      href: `#${key}`,
+      html: tocLabel(text),
+      // On a range page (eg an1.1-10) each sutta's own title is the only
+      // structure there is, so these stay - but on a single sutta of that range
+      // the one title is just the page title, and gets dropped below
+      isTitle: heading[2].includes('sutta-title'),
+    })
+  }
+
+  // A lone sutta title is the page title, not a table of contents
+  if (toc.length === 1 && toc[0].isTitle) return []
+  return toc
+}
+
+/*
+ * Collects the h2-h4 headings of a legacy text, injecting an id to anchor to as they don't have any
+ * (eg pli-tv-kd1/horner has 66 bare headings).
+ *
+ * Note: this mutates `entry._suttas_data.translation.text` in place, to avoid holding a second copy
+ * of every legacy text in memory. It's idempotent as existing ids are kept.
+ */
+function collectLegacyToc(entry) {
+  const translation = entry._suttas_data?.translation
+  if (!translation?.text) return []
+
+  // Leave the footer alone, it becomes the info popover
+  const footerIndex = translation.text.lastIndexOf('<footer')
+  const body =
+    footerIndex === -1
+      ? translation.text
+      : translation.text.slice(0, footerIndex)
+  const footer = footerIndex === -1 ? '' : translation.text.slice(footerIndex)
+
+  const toc = []
+  let n = 0
+  const bodyWithHeadingIds = body.replace(
+    /<h([2-4])([^>]*)>([\s\S]*?)<\/h\1>/g,
+    (match, level, attrs, inner) => {
+      const existingId = attrs.match(/\bid=["']([^"']+)["']/)
+      const id = existingId?.[1] ?? `toc-${++n}`
+      if (inner.trim()) {
+        toc.push({
+          level: Number(level),
+          href: `#${id}`,
+          html: tocLabel(inner),
+        })
+      }
+      return existingId
+        ? match
+        : `<h${level}${attrs} id="${id}">${inner}</h${level}>`
+    }
+  )
+
+  translation.text = bodyWithHeadingIds + footer
+  return toc
+}
+
+/*
+ * Returns the table of contents for a text, following the same branches as `pages/text.liquid`.
+ */
+function collectToc(entry) {
+  const bilaraData = entry._bilarasuttas_data
+  if (entry.is_root && bilaraData && Object.keys(bilaraData).length > 0) {
+    return collectSegmentedToc(entry, true)
+  }
+  if (entry.segmented) return collectSegmentedToc(entry, false)
+  return collectLegacyToc(entry)
+}
+
 function flatten(nodes, parent, parentPath) {
   return nodes.flatMap(node => {
     let currentPath = parentPath ? `${parentPath}/${node.uid}` : `${node.uid}`
@@ -356,6 +504,7 @@ function flatten(nodes, parent, parentPath) {
             ...entry,
             scx_json_ld: generateTextJsonLd(entry),
             scx_og_tags: generateTextOGTags(entry),
+            scx_toc: collectToc(entry),
           }))
         )
       }
@@ -371,6 +520,7 @@ function flatten(nodes, parent, parentPath) {
         ...entry,
         scx_json_ld: generateTextJsonLd(entry),
         scx_og_tags: generateTextOGTags(entry),
+        scx_toc: collectToc(entry),
       })
       return results
     }

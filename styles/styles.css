@@ -639,6 +639,7 @@ aside {
 
   fieldset {
     width: fit-content;
+    position: relative;
     padding: 0;
     border: none;
     margin: 0;
@@ -646,6 +647,11 @@ aside {
     border-top-left-radius: var(--rounding);
     border-bottom-left-radius: var(--rounding);
     pointer-events: auto;
+
+    /* This has to happen here and not on the button */
+    &:has(li:hover > #contents-menu, li:focus-within > #contents-menu) {
+      border-bottom-left-radius: 0;
+    }
 
     button {
       display: flex;
@@ -686,7 +692,13 @@ aside {
       }
     }
 
-    ul li ul {
+    /* Needed for the menus width */
+    > ul > li:has(> #contents-menu) {
+      position: static;
+    }
+
+    ul li ul,
+    ul li ol {
       display: none;
       position: absolute;
       right: 0;
@@ -702,7 +714,10 @@ aside {
         width: 100%;
         display: flex;
         align-items: center;
-        padding-right: 0.3rem;
+
+        &:not(#contents-menu > li) {
+          padding-right: 0.3rem;
+        }
 
         &:hover,
         &:focus-within {
@@ -742,8 +757,106 @@ aside {
     ul li:hover > ul,
     ul li:focus-within > ul,
     ul li ul:hover,
-    ul li ul:focus {
+    ul li ul:focus,
+    ul li:hover > ol,
+    ul li:focus-within > ol,
+    ul li ol:hover,
+    ul li ol:focus {
       display: block;
+    }
+
+    #contents-button {
+      li:hover > &,
+      li:focus-within > & {
+        border-bottom-left-radius: 0;
+      }
+    }
+
+    #contents-menu {
+      border-top-left-radius: 0;
+      counter-reset: toc2 toc3 toc4;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      max-height: 70vh;
+      overflow-y: auto;
+      left: 0;
+      right: 0;
+      width: auto;
+
+      a {
+        width: 100%;
+        color: inherit;
+        text-decoration: none;
+        padding: 0.1rem;
+        display: flex;
+        gap: 0.3rem;
+        &:hover {
+          background-color: unset;
+        }
+
+        /* This is the number prefixing the title */
+        &::before {
+          flex: none;
+          text-align: right;
+          color: var(--text-color-secondary);
+        }
+
+        /* For legacy texts ie dn1/en/bodhi */
+        i {
+          display: contents;
+        }
+      }
+
+      li:first-of-type {
+        border-top-left-radius: 0;
+      }
+
+      /**
+       * Nested ToC numbers!
+       */
+      li[data-level='2'] {
+        counter-increment: toc2;
+        counter-reset: toc3 toc4;
+
+        a::before {
+          content: counter(toc2) '.';
+          min-width: 1em;
+        }
+      }
+
+      li[data-level='3'] {
+        counter-increment: toc3;
+        counter-reset: toc4;
+
+        a::before {
+          content: counter(toc2) '.' counter(toc3) '.';
+          min-width: 2em;
+        }
+      }
+
+      li[data-level='4'] {
+        counter-increment: toc4;
+
+        a::before {
+          content: counter(toc2) '.' counter(toc3) '.' counter(toc4) '.';
+          min-width: 3em;
+        }
+      }
+
+      /* A range page's titles are already just a number ("1"), so adding a
+      generated one would only read "1. 1" like .net does */
+      li[data-title] {
+        counter-increment: none;
+
+        a {
+          padding-left: 0.4rem;
+
+          &::before {
+            content: none;
+          }
+        }
+      }
     }
   }
 }
@@ -754,6 +867,17 @@ main {
   padding: 0 1rem;
   max-width: var(--content-max-width);
   width: var(--width-minus-padding);
+
+  /**
+   * For ToC nav: to keep the pinned menu from covering whatever was jumped to.
+   */
+  h2,
+  h3,
+  h4,
+  .segment,
+  .reference {
+    scroll-margin-top: 2.5rem;
+  }
 
   ul {
     padding-left: 0.75rem;

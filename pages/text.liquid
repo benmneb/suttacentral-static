@@ -42,6 +42,39 @@ eleventyComputed:
 <aside>
   <fieldset>
     <ul>
+      {% if entry.scx_toc.size > 0 %}
+        <li>
+          <button
+            aria-haspopup="menu"
+            aria-expanded="false"
+            aria-controls="contents-menu"
+            aria-label="Table of contents"
+            id="contents-button"
+          >
+            Contents
+          </button>
+          <ol
+            class="dropdown"
+            role="menu"
+            aria-labelledby="contents-button"
+            id="contents-menu"
+          >
+            {% for heading in entry.scx_toc %}
+              <li
+                role="none"
+                data-level="{{ heading.level }}"
+                {% if heading.isTitle %}
+                  data-title
+                {% endif %}
+              >
+                <a role="menuitem" href="{{ heading.href }}">
+                  {{- heading.html -}}
+                </a>
+              </li>
+            {% endfor %}
+          </ol>
+        </li>
+      {% endif %}
       <li>
         <button popovertarget="info" aria-label="Show publication information">
           Info
