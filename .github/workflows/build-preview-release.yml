@@ -514,14 +514,19 @@ jobs:
 
             ---
 
-            ${platformSection}
-            **Preview Deployment:** ${{ needs.release-draft.outputs.preview_url }}
+            <details><summary>Build Info</summary>
 
-            **Build Info:**
             - Date: ${{ needs.release-draft.outputs.date }}
             - Trigger: Tag push to main
             - Version: ${{ needs.release-draft.outputs.version }}
             - Files: ${{ needs.release-draft.outputs.html_count }} HTML files (${{ needs.release-draft.outputs.total_count }} total)
+
+            </details>
+
+            ---
+
+            ${platformSection}
+            **Preview Deployment:** ${{ needs.release-draft.outputs.preview_url }}
 
             **Next Steps:**
             1. Review the preview deployment above
@@ -1077,15 +1082,20 @@ jobs:
 
             ---
 
-            ${platformSection}
-            **Preview Deployment:** ${{ needs.content-refresh.outputs.preview_url }}
+            <details><summary>Build Info</summary>
 
-            **Build Info:**
             - Date: ${{ needs.content-refresh.outputs.date }}
             - Trigger: ${{ needs.content-refresh.outputs.trigger }}
             - Version: ${{ needs.content-refresh.outputs.version }}
             - Preview Tag: ${{ needs.content-refresh.outputs.preview_tag }}
             - Files: ${{ needs.content-refresh.outputs.html_count }} HTML files (${{ needs.content-refresh.outputs.total_count }} total)
+
+            </details>
+
+            ---
+
+            ${platformSection}
+            **Preview Deployment:** ${{ needs.content-refresh.outputs.preview_url }}
 
             **Next Steps:**
             1. Review the preview deployment above
