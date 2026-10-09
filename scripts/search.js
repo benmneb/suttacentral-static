@@ -150,4 +150,11 @@
       await performSearch(query)
     }
   })
+
+  document.addEventListener('keydown', function (event) {
+    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+      event.preventDefault()
+      input.focus()
+    }
+  })
 })()
