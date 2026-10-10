@@ -183,6 +183,27 @@ eleventyComputed:
   {% endif %}
 </main>
 
+{% if entry.scx_chapter_pagination.prev or entry.scx_chapter_pagination.next %}
+  <nav aria-label="Article pagination">
+    <div>
+      {% if entry.scx_chapter_pagination.prev.uid %}
+        <span>Previous</span>
+        <a href="/{{ entry.scx_chapter_pagination.prev.uid }}" rel="prev">
+          {{- entry.scx_chapter_pagination.prev.name -}}
+        </a>
+      {% endif %}
+    </div>
+    <div>
+      {% if entry.scx_chapter_pagination.next.uid %}
+        <span>Next</span>
+        <a href="/{{ entry.scx_chapter_pagination.next.uid }}" rel="next">
+          {{- entry.scx_chapter_pagination.next.name -}}
+        </a>
+      {% endif %}
+    </div>
+  </nav>
+{% endif %}
+
 {% include "footer.liquid",
   route: entry.scx_path,
   fetchedAt: entry.scx_fetched_at

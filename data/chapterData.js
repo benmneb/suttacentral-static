@@ -235,11 +235,58 @@ export default async function () {
   // Deduplicate by uid to prevent permalink conflicts when the same
   // collection (ie /dhp) appears at multiple levels in the tree structure
   const seen = new Set()
-  return chapters.filter(chapter => {
+  const deduped = chapters.filter(chapter => {
     if (seen.has(chapter.uid)) {
       return false
     }
     seen.add(chapter.uid)
     return true
   })
+
+  return addPagination(deduped)
+}
+
+/*
+ * Adds `scx_chapter_pagination` prev/next links between neighbouring chapters.
+ *
+ * Like .net's text pagination, it stops at the edge of a collection
+ * (ie `dn`, `sn`, `pli-tv-bu-vb`), the 3rd segment of the breadcrumb.
+ *
+ * Shortcut pages only link to other shortcut pages at the same depth,
+ * ie `/sn1` <-> `/sn2`, so the vagga pages link directly to each other,
+ * ie `/sn1-chetvavagga` <-> `/sn2-pathamavagga`.
+ */
+function addPagination(chapters) {
+  const groups = new Map()
+  for (const chapter of chapters) {
+    // SC's /menu API returns some empty nodes with a null uid
+    if (!chapter.uid) continue
+    const parts = chapter.scx_breadcrumb.split('/')
+    const key = chapter.scx_shortcut
+      ? `${parts[2]}/shortcut/${parts.length}`
+      : parts[2]
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(chapter)
+  }
+
+  const link = chapter =>
+    chapter && {
+      uid: chapter.uid,
+      name: (
+        chapter.translated_name ||
+        chapter.root_name ||
+        chapter.uid
+      ).trim(),
+    }
+
+  for (const group of groups.values()) {
+    group.forEach((chapter, i) => {
+      chapter.scx_chapter_pagination = {
+        prev: link(group[i - 1]),
+        next: link(group[i + 1]),
+      }
+    })
+  }
+
+  return chapters
 }
