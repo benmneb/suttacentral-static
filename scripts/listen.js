@@ -6,7 +6,8 @@
  * voice selection, pitch/rate adjustment, auto-scrolling, and click-to-jump.
  *
  * Handles both segmented text (via span.text elements) and non-segmented
- * content by manually extracting visible text-containing elements.
+ * content by manually extracting visible text-containing elements, which are
+ * then split into sentences so they can be read and skipped one at a time.
  *
  * @module TextToSpeech
  * @requires SpeechSynthesis API
@@ -26,6 +27,9 @@
   const TIMEOUT_MS = 60
   const CLASS_HIGHLIGHT = 'tts-highlight'
   const CLASS_CLICKABLE = 'tts-clickable'
+  const HIGHLIGHT_NAME = 'tts-current'
+  const HOVER_HIGHLIGHT_NAME = 'tts-hover'
+  const CLASS_SENTENCES = 'tts-sentences'
   const LABEL_PLAY = 'Play'
   const LABEL_PAUSE = 'Pause'
   const LABEL_RESUME = 'Play'
@@ -34,11 +38,16 @@
   const ICON_RESUME = '▶️'
 
   const synth = window.speechSynthesis
+  const canHighlightRanges =
+    typeof CSS !== 'undefined' &&
+    !!CSS.highlights &&
+    typeof Highlight === 'function'
 
   // state
   let voices = []
   let visibleTextSpans = []
   let visibleTextContent = []
+  let visibleTextRanges = [] // the sentence each item covers in non segmented texts, null in segmented ones
   let currentIndex = 0
   let isCancelled = false
   let isPlaying = false // denotes an active session (playing or paused)
@@ -77,6 +86,61 @@
     el.style.display = 'flex'
   })
 
+  const textLang =
+    document.querySelector('main > article')?.lang ||
+    document.documentElement.lang ||
+    undefined
+  let sentenceSegmenter = null
+  try {
+    sentenceSegmenter = new Intl.Segmenter(textLang, {
+      granularity: 'sentence',
+    })
+  } catch (e) {}
+
+  // The sentences of a block of non segmented text, each with the Range it covers so it can be highlighted.
+  // Sentences run across inline elements (ie a PTS ref mid sentence), so it's done on the text nodes, not elements
+  function splitIntoSentences(block) {
+    const nodes = []
+    let text = ''
+    const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT)
+    while (walker.nextNode()) {
+      const node = walker.currentNode
+      const parent = node.parentElement
+      // skip reference links and anything hidden
+      if (!parent || parent.closest('.ref') || parent.offsetParent === null)
+        continue
+      nodes.push({ node, start: text.length })
+      text += node.data
+    }
+
+    function pointAt(offset, isEnd) {
+      const found = nodes.find(({ node, start }) =>
+        isEnd
+          ? offset <= start + node.data.length
+          : offset < start + node.data.length
+      )
+      return found ? [found.node, offset - found.start] : null
+    }
+
+    const pieces = sentenceSegmenter
+      ? Array.from(sentenceSegmenter.segment(text), s => [s.index, s.segment])
+      : [[0, text]]
+
+    return pieces.flatMap(([index, segment]) => {
+      const trimmed = segment.trim()
+      if (!trimmed) return []
+      const start = index + segment.length - segment.trimStart().length
+      const end = index + segment.trimEnd().length
+      const startPoint = pointAt(start, false)
+      const endPoint = pointAt(end, true)
+      if (!startPoint || !endPoint) return []
+      const range = document.createRange()
+      range.setStart(...startPoint)
+      range.setEnd(...endPoint)
+      return [{ text: trimmed.replace(/\n/g, ' '), range }]
+    })
+  }
+
   function computeVisibleText() {
     // for segmented texts
     visibleTextSpans = Array.from(
@@ -88,6 +152,7 @@
     visibleTextContent = visibleTextSpans?.map(s =>
       s.textContent.replace(/\n/g, '')
     )
+    visibleTextRanges = visibleTextSpans.map(() => null)
 
     // If rooter-first is checked, reorder spans within each segment to match CSS grid display order
     if (rootFirst && rootFirst.checked && visibleTextSpans.length > 0) {
@@ -199,48 +264,23 @@
         document.querySelectorAll(selector)
       ).filter(s => s.offsetParent !== null && s.textContent)
 
-      function getUniqueSelector(node, root) {
-        const path = []
-        let current = node
-        while (current && current !== root) {
-          let index = 0
-          let sibling = current
-          while ((sibling = sibling.previousElementSibling)) {
-            if (sibling.tagName === current.tagName) index++
-          }
-          path.unshift(
-            `${current.tagName.toLowerCase()}:nth-of-type(${index + 1})`
-          )
-          current = current.parentElement
-        }
-        return path.join(' > ')
-      }
-
-      visibleTextSpans = allVisibleElements.filter(el => {
+      const blocks = allVisibleElements.filter(el => {
         // avoid duplicates
         return !allVisibleElements.some(
           other => other !== el && other.contains(el)
         )
       })
 
-      visibleTextContent = visibleTextSpans.map(el => {
-        const clone = el.cloneNode(true)
-
-        // remove all .ref elements from the clone
-        const refElements = clone.querySelectorAll('.ref')
-        refElements.forEach(ref => ref.remove())
-
-        // Find all descendants in the clone and check if corresponding original is hidden
-        const allDescendants = clone.querySelectorAll('*')
-        Array.from(allDescendants).forEach(cloneDesc => {
-          const selector = getUniqueSelector(cloneDesc, clone)
-          const originalDesc = el.querySelector(selector)
-          if (originalDesc && originalDesc.offsetParent === null) {
-            cloneDesc.remove()
-          }
+      // Each block is a whole paragraph or more, so it's split into sentences to be read and skipped one at a time
+      visibleTextSpans = []
+      visibleTextContent = []
+      visibleTextRanges = []
+      blocks.forEach(block => {
+        splitIntoSentences(block).forEach(({ text, range }) => {
+          visibleTextSpans.push(block)
+          visibleTextContent.push(text)
+          visibleTextRanges.push(range)
         })
-
-        return clone.textContent.replace(/\n/g, '')
       })
     }
   }
@@ -248,9 +288,18 @@
   function updateClickableSpans() {
     if (!visibleTextSpans || !visibleTextSpans.length) return
     if (isPlaying) {
-      visibleTextSpans.forEach(s => s.classList.add(CLASS_CLICKABLE))
+      visibleTextSpans.forEach((s, i) => {
+        s.classList.add(CLASS_CLICKABLE)
+        // its sentences get the hover instead of the whole element
+        if (visibleTextRanges[i] && canHighlightRanges) {
+          s.classList.add(CLASS_SENTENCES)
+        }
+      })
     } else {
-      visibleTextSpans.forEach(s => s.classList.remove(CLASS_CLICKABLE))
+      visibleTextSpans.forEach(s =>
+        s.classList.remove(CLASS_CLICKABLE, CLASS_SENTENCES)
+      )
+      clearHover()
     }
   }
 
@@ -266,12 +315,39 @@
     const el = visibleTextSpans[index]
     if (!el) return
     try {
+      // a sentence is centred itself, as its paragraph can be taller than the screen
+      const rect = visibleTextRanges[index]?.getBoundingClientRect()
+      if (rect && rect.height) {
+        window.scrollBy({
+          top: rect.top + rect.height / 2 - window.innerHeight / 2,
+          behavior: 'smooth',
+        })
+        return
+      }
       el.scrollIntoView({
         behavior: 'smooth',
         block: 'center',
         inline: 'nearest',
       })
     } catch (e) {}
+  }
+
+  // Highlights just the sentence where the browser can, otherwise the whole element it's in
+  function highlightItem(index) {
+    const range = visibleTextRanges[index]
+    if (range && canHighlightRanges) {
+      const highlight = new Highlight(range)
+      // above the hover, which is set after it
+      highlight.priority = 1
+      CSS.highlights.set(HIGHLIGHT_NAME, highlight)
+    } else {
+      visibleTextSpans[index]?.classList.add(CLASS_HIGHLIGHT)
+    }
+  }
+
+  function clearHighlight() {
+    if (canHighlightRanges) CSS.highlights.delete(HIGHLIGHT_NAME)
+    visibleTextSpans.forEach(s => s.classList.remove(CLASS_HIGHLIGHT))
   }
 
   function updatePlayPauseLabel() {
@@ -407,7 +483,7 @@
 
     utter.onstart = () => {
       if (utter._session !== sessionId) return
-      visibleTextSpans[currentIndex]?.classList.add(CLASS_HIGHLIGHT)
+      highlightItem(currentIndex)
       ensureVisible(currentIndex)
       // immediate label update when speech starts
       updatePlayPauseLabel()
@@ -415,7 +491,7 @@
 
     utter.onend = () => {
       if (utter._session !== sessionId) return
-      visibleTextSpans[currentIndex]?.classList.remove(CLASS_HIGHLIGHT)
+      clearHighlight()
       currentUtterance = null
       if (isCancelled) {
         finishPlayback()
@@ -433,7 +509,7 @@
     utter.onerror = ev => {
       if (utter._session !== sessionId) return
       console.error('SpeechSynthesisUtterance error', ev)
-      visibleTextSpans[currentIndex]?.classList.remove(CLASS_HIGHLIGHT)
+      clearHighlight()
       currentUtterance = null
       currentIndex += 1
       if (!isCancelled) speakNext()
@@ -529,7 +605,7 @@
     try {
       synth.cancel()
     } catch (e) {}
-    visibleTextSpans.forEach(s => s.classList.remove(CLASS_HIGHLIGHT))
+    clearHighlight()
     setTimeout(() => {
       if (sessionId == null) return
       isCancelled = false
@@ -537,7 +613,7 @@
       if (isPlaying && !synth.paused) {
         speakNext()
       } else {
-        visibleTextSpans[currentIndex]?.classList.add(CLASS_HIGHLIGHT)
+        highlightItem(currentIndex)
         ensureVisible(currentIndex)
         updatePlayPauseLabel()
       }
@@ -553,7 +629,7 @@
     try {
       synth.cancel()
     } catch (e) {}
-    visibleTextSpans.forEach(s => s.classList.remove(CLASS_HIGHLIGHT))
+    clearHighlight()
     setTimeout(() => {
       if (sessionId == null) return
       isCancelled = false
@@ -561,7 +637,7 @@
       if (isPlaying && !synth.paused) {
         speakNext()
       } else {
-        visibleTextSpans[currentIndex]?.classList.add(CLASS_HIGHLIGHT)
+        highlightItem(currentIndex)
         ensureVisible(currentIndex)
         updatePlayPauseLabel()
       }
@@ -570,10 +646,10 @@
 
   function finishPlayback() {
     sessionId += 1
-    visibleTextSpans.forEach(s => {
-      s.classList.remove(CLASS_HIGHLIGHT)
-      s.classList.remove(CLASS_CLICKABLE)
-    })
+    clearHighlight()
+    visibleTextSpans.forEach(s =>
+      s.classList.remove(CLASS_CLICKABLE, CLASS_SENTENCES)
+    )
     isPlaying = false
     currentUtterance = null
     currentIndex = 0
@@ -590,9 +666,7 @@
     try {
       synth.cancel()
     } catch (e) {}
-    visibleTextSpans.forEach(s => {
-      s.classList.remove(CLASS_HIGHLIGHT)
-    })
+    clearHighlight()
     currentUtterance = null
     isPlaying = false
     currentIndex = 0
@@ -639,38 +713,68 @@
   if (nextBtn) nextBtn.addEventListener('click', nextSpan)
   if (stopBtn) stopBtn.addEventListener('click', stopSession)
 
-  // allow clicking any visibleTextSpans to jump/start speaking from there
   const articleEl = document.querySelector('main > article, main > section')
+
+  // The element of visibleTextSpans the target is in, if any
+  function itemElementAt(target) {
+    // for segmented texts this will work
+    let element = target && target.closest ? target.closest('span.text') : null
+    if (element) return element
+
+    // for non-segmented texts, check if it's one of the visibleTextSpans
+    // ignore reference links
+    if (!target || !target.closest || target.closest('.ref')) return null
+
+    element = target
+    // Walk up the tree to find if we're inside a visibleTextSpan
+    while (element && !visibleTextSpans.includes(element)) {
+      element = element.parentElement
+      if (element === articleEl) return null
+    }
+    return element
+  }
+
+  // A non segmented paragraph holds several sentences, so the one under the pointer is found from where it is
+  function indexAtPoint(element, ev) {
+    const first = visibleTextSpans.indexOf(element)
+    if (first < 0 || !visibleTextRanges[first]) return first
+
+    let node, offset
+    if (document.caretPositionFromPoint) {
+      const pos = document.caretPositionFromPoint(ev.clientX, ev.clientY)
+      node = pos?.offsetNode
+      offset = pos?.offset
+    } else if (document.caretRangeFromPoint) {
+      const range = document.caretRangeFromPoint(ev.clientX, ev.clientY)
+      node = range?.startContainer
+      offset = range?.startOffset
+    }
+    if (!node) return first
+
+    let last = first
+    for (let i = first; visibleTextSpans[i] === element; i++) {
+      last = i
+      try {
+        // the first sentence not wholly before the click, so a click between two picks the next
+        if (visibleTextRanges[i].comparePoint(node, offset) <= 0) return i
+      } catch (e) {
+        return first
+      }
+    }
+    return last
+  }
+
+  // allow clicking any visibleTextSpans to jump/start speaking from there
   if (articleEl)
     articleEl.addEventListener('click', ev => {
       // Only allow click-to-jump once playback has already started
       if (!isPlaying) return
 
-      // find the nearest element that was clicked
-      // for segmented texts this will work
-      let clickedElement =
-        ev.target && ev.target.closest ? ev.target.closest('span.text') : null
-
-      // for non-segmented texts, check if it's one of the visibleTextSpans
-      if (!clickedElement) {
-        // ignore reference link clicks
-        if (ev.target.closest('.ref')) return
-
-        clickedElement = ev.target
-        // Walk up the tree to find if we're inside a visibleTextSpan
-        while (clickedElement && !visibleTextSpans.includes(clickedElement)) {
-          clickedElement = clickedElement.parentElement
-          if (clickedElement === articleEl) {
-            clickedElement = null
-            break
-          }
-        }
-      }
-
+      const clickedElement = itemElementAt(ev.target)
       if (!clickedElement) return
 
       computeVisibleText()
-      const idx = visibleTextSpans.indexOf(clickedElement)
+      const idx = indexAtPoint(clickedElement, ev)
       if (idx < 0) return
 
       // cancel current session/utterances and start from clicked index
@@ -679,7 +783,7 @@
       try {
         synth.cancel()
       } catch (e) {}
-      visibleTextSpans.forEach(s => s.classList.remove(CLASS_HIGHLIGHT))
+      clearHighlight()
 
       setTimeout(() => {
         isCancelled = false
@@ -687,6 +791,29 @@
         startSessionFrom(idx)
       }, TIMEOUT_MS)
     })
+
+  // Hovering a non segmented paragraph shows which sentence a click would jump to, as segmented texts do with
+  // .tts-clickable:hover. The hover is drawn on the sentence's Range, as it has no element of its own
+  let hoverFrame = null
+  function clearHover() {
+    if (canHighlightRanges) CSS.highlights.delete(HOVER_HIGHLIGHT_NAME)
+  }
+  if (articleEl && canHighlightRanges) {
+    articleEl.addEventListener('mousemove', ev => {
+      if (hoverFrame) return
+      hoverFrame = requestAnimationFrame(() => {
+        hoverFrame = null
+        const element = isPlaying ? itemElementAt(ev.target) : null
+        const range = element && visibleTextRanges[indexAtPoint(element, ev)]
+        if (range) {
+          CSS.highlights.set(HOVER_HIGHLIGHT_NAME, new Highlight(range))
+        } else {
+          clearHover()
+        }
+      })
+    })
+    articleEl.addEventListener('mouseleave', clearHover)
+  }
 
   if (pitch) {
     pitchValue.textContent = pitch.valueAsNumber.toFixed(1)

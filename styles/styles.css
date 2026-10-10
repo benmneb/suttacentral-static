@@ -1484,12 +1484,24 @@ a {
   background-color: var(--tts-highlight-background-color);
 }
 
+/* The sentence being read in non segmented texts. Kept apart from .tts-highlight, its fallback,
+   as browsers that don't know ::highlight() would drop the whole rule */
+::highlight(tts-current) {
+  color: var(--tts-highlight-text-color);
+  background-color: var(--tts-highlight-background-color);
+}
+
 .tts-clickable {
   cursor: pointer;
 
-  &:hover {
+  /* An element split into sentences gets the hover on the sentence instead, from listen.js */
+  &:not(.tts-sentences):hover {
     background-color: var(--tts-hover-background-color);
   }
+}
+
+::highlight(tts-hover) {
+  background-color: var(--tts-hover-background-color);
 }
 
 .tts-controls {
