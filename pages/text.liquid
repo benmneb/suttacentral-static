@@ -362,6 +362,17 @@ eleventyComputed:
           <span id="{{ key }}" class="segment">
             <span class="reference" id="{{ ref }}">
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
+              {%- comment -%}
+                Every printed-edition reference too, hidden like the number, so a link like /mn2/en/sujato#bj10.20 has
+                somewhere to land - CSS reveals whichever is targeted. Not searchable, they'd only add noise like "pts" and "pli1"
+              {%- endcomment -%}
+              {%- assign ref_ids = entry._bilarasuttas_data.reference_text[key] | split: "," -%}
+              {%- for ref_id in ref_ids -%}
+                {%- assign id = ref_id | strip -%}
+                {%- if id != blank -%}
+                  <a class="ref" id="{{ id }}" href="#{{ id }}" title="{{ id | referenceEdition }}" data-pagefind-ignore>{{ id }}</a>
+                {%- endif -%}
+              {%- endfor %}
             </span>
             {% if text %}
             <!-- This is not a translation, its the root text, the class is so it's not `display: none` by default. -->
@@ -521,6 +532,17 @@ eleventyComputed:
           <span id="{{ key }}" class="segment">
             <span class="reference" id="{{ ref }}">
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
+              {%- comment -%}
+                Every printed-edition reference too, hidden like the number, so a link like /mn2/en/sujato#bj10.20 has
+                somewhere to land - CSS reveals whichever is targeted. Not searchable, they'd only add noise like "pts" and "pli1"
+              {%- endcomment -%}
+              {%- assign ref_ids = entry._bilarasuttas_data.reference_text[key] | split: "," -%}
+              {%- for ref_id in ref_ids -%}
+                {%- assign id = ref_id | strip -%}
+                {%- if id != blank -%}
+                  <a class="ref" id="{{ id }}" href="#{{ id }}" title="{{ id | referenceEdition }}" data-pagefind-ignore>{{ id }}</a>
+                {%- endif -%}
+              {%- endfor %}
             </span>
             {% if text %}
               <span class="translation" lang="{{ entry.lang }}"{% if text == entry.translated_title or text == entry.translated_name %} data-pagefind-weight="8"{% endif %}>

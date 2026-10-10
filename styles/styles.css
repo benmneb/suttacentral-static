@@ -379,6 +379,10 @@ body {
   }
 }
 
+/* The checkbox reveals the SuttaCentral number in segmented texts, and the
+   references legacy texts carry inline - not the reference anchors added to
+   segmented texts, which exist only to be linked to and are revealed by
+   :target alone */
 &:has(#segmenter:checked)
   .segment:not(
     header .segment,
@@ -389,8 +393,8 @@ body {
     h6 .segment
   )
   .reference
-  > a,
-&:has(#segmenter:checked) a.ref {
+  > a:not(.ref),
+&:has(#segmenter:checked) a.ref:not(.reference a) {
   display: initial;
 }
 
@@ -904,7 +908,8 @@ main {
   h3,
   h4,
   .segment,
-  .reference {
+  .reference,
+  a.ref {
     scroll-margin-top: 2.5rem;
   }
 
@@ -1094,8 +1099,14 @@ main {
       padding-left: 0;
     }
 
-    .reference:target a,
+    /* Only what was actually linked to: targeting the span is the SuttaCentral
+       number, targeting a ref anchor is that one reference. Without the
+       :not(.ref) the span's target would light up every reference on the segment */
+    .reference:target > a:not(.ref),
     a.ref:target {
+      /* A linked reference shows itself whatever the segments checkbox says, or
+         there would be nothing to scroll to and nothing to see on arriving */
+      display: initial;
       background-color: var(--primary-color);
       color: var(--background-color);
 

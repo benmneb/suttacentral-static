@@ -2,6 +2,7 @@ import htmlmin from 'html-minifier-terser'
 import { recordStat } from './tools/buildStats.js'
 import { minifyCss, minifyJs } from './tools/minifyAssets.js'
 import { parseUidNumbers } from './tools/rangeSuttas.js'
+import { referenceEditionName } from './tools/referenceEditions.js'
 
 const inputDir = 'pages'
 const textTemplate = `${inputDir}/text.liquid`
@@ -50,6 +51,11 @@ export default function (eleventyConfig) {
     const base = String(key).split('#')[0]
     const span = parseUidNumbers(base)
     return span && span.start !== span.end ? uid : base
+  })
+
+  // The printed edition a reference id is from, for its tooltip, ie bj10.20 -> "Buddhajayantītripiṭaka, 1957–1989"
+  eleventyConfig.addFilter('referenceEdition', function (id) {
+    return referenceEditionName(id) ?? id
   })
 
   eleventyConfig.addFilter('parseJSON', function (value) {
