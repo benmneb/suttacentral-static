@@ -1011,7 +1011,9 @@ main {
   }
 
   section,
-  article {
+  article,
+  /* Some documents close with a paragraph after their </article>, ie sn34.20-27:1.12 */
+  & > p:has(.segment) {
     overflow-wrap: break-word;
 
     [lang='pli'] {
@@ -1220,12 +1222,14 @@ main {
     }
     .endsection,
     .end,
-    .endsubsection {
+    .endsubsection,
+    &:is(.endsection, .end, .endsubsection) {
       font-style: italic;
       text-align: center;
       color: var(--text-color-secondary);
     }
-    .endsutta {
+    .endsutta,
+    &.endsutta {
       font-weight: bold;
       text-align: center;
       color: var(--text-color-secondary);
