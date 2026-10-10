@@ -1201,7 +1201,7 @@ main {
       font-style: italic;
       color: var(--text-color-secondary);
     }
-    .add:not(h1 .add):not(h2 .add):not(h3 .add) {
+    .add:not(:is(h1, h2, h3, h4, h5, h6), :is(h1, h2, h3, h4, h5, h6) .add) {
       color: var(--text-color-secondary);
     }
     .evam {
