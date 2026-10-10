@@ -1590,8 +1590,84 @@ form#search-form {
   }
 }
 
+main > search {
+  display: grid;
+  align-items: start;
+  margin: 1rem 0;
+
+  > * {
+    grid-area: 1 / 1;
+  }
+}
+
+details#search-filters {
+  > summary {
+    cursor: pointer;
+    width: fit-content;
+    margin-left: auto;
+    margin-bottom: 1rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--rounding);
+    color: var(--text-color-secondary);
+
+    &:hover,
+    &:active {
+      background-color: var(--details-summary-hover-background);
+    }
+  }
+
+  fieldset {
+    border: none;
+    margin: 0;
+    padding: 0.5rem 0;
+  }
+
+  legend {
+    padding: 0;
+    color: var(--text-color-secondary);
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+
+    li {
+      list-style-type: none;
+    }
+  }
+
+  ul ul {
+    padding-left: 1.5rem;
+  }
+
+  /* Each branch's children only show once it's checked */
+  input:not(:checked) ~ ul {
+    display: none;
+  }
+
+  /* Lists of authors and languages read down as many columns as fit */
+  ul.columns {
+    columns: 13rem;
+    column-gap: 1.5rem;
+
+    /* A long name wraps under itself, not under its checkbox */
+    li {
+      display: flex;
+      align-items: baseline;
+      gap: 0.25rem;
+      break-inside: avoid;
+      margin-bottom: 0.15rem;
+    }
+  }
+}
+
 p#search-count {
   color: var(--text-color-secondary);
+  /* In line with the summary's text, and clear of it (a margin, so it doesn't cover it for clicks) */
+  margin: 0 6rem 0 0;
+  padding: 0.25rem 0;
+  /* Above the details box it overlaps, so it can still be selected */
+  position: relative;
 }
 
 ul#search-results {

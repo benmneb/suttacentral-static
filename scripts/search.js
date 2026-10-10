@@ -2,7 +2,7 @@
  * Pagefind Search Integration
  *
  * Client-side full-text search using Pagefind static search index.
- * Handles search queries, result rendering, pagination, and browser
+ * Handles search queries, filters, result rendering, pagination, and browser
  * history management. Searches across all texts and displays results
  * with excerpts and metadata. Syncs URL structure with SuttaCentral.net.
  *
@@ -31,19 +31,61 @@
   const resultsContainer = document.getElementById('search-results')
   const showMoreBtn = document.getElementById('show-more')
   const scRedirectLink = document.getElementById('sc-redirect')
+  const filtersEl = document.getElementById('search-filters')
   const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
+  let latestSearch = 0
+
+  /*
+   * The deepest checked branches, as checking a child narrows its parent down to it.
+   * Anything checked under an unchecked (so hidden) branch doesn't count.
+   */
+  function checkedBranches(list) {
+    return [...list.children].flatMap(li => {
+      const box = li.querySelector(':scope > input')
+      if (!box.checked) return []
+      const children = li.querySelector(':scope > ul')
+      const deeper = children ? checkedBranches(children) : []
+      if (deeper.length) return deeper
+      // A group with no name of its own (ie Translators) means everyone in it
+      if (!box.name) {
+        return [...children.querySelectorAll('input')].map(child => child.value)
+      }
+      return [box.value]
+    })
+  }
+
+  // As per `data-pagefind-filter` in text.liquid, ie { in: { any: ['dn', 'mn'] }, lang: { any: ['en'] } }
+  function getFilters() {
+    const branches = id => checkedBranches(document.getElementById(id))
+    return Object.fromEntries(
+      Object.entries({
+        in: branches('search-filters-collection'),
+        author: branches('search-filters-author'),
+        lang: [...filtersEl.querySelectorAll('input[name="lang"]:checked')].map(
+          box => box.value
+        ),
+      })
+        .filter(([, values]) => values.length)
+        .map(([key, values]) => [key, { any: values }])
+    )
+  }
 
   async function performSearch(query) {
+    const searchId = ++latestSearch
     document.title = `${query} on SuttaCentral Express`
     countEl.hidden = false
     showMoreBtn.hidden = true
     countEl.innerHTML = `Searching for <b>${query}</b>…`
     resultsContainer.innerHTML = ''
 
-    const results = await pagefind.search(query)
+    const filters = getFilters()
+    const results = await pagefind.search(query, { filters })
+    // A newer search (ie from ticking another filter) has started since
+    if (searchId !== latestSearch) return
+
     const finalCountMsg = `${results.results.length} result${
       results.results.length !== 1 ? 's' : ''
-    } for <b>${query}</b>`
+    } for <b>${query}</b>${Object.keys(filters).length ? ' with filters' : ''}`
 
     if (results.results.length === 0) {
       resultsContainer.innerHTML = ''
@@ -65,6 +107,7 @@
 
       const dataPromises = batch.map(result => result.data())
       const allData = await Promise.all(dataPromises)
+      if (searchId !== latestSearch) return
 
       countEl.innerHTML = finalCountMsg
 
@@ -111,6 +154,7 @@
 
     // Load initial batch
     await showMore()
+    if (searchId !== latestSearch) return
 
     showMoreBtn.onclick = showMore
 
@@ -139,6 +183,13 @@
     history.pushState({}, '', url)
 
     await performSearch(query)
+  })
+
+  // Re-run the search on each filter change, there's nothing to filter without a query.
+  // Filters stay out of the URL, to keep it in sync with SuttaCentral.net
+  filtersEl.addEventListener('change', async () => {
+    const query = input.value.trim()
+    if (query) await performSearch(query)
   })
 
   // Handle back/forward navigation

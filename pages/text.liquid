@@ -23,12 +23,16 @@ eleventyComputed:
     {% for part in parts %}
       {% assign path = path | append: '/' | append: part %}
       <li>
+        {% comment %}
+          Every ancestor is a search filter (`in`), so filtering on ie `dn` or `sutta` both find dn1.
+          Not the text itself, unless it's a branch too, ie the pātimokkhas
+        {% endcomment %}
         {% if forloop.last %}
-          <a href="/{{ part }}" data-pagefind-body data-pagefind-weight="10">{{ part }}</a>
+          <a href="/{{ part }}" data-pagefind-body data-pagefind-weight="10"{% if entry.node_type != 'leaf' %} data-pagefind-filter="in"{% endif %}>{{ part }}</a>
         {% elsif forloop.index == second_last %}
-          <a href="/{{ part }}">{{ part }}</a>
+          <a href="/{{ part }}" data-pagefind-filter="in">{{ part }}</a>
         {% else %}
-          <a href="/pitaka{{ path }}">{{ part }}</a>
+          <a href="/pitaka{{ path }}" data-pagefind-filter="in">{{ part }}</a>
         {% endif %}
       </li>
     {% endfor %}
@@ -251,11 +255,13 @@ eleventyComputed:
   data-pagefind-body
   data-acronym="{{ entry.acronym }}"
   data-author="{{ entry.author }}"
+  data-authoruid="{{ entry.author_uid }}"
   data-lang="{{ entry.lang }}"
   data-title="{{ entry.translated_title | default: entry.translated_name }}"
   data-translatorstitle="{{ entry._suttas_data.translation.title | default: '' }}"
   data-originaltitle="{{ entry.original_title }}"
   data-pagefind-meta="acronym[data-acronym], author[data-author], lang[data-lang], title[data-title], translatorsTitle[data-translatorstitle], originalTitle[data-originaltitle]"
+  data-pagefind-filter="author[data-authoruid], lang[data-lang]"
 >
   {% if entry.is_root and entry._bilarasuttas_data.size > 0 %}
     {% assign comments = "" %}
