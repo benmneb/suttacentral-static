@@ -41,6 +41,18 @@ function publicationInfoUrl(suttaUid, lang, translatorUid) {
   return `https://suttacentral.net/api/publication_info/${suttaUid}/${lang}/${translatorUid}`
 }
 
+// The API returns parallels in no particular order (ie sn1.20#20.1 before sn1.20#2.1), so they're sorted
+// as numbers: the whole sutta, then #2.1, #20.1, #21.1...
+const parallelsCollator = new Intl.Collator('en', { numeric: true })
+function sortParallels(parallels) {
+  if (!parallels || typeof parallels !== 'object') return parallels
+  return Object.fromEntries(
+    Object.entries(parallels).sort(([a], [b]) =>
+      parallelsCollator.compare(a, b)
+    )
+  )
+}
+
 /**
  * Fetches JSON data with caching and cache timestamp tracking.
  *
@@ -151,7 +163,7 @@ async function fetchDataTree(uid, depth = 0) {
 
     let parallelsData = null
     try {
-      parallelsData = await fetchJson(parallelsUrl(node.uid))
+      parallelsData = sortParallels(await fetchJson(parallelsUrl(node.uid)))
     } catch (e) {
       fetchErrors++
       spinner.fail(`Fetch error for /parallels/${node.uid}`).start()
