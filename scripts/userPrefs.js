@@ -130,7 +130,8 @@
 
       if (el instanceof HTMLSelectElement) {
         const opt = el.options[el.selectedIndex]
-        prefs[id] = opt.dataset.name
+        // no option when the device has no voices, so the saved one is kept for when it does
+        if (opt) prefs[id] = opt.dataset.name
         return
       }
 
