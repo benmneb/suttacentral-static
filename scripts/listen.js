@@ -97,18 +97,87 @@
     })
   } catch (e) {}
 
+  // A block can be a whole <ol> or a <div> wrapping the lot, so the units inside it have to be told apart - two list items are not one sentence
+  const BLOCK_TAGS = new Set([
+    'ADDRESS',
+    'ARTICLE',
+    'ASIDE',
+    'BLOCKQUOTE',
+    'CAPTION',
+    'DD',
+    'DIV',
+    'DL',
+    'DT',
+    'FIELDSET',
+    'FIGCAPTION',
+    'FIGURE',
+    'FOOTER',
+    'FORM',
+    'H1',
+    'H2',
+    'H3',
+    'H4',
+    'H5',
+    'H6',
+    'HEADER',
+    'LI',
+    'MAIN',
+    'NAV',
+    'OL',
+    'P',
+    'PRE',
+    'SECTION',
+    'TABLE',
+    'TBODY',
+    'TD',
+    'TFOOT',
+    'TH',
+    'THEAD',
+    'TR',
+    'UL',
+  ])
+
+  /** The nearest block level element a text node sits in, within the block */
+  function blockAncestor(element, root) {
+    let el = element
+    while (el && el !== root) {
+      if (BLOCK_TAGS.has(el.tagName)) return el
+      el = el.parentElement
+    }
+    return root
+  }
+
   // The sentences of a block of non segmented text, each with the Range it covers so it can be highlighted.
   // Sentences run across inline elements (ie a PTS ref mid sentence), so it's done on the text nodes, not elements
   function splitIntoSentences(block) {
     const nodes = []
     let text = ''
-    const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT)
+    let lastOwner = null
+    const walker = document.createTreeWalker(
+      block,
+      NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT
+    )
     while (walker.nextNode()) {
       const node = walker.currentNode
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        // A line break ends a line of verse, which rarely has punctuation of its own to break on
+        if (node.tagName === 'BR' && text && !text.endsWith('\n')) {
+          text += '\n'
+        }
+        continue
+      }
       const parent = node.parentElement
       // skip reference links and anything hidden
       if (!parent || parent.closest('.ref') || parent.offsetParent === null)
         continue
+      // A newline is a mandatory sentence break, so each list item, cell or nested block ends up its own unit
+      // instead of running into the next - they often have no punctuation to break on. It belongs to no text
+      // node, and trimming the segment takes it off again
+      const owner = blockAncestor(parent, block)
+      if (lastOwner && owner !== lastOwner && !text.endsWith('\n')) {
+        text += '\n'
+      }
+      lastOwner = owner
       nodes.push({ node, start: text.length })
       text += node.data
     }
@@ -122,9 +191,21 @@
       return found ? [found.node, offset - found.start] : null
     }
 
-    const pieces = sentenceSegmenter
-      ? Array.from(sentenceSegmenter.segment(text), s => [s.index, s.segment])
-      : [[0, text]]
+    let pieces
+    if (sentenceSegmenter) {
+      pieces = Array.from(sentenceSegmenter.segment(text), s => [
+        s.index,
+        s.segment,
+      ])
+    } else {
+      // Without a segmenter a block is read whole, as it used to be, but the blocks inside it are still worth keeping apart
+      pieces = []
+      let at = 0
+      for (const part of text.split('\n')) {
+        pieces.push([at, part])
+        at += part.length + 1
+      }
+    }
 
     return pieces.flatMap(([index, segment]) => {
       const trimmed = segment.trim()
@@ -844,6 +925,9 @@
         paused: synth.paused,
         speaking: synth.speaking,
       }
+    },
+    items() {
+      return visibleTextContent.slice()
     },
     cancel() {
       sessionId += 1
