@@ -1464,8 +1464,18 @@ a {
     display: none;
   }
 
-  noscript {
+  noscript,
+  #no-voices {
     padding: 0.4rem;
+  }
+
+  #no-voices {
+    max-width: 30ch;
+  }
+
+  /* The dropdown menus display every li, so hidden needs saying again */
+  #no-voices[hidden] {
+    display: none;
   }
 }
 

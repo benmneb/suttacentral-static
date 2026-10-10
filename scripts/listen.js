@@ -49,6 +49,7 @@
   const menuButton = document.getElementById('listen-menu-button')
   const rootMenuEl = document.getElementById('listen-menu')
   const voiceSelect = document.getElementById('voice-select')
+  const noVoicesEl = document.getElementById('no-voices')
   const pitch = document.getElementById('pitch')
   const pitchValue = document.getElementById('pitch-value')
   const rate = document.getElementById('rate')
@@ -290,7 +291,7 @@
 
   function populateVoiceList() {
     voices =
-      typeof synth.getVoices === 'function' ? synth.getVoices().slice() : []
+      typeof synth?.getVoices === 'function' ? synth.getVoices().slice() : []
 
     // Group voices by language
     const byLang = new Map()
@@ -374,6 +375,13 @@
       selIndex,
       Math.max(0, voiceSelect.options.length - 1)
     )
+
+    // No voices means the device has no text-to-speech installed, not that anything here is broken.
+    // Checked every time the list fills, as Chrome hands back none at first and the rest a moment later
+    const hasVoices = voices.length > 0
+    if (noVoicesEl) noVoicesEl.hidden = hasVoices
+    voiceSelect.disabled = !hasVoices
+    playPauseBtn.disabled = !hasVoices
   }
   populateVoiceList()
   if (typeof synth !== 'undefined' && synth.onvoiceschanged !== undefined) {
