@@ -80,6 +80,13 @@
     return
   }
 
+  // no speech API at all (e.g. the Android app's WebView), so nothing here can work
+  if (!synth) {
+    const item = menuButton?.closest('li')
+    if (item) item.style.display = 'none'
+    return
+  }
+
   // enable all the controls (they are disabled by default to show fallback text if user has JS turned off)
   rootMenuEl.style.maxWidth = '100vw'
   rootMenuEl.querySelectorAll('li[role="menuitem"]').forEach(el => {

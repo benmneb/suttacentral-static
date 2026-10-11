@@ -8,7 +8,7 @@
 
 - Includes all sutta, vinaya and abhidhamma texts in their root languages, all English translations, footnotes, parallels, main reference links and flexible text view settings
 - Mirrors the URL structure of suttacentral.net. Just switch the `.net` for `.express`, or use the [browser extension](https://git.sr.ht/~benmneb/suttacentral-redirect) from the [Chrome](https://chromewebstore.google.com/detail/suttacentral-redirect/noaddajdfegpjfgpmbhcbahofgkceaan) or [Firefox](https://addons.mozilla.org/firefox/addon/suttacentral-redirect/) store
-- Desktop apps and site archives for offline use are available for download in [Github](https://github.com/benmneb/suttacentral-static/releases/latest) and [Codeberg](https://codeberg.org/benmneb/suttacentral-static/releases/latest) releases
+- Works offline with full functionality via desktop and Android apps, and site archives, all available for download in [Github](https://github.com/benmneb/suttacentral-static/releases/latest) and [Codeberg](https://codeberg.org/benmneb/suttacentral-static/releases/latest) releases
 
 ### Fast
 

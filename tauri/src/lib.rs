@@ -304,20 +304,28 @@ fn is_internal_url(url: &tauri::Url) -> bool {
         || s.starts_with("http://localhost")
         || s.starts_with("tauri://localhost")
         || url.scheme() == "tauri"
+        // Android and Windows serve the app from http://tauri.localhost
+        || url.host_str() == Some("tauri.localhost")
 }
 
+#[cfg(desktop)]
 fn to_web_url(url: &str) -> String {
     url.replacen("http://localhost:3000", "https://suttacentral.express", 1)
         .replacen("http://localhost", "https://suttacentral.express", 1)
+        .replacen("http://tauri.localhost", "https://suttacentral.express", 1)
         .replacen("tauri://localhost", "https://suttacentral.express", 1)
 }
 
-fn make_nav_handler() -> impl Fn(&tauri::Url) -> bool + Send + 'static {
-    |url| {
+fn make_nav_handler<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> impl Fn(&tauri::Url) -> bool + Send + 'static {
+    move |url| {
         if is_internal_url(url) {
             true
         } else if matches!(url.scheme(), "http" | "https" | "mailto") {
-            let _ = tauri_plugin_opener::open_url(url.to_string(), None::<String>);
+            // Via the plugin rather than the free open_url fn, which can't open links on Android
+            use tauri_plugin_opener::OpenerExt;
+            let _ = app.opener().open_url(url.to_string(), None::<String>);
             false
         } else {
             true
@@ -333,12 +341,18 @@ fn build_window<R: tauri::Runtime, M: Manager<R>>(
 ) -> tauri::Result<WebviewWindow<R>> {
     #[allow(unused_mut)]
     let mut builder = WebviewWindowBuilder::new(manager, label, url)
-        .title("SuttaCentral Express")
-        .inner_size(800.0, 600.0)
-        .resizable(true)
-        .fullscreen(false)
         .initialization_script(include_str!("init_script.js"))
-        .on_navigation(make_nav_handler());
+        .on_navigation(make_nav_handler(manager.app_handle().clone()));
+
+    // Mobile windows are always fullscreen, so these only exist on desktop
+    #[cfg(desktop)]
+    {
+        builder = builder
+            .title("SuttaCentral Express")
+            .inner_size(800.0, 600.0)
+            .resizable(true)
+            .fullscreen(false);
+    }
 
     #[cfg(target_os = "macos")]
     {
@@ -838,6 +852,18 @@ fn apply_macos_config<R: tauri::Runtime>(window: &WebviewWindow<R>, initial_zoom
     });
 }
 
+/// Mobile has a single window, so the link opens in place instead.
+#[cfg(mobile)]
+#[tauri::command]
+fn open_in_new_tab(app: tauri::AppHandle, url: String) -> Result<(), String> {
+    let url = url.parse().map_err(|e| format!("{e}"))?;
+    let window = app
+        .get_webview_window("main")
+        .ok_or("main window not found")?;
+    window.navigate(url).map_err(|e| e.to_string())
+}
+
+#[cfg(desktop)]
 #[tauri::command]
 fn open_in_new_tab(app: tauri::AppHandle, url: String) -> Result<(), String> {
     // Inherit zoom from the focused tab (macOS only). with_webview dispatches to the
@@ -880,6 +906,7 @@ fn save_session_on_nav(app: tauri::AppHandle) {
 /// sync with the HTML page title. NSWindow.tab.title sets the tab strip label
 /// independently of NSWindow.title (the window title bar always shows the app name).
 #[tauri::command]
+#[cfg_attr(not(target_os = "macos"), allow(unused_variables))]
 fn set_tab_title(window: tauri::WebviewWindow, title: String) {
     #[cfg(target_os = "macos")]
     {
@@ -902,9 +929,12 @@ fn store_context_link(url: String) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default().plugin(tauri_plugin_opener::init());
+
+    // Mobile has no clipboard plugin, window state or menu bar
+    #[cfg(desktop)]
+    let builder = builder
         .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(tauri_plugin_opener::init())
         // Only track window state for "main". Tab windows share the tab group's
         // frame — saving/restoring their individual state (especially fullscreen:false)
         // causes them to fight the tab group and exit fullscreen on every new tab open.
@@ -913,12 +943,6 @@ pub fn run() {
                 .with_filter(|label| label == "main")
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![
-            open_in_new_tab,
-            store_context_link,
-            save_session_on_nav,
-            set_tab_title
-        ])
         .on_menu_event(|app, event| {
             #[cfg(target_os = "macos")]
             if event.id() == "find" {
@@ -1115,7 +1139,15 @@ pub fn run() {
                     }
                 }
             }
-        })
+        });
+
+    builder
+        .invoke_handler(tauri::generate_handler![
+            open_in_new_tab,
+            store_context_link,
+            save_session_on_nav,
+            set_tab_title
+        ])
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -1125,6 +1157,7 @@ pub fn run() {
                 )?;
             }
 
+            #[cfg(desktop)]
             {
                 use tauri::menu::{
                     Menu, MenuItemBuilder, MenuItemKind, PredefinedMenuItem, SubmenuBuilder,
@@ -1279,6 +1312,9 @@ pub fn run() {
 
             let zoom = load_zoom(app.handle());
             let saved = load_session(app.handle());
+            // Mobile has a single window, so only the first tab is restored there
+            #[cfg(mobile)]
+            let saved: Vec<String> = saved.into_iter().take(1).collect();
             if saved.is_empty() {
                 build_window(app, "main", WebviewUrl::default(), zoom)?;
             } else {

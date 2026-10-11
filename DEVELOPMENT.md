@@ -6,7 +6,7 @@
 1. Install packages: `pnpm i` (all commands should be run from the root directory)
 1. Build site: `pnpm dev:fresh` and practice patience while it hits over 127,000 SuttaCentral API's to get the data for the whole site, then builds it all (after fetching once it caches the data indefinitely)
 1. You now have a fully functioning local version of the site that works offline, with the latest data
-1. Run `pnpm tauri:build` to build this into a native desktop app for your platform (macOS, Windows, Linux)
+1. Run `pnpm tauri:build` to build this into a native desktop app for your platform (macOS, Windows, Linux). Android apps are only built in CI (see [App builds](#app-builds))
 
 ## Contributing
 
@@ -20,7 +20,7 @@ Following are two options to do that. The first builds locally on your machine, 
 
 If you have set the additional environment variables, it can also upload a gzipped archive of the site build to GitHub and/or Codeberg releases based on versioned git tags
 
-When using Github Actions, these releases also automatically include native desktop apps for macOS (ARM64 + Intel), Windows, and Linux, for easier use of the offline archive
+When using Github Actions, these releases also automatically include native apps for macOS (ARM64 + Intel), Windows, Linux, and Android, for easier use of the offline archive
 
 1. After it's running locally (steps above), edit the `_siteMetaData.js` file appropriately
 1. [Create a project](https://vercel.com/new) to host it on Vercel (and add any custom domains)
@@ -103,6 +103,9 @@ Configure these in the repo settings (Settings → Secrets and variables → Act
 - `CODEBERG_REPO` - Format: "owner/repo" (optional)
 - `PGP_PRIVATE_KEY` - Private key to sign app builds (export with `gpg --armor --export-secret-keys YOUR_KEY_ID`)
 - `PGP_PASSPHRASE` - Passphrase for the private key
+- `ANDROID_KEYSTORE_BASE64` - Keystore to sign Android apps (create with `keytool -genkeypair`, then `base64 -i release.jks`)
+- `ANDROID_KEYSTORE_PASSWORD` - Password for the keystore
+- `ANDROID_KEY_ALIAS` - Alias of the key in the keystore
 
 Note: `GITHUB_TOKEN` is automatically provided by GitHub Actions. Codeberg is optional - workflows will skip it if not configured.
 
@@ -121,9 +124,9 @@ Note: `GITHUB_TOKEN` is automatically provided by GitHub Actions. Codeberg is op
      - Creates archive named: `scx_archive-{version}.tar.gz`
      - Deploys to Vercel preview
      - Creates **draft** GitHub release with preview URL (initially shows "builds in progress" warning)
-   - Runs `build-tauri` jobs in parallel (macOS ARM64, macOS Intel, Windows, Linux):
-     - Builds desktop apps for each platform
-     - Attaches `.dmg`, `.exe`, `.AppImage` to the draft release
+   - Runs `build-tauri` jobs in parallel (macOS ARM64, macOS Intel, Windows, Linux, Android ARM64, Android ARMv7):
+     - Builds apps for each platform
+     - Attaches `.dmg`, `.exe`, `.AppImage`, `.apk` to the draft release
    - Runs `finalize-release` job when all builds complete to update release body to show "✅ All platforms ready"
    - **Next step**: Review preview URL and publish when release shows all builds complete
    - If tag is NOT on main → skips draft release creation
@@ -136,9 +139,9 @@ Note: `GITHUB_TOKEN` is automatically provided by GitHub Actions. Codeberg is op
    - Creates archive: `scx_archive-{version}-content-refresh-{date}.tar.gz`
    - Deploys to Vercel preview
    - Creates **pre-release** GitHub release with preview URL (initially shows "builds in progress" warning)
-   - Runs build-tauri jobs in parallel (macOS ARM64, macOS Intel, Windows, Linux):
-     - Builds desktop apps for each platform
-     - Attaches `.dmg`, `.exe`, `.AppImage` to the pre-release
+   - Runs build-tauri jobs in parallel (macOS ARM64, macOS Intel, Windows, Linux, Android ARM64, Android ARMv7):
+     - Builds apps for each platform
+     - Attaches `.dmg`, `.exe`, `.AppImage`, `.apk` to the pre-release
    - When all builds complete it updates release body to show "✅ All platforms ready"
    - **Next step**: Review preview URL and uncheck "Set as a pre-release" when release shows all builds complete
      - Publishing will automatically deploy to Vercel production and upload all assets to Codeberg releases
@@ -190,18 +193,22 @@ Then, when you publish the draft release or pre-release in GitHub UI, it automat
 - Expects semantic versioning
 - Tag must be on main branch to trigger workflow
 
-#### Desktop app builds
+#### App builds
 
-Releases include desktop apps built with [Tauri](https://tauri.app/) for:
+Releases include apps built with [Tauri](https://tauri.app/) for:
 
 - **macOS ARM64** (Apple Silicon M1+) - `.dmg`
 - **macOS Intel** (x86_64) - `.dmg`
 - **Windows** - `.exe`
 - **Linux** - `.AppImage`
+- **Android ARM64** (most devices) - `.apk`
+- **Android ARMv7** (older 32-bit devices) - `.apk`
 
-Desktop builds run in parallel with the main release workflow. The release is created immediately with a preview URL and "builds in progress" warning, then updated to "✅ All platforms ready" when all builds complete. They use [tauri-action](https://github.com/tauri-apps/tauri-action) with Rust caching for faster subsequent builds. Desktop app builds are only triggered for releases (tag push + content-refresh), not for PR previews
+App builds run in parallel with the main release workflow. The release is created immediately with a preview URL and "builds in progress" warning, then updated to "✅ All platforms ready" when all builds complete. Desktop apps use [tauri-action](https://github.com/tauri-apps/tauri-action), and all builds use Rust caching for faster subsequent builds. App builds are only triggered for releases (tag push + content-refresh), not for PR previews
 
-**Note for Linux users**: Text-to-speech may not be available in the desktop app on Linux due to WebKitGTK limitations on the Web Speech API. You can always use the website in a browser for the "Listen" feature
+CI generates the Android project (`tauri/gen/android`) on each build with `tauri android init`, copies in the app icons and `tauri/android/MainActivity.kt`, builds it with the Tauri CLI, then signs the APK. Generating it in CI means no Android SDK is needed locally, and using the CLI rather than tauri-action leaves room for the steps between. Each ABI is a separate APK as the whole site is embedded per ABI, so a universal APK would be several times larger. The `versionCode` is the workflow run number, so every release installs over the previous one as an update
+
+**Note on "Listen"**: The Android app's webview doesn't support the Web Speech API, so the "Listen" button is hidden there (as in any browser without it). The Linux app's WebKitGTK may have no voices available, in which case Listen shows its "No voices found" message. You can always use the website in a browser for the "Listen" feature
 
 #### Handling partial builds and build failures
 
@@ -241,7 +248,9 @@ If a build fails, can try again to add it to the existing release:
 
 #### Release signing and verification
 
-These builds are not code-signed to avoid $200-500 USD/year in certificate costs (Apple Developer $99/year + Windows certificates $100-400/year). The apps are safe and built from public source code, but your OS will require manual approval on first launch
+These builds are not code-signed to avoid $200-500 USD/year in certificate costs. The apps are safe and built from public source code, but your OS may require manual approval on first launch
+
+The exception is the Android APKs, which are signed in CI with this project's own key so new versions install over old ones as updates.
 
 **macOS:**
 
@@ -262,7 +271,13 @@ These builds are not code-signed to avoid $200-500 USD/year in certificate costs
 
 - No security warnings - just download and run.
 
-**All releases include PGP-signed SHA256 checksums for verification of the desktop apps:**
+**Android:**
+
+- Download the `android_arm64` APK, or `android_armv7` for older 32-bit devices
+- Open it, and allow your browser or file manager to _"Install unknown apps"_ when asked
+- If Play Protect warns about an unknown developer, tap **"More details"** then **"Install anyway"**
+
+**All releases include PGP-signed SHA256 checksums for verification of the apps:**
 
 - `SHA256SUMS.txt` - checksums for all artifacts
 - `SHA256SUMS.txt.asc` - PGP signature
@@ -283,4 +298,10 @@ Verify signature
 
 ```bash
 gpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt
+```
+
+**Android APKs can also be verified on-device** (with any app verifier app) against the signing certificate's SHA-256 fingerprint. CI refuses to publish an APK that doesn't match it (`ANDROID_CERT_SHA256` in the workflow):
+
+```text
+4A:4C:B7:86:C3:4C:CE:76:7D:C6:B8:D1:7B:BC:3F:F1:91:31:30:D2:59:16:E6:B8:61:AD:DF:C8:AB:9F:C0:AB
 ```

@@ -21,3 +21,7 @@ build.log
 
 # Environment
 .env
+
+# Android signing key
+*.jks
+*.keystore
