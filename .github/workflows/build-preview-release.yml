@@ -72,6 +72,7 @@ jobs:
       assets_summary: ${{ steps.stats.outputs.assets_summary }}
       search_pages: ${{ steps.stats.outputs.search_pages }}
       search_words: ${{ steps.stats.outputs.search_words }}
+      checks_passed: ${{ steps.checks.outcome == 'success' }}
 
     steps:
       - name: Checkout repository
@@ -110,6 +111,13 @@ jobs:
           START=$(date +%s)
           pnpm predeploy 2>&1 | tee build.log
           echo "seconds=$(( $(date +%s) - START ))" >> $GITHUB_OUTPUT
+
+      # Whether the fetched data built the site it should. A failure doesn't stop the release,
+      # it just leaves it for review by hand instead of deploying itself
+      - name: Check build
+        id: checks
+        continue-on-error: true
+        run: pnpm test
 
       - name: Collect build stats
         id: stats
@@ -556,6 +564,12 @@ jobs:
         with:
           script: |
             const signed = '${{ needs.sign-release.outputs.signed }}' === 'true';
+            const checksPassed = '${{ needs.release-draft.outputs.checks_passed }}' === 'true';
+            const autoDeploy = checksPassed && '${{ vars.AUTO_DEPLOY }}' !== 'false';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const checksLine = checksPassed
+              ? `**Build checks:** ✅ [Passed](${runUrl})`
+              : `**Build checks:** ❌ [Failed](${runUrl}) - see the "Check build" step, and review the preview before publishing`;
             const fetchFailures = '${{ needs.release-draft.outputs.fetch_failures }}';
             const fetchFailuresLine = fetchFailures && fetchFailures !== 'n/a' ? `\n  - ${fetchFailures}` : '';
             const tagMessage = `${{ needs.release-draft.outputs.tag_message }}`;
@@ -692,24 +706,41 @@ jobs:
             ---
 
             ${platformSection}
+            ${checksLine}
+
             **Preview Deployment:** ${{ needs.release-draft.outputs.preview_url }}
 
-            **Next Steps:**
+            ${autoDeploy ? `**Auto-deploy:** it passed the build checks, so it's published and deploying to production - see the "Auto-deploy" job in the [run](${runUrl}) for how that went` : `**Next Steps:**
             1. Review the preview deployment above
             2. If satisfied, edit this release body and click "Publish release" to deploy to production
             3. Publishing will automatically:
                - Deploy the exact same build to Vercel production
-               - Upload assets to Codeberg releases`;
+               - Upload assets to Codeberg releases`}`;
 
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
               release_id: ${{ needs.release-draft.outputs.release_id }},
               tag_name: '${{ needs.release-draft.outputs.tag }}',
-              body: body
+              body: body,
+              // Published by GITHUB_TOKEN, which doesn't trigger deploy-published-release.yml, so `auto-deploy` deploys it
+              ...(autoDeploy && { draft: false })
             });
 
             console.log('✓ Release body updated');
+
+  auto-deploy:
+    name: Auto-deploy Release
+    needs: [release-draft, finalize-release]
+    if: >
+      always() &&
+      needs.finalize-release.result == 'success' &&
+      needs.release-draft.outputs.checks_passed == 'true' &&
+      vars.AUTO_DEPLOY != 'false'
+    uses: ./.github/workflows/deploy-release.yml
+    with:
+      release_id: '${{ needs.release-draft.outputs.release_id }}'
+    secrets: inherit
 
   pr-preview:
     name: Pull Request Preview
@@ -764,6 +795,9 @@ jobs:
               body: '## Preview Deployment\n\n🚀 Preview is ready: ${{ steps.vercel_preview.outputs.preview_url }}'
             })
 
+      - name: Check build
+        run: pnpm test
+
   content-refresh:
     name: Content Refresh Build
     runs-on: ubuntu-latest
@@ -787,6 +821,7 @@ jobs:
       assets_summary: ${{ steps.stats.outputs.assets_summary }}
       search_pages: ${{ steps.stats.outputs.search_pages }}
       search_words: ${{ steps.stats.outputs.search_words }}
+      checks_passed: ${{ steps.checks.outcome == 'success' }}
       trigger: ${{ github.event_name == 'schedule' && 'Monthly scheduled build' || 'Manual trigger' }}
 
     steps:
@@ -814,6 +849,13 @@ jobs:
           START=$(date +%s)
           pnpm predeploy 2>&1 | tee build.log
           echo "seconds=$(( $(date +%s) - START ))" >> $GITHUB_OUTPUT
+
+      # Whether the fetched data built the site it should. A failure doesn't stop the release,
+      # it just leaves it for review by hand instead of deploying itself
+      - name: Check build
+        id: checks
+        continue-on-error: true
+        run: pnpm test
 
       - name: Collect build stats
         id: stats
@@ -1285,6 +1327,12 @@ jobs:
         with:
           script: |
             const signed = '${{ needs.sign-release-content-refresh.outputs.signed }}' === 'true';
+            const checksPassed = '${{ needs.content-refresh.outputs.checks_passed }}' === 'true';
+            const autoDeploy = checksPassed && '${{ vars.AUTO_DEPLOY }}' !== 'false';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const checksLine = checksPassed
+              ? `**Build checks:** ✅ [Passed](${runUrl})`
+              : `**Build checks:** ❌ [Failed](${runUrl}) - see the "Check build" step, and review the preview before publishing`;
             const fetchFailures = '${{ needs.content-refresh.outputs.fetch_failures }}';
             const fetchFailuresLine = fetchFailures && fetchFailures !== 'n/a' ? `\n  - ${fetchFailures}` : '';
             const platformsAvailable = '${{ steps.platforms.outputs.platforms_available }}' === 'true';
@@ -1421,9 +1469,11 @@ jobs:
             ---
 
             ${platformSection}
+            ${checksLine}
+
             **Preview Deployment:** ${{ needs.content-refresh.outputs.preview_url }}
 
-            **Next Steps:**
+            ${autoDeploy ? `**Auto-deploy:** it passed the build checks, so it's published and deploying to production - see the "Auto-deploy" job in the [run](${runUrl}) for how that went` : `**Next Steps:**
             1. Review the preview deployment above
             2. If satisfied, edit this release body and uncheck "Set as a pre-release" to promote to production
             3. Publishing will automatically:
@@ -1431,14 +1481,29 @@ jobs:
                - Upload assets to Codeberg releases
                - Clean up the preview tag from all remotes
             4. Deleting will automatically:
-               - Clean up the preview tag from all remotes`;
+               - Clean up the preview tag from all remotes`}`;
 
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
               release_id: ${{ needs.content-refresh.outputs.release_id }},
               tag_name: '${{ needs.content-refresh.outputs.preview_tag }}',
-              body: body
+              body: body,
+              // Published by GITHUB_TOKEN, which doesn't trigger deploy-published-release.yml, so `auto-deploy-content-refresh` deploys it
+              ...(autoDeploy && { prerelease: false })
             });
 
             console.log('✓ Release body updated');
+
+  auto-deploy-content-refresh:
+    name: Auto-deploy Content Refresh
+    needs: [content-refresh, finalize-release-content-refresh]
+    if: >
+      always() &&
+      needs.finalize-release-content-refresh.result == 'success' &&
+      needs.content-refresh.outputs.checks_passed == 'true' &&
+      vars.AUTO_DEPLOY != 'false'
+    uses: ./.github/workflows/deploy-release.yml
+    with:
+      release_id: '${{ needs.content-refresh.outputs.release_id }}'
+    secrets: inherit

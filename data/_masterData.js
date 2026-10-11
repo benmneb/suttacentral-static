@@ -24,22 +24,22 @@ let fetchErrors = 0
 let pubInfoErrors = 0
 let cacheTimeErrors = 0
 
-function menuUrl(path = '') {
+export function menuUrl(path = '') {
   return `https://suttacentral.net/api/menu/${path}?language=en`
 }
-function leafUrl(uid) {
+export function leafUrl(uid) {
   return `https://suttacentral.net/api/suttaplex/${uid}?language=en`
 }
-function segmentedTranslationUrl(uid, author, lang) {
+export function segmentedTranslationUrl(uid, author, lang) {
   return `https://suttacentral.net/api/bilarasuttas/${uid}/${author}?lang=${lang}`
 }
-function suttasUrl(uid, author, lang) {
+export function suttasUrl(uid, author, lang) {
   return `https://suttacentral.net/api/suttas/${uid}/${author}?lang=${lang}&siteLanguage=en`
 }
-function parallelsUrl(uid) {
+export function parallelsUrl(uid) {
   return `https://suttacentral.net/api/parallels/${uid}`
 }
-function publicationInfoUrl(suttaUid, lang, translatorUid) {
+export function publicationInfoUrl(suttaUid, lang, translatorUid) {
   return `https://suttacentral.net/api/publication_info/${suttaUid}/${lang}/${translatorUid}`
 }
 
@@ -56,6 +56,21 @@ function sortParallels(parallels) {
 }
 
 /**
+ * Eleventy Fetch options for a SuttaCentral API URL, so the tests read back the same cache files
+ * @param {string} url
+ * @param {string} [duration] - How long a cached response is good for
+ */
+export function fetchOptions(url, duration = CACHE_DURATION) {
+  return {
+    duration,
+    type: 'json',
+    filenameFormat: (cacheKey, hash) => {
+      return `${url.split('/api/')[1]}-${cacheKey}-${hash}`
+    },
+  }
+}
+
+/**
  * Fetches JSON data with caching and cache timestamp tracking.
  *
  * Uses Eleventy Fetch to cache responses and adds a `scx_fetched_at` property
@@ -68,13 +83,7 @@ function sortParallels(parallels) {
 async function fetchJson(url) {
   endpointsHit++
 
-  const options = {
-    duration: CACHE_DURATION,
-    type: 'json',
-    filenameFormat: (cacheKey, hash) => {
-      return `${url.split('/api/')[1]}-${cacheKey}-${hash}`
-    },
-  }
+  const options = fetchOptions(url)
 
   const data = await Fetch(url, options)
 

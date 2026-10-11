@@ -7,134 +7,15 @@ on:
 jobs:
   deploy-release:
     name: Deploy Release to Production
-    runs-on: ubuntu-latest
     if: >
       github.event.action == 'published' ||
       (github.event.action == 'edited' &&
        !github.event.release.prerelease &&
        contains(github.event.release.tag_name, '-content-refresh-'))
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: main
-
-      - name: Download release assets
-        run: |
-          mkdir -p .assets
-
-          # Get all release assets
-          ASSETS=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }} \
-            | jq -r '.assets[]? | "\(.name)|\(.browser_download_url)"')
-
-          # Check if any assets exist
-          if [ -z "$ASSETS" ]; then
-            echo "⚠️ No assets found in release"
-            exit 1
-          fi
-
-          # Download each asset
-          echo "$ASSETS" | while IFS='|' read -r name url; do
-            if [ -n "$name" ] && [ -n "$url" ]; then
-              echo "Downloading: $name"
-              curl -L -o ".assets/$name" "$url"
-
-              # Track archive name for extraction
-              if [[ "$name" == *.tar.gz ]]; then
-                echo "archive_name=$name" >> $GITHUB_ENV
-              fi
-            fi
-          done
-
-          echo "Downloaded assets:"
-          ls -la .assets/
-
-      - name: Extract archive
-        run: |
-          mkdir -p _site
-          tar -xzf ".assets/${{ env.archive_name }}" -C .
-          ls -la _site
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24.3.0'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Install dependencies (for Vercel CLI)
-        run: pnpm install
-
-      - name: Deploy to Vercel Production
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: npx vercel deploy --archive=tgz --cwd=_site --prod --token="$VERCEL_TOKEN"
-
-      - name: Upload to Codeberg
-        env:
-          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
-          CODEBERG_REPO: ${{ secrets.CODEBERG_REPO }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-          RELEASE_NAME: ${{ github.event.release.name }}
-          RELEASE_BODY: ${{ github.event.release.body }}
-        run: |
-          if [ -z "$CODEBERG_TOKEN" ] || [ -z "$CODEBERG_REPO" ]; then
-            echo "⊘ Codeberg not configured, skipping upload"
-            exit 0
-          fi
-
-          # Create release on Codeberg
-          # Use environment variables to avoid shell quoting issues
-          RELEASE_DATA=$(jq -n \
-            --arg tag "$RELEASE_TAG" \
-            --arg name "$RELEASE_NAME" \
-            --arg body "$RELEASE_BODY" \
-            '{tag_name: $tag, name: $name, body: $body}')
-
-          echo "Creating Codeberg release for $RELEASE_TAG..."
-          CODEBERG_RELEASE=$(curl -s -X POST \
-            -H "Authorization: token $CODEBERG_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d "$RELEASE_DATA" \
-            "https://codeberg.org/api/v1/repos/$CODEBERG_REPO/releases")
-
-          # Check if release was created successfully
-          RELEASE_ID=$(echo "$CODEBERG_RELEASE" | jq -r '.id')
-
-          if [ "$RELEASE_ID" = "null" ] || [ -z "$RELEASE_ID" ]; then
-            echo "✗ Failed to create Codeberg release"
-            echo "Response: $CODEBERG_RELEASE"
-            exit 1
-          fi
-
-          echo "✓ Created Codeberg release (ID: $RELEASE_ID)"
-
-          # Upload all assets to Codeberg
-          for asset in .assets/*; do
-            if [ -f "$asset" ]; then
-              asset_name=$(basename "$asset")
-              echo "Uploading $asset_name to Codeberg..."
-              UPLOAD_RESPONSE=$(curl -s -X POST \
-                -H "Authorization: token $CODEBERG_TOKEN" \
-                -H "Content-Type: multipart/form-data" \
-                -F "attachment=@$asset" \
-                "https://codeberg.org/api/v1/repos/$CODEBERG_REPO/releases/$RELEASE_ID/assets?name=$asset_name")
-
-              # Check if upload was successful
-              if echo "$UPLOAD_RESPONSE" | jq -e '.id' > /dev/null 2>&1; then
-                echo "✓ Uploaded $asset_name"
-              else
-                echo "✗ Failed to upload $asset_name"
-                echo "Response: $UPLOAD_RESPONSE"
-              fi
-            fi
-          done
-
-          echo "✓ All assets uploaded to Codeberg"
+    uses: ./.github/workflows/deploy-release.yml
+    with:
+      release_id: '${{ github.event.release.id }}'
+    secrets: inherit
 
   cleanup-preview-tag:
     name: Cleanup Preview Tag

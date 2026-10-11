@@ -90,7 +90,7 @@ You need a `.env` file with these: (any missing vars will just skip that provide
 
 ### 2. Via Github Actions
 
-The `.github/workflows/` handle everything: building, archiving, building desktop apps, uploading releases to Codeberg/GitHub, and deploying to Vercel. The only manual intervention required (at this point, until there's tests to ensure the SuttaCentral API's haven't changed) is to review the preview deployment, then promote it to production by simply publishing the Github release
+The `.github/workflows/` handle everything: building, archiving, building desktop apps, uploading releases to Codeberg/GitHub, and deploying to Vercel. Every build is checked by [the tests](#tests), and a release that passes them publishes and deploys to production itself. One that fails waits for you to review its preview deployment, then promote it to production by simply publishing the Github release
 
 #### GitHub Secrets
 
@@ -109,6 +109,10 @@ Configure these in the repo settings (Settings → Secrets and variables → Act
 
 Note: `GITHUB_TOKEN` is automatically provided by GitHub Actions. Codeberg is optional - workflows will skip it if not configured.
 
+#### GitHub Variables
+
+- `AUTO_DEPLOY` - Set to `false` (Settings → Secrets and variables → Actions → Variables) to stop releases deploying themselves when they pass the tests, so every release waits for you to publish it. Anything else, or not set, leaves auto-deploy on
+
 #### The workflow triggers when
 
 1. **Pull request to main** (opened/updated/reopened)
@@ -116,24 +120,26 @@ Note: `GITHUB_TOKEN` is automatically provided by GitHub Actions. Codeberg is op
    - Builds site with `pnpm predeploy`
    - Creates archive for preview deployment
    - Deploys to Vercel preview and adds link to PR comment
+   - Runs the tests, failing the PR's checks if they fail
 
 2. **Tag `v*.*.*` is pushed to main**
    - Runs `check-tag` job to verify tag is on main branch
    - If tag is on main → runs `release-draft` job:
-     - Builds site with `pnpm predeploy`
+     - Builds site with `pnpm predeploy`, then runs the tests
      - Creates archive named: `scx_archive-{version}.tar.gz`
      - Deploys to Vercel preview
      - Creates **draft** GitHub release with preview URL (initially shows "builds in progress" warning)
    - Runs `build-tauri` jobs in parallel (macOS ARM64, macOS Intel, Windows, Linux, Android ARM64, Android ARMv7):
      - Builds apps for each platform
      - Attaches `.dmg`, `.exe`, `.AppImage`, `.apk` to the draft release
-   - Runs `finalize-release` job when all builds complete to update release body to show "✅ All platforms ready"
-   - **Next step**: Review preview URL and publish when release shows all builds complete
+   - Runs `finalize-release` job when all builds complete to update release body with which platforms built, and whether the tests passed
+   - If the tests passed → publishes the release and runs `auto-deploy` (see below)
+   - **Next step** if they failed: Review preview URL and publish when release shows all builds complete
    - If tag is NOT on main → skips draft release creation
 
 3. **Manual trigger** (click button in GitHub Actions UI)
    - Runs `content-refresh` job
-   - Builds site with `pnpm predeploy`
+   - Builds site with `pnpm predeploy`, then runs the tests
    - Creates unique preview tag (e.g., `v1.3.0-content-refresh-20251218-143022`)
    - Pushes tag to GitHub and Codeberg automatically
    - Creates archive: `scx_archive-{version}-content-refresh-{date}.tar.gz`
@@ -142,19 +148,20 @@ Note: `GITHUB_TOKEN` is automatically provided by GitHub Actions. Codeberg is op
    - Runs build-tauri jobs in parallel (macOS ARM64, macOS Intel, Windows, Linux, Android ARM64, Android ARMv7):
      - Builds apps for each platform
      - Attaches `.dmg`, `.exe`, `.AppImage`, `.apk` to the pre-release
-   - When all builds complete it updates release body to show "✅ All platforms ready"
-   - **Next step**: Review preview URL and uncheck "Set as a pre-release" when release shows all builds complete
+   - When all builds complete it updates release body with which platforms built, and whether the tests passed
+   - If the tests passed → promotes the pre-release to a release and runs `auto-deploy-content-refresh` (see below)
+   - **Next step** if they failed: Review preview URL and uncheck "Set as a pre-release" when release shows all builds complete
      - Publishing will automatically deploy to Vercel production and upload all assets to Codeberg releases
      - Preview tag is automatically cleaned up from all remotes when published or deleted
 
 4. **Monthly schedule** (1st of month at midnight UTC)
    - Same as manual trigger (runs `content-refresh` job)
    - Automatically builds with fresh content from SuttaCentral APIs monthly
-   - Creates pre-release for review before manual promotion to production
+   - Creates pre-release, promoted to production if it passes the tests, or for review before manual promotion if not
 
-**All the above (tag push, manual, or scheduled) automatically trigger releases and deployments for review, not for production.**
+**All the above (tag push, manual, or scheduled) automatically trigger releases and preview deployments. Those that pass the tests go on to production by themselves, and the rest wait for review.**
 
-Then, when you publish the draft release or pre-release in GitHub UI, it automatically triggers the production deployment:
+Then, when a release passes the tests, or you publish a draft release or pre-release in GitHub UI, it deploys to production (`deploy-release.yml`):
 
 - Downloads all release assets (archive + desktop apps)
 - Deploys to Vercel production
@@ -173,7 +180,8 @@ Then, when you publish the draft release or pre-release in GitHub UI, it automat
 1. Create annotated tag: `git tag -a v1.0.0 -m "Release v1.0.0" -m "About the update..."`
 1. Push tag: `git push origin v1.0.0`
 1. Wait for GitHub Actions to build and create draft release (archive + desktop apps for all platforms)
-1. Review the draft and check the preview URL and assets
+1. If the tests passed, it publishes and deploys to production by itself. Done ✨
+1. If not, review the draft, the failed tests, the preview URL and assets
 1. If satisfied, click "Publish release" in Github UI
 1. Production deployment and Codeberg upload happens automatically
 
@@ -183,9 +191,23 @@ Then, when you publish the draft release or pre-release in GitHub UI, it automat
 1. Click "Build & Preview" workflow
 1. Click "Run workflow" → "Run workflow" button
 1. Wait for build to complete (~30 minutes total)
-1. Review the pre-release and check the preview URL and assets
+1. If the tests passed, it publishes and deploys to production by itself. Done ✨
+1. If not, review the pre-release, the failed tests, the preview URL and assets
 1. If satisfied, edit the release and uncheck "Set as a pre-release" to publish
 1. Publishing automatically deploys to production and uploads to Codeberg ✨
+
+#### Tests
+
+`pnpm test` checks a built site (`_site`, or the folder in `SITE_DIR`) for signs the data fetched from SuttaCentral's APIs broke something, as a site can build without errors and still be missing texts or have empty pages. Features are tested by hand while developing, these are only about the data:
+
+- **Fetch:** no API requests failed, besides `/publication_info` which fails for most translators
+- **Inventory:** at most 1% of production's pages are missing (5% of any one collection), each piṭaka has its texts, and the sitemap lists every page. Production's sitemap and search index are the baseline, so `SKIP_BASELINE=1` skips these comparisons offline
+- **Pages:** every page has a title, every text page has its text and a well-formed title, every navigation page has links, and no links have `undefined` or similar in them
+- **Golden pages:** a page for each shape of data (segmented, root, legacy, range, vinaya, abhidhamma, pātimokkha, navigation) matches the API data in `.cache` it was built from
+- **Links:** internal links go to pages that exist
+- **Search:** the search index has every text page, and hasn't shrunk since production
+
+The site's structure comes from SuttaCentral's APIs, so pages coming and going with them is fine - only losing more than a few fails. The limits are constants at the top of each `tests/*.test.js` file. A full run takes a few minutes, mostly reading the 1.8gb of HTML.
 
 #### Tag format
 

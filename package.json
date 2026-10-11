@@ -31,6 +31,7 @@
     "deploy:prod": "dotenv -e .env -- sh -c 'vercel deploy --archive=tgz --cwd=_site --prod --token=\"$VERCEL_TOKEN\"'",
     "release:dry": "node -r dotenv/config tools/release.js dry",
     "release:upload": "node -r dotenv/config tools/release.js",
+    "test": "node --test --test-isolation=none 'tests/*.test.js'",
     "prepare": "husky"
   },
   "lint-staged": {

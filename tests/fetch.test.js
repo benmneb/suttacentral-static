@@ -1,0 +1,48 @@
+/**
+ * The build fetched the whole site from SuttaCentral's APIs.
+ *
+ * `_masterData.js` counts fetch errors and carries on, so a failed endpoint
+ * doesn't fail the build, it just leaves that branch or text out of the site.
+ */
+
+import assert from 'node:assert/strict'
+import fs from 'fs'
+import path from 'path'
+import { describe, it } from 'node:test'
+
+// The last full fetch hit ~129,000 endpoints
+const MIN_ENDPOINTS = 100_000
+
+// Failures other than /publication_info, which fails for most translators
+// (only root texts and some translators have data there)
+const MAX_FETCH_ERRORS = 0
+
+const statsFile = path.join(process.cwd(), '.build-stats.json')
+
+describe('API fetch', () => {
+  const stats = fs.existsSync(statsFile)
+    ? JSON.parse(fs.readFileSync(statsFile, 'utf8'))
+    : {}
+
+  it('recorded its stats', () => {
+    assert.ok(
+      stats.fetch,
+      `No fetch stats in ${statsFile}, was the site built in this directory?`
+    )
+  })
+
+  it(`hit at least ${MIN_ENDPOINTS.toLocaleString('en-US')} endpoints`, () => {
+    assert.ok(
+      stats.fetch?.endpointsHit >= MIN_ENDPOINTS,
+      `Only ${stats.fetch?.endpointsHit} endpoints were hit`
+    )
+  })
+
+  it('had no failed fetches, other than /publication_info', () => {
+    const errors = stats.fetch?.fetchErrors - stats.fetch?.pubInfoErrors
+    assert.ok(
+      errors <= MAX_FETCH_ERRORS,
+      `${errors} fetches failed (see "Fetch error" in the build log)`
+    )
+  })
+})

@@ -1,0 +1,111 @@
+/**
+ * Every page has the content its data should give it.
+ *
+ * Liquid prints missing data as an empty string, so a field the API stops
+ * sending doesn't fail the build, it just leaves holes in pages: titles
+ * like ": —", empty texts, links to "/undefined".
+ */
+
+import assert from 'node:assert/strict'
+import { describe, it } from 'node:test'
+import { listSome, scanSite } from './lib/site.js'
+
+// Characters of text a text page's <main> has at least, besides its parallels
+// and popovers. The shortest real texts are a line or two of verse
+const MIN_TEXT_LENGTH = 20
+
+// A text's title is "AN 1.1: Rūpādivagga—Bhikkhu Sujato", or "AN 1.1—Bhikkhu Sujato" for a sutta of a range
+const TEXT_TITLE = /^[^:—]*\S(: \S.*)?—\S.*$/
+
+function failures(pages, isBad, describeBad = page => page.url) {
+  return [...pages.values()].filter(isBad).map(describeBad)
+}
+
+describe('Every page', async () => {
+  const { pages } = await scanSite()
+
+  it('has a title', () => {
+    const bad = failures(pages, page => !page.title)
+    assert.equal(bad.length, 0, `Pages without a <title>:\n${listSome(bad)}`)
+  })
+
+  it('has no links built from missing data', () => {
+    const bad = failures(
+      pages,
+      page => page.brokenLinks.length > 0,
+      page => `${page.url}: ${page.brokenLinks.slice(0, 3).join(', ')}`
+    )
+    assert.equal(
+      bad.length,
+      0,
+      `Links with undefined/null/NaN in them:\n${listSome(bad)}`
+    )
+  })
+
+  it('has no titles built from missing data', () => {
+    const bad = failures(
+      pages,
+      page => /\b(undefined|null|NaN)\b|\[object /.test(page.title),
+      page => `${page.url}: ${page.title}`
+    )
+    assert.equal(
+      bad.length,
+      0,
+      `Titles with undefined/null/NaN in them:\n${listSome(bad)}`
+    )
+  })
+})
+
+describe('Every text page', async () => {
+  const { pages } = await scanSite()
+  const texts = new Map([...pages].filter(([, page]) => page.kind === 'text'))
+
+  it('has an acronym, title and author in its <title>', () => {
+    const bad = failures(
+      texts,
+      page => !TEXT_TITLE.test(page.title),
+      page => `${page.url}: "${page.title}"`
+    )
+    assert.equal(
+      bad.length,
+      0,
+      `Text pages with a malformed title:\n${listSome(bad)}`
+    )
+  })
+
+  it('has its text', () => {
+    const bad = failures(
+      texts,
+      page => page.segments === 0 && page.mainTextLength < MIN_TEXT_LENGTH,
+      page => `${page.url}: ${page.mainTextLength} characters`
+    )
+    assert.equal(bad.length, 0, `Text pages with no text:\n${listSome(bad)}`)
+  })
+
+  it('is searchable', () => {
+    const bad = failures(texts, page => !page.searchable)
+    assert.equal(
+      bad.length,
+      0,
+      `Text pages without data-pagefind-body:\n${listSome(bad)}`
+    )
+  })
+})
+
+describe('Every navigation page', async () => {
+  const { pages } = await scanSite()
+  const navs = new Map(
+    [...pages].filter(
+      ([, page]) => page.kind === 'nav' || page.kind === 'pitaka'
+    )
+  )
+
+  it('links to something', () => {
+    const bad = failures(navs, page => page.mainLinks === 0)
+    assert.equal(
+      bad.length,
+      0,
+      `Navigation pages with no links:\n${listSome(bad)}`
+    )
+  })
+})
