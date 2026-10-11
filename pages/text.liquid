@@ -699,7 +699,7 @@ eleventyComputed:
       <span>Next</span>
       <a
         href="/{{ entry.scx_range_sutta_pagination.next.uid | default: entry._suttas_data.translation.next.uid }}/{{ entry._suttas_data.translation.next.lang }}/{{ entry._suttas_data.translation.next.author_uid }}"
-        rel="prev"
+        rel="next"
       >
         {{
           entry.scx_range_sutta_pagination.next.name
