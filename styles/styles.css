@@ -199,9 +199,6 @@ body {
         li {
           list-style-type: none;
           display: flex;
-          word-break: keep-all;
-          text-wrap: nowrap;
-          white-space: nowrap;
 
           &:first-of-type a {
             text-decoration: none;
