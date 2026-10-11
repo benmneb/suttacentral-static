@@ -35,9 +35,13 @@
   const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
   let latestSearch = 0
 
+  // Hidden until now, as filtering can't work without this script
+  filtersEl.hidden = false
+
   /*
    * The deepest checked branches, as checking a child narrows its parent down to it.
    * Anything checked under an unchecked (so hidden) branch doesn't count.
+   * A group with no name of its own comes back as one branch holding all its values.
    */
   function checkedBranches(list) {
     return [...list.children].flatMap(li => {
@@ -48,26 +52,33 @@
       if (deeper.length) return deeper
       // A group with no name of its own (ie Translators) means everyone in it
       if (!box.name) {
-        return [...children.querySelectorAll('input')].map(child => child.value)
+        return [
+          [...children.querySelectorAll('input')].map(child => child.value),
+        ]
       }
       return [box.value]
     })
   }
 
-  // As per `data-pagefind-filter` in text.liquid, ie { in: { any: ['dn', 'mn'] }, lang: { any: ['en'] } }
+  /*
+   * As per `data-pagefind-filter` in text.liquid, ie { in: { any: ['dn', 'mn'] }, lang: { any: ['en'] } },
+   * with how many the user applied: one per checked branch, so Sutta → Middle is one
+   */
   function getFilters() {
     const branches = id => checkedBranches(document.getElementById(id))
-    return Object.fromEntries(
-      Object.entries({
-        in: branches('search-filters-collection'),
-        author: branches('search-filters-author'),
-        lang: [...filtersEl.querySelectorAll('input[name="lang"]:checked')].map(
-          box => box.value
-        ),
-      })
-        .filter(([, values]) => values.length)
-        .map(([key, values]) => [key, { any: values }])
-    )
+    const applied = Object.entries({
+      in: branches('search-filters-collection'),
+      author: branches('search-filters-author'),
+      lang: [...filtersEl.querySelectorAll('input[name="lang"]:checked')].map(
+        box => box.value
+      ),
+    }).filter(([, values]) => values.length)
+    return {
+      filters: Object.fromEntries(
+        applied.map(([key, values]) => [key, { any: values.flat() }])
+      ),
+      count: applied.reduce((sum, [, values]) => sum + values.length, 0),
+    }
   }
 
   async function performSearch(query) {
@@ -75,17 +86,20 @@
     document.title = `${query} on SuttaCentral Express`
     countEl.hidden = false
     showMoreBtn.hidden = true
-    countEl.innerHTML = `Searching for <b>${query}</b>…`
+    const { filters, count } = getFilters()
+    const withFilters = count
+      ? ` with ${count} filter${count !== 1 ? 's' : ''}`
+      : ''
+    countEl.innerHTML = `Searching for <b>${query}</b>${withFilters}…`
     resultsContainer.innerHTML = ''
 
-    const filters = getFilters()
     const results = await pagefind.search(query, { filters })
     // A newer search (ie from ticking another filter) has started since
     if (searchId !== latestSearch) return
 
     const finalCountMsg = `${results.results.length} result${
       results.results.length !== 1 ? 's' : ''
-    } for <b>${query}</b>${Object.keys(filters).length ? ' with filters' : ''}`
+    } for <b>${query}</b>${withFilters}`
 
     if (results.results.length === 0) {
       resultsContainer.innerHTML = ''

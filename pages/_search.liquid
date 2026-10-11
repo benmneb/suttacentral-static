@@ -22,7 +22,8 @@ eleventyComputed:
       role="status"
       hidden
     ></p>
-    <details id="search-filters">
+    {% comment %} Filtering needs search.js, which unhides it {% endcomment %}
+    <details id="search-filters" hidden>
       <summary>Filter</summary>
       <fieldset>
         <legend>Collection</legend>
