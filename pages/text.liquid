@@ -24,20 +24,22 @@ eleventyComputed:
       {% assign path = path | append: '/' | append: part %}
       <li>
         {% comment %}
-          Every ancestor is a search filter (`in`), so filtering on ie `dn` or `sutta` both find dn1.
-          Not the text itself, unless it's a branch too, ie the pātimokkhas
+          Every ancestor is a search filter (`in`), by uid, so filtering on ie `dn` or `sutta` both find dn1.
+          Not the text itself, unless it's a branch too, ie the pātimokkhas.
+          The text's own uid stays in the index next to its name, so searching ie "mn1" still finds it first
         {% endcomment %}
+        {% assign name = breadcrumbNames[part] | default: part %}
         {% if forloop.last %}
-          <a href="/{{ part }}" data-pagefind-body data-pagefind-weight="10"{% if entry.node_type != 'leaf' %} data-pagefind-filter="in"{% endif %}>{{ part }}</a>
+          <a href="/{{ part }}" data-uid="{{ part }}" data-pagefind-body data-pagefind-weight="10"{% if entry.node_type != 'leaf' %} data-pagefind-filter="in[data-uid]"{% endif %}>{{ name }}{% if name != part %}<span class="sr-only"> {{ part }}</span>{% endif %}</a>
         {% elsif forloop.index == second_last %}
-          <a href="/{{ part }}" data-pagefind-filter="in">{{ part }}</a>
+          <a href="/{{ part }}" data-uid="{{ part }}" data-pagefind-filter="in[data-uid]">{{ name }}</a>
         {% else %}
-          <a href="/pitaka{{ path }}" data-pagefind-filter="in">{{ part }}</a>
+          <a href="/pitaka{{ path }}" data-uid="{{ part }}" data-pagefind-filter="in[data-uid]">{{ name }}</a>
         {% endif %}
       </li>
     {% endfor %}
     <li>
-      <span aria-current="page">{{ entry.author_uid }}</span>
+      <span aria-current="page">{{ entry.author | default: entry.author_uid | strip }}</span>
     </li>
   {% endcapture %}
   {% include "headerNav.liquid", breadcrumbsList: breadcrumbsList %}

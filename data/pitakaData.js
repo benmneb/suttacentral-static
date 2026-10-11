@@ -1,5 +1,9 @@
 import masterData from './_masterData.js'
+import { breadcrumbNames } from '../tools/breadcrumbNames.js'
 import siteMetaData from './_siteMetaData.js'
+
+// What each uid in a breadcrumb is called, set before flattening (see `tools/breadcrumbNames.js`)
+let names = {}
 
 function generatePitakaOGTags(entry) {
   const metadata = siteMetaData()
@@ -89,7 +93,7 @@ function generatePitakaJsonLd(entry) {
           ...entry.scx_breadcrumb.split('/').map((part, index) => ({
             '@type': 'ListItem',
             position: index + 2,
-            name: part,
+            name: names[part] ?? part,
             item: `/pitaka/${entry.scx_breadcrumb
               .split('/')
               .slice(0, index + 1)
@@ -178,5 +182,6 @@ function flatten(nodes, parentPath = '') {
  */
 export default async function () {
   const menu = await masterData()
+  names = breadcrumbNames(menu)
   return flatten(menu).filter(Boolean)
 }

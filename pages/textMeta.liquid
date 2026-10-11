@@ -21,11 +21,11 @@ eleventyComputed:
       {% assign path = path | append: '/' | append: part %}
       <li>
         {% if forloop.last %}
-          <span aria-current="page">{{ part }}</span>
+          <span aria-current="page">{{ breadcrumbNames[part] | default: part }}</span>
         {% elsif forloop.index == second_last %}
-          <a href="/{{ part }}">{{ part }}</a>
+          <a href="/{{ part }}">{{ breadcrumbNames[part] | default: part }}</a>
         {% else %}
-          <a href="/pitaka{{ path }}">{{ part }}</a>
+          <a href="/pitaka{{ path }}">{{ breadcrumbNames[part] | default: part }}</a>
         {% endif %}
       </li>
     {% endfor %}

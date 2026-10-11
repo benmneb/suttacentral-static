@@ -8,9 +8,13 @@ import {
   uidToAcronym,
 } from '../tools/rangeSuttas.js'
 import masterData from './_masterData.js'
+import { breadcrumbNames } from '../tools/breadcrumbNames.js'
 import siteMetaData from './_siteMetaData.js'
 
 let usedPaths = []
+
+// What each uid in a breadcrumb is called, set before flattening (see `tools/breadcrumbNames.js`)
+let names = {}
 
 function generateTextOGTags(entry) {
   const metadata = siteMetaData()
@@ -141,7 +145,7 @@ function generateTextJsonLd(entry) {
             return {
               '@type': 'ListItem',
               position: index + 2,
-              name: part,
+              name: names[part] ?? part,
               item: isLast
                 ? `/${entry.scx_path}`
                 : isSecondLast
@@ -523,5 +527,6 @@ function flatten(nodes, parent, parentPath) {
  */
 export default async function () {
   const menu = await masterData()
+  names = breadcrumbNames(menu)
   return flatten(menu).filter(Boolean)
 }
