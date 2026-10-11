@@ -6,11 +6,38 @@
  * (it's Brahmali's), and the reverse in the vinaya, and likewise for the abhidhamma, jatakas etc.
  * Some name a whole chapter (ie /sn12/en/sujato) too. See `textLinks.js` for where they go instead.
  *
- * The #anchor and anything else after the author is always kept.
+ * Some chapter links have the sutta number in the #anchor instead, ie "SN 12:47" as
+ * /sn12/en/sujato#47, or "SN 35:80.1" as /sn35/en/sujato#80.1. Where <uid>.<n> is a text,
+ * they go there instead (/sn12.47/en/sujato, /sn35.80/en/sujato#1), keeping what's left of
+ * the anchor only if it's a segment of that text. .net just takes them to the chapter.
+ *
+ * Otherwise the #anchor and anything else after the author is always kept.
  */
 
 const LINK =
-  /(href=['"]https:\/\/suttacentral\.net\/)([^/#?'"\s]+)\/([a-z]+)\/([^/#?'"]+)/g
+  /(href=['"]https:\/\/suttacentral\.net\/)([^/#?'"\s]+)\/([a-z]+)\/([^/#?'"]+)(#[^'"]*)?/g
+
+/*
+ * Where a chapter link with the sutta number in its anchor was meant to go,
+ * as `{ uid, anchor }`, or null if it isn't one
+ */
+function suttaInAnchor(resolve, uid, lang, author, anchor) {
+  const match = anchor?.match(/^#(\d+)(?:\.(.+))?$/)
+  if (!match || resolve.hasText(uid)) return null
+  const suttaUid = `${uid}.${match[1]}`
+  if (!resolve.hasText(suttaUid)) return null
+  const target = resolve(suttaUid, lang, author) ?? {
+    uid: suttaUid,
+    lang,
+    author,
+  }
+  const segment = match[2]
+  const keep =
+    segment &&
+    target.lang &&
+    resolve.hasSegment(target.uid, target.lang, target.author, segment)
+  return { ...target, anchor: keep ? `#${segment}` : '' }
+}
 
 /**
  * Points every link in every translator comment at a page that exists.
@@ -33,13 +60,22 @@ export function fixCommentLinks(tree, resolve) {
         for (const [key, comment] of Object.entries(comments)) {
           comments[key] = comment.replace(
             LINK,
-            (match, start, uid, lang, author) => {
-              const target = resolve(uid, lang, author)
-              if (!target) return match
+            (match, start, uid, lang, author, anchor = '') => {
+              const target = suttaInAnchor(
+                resolve,
+                uid,
+                lang,
+                author,
+                anchor
+              ) ?? {
+                ...resolve(uid, lang, author),
+                anchor,
+              }
+              if (!target.uid) return match
               fixed++
               return target.lang
-                ? `${start}${target.uid}/${target.lang}/${target.author}`
-                : `${start}${target.uid}`
+                ? `${start}${target.uid}/${target.lang}/${target.author}${target.anchor}`
+                : `${start}${target.uid}${target.anchor}`
             }
           )
         }
