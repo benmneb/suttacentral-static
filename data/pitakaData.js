@@ -1,9 +1,11 @@
 import masterData from './_masterData.js'
-import { breadcrumbNames } from '../tools/breadcrumbNames.js'
+import { breadcrumbTrail } from '../tools/breadcrumbs.js'
 import siteMetaData from './_siteMetaData.js'
 
-// What each uid in a breadcrumb is called, set before flattening (see `tools/breadcrumbNames.js`)
-let names = {}
+// The `masterData` tree, set before flattening, for each page's breadcrumbs (see `tools/breadcrumbs.js`)
+let tree = []
+
+const trailOf = entry => breadcrumbTrail(tree, entry.scx_breadcrumb)
 
 function generatePitakaOGTags(entry) {
   const metadata = siteMetaData()
@@ -90,14 +92,14 @@ function generatePitakaJsonLd(entry) {
             name: 'Home',
             item: '/',
           },
-          ...entry.scx_breadcrumb.split('/').map((part, index) => ({
+          // The last crumb is this page itself
+          ...trailOf(entry).map((crumb, index, trail) => ({
             '@type': 'ListItem',
             position: index + 2,
-            name: names[part] ?? part,
-            item: `/pitaka/${entry.scx_breadcrumb
-              .split('/')
-              .slice(0, index + 1)
-              .join('/')}`,
+            name: crumb.name,
+            ...(index === trail.length - 1
+              ? { item: `/pitaka/${entry.scx_path}` }
+              : crumb.href && { item: crumb.href }),
           })),
         ],
       },
@@ -139,7 +141,7 @@ function removeTranslations(node) {
 
 function flatten(nodes, parentPath = '') {
   return nodes.flatMap(node => {
-    if (!node.children?.some(c => c.node_type === 'branch')) {
+    if (!hasPitakaPage(node)) {
       // Stop where chapters start, to sync URL structure with SuttaCentral.net
       return null
     }
@@ -154,6 +156,7 @@ function flatten(nodes, parentPath = '') {
 
     const nodeWithJsonLd = {
       ...flatNode,
+      scx_breadcrumb_trail: trailOf(flatNode),
       scx_json_ld: generatePitakaJsonLd(flatNode),
       scx_og_tags: generatePitakaOGTags(flatNode),
     }
@@ -182,6 +185,6 @@ function flatten(nodes, parentPath = '') {
  */
 export default async function () {
   const menu = await masterData()
-  names = breadcrumbNames(menu)
+  tree = menu
   return flatten(menu).filter(Boolean)
 }

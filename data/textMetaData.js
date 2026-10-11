@@ -1,5 +1,5 @@
 import masterData from './_masterData.js'
-import { breadcrumbNames } from '../tools/breadcrumbNames.js'
+import { breadcrumbTrail } from '../tools/breadcrumbs.js'
 import siteMetaData from './_siteMetaData.js'
 import {
   parseUidNumbers,
@@ -7,8 +7,10 @@ import {
   uidToAcronym,
 } from '../tools/rangeSuttas.js'
 
-// What each uid in a breadcrumb is called, set before flattening (see `tools/breadcrumbNames.js`)
-let names = {}
+// The `masterData` tree, set before flattening, for each page's breadcrumbs (see `tools/breadcrumbs.js`)
+let tree = []
+
+const trailOf = entry => breadcrumbTrail(tree, entry.scx_breadcrumb)
 
 function generateTextMetaOGTags(entry) {
   const metadata = siteMetaData()
@@ -98,25 +100,15 @@ function generateTextMetaJsonLd(entry) {
             name: 'Home',
             item: '/',
           },
-          ...entry.scx_breadcrumb.split('/').map((part, index) => {
-            const path = entry.scx_breadcrumb
-              .split('/')
-              .slice(0, index + 1)
-              .join('/')
-            const isSecondLast =
-              index === entry.scx_breadcrumb.split('/').length - 2
-            const isLast = index === entry.scx_breadcrumb.split('/').length - 1
-            return {
-              '@type': 'ListItem',
-              position: index + 2,
-              name: names[part] ?? part,
-              item: isLast
-                ? `/${entry.scx_path}`
-                : isSecondLast
-                  ? `/${part}`
-                  : `/pitaka/${path}`,
-            }
-          }),
+          // The last crumb is this page itself
+          ...trailOf(entry).map((crumb, index, trail) => ({
+            '@type': 'ListItem',
+            position: index + 2,
+            name: crumb.name,
+            ...(index === trail.length - 1
+              ? { item: `/${entry.scx_path}` }
+              : crumb.href && { item: crumb.href }),
+          })),
         ],
       },
       publisher: {
@@ -259,6 +251,7 @@ function flatten(nodes, parentPath = '') {
         results.push(
           ...rangeEntries.map(entry => ({
             ...entry,
+            scx_breadcrumb_trail: trailOf(entry),
             scx_json_ld: generateTextMetaJsonLd(entry),
             scx_og_tags: generateTextMetaOGTags(entry),
           }))
@@ -273,6 +266,7 @@ function flatten(nodes, parentPath = '') {
       })
       results.push({
         ...entry,
+        scx_breadcrumb_trail: trailOf(entry),
         scx_json_ld: generateTextMetaJsonLd(entry),
         scx_og_tags: generateTextMetaOGTags(entry),
       })
@@ -302,6 +296,6 @@ function flatten(nodes, parentPath = '') {
  */
 export default async function () {
   const menu = await masterData()
-  names = breadcrumbNames(menu)
+  tree = menu
   return flatten(menu).filter(Boolean)
 }

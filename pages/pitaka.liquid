@@ -14,15 +14,15 @@ eleventyComputed:
   og_tags: '{{ entry.scx_og_tags }}'
 ---
 <header>
-  {% assign parts = entry.scx_breadcrumb | split: "/" %}
   {% capture breadcrumbsList %}
-    {% for part in parts %}
-      {% assign path = path | append: '/' | append: part %}
+    {% for crumb in entry.scx_breadcrumb_trail %}
       <li>
         {% if forloop.last %}
-          <span aria-current="page">{{ breadcrumbNames[part] | default: part }}</span>
+          <span aria-current="page">{{ crumb.name }}</span>
+        {% elsif crumb.href %}
+          <a href="{{ crumb.href }}">{{ crumb.name }}</a>
         {% else %}
-          <a href="/pitaka{{ path }}">{{ breadcrumbNames[part] | default: part }}</a>
+          <span>{{ crumb.name }}</span>
         {% endif %}
       </li>
     {% endfor %}

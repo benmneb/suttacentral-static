@@ -1,10 +1,12 @@
 import masterData from './_masterData.js'
-import { breadcrumbNames } from '../tools/breadcrumbNames.js'
+import { breadcrumbTrail } from '../tools/breadcrumbs.js'
 import siteMetaData from './_siteMetaData.js'
 import { isChapterNode } from '../tools/pageUids.js'
 
-// What each uid in a breadcrumb is called, set before flattening (see `tools/breadcrumbNames.js`)
-let names = {}
+// The `masterData` tree, set before flattening, for each page's breadcrumbs (see `tools/breadcrumbs.js`)
+let tree = []
+
+const trailOf = entry => breadcrumbTrail(tree, entry.scx_breadcrumb)
 
 function generateChapterOGTags(entry) {
   const metadata = siteMetaData()
@@ -103,19 +105,15 @@ function generateChapterJsonLd(entry) {
             name: 'Home',
             item: '/',
           },
-          ...entry.scx_breadcrumb.split('/').map((part, index) => {
-            const path = entry.scx_breadcrumb
-              .split('/')
-              .slice(0, index + 1)
-              .join('/')
-            const isLast = index === entry.scx_breadcrumb.split('/').length - 1
-            return {
-              '@type': 'ListItem',
-              position: index + 2,
-              name: names[part] ?? part,
-              item: isLast ? `/${entry.scx_path}` : `/pitaka/${path}`,
-            }
-          }),
+          // The last crumb is this page itself
+          ...trailOf(entry).map((crumb, index, trail) => ({
+            '@type': 'ListItem',
+            position: index + 2,
+            name: crumb.name,
+            ...(index === trail.length - 1
+              ? { item: `/${entry.scx_path}` }
+              : crumb.href && { item: crumb.href }),
+          })),
         ],
       },
       publisher: {
@@ -179,6 +177,7 @@ function flatten(nodes, parentPath = '') {
       })
       results.push({
         ...shortcutEntry,
+        scx_breadcrumb_trail: trailOf(shortcutEntry),
         scx_json_ld: generateChapterJsonLd(shortcutEntry),
         scx_og_tags: generateChapterOGTags(shortcutEntry),
       })
@@ -193,6 +192,7 @@ function flatten(nodes, parentPath = '') {
       })
       results.push({
         ...entry,
+        scx_breadcrumb_trail: trailOf(entry),
         scx_json_ld: generateChapterJsonLd(entry),
         scx_og_tags: generateChapterOGTags(entry),
       })
@@ -227,7 +227,7 @@ function flatten(nodes, parentPath = '') {
  */
 export default async function () {
   const menu = await masterData()
-  names = breadcrumbNames(menu)
+  tree = menu
   const chapters = flatten(menu).filter(Boolean)
 
   // Deduplicate by uid to prevent permalink conflicts when the same
