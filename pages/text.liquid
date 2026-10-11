@@ -682,7 +682,7 @@ eleventyComputed:
     %}
       <span>Previous</span>
       <a
-        href="/{{ entry.scx_range_sutta_pagination.prev.uid | default: entry._suttas_data.translation.previous.uid }}/{{ entry._suttas_data.translation.previous.lang }}/{{ entry._suttas_data.translation.previous.author_uid }}"
+        href="/{{ entry.scx_range_sutta_pagination.prev.uid | default: entry._suttas_data.translation.previous.uid }}{% if entry._suttas_data.translation.previous.lang %}/{{ entry._suttas_data.translation.previous.lang }}/{{ entry._suttas_data.translation.previous.author_uid }}{% endif %}"
         rel="prev"
       >
         {{
@@ -698,7 +698,7 @@ eleventyComputed:
     %}
       <span>Next</span>
       <a
-        href="/{{ entry.scx_range_sutta_pagination.next.uid | default: entry._suttas_data.translation.next.uid }}/{{ entry._suttas_data.translation.next.lang }}/{{ entry._suttas_data.translation.next.author_uid }}"
+        href="/{{ entry.scx_range_sutta_pagination.next.uid | default: entry._suttas_data.translation.next.uid }}{% if entry._suttas_data.translation.next.lang %}/{{ entry._suttas_data.translation.next.lang }}/{{ entry._suttas_data.translation.next.author_uid }}{% endif %}"
         rel="next"
       >
         {{

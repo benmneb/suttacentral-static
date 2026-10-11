@@ -2,7 +2,9 @@ import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
 import ora from 'ora'
 import { recordStat } from '../tools/buildStats.js'
 import { fixCommentLinks } from '../tools/commentLinks.js'
+import { fixPaginationLinks } from '../tools/paginationLinks.js'
 import { parseUidNumbers } from '../tools/rangeSuttas.js'
+import { createLinkResolver } from '../tools/textLinks.js'
 import shortcutsData from './_shortcuts.json' with { type: 'json' }
 
 const CACHE_DURATION = process.env.REFETCH ? '0s' : '*' // https://www.11ty.dev/docs/plugins/fetch/#change-the-cache-duration
@@ -340,8 +342,13 @@ export default async function () {
     await fetchShortcutsList()
     const roots = ['sutta', 'vinaya', 'abhidhamma']
     const tree = await Promise.all(roots.map(uid => fetchDataTree(uid)))
-    const fixedLinks = fixCommentLinks(tree)
-    spinner.info(`Pointed ${fixedLinks} links in comments at texts that exist`)
+    const resolveLink = createLinkResolver(tree)
+    const fixedLinks = fixCommentLinks(tree, resolveLink)
+    spinner.info(`Pointed ${fixedLinks} links in comments at pages that exist`)
+    const fixedPagination = fixPaginationLinks(tree, resolveLink)
+    spinner.info(
+      `Pointed ${fixedPagination} prev/next links at pages that exist`
+    )
     cachedMasterData = tree
     return tree
   } catch (e) {

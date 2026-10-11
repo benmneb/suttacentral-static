@@ -33,10 +33,20 @@
                 class="parallel-list-item-{{ parallel.to.type }}"
                 title="{% if parallel.to.type == 'full' %}Full parallel: different versions of the same text{% elsif parallel.to.type == 'mention' %}Mention: one text is quoted or mentioned in another{% elsif parallel.to.type == 'retelling' %}Retelling: the events of one text are retold in another{% endif %}"
               >
-                {% if parallel.to.translations.size > 0 %}
+                {% comment %} Only English and root texts are built, see `filterTranslations` in `_masterData.js` {% endcomment %}
+                {% assign built_trans = null %}
+                {% for trans in parallel.to.translations %}
+                  {% if trans.lang == "en"
+                    or trans.lang == parallel.to.root_lang
+                  %}
+                    {% assign built_trans = trans %}
+                    {% break %}
+                  {% endif %}
+                {% endfor %}
+                {% if built_trans %}
                   <a
-                    href="/{{ parallel.to.uid }}/{{ parallel.to.translations[0].lang }}/{{ parallel.to.translations[0].author_uid }}{% if parallel.to.to contains '#' %}#{{ parallel.to.to | split: '#' | last }}{% endif %}"
-                    hreflang="{{ parallel.to.translations[0].lang }}"
+                    href="/{{ parallel.to.uid }}/{{ built_trans.lang }}/{{ built_trans.author_uid }}{% if parallel.to.to contains '#' %}#{{ parallel.to.to | split: '#' | last }}{% endif %}"
+                    hreflang="{{ built_trans.lang }}"
                   >
                     {{
                       parallel.to.translated_title

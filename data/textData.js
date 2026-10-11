@@ -1,5 +1,3 @@
-import masterData from './_masterData.js'
-import siteMetaData from './_siteMetaData.js'
 import {
   findShownUid,
   getKeyPrefixes,
@@ -9,6 +7,8 @@ import {
   uidIsInRange,
   uidToAcronym,
 } from '../tools/rangeSuttas.js'
+import masterData from './_masterData.js'
+import siteMetaData from './_siteMetaData.js'
 
 let usedPaths = []
 
@@ -31,6 +31,26 @@ function generateTextOGTags(entry) {
     'article:tag':
       'Buddhism, Buddhist Texts, Pali Canon, Tipitaka, Early Buddhism, Theravada, Suttas',
   })
+}
+
+/**
+ * The prev/next link at the foot of the page, as `text.liquid` renders it
+ * @param {Object} entry - A text page entry
+ * @param {'previous' | 'next'} direction - Which link
+ * @returns {{ name: string, path: string } | null} The link, or null if there isn't one
+ */
+function pagerLink(entry, direction) {
+  const link = entry._suttas_data?.translation?.[direction]
+  const range =
+    entry.scx_range_sutta_pagination?.[
+      direction === 'previous' ? 'prev' : 'next'
+    ]
+  const uid = range?.uid || link?.uid
+  if (!uid) return null
+  return {
+    name: range?.name || link?.name,
+    path: link?.lang ? `/${uid}/${link.lang}/${link.author_uid}` : `/${uid}`,
+  }
 }
 
 function generateTextJsonLd(entry) {
@@ -143,32 +163,20 @@ function generateTextJsonLd(entry) {
         '@type': 'WebPage',
         '@id': `/${entry.scx_path}`,
       },
-      ...(entry.previous?.uid && {
+      ...(pagerLink(entry, 'previous') && {
         hasPreviousItem: {
           '@type': 'CreativeWork',
-          name: entry.previous.name,
-          url: entry.is_root
-            ? `/${entry.previous.uid}/${entry.root_lang}/${entry.author_uid}`
-            : `/${entry.previous.uid}/en/${entry.priority_author_uid}`,
-          sameAs: `https://suttacentral.net${
-            entry.is_root
-              ? `/${entry.previous.uid}/${entry.root_lang}/${entry.author_uid}`
-              : `/${entry.previous.uid}/en/${entry.priority_author_uid}`
-          }`,
+          name: pagerLink(entry, 'previous').name,
+          url: pagerLink(entry, 'previous').path,
+          sameAs: `https://suttacentral.net${pagerLink(entry, 'previous').path}`,
         },
       }),
-      ...(entry.next?.uid && {
+      ...(pagerLink(entry, 'next') && {
         hasNextItem: {
           '@type': 'CreativeWork',
-          name: entry.next.name,
-          url: entry.is_root
-            ? `/${entry.next.uid}/${entry.root_lang}/${entry.author_uid}`
-            : `/${entry.next.uid}/en/${entry.priority_author_uid}`,
-          sameAs: `https://suttacentral.net${
-            entry.is_root
-              ? `/${entry.next.uid}/${entry.root_lang}/${entry.author_uid}`
-              : `/${entry.next.uid}/en/${entry.priority_author_uid}`
-          }`,
+          name: pagerLink(entry, 'next').name,
+          url: pagerLink(entry, 'next').path,
+          sameAs: `https://suttacentral.net${pagerLink(entry, 'next').path}`,
         },
       }),
       license: {

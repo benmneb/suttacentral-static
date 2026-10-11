@@ -1,7 +1,7 @@
 import htmlmin from 'html-minifier-terser'
 import { recordStat } from './tools/buildStats.js'
 import { minifyCss, minifyJs } from './tools/minifyAssets.js'
-import { parseUidNumbers } from './tools/rangeSuttas.js'
+import { isMultiTextSpan } from './tools/rangeSuttas.js'
 import { referenceEditionName } from './tools/referenceEditions.js'
 
 const inputDir = 'pages'
@@ -49,8 +49,7 @@ export default function (eleventyConfig) {
   // a range page like /an1.170-187 still point at an1.173, an1.174 and so on, one each
   eleventyConfig.addFilter('parallelPath', function (key, uid) {
     const base = String(key).split('#')[0]
-    const span = parseUidNumbers(base)
-    return span && span.start !== span.end ? uid : base
+    return isMultiTextSpan(base) ? uid : base
   })
 
   // The printed edition a reference id is from, for its tooltip, ie bj10.20 -> "Buddhajayantītripiṭaka, 1957–1989"
