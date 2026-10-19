@@ -29,6 +29,7 @@
   const CLASS_CLICKABLE = 'tts-clickable'
   const HIGHLIGHT_NAME = 'tts-current'
   const HOVER_HIGHLIGHT_NAME = 'tts-hover'
+  const WORD_HIGHLIGHT_NAME = 'tts-word'
   const CLASS_SENTENCES = 'tts-sentences'
   const LABEL_PLAY = 'Play'
   const LABEL_PAUSE = 'Pause'
@@ -48,6 +49,10 @@
   let visibleTextSpans = []
   let visibleTextContent = []
   let visibleTextRanges = [] // the sentence each item covers in non segmented texts, null in segmented ones
+  // Where each character of a sentence is in the DOM, for the word being read, null in segmented texts
+  let visibleTextPoints = []
+  // The same for the segment being read, made on its first word
+  let segmentPoints = null
   let currentIndex = 0
   let isCancelled = false
   let isPlaying = false // denotes an active session (playing or paused)
@@ -102,10 +107,12 @@
     document.documentElement.lang ||
     undefined
   let sentenceSegmenter = null
+  let wordSegmenter = null
   try {
     sentenceSegmenter = new Intl.Segmenter(textLang, {
       granularity: 'sentence',
     })
+    wordSegmenter = new Intl.Segmenter(textLang, { granularity: 'word' })
   } catch (e) {}
 
   // A block can be a whole <ol> or a <div> wrapping the lot, so the units inside it have to be told apart - two list items are not one sentence
@@ -193,14 +200,7 @@
       text += node.data
     }
 
-    function pointAt(offset, isEnd) {
-      const found = nodes.find(({ node, start }) =>
-        isEnd
-          ? offset <= start + node.data.length
-          : offset < start + node.data.length
-      )
-      return found ? [found.node, offset - found.start] : null
-    }
+    const pointAt = (offset, isEnd) => pointIn(nodes, offset, isEnd)
 
     let pieces
     if (sentenceSegmenter) {
@@ -229,8 +229,37 @@
       const range = document.createRange()
       range.setStart(...startPoint)
       range.setEnd(...endPoint)
-      return [{ text: trimmed.replace(/\n/g, ' '), range }]
+      const at = (offset, isEnd) => pointAt(start + offset, isEnd)
+      return [{ text: trimmed.replace(/\n/g, ' '), range, at }]
     })
+  }
+
+  /** The text node and offset in it of an offset into their joined text */
+  function pointIn(nodes, offset, isEnd) {
+    const found = nodes.find(({ node, start }) =>
+      isEnd
+        ? offset <= start + node.data.length
+        : offset < start + node.data.length
+    )
+    return found ? [found.node, offset - found.start] : null
+  }
+
+  // The same for a segment, whose text is read without its newlines, so each character the voice gets is
+  // mapped to where it is
+  function spanPoints(span) {
+    const points = []
+    const walker = document.createTreeWalker(span, NodeFilter.SHOW_TEXT)
+    while (walker.nextNode()) {
+      const node = walker.currentNode
+      for (let i = 0; i < node.data.length; i++) {
+        if (node.data[i] !== '\n') points.push([node, i])
+      }
+    }
+    return (offset, isEnd) => {
+      if (!isEnd) return points[offset] ?? null
+      const last = points[offset - 1]
+      return last ? [last[0], last[1] + 1] : null
+    }
   }
 
   function computeVisibleText() {
@@ -245,6 +274,7 @@
       s.textContent.replace(/\n/g, '')
     )
     visibleTextRanges = visibleTextSpans.map(() => null)
+    visibleTextPoints = visibleTextSpans.map(() => null)
 
     // If rooter-first is checked, reorder spans within each segment to match CSS grid display order
     if (rootFirst && rootFirst.checked && visibleTextSpans.length > 0) {
@@ -367,11 +397,13 @@
       visibleTextSpans = []
       visibleTextContent = []
       visibleTextRanges = []
+      visibleTextPoints = []
       blocks.forEach(block => {
-        splitIntoSentences(block).forEach(({ text, range }) => {
+        splitIntoSentences(block).forEach(({ text, range, at }) => {
           visibleTextSpans.push(block)
           visibleTextContent.push(text)
           visibleTextRanges.push(range)
+          visibleTextPoints.push(at)
         })
       })
     }
@@ -424,21 +456,68 @@
     } catch (e) {}
   }
 
+  // Changed in place, as Safari doesn't repaint what a replaced one covered
+  const itemHighlight = canHighlightRanges ? new Highlight() : null
+  if (itemHighlight) {
+    // above the hover
+    itemHighlight.priority = 1
+    CSS.highlights.set(HIGHLIGHT_NAME, itemHighlight)
+  }
+  const wordHighlight = canHighlightRanges ? new Highlight() : null
+  if (wordHighlight) {
+    // above the sentence
+    wordHighlight.priority = 2
+    CSS.highlights.set(WORD_HIGHLIGHT_NAME, wordHighlight)
+  }
+
+  // Chrome's Google voices don't say which word, so they keep just the sentence
+  function highlightWord(index, charIndex, charLength) {
+    if (!wordHighlight) return
+    const text = visibleTextContent[index]
+    if (!text || !(charIndex >= 0) || charIndex >= text.length) return
+    // Safari gives no length, so it's the word the index is in
+    let end = charIndex + (charLength || 0)
+    if (!charLength) {
+      const word = wordSegmenter?.segment(text).containing(charIndex)
+      if (!word) return
+      end = word.index + word.segment.length
+    }
+    let at = visibleTextPoints[index]
+    if (!at) {
+      if (segmentPoints?.index !== index) {
+        segmentPoints = { index, at: spanPoints(visibleTextSpans[index]) }
+      }
+      at = segmentPoints.at
+    }
+    const startPoint = at(charIndex, false)
+    const endPoint = at(Math.min(end, text.length), true)
+    if (!startPoint || !endPoint) return
+    try {
+      const range = document.createRange()
+      range.setStart(...startPoint)
+      range.setEnd(...endPoint)
+      wordHighlight.clear()
+      wordHighlight.add(range)
+    } catch (e) {}
+  }
+
   // Highlights just the sentence where the browser can, otherwise the whole element it's in
   function highlightItem(index) {
     const range = visibleTextRanges[index]
-    if (range && canHighlightRanges) {
-      const highlight = new Highlight(range)
-      // above the hover, which is set after it
-      highlight.priority = 1
-      CSS.highlights.set(HIGHLIGHT_NAME, highlight)
+    if (range && itemHighlight) {
+      itemHighlight.clear()
+      itemHighlight.add(range)
     } else {
       visibleTextSpans[index]?.classList.add(CLASS_HIGHLIGHT)
     }
   }
 
   function clearHighlight() {
-    if (canHighlightRanges) CSS.highlights.delete(HIGHLIGHT_NAME)
+    if (canHighlightRanges) {
+      itemHighlight.clear()
+      wordHighlight.clear()
+    }
+    segmentPoints = null
     visibleTextSpans.forEach(s => s.classList.remove(CLASS_HIGHLIGHT))
   }
 
@@ -617,6 +696,36 @@
     synth.onvoiceschanged = populateVoiceList
   }
 
+  const EM_DASH = '—'
+  const SPACE_OR_DASH = /[\s—]/
+
+  /**
+   * The text as the voice gets it, with spaces round a dash between words. Voices take "sabbath—the" for one
+   * word, and say when it starts but not when "the" does. Spaced, they still pause at it. Where each
+   * character came from is kept, for the word being read
+   */
+  function speakable(text) {
+    let spoken = ''
+    const from = []
+    for (let i = 0; i < text.length; i++) {
+      const prev = text[i - 1]
+      const next = text[i + 1]
+      const isDash = text[i] === EM_DASH
+      // a run of dashes, as in Chinese, is spaced as one
+      if (isDash && prev && /\S/.test(prev) && prev !== EM_DASH) {
+        spoken += ' '
+        from.push(i)
+      }
+      spoken += text[i]
+      from.push(i)
+      if (isDash && next && /\S/.test(next) && next !== EM_DASH) {
+        spoken += ' '
+        from.push(i + 1)
+      }
+    }
+    return { spoken, from }
+  }
+
   // Speak chain with session protection
   function speakNext() {
     const mySession = sessionId
@@ -630,7 +739,8 @@
       return
     }
 
-    const utter = new SpeechSynthesisUtterance(text)
+    const { spoken, from } = speakable(text)
+    const utter = new SpeechSynthesisUtterance(spoken)
     utter._session = mySession
     currentUtterance = utter
 
@@ -640,6 +750,20 @@
       ensureVisible(currentIndex)
       // immediate label update when speech starts
       updatePlayPauseLabel()
+    }
+
+    utter.onboundary = ev => {
+      if (utter._session !== sessionId || ev.name !== 'word') return
+      let start = ev.charIndex
+      // Safari gives no length, so highlightWord finds the word itself
+      let end = start + (ev.charLength || 1)
+      // Some voices take the dash, or the space by it, in with a word
+      while (start < end && SPACE_OR_DASH.test(spoken[start])) start++
+      while (end > start && SPACE_OR_DASH.test(spoken[end - 1])) end--
+      // the dash's own
+      if (start === end) return
+      const length = ev.charLength ? from[end - 1] + 1 - from[start] : 0
+      highlightWord(currentIndex, from[start], length)
     }
 
     utter.onend = () => {
