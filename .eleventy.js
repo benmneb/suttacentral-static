@@ -4,6 +4,11 @@ import { minifyCss, minifyJs } from './tools/minifyAssets.js'
 import { isMultiTextSpan } from './tools/rangeSuttas.js'
 import { referenceEditionName } from './tools/referenceEditions.js'
 import { sampleUids } from './tools/samplePages.js'
+import {
+  formatVolpages,
+  isHeadingHTML,
+  softHyphenateTitle,
+} from './tools/strings.js'
 
 const inputDir = 'pages'
 const textTemplate = `${inputDir}/text.liquid`
@@ -63,6 +68,10 @@ export default function (eleventyConfig) {
   eleventyConfig.addFilter('referenceEdition', function (id) {
     return referenceEditionName(id) ?? id
   })
+
+  eleventyConfig.addFilter('softHyphenateTitle', softHyphenateTitle)
+  eleventyConfig.addFilter('isHeading', isHeadingHTML)
+  eleventyConfig.addFilter('formatVolpages', formatVolpages)
 
   eleventyConfig.addFilter('parseJSON', function (value) {
     try {

@@ -380,6 +380,7 @@ eleventyComputed:
         {% assign ref = key | split: ":" | last %}
 
         {% if html %}
+          {% assign is_heading = html | isHeading %}
           {% capture replacement %}
           <span id="{{ key }}" class="segment">
             <span class="reference" id="{{ ref }}">
@@ -410,7 +411,7 @@ eleventyComputed:
                   {% endif %}
                 {% endif %}
               {% endif %}
-              <span class="text">{{ text }}</span>
+              <span class="text">{% if is_heading %}{{ text | softHyphenateTitle }}{% else %}{{ text }}{% endif %}</span>
               {% unless comment == blank %}
                 <button class="variant-btn" popovertarget="comment-{{ key }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
                 <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">
@@ -550,6 +551,7 @@ eleventyComputed:
         {% assign ref = key | split: ":" | last %}
 
         {% if html %}
+          {% assign is_heading = html | isHeading %}
           {% capture replacement %}
           <span id="{{ key }}" class="segment">
             <span class="reference" id="{{ ref }}">
@@ -602,7 +604,7 @@ eleventyComputed:
                     {% capture rootText %}{{ entry.scx_range_sutta_title }}{% endcapture %}
                   {% endif %}
                 {% endif %}
-                <span class="text">{{ rootText }}</span>
+                <span class="text">{% if is_heading %}{{ rootText | softHyphenateTitle }}{% else %}{{ rootText }}{% endif %}</span>
                 {% unless variant == blank %}
                   <button class="variant-btn" popovertarget="variant-{{ key }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
                   <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">
@@ -694,6 +696,7 @@ eleventyComputed:
         {{
           entry.scx_range_sutta_pagination.prev.name
           | default: entry._suttas_data.translation.previous.name
+          | softHyphenateTitle
         }}
       </a>
     {% endunless %}
@@ -710,6 +713,7 @@ eleventyComputed:
         {{
           entry.scx_range_sutta_pagination.next.name
           | default: entry._suttas_data.translation.next.name
+          | softHyphenateTitle
         }}
       </a>
     {% endunless %}

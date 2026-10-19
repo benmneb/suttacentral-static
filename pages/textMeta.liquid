@@ -48,6 +48,7 @@ eleventyComputed:
         {{-
           entry.scx_range_sutta_pagination.prev.name
           | default: entry.previous.name
+          | softHyphenateTitle
         -}}
       </a>
     {% endunless %}
@@ -64,6 +65,7 @@ eleventyComputed:
         {{-
           entry.scx_range_sutta_pagination.next.name
           | default: entry.next.name
+          | softHyphenateTitle
         -}}
       </a>
     {% endunless %}

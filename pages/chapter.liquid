@@ -190,7 +190,7 @@ eleventyComputed:
       {% if entry.scx_chapter_pagination.prev.uid %}
         <span>Previous</span>
         <a href="/{{ entry.scx_chapter_pagination.prev.uid }}" rel="prev">
-          {{- entry.scx_chapter_pagination.prev.name -}}
+          {{- entry.scx_chapter_pagination.prev.name | softHyphenateTitle -}}
         </a>
       {% endif %}
     </div>
@@ -198,7 +198,7 @@ eleventyComputed:
       {% if entry.scx_chapter_pagination.next.uid %}
         <span>Next</span>
         <a href="/{{ entry.scx_chapter_pagination.next.uid }}" rel="next">
-          {{- entry.scx_chapter_pagination.next.name -}}
+          {{- entry.scx_chapter_pagination.next.name | softHyphenateTitle -}}
         </a>
       {% endif %}
     </div>

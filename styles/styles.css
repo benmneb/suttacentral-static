@@ -15,7 +15,8 @@
   --fg-alt-1: #ebdbb2;
   --fg-alt-2: #d5c4a1;
   --fg-alt-3: #bdae93;
-  --fg-alt-4: #a89984;
+  /* Off gruvbox's #a89984 for 4.5:1 on tinted surfaces */
+  --fg-alt-4: #b0a08b;
 
   --red: #fb4934;
   --green: #b8bb26;
@@ -87,7 +88,8 @@
     --fg-alt-1: #3c3836;
     --fg-alt-2: #504945;
     --fg-alt-3: #665c54;
-    --fg-alt-4: #7c6f64;
+    /* Off gruvbox's #7c6f64 for 4.5:1 on tinted surfaces */
+    --fg-alt-4: #6b5e54;
 
     --red: #9d0006;
     --green: #79740e;
@@ -95,7 +97,8 @@
     --blue: #076678;
     --purple: #8f3f71;
     --aqua: #427b58;
-    --orange: #af3a03;
+    /* Off gruvbox's #af3a03 for 4.5:1 on the footer */
+    --orange: #ad3800;
     --orange-alt: #7c2a03;
     --gray: #928374;
     --brown: #7c5c40;
@@ -206,6 +209,7 @@ body {
 
           &::after {
             content: '/';
+            content: '/' / '';
             margin-left: 0.5rem;
             color: var(--gray);
           }
@@ -286,6 +290,7 @@ body {
 
         &::after {
           content: '∙';
+          content: '∙' / '';
           margin-left: 0.5rem;
         }
       }
@@ -690,7 +695,6 @@ aside {
     li {
       display: block;
       position: relative;
-      color: var(--fg-alt-3);
       border-top-left-radius: var(--rounding);
       border-bottom-left-radius: var(--rounding);
 
@@ -698,6 +702,11 @@ aside {
         border-top-left-radius: var(--rounding);
         border-bottom-left-radius: var(--rounding);
       }
+    }
+
+    /* The bar's own, as it's under 4.5:1 on the menus' rows */
+    > ul > li {
+      color: var(--fg-alt-3);
     }
 
     /* Needed for the menus width */
@@ -858,7 +867,7 @@ aside {
         &::before {
           flex: none;
           text-align: right;
-          color: var(--text-color-secondary);
+          color: var(--headings-color);
         }
 
         /* For legacy texts ie dn1/en/bodhi */
@@ -966,11 +975,26 @@ main {
     h3,
     h4 {
       margin-bottom: 0;
+      overflow-wrap: break-word;
     }
 
     p {
       margin-top: 0;
       color: var(--text-color-secondary);
+    }
+
+    /* Smaller rather than fainter, which would drop it under 4.5:1 */
+    .volpages {
+      font-size: small;
+
+      > span:first-child {
+        margin-inline: 0.25em;
+        opacity: 0.7;
+      }
+
+      > span[title] {
+        white-space: nowrap;
+      }
     }
   }
 
@@ -1063,6 +1087,18 @@ main {
       padding: 0;
       margin: 0 0.1rem 0 0;
       vertical-align: text-top;
+      /* Not the browser's smaller control size */
+      font-size: inherit;
+      position: relative;
+
+      /* A bigger tap target, without moving the text */
+      @media (pointer: coarse) {
+        &::after {
+          content: '';
+          position: absolute;
+          inset: -0.5rem -0.6rem;
+        }
+      }
 
       &:focus {
         background-color: var(--primary-color);
@@ -1169,7 +1205,7 @@ main {
       }
 
       .sutta-title {
-        word-break: break-word;
+        overflow-wrap: anywhere;
         text-wrap: balance;
       }
 
@@ -1700,6 +1736,7 @@ ul#search-results {
 
         &:not(dd:last-of-type)::after {
           content: '∙';
+          content: '∙' / '';
           margin-left: 0.5rem;
         }
       }
@@ -1731,6 +1768,30 @@ button#show-more {
 input[type='range'],
 input[type='checkbox'] {
   accent-color: var(--primary-color);
+}
+
+summary::marker {
+  color: var(--text-color-secondary);
+  /* var(--serif-font) without the emojis, so Safari doesn't draw a closed one as an emoji */
+  font-family:
+    Iowan Old Style,
+    Apple Garamond,
+    Baskerville,
+    Times New Roman,
+    Droid Serif,
+    Times,
+    Source Serif Pro,
+    serif;
+}
+
+/* Not inherited, as some set pointer-events back to auto */
+body:has(#search-modal:popover-open)
+  :not(#search-modal, #search-modal *, :has(#search-modal)) {
+  &,
+  &::before,
+  &::after {
+    pointer-events: none !important;
+  }
 }
 
 [popover]#search-modal::backdrop,
