@@ -696,6 +696,17 @@ body {
   padding: 0;
 }
 
+/* A set height, so what opens from the bar can clear the controls */
+@media (hover: none) {
+  :root {
+    --tts-controls-height: 2.75rem;
+  }
+
+  .tts-controls {
+    height: var(--tts-controls-height);
+  }
+}
+
 @media only screen and (max-width: 600px) {
   body:has(#positioner:checked) {
     padding-bottom: 2.75rem;
@@ -887,7 +898,7 @@ aside {
         ul li ul,
         ul li ol {
           top: auto;
-          bottom: 100%;
+          bottom: calc(100% + var(--past-tts, 0px));
           border-radius: var(--rounding) var(--rounding) 0 0;
 
           > li:is(:hover, :focus-within) {
@@ -905,7 +916,7 @@ aside {
         #contents-menu,
         #views-menu,
         #listen-menu {
-          max-height: calc(100dvh - 5.75rem);
+          max-height: calc(100dvh - 5.75rem - var(--past-tts, 0px));
           overflow-y: auto;
         }
 
@@ -922,7 +933,8 @@ aside {
           }
 
           @supports selector(:popover-open) {
-            &:popover-open {
+            &:popover-open,
+            &:has(#stop:enabled) {
               display: flex;
             }
 
@@ -945,7 +957,7 @@ aside {
         :is(#contents-menu, #views-menu, #listen-menu):popover-open {
           position: fixed;
           top: auto;
-          bottom: 2.75rem;
+          bottom: calc(2.75rem + var(--past-tts, 0px));
           left: 0;
           right: 0;
           margin: 0;
@@ -955,11 +967,43 @@ aside {
       }
     }
 
+    /* Past the listen controls, which stay up on touch while playing */
+    @media (hover: none) {
+      &:has(#stop:enabled) :is(#contents-menu, #views-menu) {
+        --past-tts: var(--tts-controls-height);
+      }
+
+      @media only screen and (max-width: 600px) {
+        @supports (anchor-name: --a) {
+          &:has(#stop:enabled) :is(#contents-menu, #views-menu):popover-open {
+            border-top: 1px solid var(--bg-alt-3);
+          }
+        }
+
+        &:has(#positioner:checked):has(#stop:enabled)
+          :is(#contents-menu, #views-menu):popover-open {
+          border-top: none;
+          border-bottom: 1px solid var(--bg-alt-3);
+        }
+
+        body:has(
+            :is(#contents-menu, #views-menu, #info, #parallels):popover-open
+          )
+          &:has(#stop:enabled)
+          #listen-menu:not(:popover-open) {
+          &,
+          > li {
+            border-radius: 0;
+          }
+        }
+      }
+    }
+
     /* A class, to win over the site's own popover styles */
     .dropdown {
       display: none;
       position: absolute;
-      inset: 100% 0 auto auto;
+      inset: calc(100% + var(--past-tts, 0px)) 0 auto auto;
       width: max-content;
       max-width: none;
       max-height: none;
@@ -1060,6 +1104,11 @@ aside {
           transition: visibility 0s 0.1s;
         }
 
+        li:has(> button:focus:not(:focus-visible, :active))
+          > #listen-menu:has(#stop:enabled):not(:popover-open) {
+          visibility: visible;
+        }
+
         li:hover > #contents-button:not(:focus:not(:focus-visible, :active)) {
           border-bottom-left-radius: 0;
         }
@@ -1133,7 +1182,7 @@ aside {
 
       :is(#contents-menu, #views-menu, #listen-menu):popover-open {
         position: fixed;
-        top: anchor(bottom);
+        top: calc(anchor(bottom) + var(--past-tts, 0px));
         right: anchor(right);
       }
 
@@ -1922,9 +1971,9 @@ a:where([href]) {
       position: fixed;
       inset: auto;
       position-area: bottom span-left;
-      margin-top: 0;
+      margin-top: var(--past-tts, 0px);
       /* position-area makes 100% the room under the anchor */
-      max-height: calc(100% - 0.5rem);
+      max-height: calc(100% - var(--past-tts, 0px) - 0.5rem);
     }
 
     aside fieldset #contents-menu {
@@ -1933,7 +1982,7 @@ a:where([href]) {
 
     /* Less their padding, as max-height is the content box's */
     [popover]:is(#info, #parallels) {
-      max-height: calc(100% - 2.5rem);
+      max-height: calc(100% - var(--past-tts, 0px) - 2.5rem);
     }
   }
 }
@@ -1961,6 +2010,42 @@ a:where([href]) {
 
   &.scripted > li:not(.notice) {
     display: flex;
+  }
+
+  /* While there's something to stop, the controls stay by the bar, so it can be paused or skipped with the
+     menu closed. Only with popovers, as without them nothing would hide it again */
+  @supports selector(:popover-open) {
+    &:has(#stop:enabled) {
+      display: block;
+    }
+
+    @media (hover: none) {
+      &:has(#stop:enabled):not(:popover-open) > li:not(.tts-controls) {
+        visibility: hidden;
+        height: 0;
+        min-height: 0;
+        overflow: hidden;
+      }
+    }
+
+    /* The rest stays in place, unseen and flat, so the controls keep the menu's width. Hidden 0.1s after the
+       mouse leaves, like the other menus, so Safari doesn't flash it while opening */
+    @media (hover: hover) {
+      li:not(:hover) > &:has(#stop:enabled):not(:popover-open),
+      li:has(> button:focus:not(:focus-visible, :active))
+        > &:has(#stop:enabled):not(:popover-open) {
+        > li:not(.tts-controls) {
+          visibility: hidden;
+          height: 0;
+          min-height: 0;
+          overflow: hidden;
+          transition-property: visibility, height, min-height;
+          transition-duration: 0s;
+          transition-delay: 0.1s;
+          transition-behavior: allow-discrete;
+        }
+      }
+    }
   }
 
   noscript,
@@ -2282,7 +2367,7 @@ body:has([popover]#search-modal:popover-open) {
 @supports (anchor-name: --a) and selector(:popover-open) {
   [popover]:is(#info, #parallels) {
     position-anchor: --aside-bar;
-    inset: anchor(bottom) anchor(right) auto auto;
+    inset: calc(anchor(bottom) + var(--past-tts, 0px)) anchor(right) auto auto;
     margin: 0;
     /* Shown by hover, it's not in the top layer */
     z-index: 2;
@@ -2349,16 +2434,23 @@ body:has([popover]#search-modal:popover-open) {
   }
 }
 
-/* Pinned to the bottom bar, which needs no anchor */
 @supports selector(:popover-open) {
+  /* Show past the listen controls, which stay up on touch while playing */
+  @media (hover: none) {
+    body:has(#stop:enabled) :is(#info, #parallels) {
+      --past-tts: var(--tts-controls-height);
+    }
+  }
+
+  /* Pinned to the bottom bar, which needs no anchor */
   @media only screen and (max-width: 600px) {
     body:has(#positioner:checked) [popover]:is(#info, #parallels) {
-      inset: auto 0 2.75rem;
+      inset: auto 0 calc(2.75rem + var(--past-tts, 0px));
       width: auto;
       max-width: none;
       margin: 0;
       /* As the bar's menus, less the padding */
-      max-height: calc(100dvh - 7.75rem);
+      max-height: calc(100dvh - 7.75rem - var(--past-tts, 0px));
       overscroll-behavior: contain;
       border-radius: var(--rounding) var(--rounding) 0 0;
       box-shadow: 0 0.3rem 1rem var(--shadow-color);

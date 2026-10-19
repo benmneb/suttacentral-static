@@ -431,6 +431,13 @@
     if (stopBtn) stopBtn.disabled = !enabled
   }
 
+  // On touch the controls stay up while playing, so the full menu over the text is closed once one is used
+  function closeMenuOnTouch() {
+    if (!matchMedia('(hover: none)').matches) return
+    // Older browsers have no popovers, and show the menu on hover instead
+    if (rootMenuEl.matches?.(':popover-open')) rootMenuEl.hidePopover()
+  }
+
   // The middle of what can be read, above the bar when it's pinned to the bottom. The controls' top, not the
   // menu's, when they're showing
   function readingMiddle() {
@@ -976,6 +983,41 @@
   playPauseBtn.addEventListener('click', togglePlayPause)
   if (nextBtn) nextBtn.addEventListener('click', nextSpan)
   if (stopBtn) stopBtn.addEventListener('click', stopSession)
+  const controlsEl = rootMenuEl.querySelector('.tts-controls')
+  controlsEl?.addEventListener('click', closeMenuOnTouch)
+
+  // On touch the controls show outside an open menu, so a tap on them would light dismiss it. It's reopened
+  // where it was before the next paint, as CSS can't stop the dismissal
+  let keepOpen = false
+  controlsEl?.addEventListener('pointerdown', () => {
+    keepOpen = matchMedia('(hover: none)').matches
+  })
+  controlsEl?.addEventListener('click', () => (keepOpen = false))
+  for (const type of ['pointerdown', 'keydown']) {
+    document.addEventListener(
+      type,
+      e => {
+        if (!controlsEl?.contains(e.target)) keepOpen = false
+      },
+      true
+    )
+  }
+  document.addEventListener(
+    'beforetoggle',
+    e => {
+      const popover = e.target
+      if (!keepOpen || e.newState !== 'closed') return
+      if (popover === rootMenuEl) return
+      const top = popover.scrollTop
+      // Next frame, as it is still open during beforetoggle
+      requestAnimationFrame(() => {
+        if (popover.matches(':popover-open')) return
+        popover.showPopover()
+        popover.scrollTop = top
+      })
+    },
+    true
+  )
 
   const articleEl = document.querySelector('main > article, main > section')
 

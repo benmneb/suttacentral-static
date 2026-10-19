@@ -259,17 +259,17 @@ eleventyComputed:
             settings, then reload the page.
           </li>
           <li class="tts-controls">
-            <button id="prev" type="button">
+            <button id="prev" type="button" disabled>
               <span>{% icon "backward" %}</span><span><span>Prev</span></span>
             </button>
             <button id="playpause" type="button">
               <span>{% icon "play" %}</span><span><span>Play</span></span>
             </button>
             <template id="pause-icon">{% icon "pause" %}</template>
-            <button id="stop" type="button">
+            <button id="stop" type="button" disabled>
               <span>{% icon "stop" %}</span><span><span>Stop</span></span>
             </button>
-            <button id="next" type="button">
+            <button id="next" type="button" disabled>
               <span>{% icon "forward" %}</span><span><span>Next</span></span>
             </button>
           </li>
