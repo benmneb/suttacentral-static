@@ -736,13 +736,47 @@
     updateClickableSpans()
   }
 
+  /**
+   * Where a fresh start reads from - the item in the middle of the screen, so it goes on from wherever the
+   * reader has scrolled to, or the first one while the start of the text is still on screen
+   */
+  function startIndex() {
+    const middle = window.innerHeight / 2
+    let closest = 0
+    let closestDistance = Infinity
+    let seenFirst = false
+    for (let i = 0; i < visibleTextSpans.length; i++) {
+      const rect = (
+        visibleTextRanges[i] || visibleTextSpans[i]
+      ).getBoundingClientRect()
+      if (!rect.height) continue
+      if (!seenFirst) {
+        seenFirst = true
+        if (rect.bottom > 0) return 0
+      }
+      // the first in reading order, as side by side texts put two items at the same height
+      if (rect.top <= middle && rect.bottom >= middle) return i
+      const distance = Math.min(
+        Math.abs(rect.top - middle),
+        Math.abs(rect.bottom - middle)
+      )
+      if (distance < closestDistance) {
+        closest = i
+        closestDistance = distance
+      }
+      // everything after is further down
+      if (rect.top > middle) break
+    }
+    return closest
+  }
+
   // single button behavior
   function togglePlayPause() {
     if (isPaused) return resumeSession()
     if (isPlaying) return pauseSession()
     // What's visible now is what the session reads, whatever the view does after
     computeVisibleText()
-    startSessionFrom(currentIndex)
+    startSessionFrom(startIndex())
   }
 
   // wire listeners
