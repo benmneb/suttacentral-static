@@ -15,6 +15,7 @@
     f: ['rooter-first'],
     i: ['illustrator'],
     o: ['highlighter'],
+    p: ['paralleler'],
     r: ['segmenter'],
     s: ['positioner'],
   }

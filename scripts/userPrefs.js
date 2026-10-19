@@ -26,6 +26,7 @@
     'segmenter-others',
     'illustrator',
     'highlighter',
+    'paralleler',
     'positioner',
     'rate',
     'pitch',

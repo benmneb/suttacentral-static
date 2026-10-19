@@ -1,0 +1,65 @@
+{% comment %} With `typed`, each says its type, for a list not headed by it {% endcomment %}
+{% for parallel in parallels %}
+  <li
+    {% if typed %}
+      class="parallel-list-item-{{ parallel.to.type }}"
+      title="{% if parallel.to.type == 'full' %}Full parallel: different versions of the same text{% elsif parallel.to.type == 'mention' %}Mention: one text is quoted or mentioned in another{% elsif parallel.to.type == 'retelling' %}Retelling: the events of one text are retold in another{% endif %}"
+    {% endif %}
+  >
+    {% comment %} Only English and root texts are built, see `filterTranslations` in `_masterData.js` {% endcomment %}
+    {% assign built_trans = null %}
+    {% for trans in parallel.to.translations %}
+      {% if trans.lang == "en" or trans.lang == parallel.to.root_lang %}
+        {% assign built_trans = trans %}
+        {% break %}
+      {% endif %}
+    {% endfor %}
+    {% if built_trans %}
+      <a
+        href="/{{ parallel.to.uid }}/{{ built_trans.lang }}/{{ built_trans.author_uid }}{% if parallel.to.to contains '#' %}#{{ parallel.to.to | split: '#' | last }}{% endif %}"
+        hreflang="{{ built_trans.lang }}"
+      >
+        {{
+          parallel.to.translated_title
+          | default: parallel.to.original_title
+          | default: parallel.to.acronym
+          | strip
+        }}
+      </a>
+    {% else %}
+      <span>
+        {{
+          parallel.to.translated_title
+          | default: parallel.to.original_title
+          | default: parallel.to.acronym
+          | strip
+        }}
+      </span>
+    {% endif %}
+    {% assign pretty_volpages = parallel.to.volpages | formatVolpages %}
+    <br>
+    {% if parallel.to.translated_title != blank
+      and parallel.to.original_title != blank
+    %}
+      {{ parallel.to.original_title | strip }}
+      {% if parallel.to.acronym != blank %}
+        <span aria-hidden="true">∙</span>
+        {{ parallel.to.acronym | strip -}}
+      {%- endif %}
+      {% if pretty_volpages != blank %}
+        <span aria-hidden="true">∙</span> {{ pretty_volpages -}}
+      {%- endif %}
+    {% elsif parallel.to.original_title != blank %}
+      {% if parallel.to.acronym != blank %}
+        {{- parallel.to.acronym | strip -}}
+      {%- endif %}
+      {% if pretty_volpages != blank %}
+        <span aria-hidden="true">∙</span> {{ pretty_volpages -}}
+      {%- endif %}
+    {% elsif parallel.to.acronym != blank %}
+      {% if pretty_volpages != blank %}
+        {{ pretty_volpages -}}
+      {%- endif %}
+    {% endif %}
+  </li>
+{% endfor %}

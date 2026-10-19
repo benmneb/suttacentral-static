@@ -228,6 +228,18 @@ eleventyComputed:
               >
             </li>
           {% endif %}
+          {% if entry.scx_parallel_runs.size > 0 %}
+            <li>
+              <label for="paralleler">
+                <span class="with-icon">
+                  {% icon "arrowsRightLeftMicro" -%}
+                  <span>Parallels</span>
+                </span>
+                <kbd aria-hidden="true" title="Press P to toggle">P</kbd>
+              </label>
+              <input type="checkbox" id="paralleler">
+            </li>
+          {% endif %}
           {% if entry.segmented
             or entry._suttas_data.translation.text contains "class='ref"
           %}
@@ -486,6 +498,9 @@ eleventyComputed:
   data-originaltitle="{{ entry.original_title }}"
   data-pagefind-meta="acronym[data-acronym], author[data-author], lang[data-lang], title[data-title], translatorsTitle[data-translatorstitle], originalTitle[data-originaltitle]"
   data-pagefind-filter="author[data-authoruid], lang[data-lang]"
+  {% if entry.scx_parallel_lanes > 0 %}
+    style="--parallel-lanes: {{ entry.scx_parallel_lanes }}"
+  {% endif %}
 >
   {% if entry.is_root and entry._bilarasuttas_data.size > 0 %}
     {% assign comments = "" %}
@@ -600,7 +615,8 @@ eleventyComputed:
         {% if html %}
           {% assign is_heading = html | isHeading %}
           {% capture replacement %}
-          <span id="{{ key }}" class="segment">
+          {% assign anchor = entry.scx_parallel_anchors[key] %}
+          <span id="{{ key }}" class="segment"{% if anchor %} style="anchor-name: {{ anchor }}"{% endif %}>
             <span class="reference" id="{{ ref }}">
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
               {%- comment -%}
@@ -774,7 +790,8 @@ eleventyComputed:
         {% if html %}
           {% assign is_heading = html | isHeading %}
           {% capture replacement %}
-          <span id="{{ key }}" class="segment">
+          {% assign anchor = entry.scx_parallel_anchors[key] %}
+          <span id="{{ key }}" class="segment"{% if anchor %} style="anchor-name: {{ anchor }}"{% endif %}>
             <span class="reference" id="{{ ref }}">
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
               {%- comment -%}
@@ -887,6 +904,39 @@ eleventyComputed:
     %}
     {{ html_without_footer }}
     {{ modified_footer }}
+  {% endif %}
+
+  {% if entry.scx_parallel_runs.size > 0 %}
+    <ol class="parallel-runs" aria-label="Parallels" data-pagefind-ignore="all">
+      {% for run in entry.scx_parallel_runs %}
+        <li>
+          <button
+            class="parallel-run"
+            popovertarget="parallels-{{ forloop.index0 }}"
+            data-type="{{ run.type }}"
+            {% if run.outer %}
+              data-outer
+            {% endif %}
+            aria-label="{{ run.label }}, {{ run.count }} parallel{% if run.count != 1 %}s{% endif %}"
+            style="--lane: {{ run.lane }}; top: anchor(--ps{{ run.start }} top); bottom: anchor(--ps{{ run.end }} bottom)"
+          ></button>
+          <article id="parallels-{{ forloop.index0 }}" popover>
+            <h1>Parallels of {{ run.label }}</h1>
+            {% for group in run.groups %}
+              <section>
+                <h2>{{ group.title }}</h2>
+                <ul class="parallel-list">
+                  {% include "parallelItems.liquid",
+                    parallels: group.parallels,
+                    typed: false
+                  %}
+                </ul>
+              </section>
+            {% endfor %}
+          </article>
+        </li>
+      {% endfor %}
+    </ol>
   {% endif %}
 
   <article id="parallels" popover>

@@ -12,6 +12,7 @@ import { breadcrumbTrail } from '../tools/breadcrumbs.js'
 import { onlySample } from '../tools/samplePages.js'
 import { referenceGroupsOf } from '../tools/referenceEditions.js'
 import { highlightsOf } from '../tools/highlights.js'
+import { parallelRunsOf } from '../tools/parallelRuns.js'
 import siteMetaData from './_siteMetaData.js'
 
 let usedPaths = []
@@ -258,6 +259,7 @@ function viewOptionsOf(entry) {
   return {
     ...highlightsOf(entry, keys),
     scx_illustrations: illustrationsOf(entry, keys),
+    ...parallelRunsOf(entry, keys),
   }
 }
 

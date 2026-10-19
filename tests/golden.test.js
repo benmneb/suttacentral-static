@@ -44,7 +44,7 @@ const titleOf = html =>
   normalise(html.match(/<title>([^<]*)<\/title>/)?.[1] ?? '')
 
 const segmentIds = html =>
-  [...html.matchAll(/<span id="([^"]+)" class="segment">/g)].map(m => m[1])
+  [...html.matchAll(/<span id="([^"]+)" class="segment"[ >]/g)].map(m => m[1])
 
 const parallelCount = html =>
   html.match(/class="parallel-list-item-(full|mention)"/g)?.length ?? 0
