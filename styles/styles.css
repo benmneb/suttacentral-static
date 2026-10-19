@@ -2016,14 +2016,87 @@ body:has(#search-modal:popover-open)
   }
 }
 
-[popover]#search-modal::backdrop,
-[popover]#info::backdrop,
-[popover]#parallels::backdrop {
+[popover]#search-modal::backdrop {
   backdrop-filter: blur(3px);
 }
 
-body:has([popover]#search-modal:popover-open),
-body:has([popover]#info:popover-open),
-body:has([popover]#parallels:popover-open) {
+body:has([popover]#search-modal:popover-open) {
   overflow: hidden;
+}
+
+/* Not in the bar's lis, whose styles would reach a legacy text's info html */
+@supports (anchor-name: --a) and selector(:popover-open) {
+  [popover]:is(#info, #parallels) {
+    position-anchor: --aside-bar;
+    inset: anchor(bottom) anchor(right) auto auto;
+    margin: 0;
+    /* Shown by hover, it's not in the top layer */
+    z-index: 2;
+    border-top-right-radius: 0;
+    overscroll-behavior: contain;
+    /* Moved down and shrunk, so the blur doesn't fall on the bar */
+    box-shadow: 0 0.6rem 1rem -0.4rem var(--shadow-color);
+  }
+
+  @media (hover: hover) {
+    aside:has(#info-button:hover) ~ main #info,
+    aside:has(#parallels-button:hover) ~ main #parallels,
+    [popover]:is(#info, #parallels):hover {
+      display: block;
+    }
+
+    aside:has(#info-button:focus:not(:focus-visible, :active))
+      ~ main
+      #info:not(:popover-open),
+    aside:has(#parallels-button:focus:not(:focus-visible, :active))
+      ~ main
+      #parallels:not(:popover-open) {
+      visibility: hidden;
+      transition: visibility 0s 0.1s;
+    }
+  }
+
+  aside:has(~ main #info:popover-open) #info-button,
+  aside:has(~ main #parallels:popover-open) #parallels-button {
+    background-color: var(--primary-color);
+    color: var(--background-color);
+  }
+
+  aside:has(~ main #info:not(:popover-open))
+    #info-button:focus:not(:focus-visible, :active),
+  aside:has(~ main #parallels:not(:popover-open))
+    #parallels-button:focus:not(:focus-visible, :active) {
+    @media (hover: none) {
+      background-color: inherit;
+      color: var(--fg-alt-3);
+    }
+
+    @media (hover: hover) {
+      &:not(:hover) {
+        background-color: inherit;
+        color: var(--fg-alt-3);
+      }
+    }
+  }
+
+  @media only screen and (max-width: 600px) {
+    [popover]:is(#info, #parallels) {
+      left: anchor(left);
+      width: auto;
+      max-width: none;
+      border-top-left-radius: 0;
+    }
+  }
+}
+
+@supports not (anchor-name: --a) {
+  [popover]#info::backdrop,
+  [popover]#parallels::backdrop {
+    backdrop-filter: blur(3px);
+  }
+
+  body:has([popover]#info:popover-open),
+  body:has([popover]#parallels:popover-open) {
+    overflow: hidden;
+  }
 }

@@ -85,7 +85,13 @@ eleventyComputed:
         </li>
       {% endif %}
       <li>
-        <button popovertarget="info" aria-label="Show publication information">
+        <button
+          popovertarget="info"
+          tabindex="0"
+          aria-controls="info"
+          aria-label="Show publication information"
+          id="info-button"
+        >
           <span>Info</span>
         </button>
       </li>
@@ -167,7 +173,13 @@ eleventyComputed:
         </ul>
       </li>
       <li>
-        <button popovertarget="parallels" aria-label="Show parallel texts">
+        <button
+          popovertarget="parallels"
+          tabindex="0"
+          aria-controls="parallels"
+          aria-label="Show parallel texts"
+          id="parallels-button"
+        >
           <span>Parallels</span>
         </button>
       </li>
