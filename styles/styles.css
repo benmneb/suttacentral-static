@@ -148,6 +148,16 @@
   background-color: var(--primary-color);
 }
 
+/* Text in a span, as * + * skips bare text and flex drops spaces */
+.with-icon {
+  display: inline-flex;
+  align-items: center;
+
+  > * + * {
+    margin-inline-start: 0.25em;
+  }
+}
+
 .icon {
   inline-size: 1.25em;
   block-size: 1.25em;
@@ -346,10 +356,6 @@ body {
 }
 
 &:has(#commenter:checked) {
-  #views-menu > li:has(#commenter-inline) {
-    display: flex;
-  }
-
   .segment button[popovertarget] {
     display: initial;
   }
@@ -373,10 +379,6 @@ body {
 
     /* can't use `var(--content-max-width)` in media queries :'( */
     @media only screen and (min-width: 600px) {
-      #views-menu > li:has(#commenter-side) {
-        display: flex;
-      }
-
       &:has(#commenter-side:checked) {
         main {
           max-width: var(--content-double-width-gap);
@@ -465,10 +467,6 @@ body {
 }
 
 &:has(#rooter:checked) {
-  #views-menu > li:has(#rooter-first) {
-    display: flex;
-  }
-
   main article .endbook,
   .endvagga,
   .endkanda {
@@ -486,10 +484,6 @@ body {
 
   /* can't use `var(--content-max-width)` in media queries :'( */
   @media only screen and (min-width: 600px) {
-    #views-menu > li:has(#rooter-side) {
-      display: flex;
-    }
-
     &:has(#rooter-side:checked) {
       .segment {
         display: grid;
@@ -763,7 +757,7 @@ aside {
       display: flex;
       align-items: center;
       height: 100%;
-      min-height: 1.5rem;
+      min-height: 1.75rem;
       padding: 0 0.5rem;
       border: none;
       font-weight: bold;
@@ -971,7 +965,7 @@ aside {
       max-height: none;
       overflow: visible;
       margin: 0;
-      padding: 0 0.3rem 0 0;
+      padding: 0;
       border: none;
       box-shadow: none;
       background-color: var(--bg-alt-2);
@@ -983,11 +977,13 @@ aside {
     ul li ul,
     ul li ol {
       li {
+        box-sizing: border-box;
         width: 100%;
         display: flex;
         align-items: center;
 
-        &:not(#contents-menu > li) {
+        /* Two :not()s, as lightningcss makes one an :-webkit-any() without > */
+        &:not(#contents-menu > li):not(.tts-controls) {
           padding-right: 0.3rem;
         }
 
@@ -1008,6 +1004,9 @@ aside {
         label {
           width: 100%;
           padding: 0 0.3rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
         }
 
         input {
@@ -1018,11 +1017,28 @@ aside {
         input {
           cursor: pointer;
         }
+      }
+    }
 
-        &:has(#rooter-first),
-        &:has(#rooter-side) {
-          display: none;
-        }
+    @media not all and (pointer: coarse) {
+      ul li ul > li:not(.tts-controls):not(.notice),
+      ul li ol > li {
+        min-height: 1.75rem;
+      }
+
+      ul li ul > li > label {
+        align-self: stretch;
+      }
+    }
+
+    /* Align under the parent's text: add up its padding, icon, icon margin and span gap */
+    #views-menu {
+      > li.sub > label {
+        padding-inline-start: calc(0.5rem + 1.25em);
+      }
+
+      > li.sub-sub > label {
+        padding-inline-start: calc(0.7rem + 2.5em);
       }
     }
 
@@ -1282,7 +1298,7 @@ main {
   .segment,
   .reference,
   a.ref {
-    scroll-margin-top: 2.5rem;
+    scroll-margin-top: 2.75rem;
   }
 
   ul {
@@ -1855,9 +1871,24 @@ a:where([href]) {
   font-size: 2em;
 }
 
-#views-menu > li:has(#commenter-inline),
-#views-menu > li:has(#commenter-side) {
-  display: none;
+/* Flat, not display: none, so the menu doesn't widen as it shows */
+&:not(:has(#commenter:checked)) #views-menu > li:has(#commenter-inline),
+&:not(:has(#commenter:checked):has(#commenter-inline:checked))
+  #views-menu
+  > li:has(#commenter-side),
+&:has(#rooter):not(:has(#rooter:checked))
+  #views-menu
+  > li:is(:has(#rooter-side), :has(#rooter-first)) {
+  visibility: hidden;
+  height: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media not all and (min-width: 600px) {
+  #views-menu > li:is(:has(#commenter-side), :has(#rooter-side)) {
+    display: none;
+  }
 }
 
 @keyframes aside-search-in {
@@ -2141,6 +2172,31 @@ button#show-more {
 input[type='range'],
 input[type='checkbox'] {
   accent-color: var(--primary-color);
+}
+
+#listen-menu li:has(> #voice-select, > input[type='range']) label {
+  width: auto;
+  flex: none;
+}
+
+#voice-select,
+#rate,
+#pitch {
+  flex: 1;
+  min-width: 0;
+}
+
+:is(#views-menu, #listen-menu) label .icon {
+  color: var(--text-color-secondary);
+  margin-right: 0.2rem;
+}
+
+:is(#views-menu, #listen-menu) > li:is(:hover, :focus-within) > label .icon {
+  color: var(--text-color);
+}
+
+:is(#views-menu, #listen-menu) > li:has(> input:checked) > label .icon {
+  color: var(--primary-color);
 }
 
 summary::marker {
