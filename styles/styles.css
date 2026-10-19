@@ -381,7 +381,7 @@ body {
     @media only screen and (min-width: 600px) {
       &:has(#commenter-side:checked) {
         main {
-          max-width: var(--content-double-width-gap);
+          grid-template-columns: minmax(0, 1fr);
         }
         main ~ nav {
           max-width: var(--content-double-width);
@@ -475,7 +475,7 @@ body {
 
   &:has(#rooter-side:checked) {
     main {
-      max-width: var(--content-double-width-gap);
+      grid-template-columns: minmax(0, 1fr);
     }
     main ~ nav {
       max-width: var(--content-double-width);
@@ -1406,6 +1406,14 @@ aside {
       }
     }
   }
+}
+
+/* Not main's width, as changing it turns off scroll anchoring */
+main:has(.segment) {
+  display: grid;
+  max-width: var(--content-double-width-gap);
+  grid-template-columns: minmax(0, var(--content-max-width));
+  justify-content: center;
 }
 
 main {
