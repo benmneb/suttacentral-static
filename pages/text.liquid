@@ -69,6 +69,9 @@ eleventyComputed:
             popover
             aria-labelledby="contents-button"
             id="contents-menu"
+            {% if entry.scx_toc_number_width != blank %}
+              style="--toc-number-width: {{ entry.scx_toc_number_width }}"
+            {% endif %}
           >
             {% for heading in entry.scx_toc %}
               <li

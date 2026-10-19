@@ -334,6 +334,25 @@ function collectToc(entry) {
   return collectLegacyToc(entry)
 }
 
+/** The contents, and the width of its widest number, so all the titles line up: a digit is 1ch, a dot a little over half */
+function tocOf(entry) {
+  const toc = collectToc(entry)
+  const counts = [0, 0, 0]
+  let width = 0
+  for (const { level, isTitle } of toc) {
+    const i = level - 2
+    if (!isTitle) counts[i]++
+    counts.fill(0, i + 1)
+    if (isTitle) continue
+    const digits = counts.slice(0, i + 1).join('').length
+    width = Math.max(width, digits + (i + 1) * 0.6)
+  }
+  return {
+    scx_toc: toc,
+    scx_toc_number_width: width ? `${width.toFixed(1)}ch` : '',
+  }
+}
+
 function flatten(nodes, parent, parentPath) {
   return nodes.flatMap(node => {
     let currentPath = parentPath ? `${parentPath}/${node.uid}` : `${node.uid}`
@@ -475,7 +494,7 @@ function flatten(nodes, parent, parentPath) {
             scx_breadcrumb_trail: trailOf(entry),
             scx_json_ld: generateTextJsonLd(entry),
             scx_og_tags: generateTextOGTags(entry),
-            scx_toc: collectToc(entry),
+            ...tocOf(entry),
           }))
         )
       }
@@ -492,7 +511,7 @@ function flatten(nodes, parent, parentPath) {
         scx_breadcrumb_trail: trailOf(entry),
         scx_json_ld: generateTextJsonLd(entry),
         scx_og_tags: generateTextOGTags(entry),
-        scx_toc: collectToc(entry),
+        ...tocOf(entry),
       })
       return results
     }

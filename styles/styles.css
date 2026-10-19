@@ -1183,7 +1183,7 @@ aside {
         width: 100%;
         color: inherit;
         text-decoration: none;
-        padding: 0.1rem;
+        padding: 0.1rem 0.3rem;
         display: flex;
         gap: 0.3rem;
         &:hover {
@@ -1195,6 +1195,7 @@ aside {
           flex: none;
           text-align: right;
           color: var(--headings-color);
+          font-variant-numeric: tabular-nums;
         }
 
         /* For legacy texts ie dn1/en/bodhi */
@@ -1219,6 +1220,18 @@ aside {
         a::before {
           content: counter(toc2) '.';
           min-width: 1em;
+          min-width: var(--toc-number-width);
+        }
+      }
+
+      /* Not the numbers, as bold digits are wider than the room measured */
+      &:has(> li:is([data-level='3'], [data-level='4']))
+        > li[data-level='2']
+        a {
+        font-weight: bold;
+
+        &::before {
+          font-weight: normal;
         }
       }
 
@@ -1229,6 +1242,7 @@ aside {
         a::before {
           content: counter(toc2) '.' counter(toc3) '.';
           min-width: 2em;
+          min-width: var(--toc-number-width);
         }
       }
 
@@ -1238,6 +1252,7 @@ aside {
         a::before {
           content: counter(toc2) '.' counter(toc3) '.' counter(toc4) '.';
           min-width: 3em;
+          min-width: var(--toc-number-width);
         }
       }
 
