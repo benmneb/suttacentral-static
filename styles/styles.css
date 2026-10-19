@@ -856,6 +856,37 @@ aside {
       }
     }
 
+    kbd {
+      /* Shown by the script when there's a keyboard */
+      display: none;
+      border: 1px solid var(--shadow-color);
+      border-radius: var(--rounding);
+      padding: 0 0.2rem;
+      color: var(--text-color);
+      font-size: xx-small;
+      cursor: pointer;
+      margin: 0 0 0 0.2rem;
+      background-color: var(--background-color-secondary);
+      box-shadow:
+        0 1px 1px rgb(0 0 0 / 0.2),
+        0 1px 0 0 rgb(255 255 255 / 0.1) inset;
+
+      .hotkeys & {
+        display: inline;
+      }
+    }
+
+    /* Flat rather than hidden, so the menu doesn't change width */
+    :is(#views-menu, #listen-menu) > li:not(.tts-controls) {
+      kbd {
+        opacity: 0;
+      }
+
+      &:is(:hover, :focus-within) kbd {
+        opacity: 1;
+      }
+    }
+
     @media only screen and (max-width: 600px) {
       /* Wrapped in `&` as LightningCSS drops the `;` between bare declarations and the nested rules after them */
       & {

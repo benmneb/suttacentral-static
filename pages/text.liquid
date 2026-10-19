@@ -129,6 +129,9 @@ eleventyComputed:
                     {%- if entry.is_root %}Variants{% else %}Notes{% endif -%}
                   </span>
                 </span>
+                <kbd aria-hidden="true" title="Press N to cycle through these"
+                  >N</kbd
+                >
               </label>
               <input
                 type="checkbox"
@@ -167,6 +170,9 @@ eleventyComputed:
                   {% icon "languageMicro" -%}
                   <span>Root text</span>
                 </span>
+                <kbd aria-hidden="true" title="Press V to cycle through these"
+                  >V</kbd
+                >
               </label>
               <input
                 type="checkbox"
@@ -189,6 +195,7 @@ eleventyComputed:
                   {% icon "arrowsUpDownMicro" -%}
                   <span>Root first</span>
                 </span>
+                <kbd aria-hidden="true" title="Press F to toggle">F</kbd>
               </label>
               <input type="checkbox" id="rooter-first">
             </li>
@@ -202,6 +209,7 @@ eleventyComputed:
                   {% icon "hashtagMicro" -%}
                   <span>References</span>
                 </span>
+                <kbd aria-hidden="true" title="Press R to toggle">R</kbd>
               </label>
               <input
                 type="checkbox"
@@ -220,6 +228,7 @@ eleventyComputed:
                       {% icon "bookmarkMicro" -%}
                       <span>Main</span>
                     </span>
+                    <kbd aria-hidden="true" title="Press M to toggle">M</kbd>
                   </label>
                   <input
                     type="checkbox"
@@ -239,6 +248,7 @@ eleventyComputed:
                       {% icon "documentMicro" -%}
                       <span>PTS</span>
                     </span>
+                    <kbd aria-hidden="true" title="Press T to toggle">T</kbd>
                   </label>
                   <input
                     type="checkbox"
@@ -273,6 +283,7 @@ eleventyComputed:
                 {% icon "mapPinMicro" -%}
                 <span>Pin menu</span>
               </span>
+              <kbd aria-hidden="true" title="Press S to toggle">S</kbd>
             </label>
             <input type="checkbox" id="positioner" checked>
           </li>
