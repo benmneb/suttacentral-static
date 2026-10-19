@@ -34,9 +34,6 @@
   const LABEL_PLAY = 'Play'
   const LABEL_PAUSE = 'Pause'
   const LABEL_RESUME = 'Play'
-  const ICON_PLAY = '▶️'
-  const ICON_PAUSE = '⏸️'
-  const ICON_RESUME = '▶️'
 
   const synth = window.speechSynthesis
   const canHighlightRanges =
@@ -76,6 +73,9 @@
   const playPauseBtn = document.getElementById('playpause')
   const playPauseBtnIcon = playPauseBtn.getElementsByTagName('span')[0]
   const playPauseBtnLabel = playPauseBtn.getElementsByTagName('span')[1]
+  const ICON_PLAY = playPauseBtnIcon.innerHTML
+  const ICON_PAUSE = document.getElementById('pause-icon')?.innerHTML ?? ''
+  const ICON_RESUME = ICON_PLAY
   const nextBtn = document.getElementById('next')
   const stopBtn = document.getElementById('stop')
   const autoScrollToggle = document.getElementById('auto-scroll')
@@ -524,16 +524,16 @@
   function updatePlayPauseLabel() {
     if (isPaused) {
       playPauseBtnLabel.textContent = LABEL_RESUME
-      playPauseBtnIcon.textContent = ICON_RESUME
+      playPauseBtnIcon.innerHTML = ICON_RESUME
       return
     }
     if (isPlaying) {
       playPauseBtnLabel.textContent = LABEL_PAUSE
-      playPauseBtnIcon.textContent = ICON_PAUSE
+      playPauseBtnIcon.innerHTML = ICON_PAUSE
       return
     }
     playPauseBtnLabel.textContent = LABEL_PLAY
-    playPauseBtnIcon.textContent = ICON_PLAY
+    playPauseBtnIcon.innerHTML = ICON_PLAY
   }
 
   // Text languages whose voices go by another code: Literary Chinese, Japanese, Kannada, Classical Tibetan,
@@ -820,7 +820,7 @@
     isPaused = false
     currentIndex = Math.max(0, Math.min(index, visibleTextContent.length - 1))
     playPauseBtnLabel.textContent = LABEL_PAUSE
-    playPauseBtnIcon.textContent = ICON_PAUSE
+    playPauseBtnIcon.innerHTML = ICON_PAUSE
     setNavControlsEnabled(true)
     updateClickableSpans()
     speakNext()
@@ -901,7 +901,7 @@
     currentUtterance = null
     currentIndex = 0
     playPauseBtnLabel.textContent = LABEL_PLAY
-    playPauseBtnIcon.textContent = ICON_PLAY
+    playPauseBtnIcon.innerHTML = ICON_PLAY
     setNavControlsEnabled(false)
     updateClickableSpans()
   }
@@ -917,7 +917,7 @@
     isPaused = false
     currentIndex = 0
     playPauseBtnLabel.textContent = LABEL_PLAY
-    playPauseBtnIcon.textContent = ICON_PLAY
+    playPauseBtnIcon.innerHTML = ICON_PLAY
     setNavControlsEnabled(false)
     updateClickableSpans()
   }

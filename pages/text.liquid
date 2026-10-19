@@ -203,16 +203,17 @@ eleventyComputed:
           </li>
           <li role="menuitem" class="tts-controls">
             <button id="prev" type="button">
-              <span>⏮️</span><span>Prev</span>
+              <span>{% icon "backward" %}</span><span>Prev</span>
             </button>
             <button id="playpause" type="button">
-              <span>▶️</span><span>Play</span>
+              <span>{% icon "play" %}</span><span>Play</span>
             </button>
+            <template id="pause-icon">{% icon "pause" %}</template>
             <button id="stop" type="button">
-              <span>⏹️</span><span>Stop</span>
+              <span>{% icon "stop" %}</span><span>Stop</span>
             </button>
             <button id="next" type="button">
-              <span>⏭️</span><span>Next</span>
+              <span>{% icon "forward" %}</span><span>Next</span>
             </button>
           </li>
           <li role="menuitem">
@@ -250,8 +251,12 @@ eleventyComputed:
         </ul>
       </li>
       <li class="aside-search">
-        <button popovertarget="search-modal" aria-label="Search texts">
-          🔎
+        <button
+          popovertarget="search-modal"
+          aria-label="Search texts"
+          title="Cmd/Ctrl+K"
+        >
+          {% icon "magnifyingGlassMicro" %}
         </button>
       </li>
     </ul>

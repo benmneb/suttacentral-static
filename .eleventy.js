@@ -1,5 +1,6 @@
 import htmlmin from 'html-minifier-terser'
 import { recordStat } from './tools/buildStats.js'
+import { heroicons } from './tools/heroicons.js'
 import { minifyCss, minifyJs } from './tools/minifyAssets.js'
 import { isMultiTextSpan } from './tools/rangeSuttas.js'
 import { referenceEditionName } from './tools/referenceEditions.js'
@@ -72,6 +73,11 @@ export default function (eleventyConfig) {
   eleventyConfig.addFilter('softHyphenateTitle', softHyphenateTitle)
   eleventyConfig.addFilter('isHeading', isHeadingHTML)
   eleventyConfig.addFilter('formatVolpages', formatVolpages)
+
+  eleventyConfig.addShortcode('icon', function (name) {
+    if (!heroicons[name]) throw new Error(`No heroicon called "${name}"`)
+    return heroicons[name]
+  })
 
   eleventyConfig.addFilter('parseJSON', function (value) {
     try {

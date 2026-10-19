@@ -144,6 +144,23 @@
   background-color: var(--primary-color);
 }
 
+.icon {
+  inline-size: 1.25em;
+  block-size: 1.25em;
+  vertical-align: -0.25em;
+  flex-shrink: 0;
+
+  &.micro {
+    inline-size: 1em;
+    block-size: 1em;
+    vertical-align: -0.125em;
+  }
+
+  &.search {
+    color: var(--text-color);
+  }
+}
+
 body {
   font-family: var(--serif-font);
   background: var(--background-color);
@@ -183,6 +200,12 @@ body {
     margin: 1rem;
     view-timeline-name: --site-header;
 
+    /* rem, as the button's em is the browser's control font-size */
+    .icon.micro {
+      inline-size: 1rem;
+      block-size: 1rem;
+    }
+
     > nav {
       display: flex;
       justify-content: space-between;
@@ -205,8 +228,15 @@ body {
           list-style-type: none;
           display: flex;
 
-          &:first-of-type a {
+          &:first-of-type > * {
             text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 1.75rem;
+            margin: -0.125rem -0.375rem;
+            padding: 0 0.375rem;
+            border-radius: var(--rounding);
           }
 
           &::after {
@@ -226,10 +256,21 @@ body {
         cursor: pointer;
         background: none;
         border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-color);
+        padding: 0.375rem;
+        margin-block: -0.3125rem;
+        border-radius: var(--rounding);
 
         &:focus,
         &:hover {
           background-color: var(--primary-color);
+
+          > .icon {
+            color: var(--background-color);
+          }
         }
       }
     }
@@ -730,6 +771,17 @@ aside {
         animation: aside-search-in linear both;
         animation-timeline: --site-header;
         animation-range: exit 0% exit 100%;
+      }
+
+      /* rem like the header's, as the button's em is the browser's control default */
+      .icon.micro {
+        inline-size: 1rem;
+        block-size: 1rem;
+      }
+
+      button:focus > .icon,
+      button:hover > .icon {
+        color: var(--background-color);
       }
     }
 
@@ -1597,6 +1649,12 @@ a:where([href]) {
     &[disabled] {
       opacity: 0.2;
       cursor: not-allowed;
+    }
+
+    /* Flex, so the icon has no line box to sit low in */
+    > span:first-of-type {
+      display: flex;
+      font-size: large;
     }
   }
 }

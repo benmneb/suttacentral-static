@@ -40,3 +40,5 @@ This project uses the public SuttaCentral APIs at build time to generate a fully
 ## License
 
 Donated to the public domain via [CC0](https://creativecommons.org/publicdomain/zero/1.0/)
+
+[UI icons](tools/heroicons.js) from [Heroicons](https://heroicons.com) by Tailwind Labs, MIT licensed

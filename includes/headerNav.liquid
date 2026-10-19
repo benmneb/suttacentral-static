@@ -1,10 +1,18 @@
 <nav aria-label="Breadcrumb">
   <ul>
     {% if isHome %}
-      <li>📚</li>
+      <li aria-current="page">
+        <span>
+          {%- icon "homeMicro" -%}
+          <span class="sr-only">Home</span></span
+        >
+      </li>
     {% else %}
       <li>
-        <a href="/" aria-label="Home">📚<span class="sr-only">Home</span></a>
+        <a href="/" aria-label="Home">
+          {%- icon "homeMicro" -%}
+          <span class="sr-only">Home</span></a
+        >
       </li>
       {{ breadcrumbsList }}
     {% endif %}
@@ -14,8 +22,9 @@
       type="submit"
       popovertarget="search-modal"
       aria-label="Search texts"
+      title="Cmd/Ctrl+K"
     >
-      🔎
+      {% icon "magnifyingGlassMicro" %}
     </button>
   {% endunless %}
 </nav>
