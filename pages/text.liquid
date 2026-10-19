@@ -248,9 +248,9 @@ eleventyComputed:
         >
           <li class="notice">
             <noscript>
-              Please enable javascript to listen to this text. It works 100%
-              locally in your browser via the SpeechSynthesis API, including
-              while offline.
+              Please enable javascript to listen to this text. It reads aloud in
+              your browser with your device's own voices, via the
+              SpeechSynthesis API, and most of them work offline.
             </noscript>
           </li>
           <li id="no-voices" class="notice" hidden>
@@ -279,6 +279,29 @@ eleventyComputed:
               <span data-also-a="Rate" data-also-b="Pitch">Voice</span>
             </label>
             <select id="voice-select"></select>
+            <button
+              id="voice-info-button"
+              type="button"
+              aria-expanded="false"
+              aria-controls="voice-info"
+              aria-label="About voices"
+              title="About voices"
+            >
+              {% icon "informationCircleMicro" %}
+            </button>
+          </li>
+          <li id="voice-info" class="voice-info" hidden>
+            <p>
+              These voices all come from your device and browser. Higher quality
+              voices are usually a free download in your system's speech or
+              accessibility settings. Remember to reload the page after adding
+              new ones.
+            </p>
+            {% comment %} Unhidden by the script for an online voice {% endcomment %}
+            <p id="voice-info-online" hidden>
+              Voices marked ONLINE send the text to the company that makes them,
+              such as Google or Microsoft. The rest read it on your device.
+            </p>
           </li>
           <li>
             <label for="rate" class="with-icon">

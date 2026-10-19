@@ -99,6 +99,15 @@
   rootMenuEl.style.maxWidth = '100vw'
   rootMenuEl.classList.add('scripted')
 
+  // A button, as a <details> would keep it beside the select
+  const voiceInfoButton = document.getElementById('voice-info-button')
+  const voiceInfo = document.getElementById('voice-info')
+  voiceInfoButton?.addEventListener('click', () => {
+    if (!voiceInfo) return
+    voiceInfo.hidden = !voiceInfo.hidden
+    voiceInfoButton.setAttribute('aria-expanded', String(!voiceInfo.hidden))
+  })
+
   const textLang =
     rootMenuEl.dataset.textLang ||
     document.querySelector('main > article')?.lang ||
@@ -670,7 +679,8 @@
       const list = byLang.get(lang) || []
       for (const v of list) {
         const opt = document.createElement('option')
-        opt.textContent = `${v.name}${v.default ? ' -- DEFAULT' : ''}`
+        // Online voices send the text away to be read, as Chrome's Google ones and Edge's Natural ones do
+        opt.textContent = `${v.name}${v.default ? ' -- DEFAULT' : ''}${v.localService === false ? ' -- ONLINE' : ''}`
         opt.setAttribute('data-name', v.name)
         opt.setAttribute('data-lang', v.lang)
         group.appendChild(opt)
@@ -701,6 +711,10 @@
     // Checked every time the list fills, as Chrome hands back none at first and the rest a moment later
     const hasVoices = voices.length > 0
     if (noVoicesEl) noVoicesEl.hidden = hasVoices
+    // What ONLINE means, only where there's a voice marked so
+    const voiceInfoOnline = document.getElementById('voice-info-online')
+    if (voiceInfoOnline)
+      voiceInfoOnline.hidden = !voices.some(v => v.localService === false)
     voiceSelect.disabled = !hasVoices
     playPauseBtn.disabled = !hasVoices
   }

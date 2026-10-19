@@ -932,6 +932,13 @@ aside {
             flex-shrink: 0;
           }
 
+          /* The row that shrinks and scrolls on small phones, so the controls stay in sight */
+          > li.voice-info {
+            flex-shrink: 1;
+            overflow-y: auto;
+            align-items: flex-start;
+          }
+
           @supports selector(:popover-open) {
             &:popover-open,
             &:has(#stop:enabled) {
@@ -1062,6 +1069,57 @@ aside {
           cursor: pointer;
         }
       }
+    }
+
+    #listen-menu > li:has(> #voice-info-button) {
+      padding-right: 0;
+    }
+
+    #voice-info-button {
+      /* height: 100% can't stretch here */
+      height: auto;
+      align-self: stretch;
+      justify-content: center;
+      min-width: 1.75rem;
+      margin-left: 0.2rem;
+      padding: 0;
+      border-radius: var(--rounding);
+
+      /* The bar's colour is under 3:1 on the menu */
+      &:not(:hover):not(:focus) {
+        color: inherit;
+      }
+
+      .icon.micro {
+        inline-size: 1rem;
+        block-size: 1rem;
+      }
+    }
+
+    /* Not fainter, which falls short of 4.5:1 on the menu's tint */
+    #listen-menu > li.voice-info {
+      align-items: flex-start;
+      flex-direction: column;
+      padding-top: 0.25rem;
+
+      &:is(:hover, :focus-within) {
+        background: none;
+      }
+
+      /* Wraps to the width the other rows give the menu */
+      p {
+        box-sizing: border-box;
+        width: 0;
+        min-width: 100%;
+        margin: 0 0 0.5rem;
+        padding: 0 0.3rem;
+        font-size: small;
+      }
+    }
+
+    /* Shown by the rows' display, so hidden needs saying again */
+    #listen-menu.scripted > li.voice-info[hidden] {
+      display: none;
     }
 
     @media not all and (pointer: coarse) {
@@ -1336,6 +1394,10 @@ aside {
       #contents-menu a {
         align-self: stretch;
         align-items: center;
+      }
+
+      #voice-info-button {
+        min-width: 2.75rem;
       }
 
       ul li ul > li > input[type='checkbox'] {
