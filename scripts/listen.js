@@ -72,7 +72,7 @@
   const prevBtn = document.getElementById('prev')
   const playPauseBtn = document.getElementById('playpause')
   const playPauseBtnIcon = playPauseBtn.getElementsByTagName('span')[0]
-  const playPauseBtnLabel = playPauseBtn.getElementsByTagName('span')[1]
+  const playPauseBtnLabel = playPauseBtn.querySelector('span span')
   const ICON_PLAY = playPauseBtnIcon.innerHTML
   const ICON_PAUSE = document.getElementById('pause-icon')?.innerHTML ?? ''
   const ICON_RESUME = ICON_PLAY

@@ -788,6 +788,12 @@ aside {
       color: var(--fg-alt-3);
     }
 
+    /* rem, as the button's em is the browser's control font-size */
+    > ul > li > button > .icon.micro {
+      inline-size: 1rem;
+      block-size: 1rem;
+    }
+
     /* Needed for the menus width */
     > ul > li:has(> #contents-menu) {
       position: static;
@@ -809,12 +815,6 @@ aside {
         animation-range: exit 0% exit 100%;
       }
 
-      /* rem like the header's, as the button's em is the browser's control default */
-      .icon.micro {
-        inline-size: 1rem;
-        block-size: 1rem;
-      }
-
       button:focus > .icon,
       button:hover > .icon {
         color: var(--background-color);
@@ -833,24 +833,37 @@ aside {
       }
 
       > ul > li.aside-search {
-        flex: 0 0 auto;
+        flex: 0 1 0;
+        max-width: none;
+        animation-name: aside-search-grow;
       }
 
-      /* Search sits right of it, so anchor the menu to the screen edge */
+      > ul > li:has(> #views-menu),
       > ul > li:has(> #listen-menu) {
         position: static;
       }
 
+      #views-menu,
+      #listen-menu {
+        left: 0;
+        right: 0;
+        width: auto;
+        max-width: none;
+        border-top-left-radius: 0;
+
+        > li:first-of-type {
+          border-top-left-radius: 0;
+        }
+      }
+
+      /* Any smaller and Chrome's touch adjustment moves taps to the search */
       > ul > li > button {
         width: 100%;
+        min-height: 2.75rem;
         justify-content: center;
 
         &:hover {
           border-radius: 0;
-        }
-
-        > span {
-          text-align: center;
         }
       }
     }
@@ -1131,6 +1144,30 @@ aside {
             content: none;
           }
         }
+      }
+    }
+
+    @media (pointer: coarse) {
+      > ul > li > button {
+        min-width: 2.75rem;
+        justify-content: center;
+      }
+
+      > ul > li > button,
+      ul li ul > li:not(.notice),
+      ul li ol > li {
+        min-height: 2.75rem;
+      }
+
+      ul li ul > li > label,
+      #contents-menu a {
+        align-self: stretch;
+        align-items: center;
+      }
+
+      ul li ul > li > input[type='checkbox'] {
+        width: 1.125rem;
+        height: 1.125rem;
       }
     }
   }
@@ -1737,6 +1774,13 @@ a:where([href]) {
   }
 }
 
+@keyframes aside-search-grow {
+  to {
+    flex-grow: 1;
+    visibility: visible;
+  }
+}
+
 #listen-menu {
   max-width: 30ch;
 
@@ -1795,13 +1839,17 @@ a:where([href]) {
 
 .tts-controls {
   display: flex;
-  height: 3rem;
+  min-height: 3rem;
 
   button {
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    /* height: 100% can't stretch against the aside's min-height */
+    height: auto;
+    align-self: stretch;
+    padding-block: 0.5rem;
 
     &[disabled] {
       opacity: 0.2;
@@ -1812,6 +1860,16 @@ a:where([href]) {
     > span:first-of-type {
       display: flex;
       font-size: large;
+    }
+
+    /* Like .sr-only, as they name the buttons */
+    > span:nth-of-type(2) > span {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
     }
   }
 }

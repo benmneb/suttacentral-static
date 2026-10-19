@@ -59,9 +59,10 @@ eleventyComputed:
             tabindex="0"
             aria-controls="contents-menu"
             aria-label="Table of contents"
+            title="Table of contents"
             id="contents-button"
           >
-            <span>Contents</span>
+            {% icon "numberedListMicro" %}
           </button>
           <ol
             class="dropdown"
@@ -90,9 +91,10 @@ eleventyComputed:
           tabindex="0"
           aria-controls="info"
           aria-label="Show publication information"
+          title="Show publication information"
           id="info-button"
         >
-          <span>Info</span>
+          {% icon "informationCircleMicro" %}
         </button>
       </li>
       <li>
@@ -101,9 +103,10 @@ eleventyComputed:
           tabindex="0"
           aria-controls="views-menu"
           aria-label="Text display settings"
+          title="Text display settings"
           id="views-button"
         >
-          <span>Views</span>
+          {% icon "eyeMicro" %}
         </button>
         <ul
           class="dropdown"
@@ -178,9 +181,10 @@ eleventyComputed:
           tabindex="0"
           aria-controls="parallels"
           aria-label="Show parallel texts"
+          title="Show parallel texts"
           id="parallels-button"
         >
-          <span>Parallels</span>
+          {% icon "arrowsRightLeftMicro" %}
         </button>
       </li>
       <li>
@@ -189,9 +193,10 @@ eleventyComputed:
           tabindex="0"
           aria-controls="listen-menu"
           aria-label="Text to speech settings"
+          title="Text to speech settings"
           id="listen-menu-button"
         >
-          <span>Listen</span>
+          {% icon "speakerWaveMicro" %}
         </button>
         <ul
           class="dropdown"
@@ -214,17 +219,17 @@ eleventyComputed:
           </li>
           <li class="tts-controls">
             <button id="prev" type="button">
-              <span>{% icon "backward" %}</span><span>Prev</span>
+              <span>{% icon "backward" %}</span><span><span>Prev</span></span>
             </button>
             <button id="playpause" type="button">
-              <span>{% icon "play" %}</span><span>Play</span>
+              <span>{% icon "play" %}</span><span><span>Play</span></span>
             </button>
             <template id="pause-icon">{% icon "pause" %}</template>
             <button id="stop" type="button">
-              <span>{% icon "stop" %}</span><span>Stop</span>
+              <span>{% icon "stop" %}</span><span><span>Stop</span></span>
             </button>
             <button id="next" type="button">
-              <span>{% icon "forward" %}</span><span>Next</span>
+              <span>{% icon "forward" %}</span><span><span>Next</span></span>
             </button>
           </li>
           <li>
