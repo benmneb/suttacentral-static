@@ -484,14 +484,25 @@
       byLang.get(lang).push(v)
     }
 
-    // Sort languages alphabetically
-    const langs = Array.from(byLang.keys()).sort((a, b) => {
-      const aa = (a || '').toUpperCase()
-      const bb = (b || '').toUpperCase()
-      if (aa < bb) return -1
-      if (aa === bb) return 0
-      return 1
-    })
+    // Older browsers can't name them, so get the code
+    const uiLang = document.documentElement.lang || undefined
+    let langNames = null
+    try {
+      langNames = new Intl.DisplayNames(uiLang, {
+        type: 'language',
+        languageDisplay: 'standard',
+      })
+    } catch (e) {}
+    const langLabel = lang => {
+      try {
+        return langNames?.of(lang.replace('_', '-')) ?? lang
+      } catch (e) {
+        return lang
+      }
+    }
+    const langs = Array.from(byLang.keys()).sort((a, b) =>
+      langLabel(a).localeCompare(langLabel(b), uiLang)
+    )
 
     // Sort voices within each language by name
     for (const [, list] of byLang) {
@@ -563,7 +574,7 @@
     voiceSelect.innerHTML = ''
     for (const lang of langs) {
       const group = document.createElement('optgroup')
-      group.label = lang
+      group.label = langLabel(lang)
       const list = byLang.get(lang) || []
       for (const v of list) {
         const opt = document.createElement('option')
