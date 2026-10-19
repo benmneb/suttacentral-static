@@ -200,6 +200,18 @@ eleventyComputed:
               <input type="checkbox" id="rooter-first">
             </li>
           {% endunless %}
+          {% if entry.scx_illustrations %}
+            <li>
+              <label for="illustrator">
+                <span class="with-icon">
+                  {% icon "photoMicro" -%}
+                  <span>Illustrations</span>
+                </span>
+                <kbd aria-hidden="true" title="Press I to toggle">I</kbd>
+              </label>
+              <input type="checkbox" id="illustrator" checked>
+            </li>
+          {% endif %}
           {% if entry.scx_has_highlights %}
             <li>
               <label for="highlighter" title="Highlight text-critical details">
@@ -626,6 +638,9 @@ eleventyComputed:
               {% endunless %}
             </span>
             {% endif %}
+            {% if entry.scx_illustrations %}
+              {% include "illustrations.liquid", illustrations: entry.scx_illustrations[key] %}
+            {% endif %}
           </span>
           {% endcapture %}
           {{ html | replace: "{}", replacement }}
@@ -818,6 +833,9 @@ eleventyComputed:
                   </span>
                 {% endunless %}
               </span>
+            {% endif %}
+            {% if entry.scx_illustrations %}
+              {% include "illustrations.liquid", illustrations: entry.scx_illustrations[key] %}
             {% endif %}
           </span>
           {% endcapture %}

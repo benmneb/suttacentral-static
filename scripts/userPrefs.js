@@ -24,6 +24,7 @@
     'segmenter-main',
     'segmenter-pts',
     'segmenter-others',
+    'illustrator',
     'highlighter',
     'positioner',
     'rate',

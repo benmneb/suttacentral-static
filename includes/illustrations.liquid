@@ -1,0 +1,14 @@
+{% comment %} Spans, as a <figure> can't go inside the <p> they usually end {% endcomment %}
+{% for illustration in illustrations %}
+  <span class="illustration" role="figure" data-pagefind-ignore="all">
+    <img
+      src="https://suttacentral.net/img/optimized-illustrations/{{ illustration.filename }}.avif"
+      alt="{{ illustration.alt | escape }}"
+      loading="lazy"
+      decoding="async"
+    >
+    {% if illustration.credit != blank %}
+      <span class="caption">{{ illustration.credit }}</span>
+    {% endif %}
+  </span>
+{% endfor %}

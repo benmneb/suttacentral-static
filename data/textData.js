@@ -236,11 +236,28 @@ function shownKeysOf(entry) {
   )
 }
 
+/** A shown segment's illustrations, by its key, or null if it has none. That's only MN 123 for now */
+function illustrationsOf(entry, keys) {
+  const byKey = {}
+  for (const illustration of entry._bilarasuttas_data?.illustrations ?? []) {
+    const { segment, filename, alt, creator, creation_date } = illustration
+    if (!keys?.includes(segment)) continue
+    byKey[segment] ??= []
+    byKey[segment].push({
+      filename,
+      alt: alt ?? '',
+      credit: [creator, creation_date].filter(Boolean).join(', '),
+    })
+  }
+  return Object.keys(byKey).length ? byKey : null
+}
+
 /** Whether each of the views menu's text-specific settings applies, and what it shows */
 function viewOptionsOf(entry) {
   const keys = shownKeysOf(entry)
   return {
     ...highlightsOf(entry, keys),
+    scx_illustrations: illustrationsOf(entry, keys),
   }
 }
 
