@@ -276,14 +276,14 @@ eleventyComputed:
           <li>
             <label for="voice-select" class="with-icon">
               {% icon "microphoneMicro" -%}
-              <span>Voice</span>
+              <span data-also-a="Rate" data-also-b="Pitch">Voice</span>
             </label>
             <select id="voice-select"></select>
           </li>
           <li>
             <label for="rate" class="with-icon">
               {% icon "clockMicro" -%}
-              <span>Rate</span>
+              <span data-also-a="Voice" data-also-b="Pitch">Rate</span>
             </label>
             <input
               type="range"
@@ -298,7 +298,7 @@ eleventyComputed:
           <li>
             <label for="pitch" class="with-icon">
               {% icon "musicalNoteMicro" -%}
-              <span>Pitch</span>
+              <span data-also-a="Voice" data-also-b="Rate">Pitch</span>
             </label>
             <input
               type="range"

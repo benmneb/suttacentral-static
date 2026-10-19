@@ -2306,9 +2306,27 @@ input[type='checkbox'] {
   accent-color: var(--primary-color);
 }
 
+/* Each label holds the others as hidden text, so all are as wide */
 #listen-menu li:has(> #voice-select, > input[type='range']) label {
   width: auto;
   flex: none;
+}
+
+#listen-menu li:has(> #voice-select, > input[type='range']) label > span {
+  display: flex;
+  flex-direction: column;
+
+  &::before,
+  &::after {
+    content: attr(data-also-a);
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+  }
+
+  &::after {
+    content: attr(data-also-b);
+  }
 }
 
 #voice-select,
@@ -2316,6 +2334,11 @@ input[type='checkbox'] {
 #pitch {
   flex: 1;
   min-width: 0;
+}
+
+#rate-value,
+#pitch-value {
+  margin-left: 0.4rem;
 }
 
 :is(#views-menu, #listen-menu) label .icon {
