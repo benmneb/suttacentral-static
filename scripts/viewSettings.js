@@ -157,6 +157,76 @@
       setChecked(parent, true)
   }
 
+  const viewsButton = document.getElementById('views-button')
+  const ttsControls = document.querySelector('#listen-menu > .tts-controls')
+  let rowsTimer
+
+  function checkedStates() {
+    const inputs = viewsMenu.querySelectorAll('input')
+    return new Map([...inputs].map(el => [el, el.checked]))
+  }
+
+  function clearShownRows() {
+    removeEventListener('scroll', placeRows)
+    viewsMenu.classList.remove('toast')
+    viewsMenu.style.removeProperty('--past-tts')
+    for (const li of viewsMenu.querySelectorAll(':scope > li.toasted'))
+      li.classList.remove('toasted', 'pressed')
+  }
+
+  function placeRows() {
+    if (!viewsButton) return
+    const { top, bottom } = viewsButton.getBoundingClientRect()
+    viewsMenu.classList.toggle(
+      'detached',
+      bottom < 0 || top > document.documentElement.clientHeight
+    )
+  }
+
+  // Like .net's toast: the menu comes up for a moment with just the rows a key changed, and those under them
+  function showChanges(ids, before) {
+    const changed = new Set(
+      [...before].filter(([el, was]) => el.checked !== was).map(([el]) => el)
+    )
+    if (!changed.size) return
+    for (const el of changed) {
+      if (!el.checked) continue
+      for (const id of el.getAttribute('aria-controls')?.split(' ') ?? []) {
+        const sub = document.getElementById(id)
+        if (sub instanceof HTMLInputElement && sub.checked) changed.add(sub)
+      }
+    }
+
+    const shown = new Set()
+    for (const el of [
+      ...ids.map(id => document.getElementById(id)),
+      ...changed,
+    ])
+      if (el) shown.add(el).add(parentOf(el.id))
+
+    clearShownRows()
+    for (const el of shown) {
+      const li = el?.closest('li')
+      if (li?.parentElement !== viewsMenu) continue
+      li.classList.add('toasted')
+      if (changed.has(el)) flashPressed(li)
+    }
+    // Measured, as with a mouse the controls have no set height
+    if (ttsControls instanceof HTMLElement && ttsControls.offsetHeight)
+      viewsMenu.style.setProperty('--past-tts', `${ttsControls.offsetHeight}px`)
+    placeRows()
+    addEventListener('scroll', placeRows, { passive: true })
+    viewsMenu.classList.add('toast')
+    clearTimeout(rowsTimer)
+    rowsTimer = setTimeout(clearShownRows, 1500)
+  }
+
+  // Not on cancel, which comes after a quick second press put it back on
+  viewsMenu.addEventListener('animationend', e => {
+    if (e.animationName === 'key-press' && e.target instanceof HTMLElement)
+      e.target.classList.remove('pressed')
+  })
+
   // Set here rather than in the markup so they're only announced when they work
   const shortcuts = [
     ...Object.entries(VIEW_SETTINGS).map(([key, ids]) => [key, ids[0]]),
@@ -188,9 +258,12 @@
     )
       return
     const key = e.key.toLowerCase()
-    if (VIEW_SETTINGS[key]) cycle(VIEW_SETTINGS[key])
-    else if (SUB_SETTINGS[key]) toggleSub(SUB_SETTINGS[key])
-    else if (LISTEN_CONTROLS[key]) {
+    if (VIEW_SETTINGS[key] || SUB_SETTINGS[key]) {
+      const before = checkedStates()
+      if (VIEW_SETTINGS[key]) cycle(VIEW_SETTINGS[key])
+      else toggleSub(SUB_SETTINGS[key])
+      showChanges(VIEW_SETTINGS[key] ?? [SUB_SETTINGS[key]], before)
+    } else if (LISTEN_CONTROLS[key]) {
       const el = document.getElementById(LISTEN_CONTROLS[key])
       // Checked before the click, as stop disables itself
       const flash = el instanceof HTMLButtonElement && !el.disabled
