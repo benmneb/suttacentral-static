@@ -1,5 +1,6 @@
 import masterData from './_masterData.js'
 import { breadcrumbTrail } from '../tools/breadcrumbs.js'
+import { onlySample } from '../tools/samplePages.js'
 import siteMetaData from './_siteMetaData.js'
 import { isChapterNode } from '../tools/pageUids.js'
 
@@ -241,7 +242,7 @@ export default async function () {
     return true
   })
 
-  return addPagination(deduped)
+  return onlySample(addPagination(deduped))
 }
 
 /*

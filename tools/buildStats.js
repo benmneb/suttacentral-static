@@ -41,6 +41,7 @@ function readJson(file) {
  * @param {unknown} value
  */
 export function recordStat(key, value) {
+  if (process.env.ONLY_UIDS) return
   try {
     const stats = readJson(statsFile)
     stats[key] = value

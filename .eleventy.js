@@ -3,6 +3,7 @@ import { recordStat } from './tools/buildStats.js'
 import { minifyCss, minifyJs } from './tools/minifyAssets.js'
 import { isMultiTextSpan } from './tools/rangeSuttas.js'
 import { referenceEditionName } from './tools/referenceEditions.js'
+import { sampleUids } from './tools/samplePages.js'
 
 const inputDir = 'pages'
 const textTemplate = `${inputDir}/text.liquid`
@@ -32,6 +33,12 @@ export default function (eleventyConfig) {
     eleventyConfig.ignores.add(textTemplate)
     navTemplates.forEach(page => eleventyConfig.ignores.add(page))
     console.log('🧰 Building only utility pages (ONLY_UTILS enabled)')
+  }
+
+  // Not the sitemap, which would be written over with only the sample in it
+  if (sampleUids) {
+    utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
+    console.log(`🧪 Building only ${sampleUids.join(', ')} (ONLY_UIDS enabled)`)
   }
 
   eleventyConfig.addFilter('endswith', function (str, suffix) {

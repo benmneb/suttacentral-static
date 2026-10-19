@@ -1,5 +1,6 @@
 import masterData from './_masterData.js'
 import { breadcrumbTrail } from '../tools/breadcrumbs.js'
+import { onlySample } from '../tools/samplePages.js'
 import siteMetaData from './_siteMetaData.js'
 import { hasPitakaPage } from '../tools/pageUids.js'
 
@@ -187,5 +188,5 @@ function flatten(nodes, parentPath = '') {
 export default async function () {
   const menu = await masterData()
   tree = menu
-  return flatten(menu).filter(Boolean)
+  return onlySample(flatten(menu).filter(Boolean))
 }
