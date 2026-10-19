@@ -24,6 +24,7 @@
     'segmenter-main',
     'segmenter-pts',
     'segmenter-others',
+    'highlighter',
     'positioner',
     'rate',
     'pitch',
@@ -186,6 +187,11 @@
           'commenter-side': true,
         })
         break
+    }
+
+    const highlight = get('highlight')
+    if (highlight === 'true' || highlight === 'false') {
+      set('highlight', { highlighter: highlight === 'true' })
     }
 
     const refs = (get('reference') ?? '')

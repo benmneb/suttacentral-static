@@ -13,6 +13,7 @@
     n: ['commenter', 'commenter-inline', 'commenter-side'],
     v: ['rooter', 'rooter-side'],
     f: ['rooter-first'],
+    o: ['highlighter'],
     r: ['segmenter'],
     s: ['positioner'],
   }

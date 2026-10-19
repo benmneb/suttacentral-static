@@ -448,6 +448,161 @@ body {
   }
 }
 
+/* Highlight text-critical details */
+&:has(#highlighter:checked) {
+  .nidana {
+    --mark-color: var(--aqua);
+  }
+  .padabhajaniya {
+    --mark-color: var(--blue);
+  }
+  .cakka {
+    --mark-color: var(--purple);
+  }
+  .anapatti {
+    --mark-color: var(--yellow);
+  }
+  .vinaya-vinita {
+    --mark-color: var(--gray);
+  }
+  .kamma {
+    --mark-color: var(--orange);
+    --mark-label: 'Formal act of the Sangha';
+  }
+  .patimokkha {
+    --mark-color: var(--green);
+    --mark-label: 'In the pātimokkha recitation';
+  }
+  /* Not .net's :not(.patimokkha) .rule, which every rule matches */
+  .rule:not(.patimokkha *):has(.segment) {
+    --mark-color: var(--red);
+    --mark-label: 'Not in the pātimokkha recitation';
+  }
+  .suttanta {
+    --mark-color: var(--brown);
+    --mark-label: 'Also found in the suttas';
+  }
+  .jataka {
+    --mark-color: var(--headings-color);
+    --mark-label: 'A past life story (Jātaka)';
+  }
+
+  /* :where, so span.kamma's inline label wins */
+  :where(
+    .nidana,
+    .padabhajaniya,
+    .cakka,
+    .anapatti,
+    .vinaya-vinita,
+    .kamma,
+    .patimokkha,
+    .rule:not(.patimokkha *):has(.segment),
+    .suttanta,
+    .jataka
+  ):not(span) {
+    border-inline-start: 2px dotted var(--mark-color);
+    padding-inline-start: 0.75rem;
+  }
+
+  :where(
+    .kamma,
+    .patimokkha,
+    .rule:not(.patimokkha *):has(.segment),
+    .suttanta,
+    .jataka
+  )::before {
+    display: block;
+    content: var(--mark-label);
+    /* Mixed with the text colour for 4.5:1 at this size */
+    color: color-mix(in srgb, var(--mark-color) 75%, var(--headings-color));
+    font-size: 0.8rem;
+    font-style: normal;
+    font-weight: bold;
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.05em;
+  }
+
+  :is(.nidana, .padabhajaniya, .cakka, .anapatti) > :is(h2, h3, h4):first-child,
+  .vinaya-vinita > .uddana:first-child > .uddana-intro:first-child {
+    color: color-mix(in srgb, var(--mark-color) 75%, var(--headings-color));
+  }
+
+  /* Legacy texts mark formal acts mid-paragraph */
+  span.kamma {
+    background-color: color-mix(in srgb, var(--mark-color) 12%, transparent);
+
+    &::before {
+      display: inline;
+      margin-inline-end: 0.3rem;
+    }
+  }
+
+  /* Not .net's darker yellows, which can't be seen in dark mode */
+  [data-doxy]::before,
+  [data-direction]::before {
+    margin-inline-end: 0.4rem;
+  }
+  [data-doxy='orthodox']::before {
+    content: '👍';
+  }
+  [data-doxy='heterodox']::before {
+    content: '👎';
+  }
+  [data-direction='forward']::before {
+    content: '👉';
+  }
+  [data-direction='reverse']::before {
+    content: '👈';
+  }
+  [data-counter]::after {
+    content: attr(data-counter);
+    margin-inline-start: 0.5rem;
+    padding: 0 0.3rem;
+    border-radius: var(--rounding);
+    background-color: var(--bg-alt-2);
+    color: var(--headings-color);
+    font-size: 0.75rem;
+    font-weight: bold;
+    font-style: normal;
+  }
+
+  /* Editors' marks in the legacy Sanskrit, Gāndhārī and Chinese editions */
+  .term {
+    color: var(--brown);
+  }
+  .gloss {
+    color: var(--aqua);
+  }
+  .supplied,
+  .supplied2 {
+    color: var(--blue);
+  }
+  .surplus {
+    color: var(--orange);
+  }
+  .var {
+    color: var(--purple);
+  }
+  .corr,
+  .corrected {
+    color: var(--green);
+  }
+  .unclear,
+  .expanded {
+    color: var(--text-color-secondary);
+  }
+  :is(.var, .corr, .corrected)[title] {
+    text-decoration: underline dotted;
+    cursor: help;
+  }
+  .metre {
+    display: block;
+    color: var(--aqua);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+  }
+}
+
 &:has(#rooter:checked) .segment {
   display: grid;
   margin-bottom: 0.3rem;

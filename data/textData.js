@@ -11,6 +11,7 @@ import masterData from './_masterData.js'
 import { breadcrumbTrail } from '../tools/breadcrumbs.js'
 import { onlySample } from '../tools/samplePages.js'
 import { referenceGroupsOf } from '../tools/referenceEditions.js'
+import { highlightsOf } from '../tools/highlights.js'
 import siteMetaData from './_siteMetaData.js'
 
 let usedPaths = []
@@ -220,6 +221,27 @@ function getRangeKeyInfo(entry, key) {
 
   // The last key is also processed by the template, but only for its closing tags
   return { isRendered: isHeader || matchesUid, isHeader }
+}
+
+/** The segment keys a page shows, or null for a legacy text */
+function shownKeysOf(entry) {
+  const data = entry._bilarasuttas_data
+  if (!data?.keys_order?.length) return null
+  const isRange =
+    entry.scx_range_sutta_individual && entry.scx_range_sutta_shown_uid
+  return data.keys_order.filter(
+    key =>
+      data.html_text[key] &&
+      (!isRange || getRangeKeyInfo(entry, key).isRendered)
+  )
+}
+
+/** Whether each of the views menu's text-specific settings applies, and what it shows */
+function viewOptionsOf(entry) {
+  const keys = shownKeysOf(entry)
+  return {
+    ...highlightsOf(entry, keys),
+  }
 }
 
 /*
@@ -497,6 +519,7 @@ function flatten(nodes, parent, parentPath) {
             scx_og_tags: generateTextOGTags(entry),
             ...tocOf(entry),
             ...referenceGroupsOf(entry),
+            ...viewOptionsOf(entry),
           }))
         )
       }
@@ -515,6 +538,7 @@ function flatten(nodes, parent, parentPath) {
         scx_og_tags: generateTextOGTags(entry),
         ...tocOf(entry),
         ...referenceGroupsOf(entry),
+        ...viewOptionsOf(entry),
       })
       return results
     }

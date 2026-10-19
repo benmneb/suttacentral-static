@@ -200,6 +200,22 @@ eleventyComputed:
               <input type="checkbox" id="rooter-first">
             </li>
           {% endunless %}
+          {% if entry.scx_has_highlights %}
+            <li>
+              <label for="highlighter" title="Highlight text-critical details">
+                <span class="with-icon">
+                  {% icon "paintBrushMicro" -%}
+                  <span>Highlighting</span>
+                </span>
+                <kbd aria-hidden="true" title="Press O to toggle">O</kbd>
+              </label>
+              <input
+                type="checkbox"
+                id="highlighter"
+                title="Highlight text-critical details"
+              >
+            </li>
+          {% endif %}
           {% if entry.segmented
             or entry._suttas_data.translation.text contains "class='ref"
           %}
