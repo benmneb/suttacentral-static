@@ -97,9 +97,7 @@
 
   // enable all the controls (they are disabled by default to show fallback text if user has JS turned off)
   rootMenuEl.style.maxWidth = '100vw'
-  rootMenuEl.querySelectorAll('li[role="menuitem"]').forEach(el => {
-    el.style.display = 'flex'
-  })
+  rootMenuEl.classList.add('scripted')
 
   const textLang =
     rootMenuEl.dataset.textLang ||

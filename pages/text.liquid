@@ -55,8 +55,8 @@ eleventyComputed:
       {% if entry.scx_toc.size > 0 %}
         <li>
           <button
-            aria-haspopup="menu"
-            aria-expanded="false"
+            popovertarget="contents-menu"
+            tabindex="0"
             aria-controls="contents-menu"
             aria-label="Table of contents"
             id="contents-button"
@@ -65,19 +65,18 @@ eleventyComputed:
           </button>
           <ol
             class="dropdown"
-            role="menu"
+            popover
             aria-labelledby="contents-button"
             id="contents-menu"
           >
             {% for heading in entry.scx_toc %}
               <li
-                role="none"
                 data-level="{{ heading.level }}"
                 {% if heading.isTitle %}
                   data-title
                 {% endif %}
               >
-                <a role="menuitem" href="{{ heading.href }}">
+                <a href="{{ heading.href }}">
                   {{- heading.html -}}
                 </a>
               </li>
@@ -92,8 +91,8 @@ eleventyComputed:
       </li>
       <li>
         <button
-          aria-haspopup="menu"
-          aria-expanded="false"
+          popovertarget="views-menu"
+          tabindex="0"
           aria-controls="views-menu"
           aria-label="Text display settings"
           id="views-button"
@@ -102,14 +101,14 @@ eleventyComputed:
         </button>
         <ul
           class="dropdown"
-          role="menu"
+          popover
           aria-labelledby="views-button"
           id="views-menu"
         >
           {% if entry.has_comment
             or entry._bilarasuttas_data.variant_text.size > 0
           %}
-            <li role="menuitem">
+            <li>
               {% if entry.is_root %}
                 <label for="commenter">Show variants</label>
               {% else %}
@@ -122,7 +121,7 @@ eleventyComputed:
                 aria-controls="commenter-inline"
               >
             </li>
-            <li role="menuitem">
+            <li>
               <label for="commenter-inline">↳ Inline</label>
               <input
                 type="checkbox"
@@ -130,13 +129,13 @@ eleventyComputed:
                 aria-controls="commenter-side"
               >
             </li>
-            <li role="menuitem">
+            <li>
               <label for="commenter-side">↳ Side by side</label>
               <input type="checkbox" id="commenter-side">
             </li>
           {% endif %}
           {% unless entry.is_root or entry.segmented == blank %}
-            <li role="menuitem">
+            <li>
               <label for="rooter">Show root text</label>
               <input
                 type="checkbox"
@@ -144,11 +143,11 @@ eleventyComputed:
                 aria-controls="rooter-first rooter-side"
               >
             </li>
-            <li role="menuitem">
+            <li>
               <label for="rooter-first">↳ Root first</label>
               <input type="checkbox" id="rooter-first">
             </li>
-            <li role="menuitem">
+            <li>
               <label for="rooter-side">↳ Side by side</label>
               <input type="checkbox" id="rooter-side">
             </li>
@@ -156,12 +155,12 @@ eleventyComputed:
           {% if entry.segmented
             or entry._suttas_data.translation.text contains "class='ref"
           %}
-            <li role="menuitem">
+            <li>
               <label for="segmenter">Show segments</label>
               <input type="checkbox" id="segmenter">
             </li>
           {% endif %}
-          <li role="menuitem">
+          <li>
             <label for="positioner">Pin this menu</label>
             <input type="checkbox" id="positioner" checked>
           </li>
@@ -174,8 +173,8 @@ eleventyComputed:
       </li>
       <li>
         <button
-          aria-haspopup="menu"
-          aria-expanded="false"
+          popovertarget="listen-menu"
+          tabindex="0"
           aria-controls="listen-menu"
           aria-label="Text to speech settings"
           id="listen-menu-button"
@@ -184,24 +183,24 @@ eleventyComputed:
         </button>
         <ul
           class="dropdown"
-          role="menu"
+          popover
           aria-labelledby="listen-menu-button"
           id="listen-menu"
           data-text-lang="{{ entry.lang }}"
         >
-          <li>
+          <li class="notice">
             <noscript>
               Please enable javascript to listen to this text. It works 100%
               locally in your browser via the SpeechSynthesis API, including
               while offline.
             </noscript>
           </li>
-          <li id="no-voices" hidden>
+          <li id="no-voices" class="notice" hidden>
             No voices found. Listen reads aloud with the text-to-speech voices
             installed on your device - add a voice in your system's speech
             settings, then reload the page.
           </li>
-          <li role="menuitem" class="tts-controls">
+          <li class="tts-controls">
             <button id="prev" type="button">
               <span>{% icon "backward" %}</span><span>Prev</span>
             </button>
@@ -216,11 +215,11 @@ eleventyComputed:
               <span>{% icon "forward" %}</span><span>Next</span>
             </button>
           </li>
-          <li role="menuitem">
+          <li>
             <label for="voice-select">Voice</label>
             <select id="voice-select"></select>
           </li>
-          <li role="menuitem">
+          <li>
             <label for="rate">Rate</label>
             <input
               type="range"
@@ -232,7 +231,7 @@ eleventyComputed:
             >
             <div id="rate-value">1.0</div>
           </li>
-          <li role="menuitem">
+          <li>
             <label for="pitch">Pitch</label>
             <input
               type="range"
@@ -244,7 +243,7 @@ eleventyComputed:
             >
             <div id="pitch-value">1.0</div>
           </li>
-          <li role="menuitem">
+          <li>
             <label for="auto-scroll">Auto-scroll</label>
             <input type="checkbox" id="auto-scroll">
           </li>

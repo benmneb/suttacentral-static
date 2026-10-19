@@ -342,7 +342,7 @@ body {
 }
 
 &:has(#commenter:checked) {
-  li[role='menuitem']:has(#commenter-inline) {
+  #views-menu > li:has(#commenter-inline) {
     display: flex;
   }
 
@@ -369,7 +369,7 @@ body {
 
     /* can't use `var(--content-max-width)` in media queries :'( */
     @media only screen and (min-width: 600px) {
-      li[role='menuitem']:has(#commenter-side) {
+      #views-menu > li:has(#commenter-side) {
         display: flex;
       }
 
@@ -461,7 +461,7 @@ body {
 }
 
 &:has(#rooter:checked) {
-  li[role='menuitem']:has(#rooter-first) {
+  #views-menu > li:has(#rooter-first) {
     display: flex;
   }
 
@@ -482,7 +482,7 @@ body {
 
   /* can't use `var(--content-max-width)` in media queries :'( */
   @media only screen and (min-width: 600px) {
-    li[role='menuitem']:has(#rooter-side) {
+    #views-menu > li:has(#rooter-side) {
       display: flex;
     }
 
@@ -640,6 +640,25 @@ body {
   }
 }
 
+/* For browsers without popovers, which would show them all in the page */
+/* Not reverted like [popover], which would undo a button's own display */
+@supports not selector(:popover-open) {
+  button[popovertarget]:not([popovertarget$='-menu']) {
+    display: none;
+  }
+}
+
+/* Hidden first so browsers without @supports selector() hide it too */
+[popover] {
+  display: none;
+}
+
+@supports selector(:popover-open) {
+  [popover] {
+    display: revert;
+  }
+}
+
 [popover] {
   color: var(--text-color);
   border: none;
@@ -703,10 +722,27 @@ aside {
     border-top-left-radius: var(--rounding);
     border-bottom-left-radius: var(--rounding);
     pointer-events: auto;
+    anchor-name: --aside-bar;
 
     /* This has to happen here and not on the button */
-    &:has(li:hover > #contents-menu, li:focus-within > #contents-menu) {
+    &:has(#contents-menu:popover-open) {
       border-bottom-left-radius: 0;
+    }
+
+    @supports selector(:popover-open) {
+      @media (hover: hover) {
+        &:has(
+          li:hover > #contents-button:not(:focus:not(:focus-visible, :active))
+        ) {
+          border-bottom-left-radius: 0;
+        }
+      }
+    }
+
+    @supports not selector(:popover-open) {
+      &:has(li:hover > #contents-menu, li:focus-within > #contents-menu) {
+        border-bottom-left-radius: 0;
+      }
     }
 
     button {
@@ -819,19 +855,27 @@ aside {
       }
     }
 
-    ul li ul,
-    ul li ol {
+    /* A class, to win over the site's own popover styles */
+    .dropdown {
       display: none;
       position: absolute;
-      right: 0;
-      top: 100%;
+      inset: 100% 0 auto auto;
       width: max-content;
+      max-width: none;
+      max-height: none;
+      overflow: visible;
+      margin: 0;
+      padding: 0 0.3rem 0 0;
+      border: none;
+      box-shadow: none;
       background-color: var(--bg-alt-2);
       color: var(--text-color);
-      padding-right: 0.3rem;
       border-radius: var(--rounding);
       border-top-right-radius: unset;
+    }
 
+    ul li ul,
+    ul li ol {
       li {
         width: 100%;
         display: flex;
@@ -876,35 +920,142 @@ aside {
       }
     }
 
-    ul li:hover > ul,
-    ul li:focus-within > ul,
-    ul li ul:hover,
-    ul li ul:focus,
-    ul li:hover > ol,
-    ul li:focus-within > ol,
-    ul li ol:hover,
-    ul li ol:focus {
+    .dropdown:popover-open {
       display: block;
     }
 
-    #contents-button {
-      li:hover > &,
-      li:focus-within > & {
+    @supports selector(:popover-open) {
+      /* Safari focuses a clicked button only with a tabindex, on release */
+      @media (hover: hover) {
+        li:hover > .dropdown {
+          display: block;
+          z-index: 1;
+        }
+
+        li:has(> button:focus:not(:focus-visible, :active))
+          > .dropdown:not(:popover-open) {
+          visibility: hidden;
+          transition: visibility 0s 0.1s;
+        }
+
+        li:hover > #contents-button:not(:focus:not(:focus-visible, :active)) {
+          border-bottom-left-radius: 0;
+        }
+      }
+
+      li:has(> #contents-menu:popover-open) > #contents-button {
         border-bottom-left-radius: 0;
+      }
+
+      li:has(> .dropdown:popover-open) > button {
+        background-color: var(--primary-color);
+        color: var(--background-color);
+      }
+
+      li:has(> .dropdown:not(:popover-open))
+        > button:focus:not(:focus-visible, :active) {
+        @media (hover: none) {
+          background-color: inherit;
+          color: var(--fg-alt-3);
+        }
+
+        @media (hover: hover) {
+          &:not(:hover) {
+            background-color: inherit;
+            color: var(--fg-alt-3);
+          }
+        }
+      }
+    }
+
+    @supports not selector(:popover-open) {
+      li:hover > .dropdown,
+      li:focus-within > .dropdown {
+        display: block;
+      }
+
+      li:focus-within:has(> .dropdown) > button {
+        background-color: var(--primary-color);
+        color: var(--background-color);
+      }
+
+      #contents-button {
+        li:hover > &,
+        li:focus-within > & {
+          border-bottom-left-radius: 0;
+        }
+      }
+    }
+
+    /* Their default anchor, so they follow it when the page scrolls */
+    @supports (anchor-name: --a) {
+      #contents-menu {
+        position-anchor: --aside-bar;
+      }
+
+      #views-button {
+        anchor-name: --views-button;
+      }
+
+      #views-menu {
+        position-anchor: --views-button;
+      }
+
+      #listen-menu-button {
+        anchor-name: --listen-button;
+      }
+
+      #listen-menu {
+        position-anchor: --listen-button;
+      }
+
+      :is(#contents-menu, #views-menu, #listen-menu):popover-open {
+        position: fixed;
+        top: anchor(bottom);
+        right: anchor(right);
+      }
+
+      #contents-menu:popover-open {
+        min-width: anchor-size(width);
+      }
+
+      @media only screen and (max-width: 600px) {
+        :is(#contents-menu, #views-menu, #listen-menu):popover-open {
+          left: anchor(--aside-bar left);
+          right: anchor(--aside-bar right);
+        }
+      }
+    }
+
+    @supports not (anchor-name: --a) {
+      :is(#contents-menu, #views-menu, #listen-menu):popover-open {
+        position: fixed;
+        inset: 2.5rem 0 auto;
+        margin: 0 auto;
+        height: fit-content;
+        max-height: 70vh;
+        overflow-y: auto;
+        border-radius: var(--rounding);
+        box-shadow: 0 0.3rem 1rem var(--shadow-color);
       }
     }
 
     #contents-menu {
-      border-top-left-radius: 0;
       counter-reset: toc2 toc3 toc4;
       list-style: none;
       margin: 0;
       padding: 0;
       max-height: 70vh;
       overflow-y: auto;
-      left: 0;
-      right: 0;
-      width: auto;
+      min-width: 100%;
+      max-width: min(25rem, 100vw);
+
+      @media only screen and (max-width: 600px) {
+        border-top-left-radius: 0;
+        left: 0;
+        width: auto;
+        max-width: none;
+      }
 
       a {
         width: 100%;
@@ -930,8 +1081,10 @@ aside {
         }
       }
 
-      li:first-of-type {
-        border-top-left-radius: 0;
+      @media only screen and (max-width: 600px) {
+        li:first-of-type {
+          border-top-left-radius: 0;
+        }
       }
 
       /**
@@ -1572,8 +1725,8 @@ a:where([href]) {
   font-size: 2em;
 }
 
-#views-menu li[role='menuitem']:has(#commenter-inline),
-#views-menu li[role='menuitem']:has(#commenter-side) {
+#views-menu > li:has(#commenter-inline),
+#views-menu > li:has(#commenter-side) {
   display: none;
 }
 
@@ -1587,8 +1740,12 @@ a:where([href]) {
 #listen-menu {
   max-width: 30ch;
 
-  li[role='menuitem'] {
+  > li:not(.notice) {
     display: none;
+  }
+
+  &.scripted > li:not(.notice) {
+    display: flex;
   }
 
   noscript,
