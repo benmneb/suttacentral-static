@@ -51,6 +51,9 @@
   let currentIndex = 0
   let isCancelled = false
   let isPlaying = false // denotes an active session (playing or paused)
+  // Kept here rather than read off synth.paused, as browsers disagree on it after a cancel - Chrome stays
+  // paused, Safari and Firefox don't
+  let isPaused = false
   let currentUtterance = null
   let sessionId = 0
 
@@ -439,12 +442,12 @@
   }
 
   function updatePlayPauseLabel() {
-    if (synth.paused) {
+    if (isPaused) {
       playPauseBtnLabel.textContent = LABEL_RESUME
       playPauseBtnIcon.textContent = ICON_RESUME
       return
     }
-    if (synth.speaking && !synth.paused) {
+    if (isPlaying) {
       playPauseBtnLabel.textContent = LABEL_PAUSE
       playPauseBtnIcon.textContent = ICON_PAUSE
       return
@@ -587,7 +590,7 @@
       }
       currentIndex += 1
       // If paused between utterances, don't auto-advance
-      if (synth.paused) {
+      if (isPaused) {
         updatePlayPauseLabel()
         return
       }
@@ -629,107 +632,79 @@
     sessionId += 1
     isCancelled = false
     isPlaying = true
+    isPaused = false
     currentIndex = Math.max(0, Math.min(index, visibleTextContent.length - 1))
     playPauseBtnLabel.textContent = LABEL_PAUSE
     playPauseBtnIcon.textContent = ICON_PAUSE
     setNavControlsEnabled(true)
     updateClickableSpans()
-    // Reset stuck paused state (Safari/Brave keep synth.paused=true after cancel)
-    if (synth.paused) {
-      try {
-        synth.cancel()
-      } catch (e) {}
-      try {
-        synth.resume()
-      } catch (e) {}
-    }
     speakNext()
   }
 
+  // Chrome stays paused through a cancel, which would hold back whatever is spoken next, so it's let go of here
+  function cancelSpeech() {
+    try {
+      synth.cancel()
+      if (synth.paused) synth.resume()
+    } catch (e) {}
+  }
+
   function pauseSession() {
-    if (synth.speaking && !synth.paused) {
-      try {
-        synth.pause()
-        // set label immediately for UI responsiveness
-        playPauseBtnLabel.textContent = LABEL_RESUME
-        playPauseBtnIcon.textContent = ICON_RESUME
-        return
-      } catch (err) {
-        console.error('pause failed', err)
-      }
+    if (!isPlaying || isPaused) return
+    isPaused = true
+    try {
+      synth.pause()
+    } catch (err) {
+      console.error('pause failed', err)
     }
-    updateClickableSpans()
+    updatePlayPauseLabel()
   }
 
   function resumeSession() {
-    if (synth.paused) {
-      try {
-        synth.resume()
-        // set label immediately for UI responsiveness
-        playPauseBtnLabel.textContent = LABEL_PAUSE
-        playPauseBtnIcon.textContent = ICON_PAUSE
-      } catch (err) {
-        console.error('resume failed', err)
-      }
-    } else if (
-      !synth.speaking &&
-      !isCancelled &&
-      currentIndex < visibleTextContent.length
-    ) {
-      // nothing is speaking but we have work to do
-      speakNext()
-      playPauseBtnLabel.textContent = LABEL_PAUSE
-      playPauseBtnIcon.textContent = ICON_PAUSE
+    if (!isPaused) return
+    isPaused = false
+    try {
+      synth.resume()
+    } catch (err) {
+      console.error('resume failed', err)
     }
-    updateClickableSpans()
+    // Skipped or ended while paused, so there's nothing to resume and the new item is read from its start
+    if (!currentUtterance) speakNext()
+    updatePlayPauseLabel()
+  }
+
+  // While paused this only moves the highlight, to be read from on resume
+  function skipTo(index) {
+    if (!visibleTextContent.length) return
+    sessionId += 1
+    const mySession = sessionId
+    isCancelled = true
+    cancelSpeech()
+    currentUtterance = null
+    clearHighlight()
+    // set now, so a key held down or pressed again goes on from here
+    currentIndex = index
+    if (isPaused) {
+      isCancelled = false
+      highlightItem(currentIndex)
+      ensureVisible(currentIndex)
+      return
+    }
+    setTimeout(() => {
+      if (mySession !== sessionId) return
+      isCancelled = false
+      speakNext()
+    }, TIMEOUT_MS)
   }
 
   function prevSpan() {
     computeVisibleText()
-    if (!visibleTextContent.length) return
-    const newIndex = Math.max(0, currentIndex - 1)
-    sessionId += 1
-    isCancelled = true
-    try {
-      synth.cancel()
-    } catch (e) {}
-    clearHighlight()
-    setTimeout(() => {
-      if (sessionId == null) return
-      isCancelled = false
-      currentIndex = newIndex
-      if (isPlaying && !synth.paused) {
-        speakNext()
-      } else {
-        highlightItem(currentIndex)
-        ensureVisible(currentIndex)
-        updatePlayPauseLabel()
-      }
-    }, TIMEOUT_MS)
+    skipTo(Math.max(0, currentIndex - 1))
   }
 
   function nextSpan() {
     computeVisibleText()
-    if (!visibleTextContent.length) return
-    const newIndex = Math.min(visibleTextContent.length - 1, currentIndex + 1)
-    sessionId += 1
-    isCancelled = true
-    try {
-      synth.cancel()
-    } catch (e) {}
-    clearHighlight()
-    setTimeout(() => {
-      if (sessionId == null) return
-      isCancelled = false
-      currentIndex = newIndex
-      if (isPlaying && !synth.paused) {
-        speakNext()
-      } else {
-        highlightItem(currentIndex)
-        ensureVisible(currentIndex)
-        updatePlayPauseLabel()
-      }
-    }, TIMEOUT_MS)
+    skipTo(Math.min(visibleTextContent.length - 1, currentIndex + 1))
   }
 
   function finishPlayback() {
@@ -739,6 +714,7 @@
       s.classList.remove(CLASS_CLICKABLE, CLASS_SENTENCES)
     )
     isPlaying = false
+    isPaused = false
     currentUtterance = null
     currentIndex = 0
     playPauseBtnLabel.textContent = LABEL_PLAY
@@ -751,12 +727,11 @@
     // Cancel any ongoing speech and reset UI/state.
     sessionId += 1
     isCancelled = true
-    try {
-      synth.cancel()
-    } catch (e) {}
+    cancelSpeech()
     clearHighlight()
     currentUtterance = null
     isPlaying = false
+    isPaused = false
     currentIndex = 0
     playPauseBtnLabel.textContent = LABEL_PLAY
     playPauseBtnIcon.textContent = ICON_PLAY
@@ -766,33 +741,9 @@
 
   // single button behavior
   function togglePlayPause() {
-    // Check state first — synth.paused can be stale after cancel() in Safari/Brave
-    if (!isPlaying) {
-      startSessionFrom(currentIndex || 0)
-      return
-    }
-    if (synth.paused) {
-      // if paused, resume immediately and update label
-      resumeSession()
-      return
-    }
-    if (isPlaying && synth.speaking && !synth.paused) {
-      // pause immediately and update label
-      pauseSession()
-      return
-    }
-    // if idle but there's remaining content, continue
-    if (
-      !synth.speaking &&
-      !isCancelled &&
-      currentIndex < visibleTextContent.length
-    ) {
-      isPlaying = true
-      playPauseBtnLabel.textContent = LABEL_PAUSE
-      playPauseBtnIcon.textContent = ICON_PAUSE
-      updateClickableSpans()
-      speakNext()
-    }
+    if (isPaused) return resumeSession()
+    if (isPlaying) return pauseSession()
+    startSessionFrom(currentIndex)
   }
 
   // wire listeners
@@ -868,9 +819,7 @@
       // cancel current session/utterances and start from clicked index
       sessionId += 1
       isCancelled = true
-      try {
-        synth.cancel()
-      } catch (e) {}
+      cancelSpeech()
       clearHighlight()
 
       setTimeout(() => {
@@ -929,6 +878,7 @@
         isCancelled,
         currentIndex,
         sessionId,
+        isPaused,
         paused: synth.paused,
         speaking: synth.speaking,
       }
