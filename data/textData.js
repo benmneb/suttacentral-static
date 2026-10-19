@@ -10,6 +10,7 @@ import {
 import masterData from './_masterData.js'
 import { breadcrumbTrail } from '../tools/breadcrumbs.js'
 import { onlySample } from '../tools/samplePages.js'
+import { referenceGroupsOf } from '../tools/referenceEditions.js'
 import siteMetaData from './_siteMetaData.js'
 
 let usedPaths = []
@@ -495,6 +496,7 @@ function flatten(nodes, parent, parentPath) {
             scx_json_ld: generateTextJsonLd(entry),
             scx_og_tags: generateTextOGTags(entry),
             ...tocOf(entry),
+            ...referenceGroupsOf(entry),
           }))
         )
       }
@@ -512,6 +514,7 @@ function flatten(nodes, parent, parentPath) {
         scx_json_ld: generateTextJsonLd(entry),
         scx_og_tags: generateTextOGTags(entry),
         ...tocOf(entry),
+        ...referenceGroupsOf(entry),
       })
       return results
     }

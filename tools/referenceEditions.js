@@ -40,3 +40,42 @@ export function referenceEditionName(ref) {
   const set = editionSets.find(s => ref.startsWith(s))
   return set ? referenceEditions[set] : undefined
 }
+
+/** A reference's group in the views menu, as .net's M and T keys have them */
+export function referenceGroup(ref) {
+  if (/^(sc|vns)/.test(ref)) return 'main'
+  if (/^(pts|vnp)/.test(ref)) return 'pts'
+  return 'others'
+}
+
+/**
+ * The reference groups a text has, in the menu's order, and the editions under "others", a line each as their
+ * names have commas of their own. Segmented texts always have their own number
+ */
+export function referenceGroupsOf(entry) {
+  const bilara = entry._bilarasuttas_data
+  const isSegmented = !!bilara?.keys_order
+  const ids = isSegmented
+    ? Object.values(bilara.reference_text ?? {}).flatMap(v =>
+        String(v)
+          .split(',')
+          .map(id => id.trim())
+          .filter(Boolean)
+      )
+    : [
+        ...(entry._suttas_data?.translation?.text ?? '').matchAll(
+          /class='ref ([^' ]+)/g
+        ),
+      ].map(m => m[1])
+  const groups = new Set(ids.map(referenceGroup))
+  if (isSegmented) groups.add('main')
+  const otherEditions = new Set(
+    ids
+      .filter(id => referenceGroup(id) === 'others')
+      .map(id => referenceEditionName(id) ?? id.replace(/\d.*$/, ''))
+  )
+  return {
+    scx_reference_groups: ['main', 'pts', 'others'].filter(g => groups.has(g)),
+    scx_other_editions: [...otherEditions].join('\n'),
+  }
+}

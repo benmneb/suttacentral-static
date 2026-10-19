@@ -203,8 +203,69 @@ eleventyComputed:
                   <span>References</span>
                 </span>
               </label>
-              <input type="checkbox" id="segmenter">
+              <input
+                type="checkbox"
+                id="segmenter"
+                {% if entry.scx_reference_groups.size > 1 %}
+                  aria-controls="{% for group in entry.scx_reference_groups %}segmenter-{{ group }}{% unless forloop.last %} {% endunless %}{% endfor %}"
+                {% endif %}
+              >
             </li>
+            {% comment %} With only one group the References checkbox says it all {% endcomment %}
+            {% if entry.scx_reference_groups.size > 1 %}
+              {% if entry.scx_reference_groups contains "main" %}
+                <li class="sub">
+                  <label for="segmenter-main" title="SuttaCentral">
+                    <span class="with-icon">
+                      {% icon "bookmarkMicro" -%}
+                      <span>Main</span>
+                    </span>
+                  </label>
+                  <input
+                    type="checkbox"
+                    id="segmenter-main"
+                    title="SuttaCentral"
+                    checked
+                  >
+                </li>
+              {% endif %}
+              {% if entry.scx_reference_groups contains "pts" %}
+                <li class="sub">
+                  <label
+                    for="segmenter-pts"
+                    title="{{ 'pts' | referenceEdition }}"
+                  >
+                    <span class="with-icon">
+                      {% icon "documentMicro" -%}
+                      <span>PTS</span>
+                    </span>
+                  </label>
+                  <input
+                    type="checkbox"
+                    id="segmenter-pts"
+                    title="{{ 'pts' | referenceEdition }}"
+                  >
+                </li>
+              {% endif %}
+              {% if entry.scx_reference_groups contains "others" %}
+                <li class="sub">
+                  <label
+                    for="segmenter-others"
+                    title="{{ entry.scx_other_editions }}"
+                  >
+                    <span class="with-icon">
+                      {% icon "rectangleStackMicro" -%}
+                      <span>Others</span>
+                    </span>
+                  </label>
+                  <input
+                    type="checkbox"
+                    id="segmenter-others"
+                    title="{{ entry.scx_other_editions }}"
+                  >
+                </li>
+              {% endif %}
+            {% endif %}
           {% endif %}
           <li>
             <label for="positioner">
@@ -494,7 +555,7 @@ eleventyComputed:
               {%- for ref_id in ref_ids -%}
                 {%- assign id = ref_id | strip -%}
                 {%- if id != blank -%}
-                  <a class="ref" id="{{ id }}" href="#{{ id }}" title="{{ id | referenceEdition }}" data-pagefind-ignore>{{ id }}</a>
+                  <a class="ref {{ id | referenceGroup }}" id="{{ id }}" href="#{{ id }}" title="{{ id | referenceEdition }}" data-pagefind-ignore>{{ id }}</a>
                 {%- endif -%}
               {%- endfor %}
             </span>
@@ -665,7 +726,7 @@ eleventyComputed:
               {%- for ref_id in ref_ids -%}
                 {%- assign id = ref_id | strip -%}
                 {%- if id != blank -%}
-                  <a class="ref" id="{{ id }}" href="#{{ id }}" title="{{ id | referenceEdition }}" data-pagefind-ignore>{{ id }}</a>
+                  <a class="ref {{ id | referenceGroup }}" id="{{ id }}" href="#{{ id }}" title="{{ id | referenceEdition }}" data-pagefind-ignore>{{ id }}</a>
                 {%- endif -%}
               {%- endfor %}
             </span>
@@ -745,6 +806,7 @@ eleventyComputed:
   {% else %}
     {% assign html_content = entry._suttas_data.translation.text
       | replace: "\n", ""
+      | addReferenceGroups
     %}
     {% assign original_footer = html_content
       | split: "<footer"

@@ -3,7 +3,10 @@ import { recordStat } from './tools/buildStats.js'
 import { heroicons } from './tools/heroicons.js'
 import { minifyCss, minifyJs } from './tools/minifyAssets.js'
 import { isMultiTextSpan } from './tools/rangeSuttas.js'
-import { referenceEditionName } from './tools/referenceEditions.js'
+import {
+  referenceEditionName,
+  referenceGroup,
+} from './tools/referenceEditions.js'
 import { sampleUids } from './tools/samplePages.js'
 import {
   formatVolpages,
@@ -68,6 +71,16 @@ export default function (eleventyConfig) {
   // The printed edition a reference id is from, for its tooltip, ie bj10.20 -> "Buddhajayantītripiṭaka, 1957–1989"
   eleventyConfig.addFilter('referenceEdition', function (id) {
     return referenceEditionName(id) ?? id
+  })
+
+  eleventyConfig.addFilter('referenceGroup', referenceGroup)
+
+  // A legacy text's own references get their group as a class too, as segmented ones do
+  eleventyConfig.addFilter('addReferenceGroups', function (html) {
+    return String(html ?? '').replace(
+      /class='ref ([^' ]+)/g,
+      (match, id) => `${match} ${referenceGroup(id)}`
+    )
   })
 
   eleventyConfig.addFilter('softHyphenateTitle', softHyphenateTitle)
