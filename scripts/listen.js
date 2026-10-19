@@ -627,7 +627,6 @@
 
   // Controls
   function startSessionFrom(index = 0) {
-    computeVisibleText()
     if (!visibleTextContent.length || !visibleTextSpans.length) return
     sessionId += 1
     isCancelled = false
@@ -698,12 +697,10 @@
   }
 
   function prevSpan() {
-    computeVisibleText()
     skipTo(Math.max(0, currentIndex - 1))
   }
 
   function nextSpan() {
-    computeVisibleText()
     skipTo(Math.min(visibleTextContent.length - 1, currentIndex + 1))
   }
 
@@ -743,6 +740,8 @@
   function togglePlayPause() {
     if (isPaused) return resumeSession()
     if (isPlaying) return pauseSession()
+    // What's visible now is what the session reads, whatever the view does after
+    computeVisibleText()
     startSessionFrom(currentIndex)
   }
 
@@ -812,7 +811,7 @@
       const clickedElement = itemElementAt(ev.target)
       if (!clickedElement) return
 
-      computeVisibleText()
+      // -1 for text shown since the session started, which isn't read
       const idx = indexAtPoint(clickedElement, ev)
       if (idx < 0) return
 
