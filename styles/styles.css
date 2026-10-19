@@ -64,6 +64,7 @@
   --comments-background-color: var(--bg-hard);
   --comments-background-color: var(--bg-hard);
   --comments-border-color: var(--bg-hard);
+  --sheet-background-color: var(--bg-alt-1);
 
   --sans-serif-font:
     -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui,
@@ -116,6 +117,7 @@
 
     --offwhite: #faf9f6;
     --offerwhite: #f8f6f2;
+    --offwhite-dim: #f0ede6;
 
     /* Use these: */
     --background-color: var(--offwhite);
@@ -136,6 +138,8 @@
     --details-summary-hover-background: var(--bg-alt-1);
     --comments-background-color: var(--offerwhite);
     --comments-border-color: var(--bg-soft);
+    /* Dimmer than the page, so a sheet over most of a phone isn't taken for it */
+    --sheet-background-color: var(--offwhite-dim);
   }
 }
 
@@ -698,6 +702,16 @@ body {
   padding: 0;
 }
 
+@media only screen and (max-width: 600px) {
+  body:has(#positioner:checked) {
+    padding-bottom: 2.75rem;
+
+    :is(h2, h3, h4, .segment, .reference, a.ref) {
+      scroll-margin-top: 0;
+    }
+  }
+}
+
 aside {
   display: flex;
   justify-content: end;
@@ -864,6 +878,85 @@ aside {
 
         &:hover {
           border-radius: 0;
+        }
+      }
+
+      /* The bar, not the aside, as sticky would leave the aside at the top of the article */
+      &:has(#positioner:checked) {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        /* A filter, so it also falls from whatever opens above the bar */
+        filter: drop-shadow(0 0.3rem 1rem var(--shadow-color));
+
+        ul li ul,
+        ul li ol {
+          top: auto;
+          bottom: 100%;
+          border-radius: var(--rounding) var(--rounding) 0 0;
+
+          > li:is(:hover, :focus-within) {
+            &:first-of-type {
+              border-radius: var(--rounding) var(--rounding) 0 0;
+            }
+
+            &:last-of-type {
+              border-radius: 0;
+            }
+          }
+        }
+
+        /* 3rem short of the top, to leave a strip to tap to close */
+        #contents-menu,
+        #views-menu,
+        #listen-menu {
+          max-height: calc(100dvh - 5.75rem);
+          overflow-y: auto;
+        }
+
+        /* The controls last, by the bar and a thumb, so they stay put as the rest opens above them */
+        #listen-menu {
+          flex-direction: column;
+
+          > .tts-controls {
+            order: 1;
+          }
+
+          > li {
+            flex-shrink: 0;
+          }
+
+          @supports selector(:popover-open) {
+            &:popover-open {
+              display: flex;
+            }
+
+            @media (hover: hover) {
+              li:hover > & {
+                display: flex;
+              }
+            }
+          }
+
+          @supports not selector(:popover-open) {
+            li:hover > &,
+            li:focus-within > & {
+              display: flex;
+            }
+          }
+        }
+
+        /* Open, a menu is in the top layer, out of reach of the bar's filter */
+        :is(#contents-menu, #views-menu, #listen-menu):popover-open {
+          position: fixed;
+          top: auto;
+          bottom: 2.75rem;
+          left: 0;
+          right: 0;
+          margin: 0;
+          box-shadow: 0 0.3rem 1rem var(--shadow-color);
+          clip-path: inset(-2rem 0 0);
         }
       }
     }
@@ -2147,6 +2240,30 @@ body:has([popover]#search-modal:popover-open) {
   }
 }
 
+@media only screen and (max-width: 600px) {
+  [popover]:is(#info, #parallels) {
+    background-color: var(--sheet-background-color);
+  }
+}
+
+/* Pinned to the bottom bar, which needs no anchor */
+@supports selector(:popover-open) {
+  @media only screen and (max-width: 600px) {
+    body:has(#positioner:checked) [popover]:is(#info, #parallels) {
+      inset: auto 0 2.75rem;
+      width: auto;
+      max-width: none;
+      margin: 0;
+      /* As the bar's menus, less the padding */
+      max-height: calc(100dvh - 7.75rem);
+      overscroll-behavior: contain;
+      border-radius: var(--rounding) var(--rounding) 0 0;
+      box-shadow: 0 0.3rem 1rem var(--shadow-color);
+      clip-path: inset(-2rem 0 0);
+    }
+  }
+}
+
 @supports not (anchor-name: --a) {
   [popover]#info::backdrop,
   [popover]#parallels::backdrop {
@@ -2156,5 +2273,17 @@ body:has([popover]#search-modal:popover-open) {
   body:has([popover]#info:popover-open),
   body:has([popover]#parallels:popover-open) {
     overflow: hidden;
+  }
+
+  @media only screen and (max-width: 600px) {
+    body:has(#positioner:checked) {
+      [popover]:is(#info, #parallels)::backdrop {
+        backdrop-filter: none;
+      }
+
+      &:has([popover]:is(#info, #parallels):popover-open) {
+        overflow: visible;
+      }
+    }
   }
 }

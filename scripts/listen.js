@@ -431,27 +431,35 @@
     if (stopBtn) stopBtn.disabled = !enabled
   }
 
+  // The middle of what can be read, above the bar when it's pinned to the bottom. The controls' top, not the
+  // menu's, when they're showing
+  function readingMiddle() {
+    const bar = rootMenuEl.closest('fieldset')
+    if (!bar || getComputedStyle(bar).position !== 'fixed') {
+      return window.innerHeight / 2
+    }
+    const controls = rootMenuEl
+      .querySelector('.tts-controls')
+      ?.getBoundingClientRect()
+    const bottom = controls?.height
+      ? controls.top
+      : bar.getBoundingClientRect().top
+    return bottom / 2
+  }
+
   function ensureVisible(index) {
     if (!autoScrollToggle) return
     if (!autoScrollToggle.checked) return
     const el = visibleTextSpans[index]
     if (!el) return
-    try {
-      // a sentence is centred itself, as its paragraph can be taller than the screen
-      const rect = visibleTextRanges[index]?.getBoundingClientRect()
-      if (rect && rect.height) {
-        window.scrollBy({
-          top: rect.top + rect.height / 2 - window.innerHeight / 2,
-          behavior: 'smooth',
-        })
-        return
-      }
-      el.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-        inline: 'nearest',
-      })
-    } catch (e) {}
+    // a sentence is centred itself, as its paragraph can be taller than the screen. Not scrollIntoView, which
+    // can only centre on the whole screen
+    const range = visibleTextRanges[index]?.getBoundingClientRect()
+    const rect = range?.height ? range : el.getBoundingClientRect()
+    window.scrollBy({
+      top: rect.top + rect.height / 2 - readingMiddle(),
+      behavior: 'smooth',
+    })
   }
 
   // Changed in place, as Safari doesn't repaint what a replaced one covered
@@ -925,7 +933,7 @@
    * reader has scrolled to, or the first one while the start of the text is still on screen
    */
   function startIndex() {
-    const middle = window.innerHeight / 2
+    const middle = readingMiddle()
     let closest = 0
     let closestDistance = Infinity
     let seenFirst = false
