@@ -96,6 +96,9 @@ const BROKEN_VALUE = /(^|[/=#])(undefined|null|NaN)([/?#&]|$)|\[object /
 
 const ATTR_URL = /\s(?:href|src)=(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g
 
+// The analytics pixel in <noscript> is meant to be remote
+const REMOTE_IMG = /<img\s[^>]*?\bsrc=["']?((?:https?:)?\/\/[^"'\s>]+)/g
+
 /**
  * The site path a link points at, or null if it's external or only an anchor
  * @param {string} link - The href/src as written
@@ -137,6 +140,11 @@ function factsFor(url, html) {
     ).length,
     mainLinks: (main.match(/<a\s[^>]*href=/g) ?? []).length,
     brokenLinks,
+    remoteImages: [
+      ...html
+        .replace(/<noscript>[\s\S]*?<\/noscript>/g, '')
+        .matchAll(REMOTE_IMG),
+    ].map(m => m[1]),
     links,
   }
 }

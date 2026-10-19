@@ -450,7 +450,7 @@ body {
 
 .illustration {
   display: block;
-  width: fit-content;
+  /* Not fit-content, which shrinks it below its width and height until it loads */
   max-width: 100%;
   margin: 1.5rem auto;
   grid-column: 1 / -1;

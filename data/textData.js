@@ -13,6 +13,7 @@ import { onlySample } from '../tools/samplePages.js'
 import { referenceGroupsOf } from '../tools/referenceEditions.js'
 import { highlightsOf } from '../tools/highlights.js'
 import { parallelRunsOf } from '../tools/parallelRuns.js'
+import { localImage } from '../tools/images.js'
 import siteMetaData from './_siteMetaData.js'
 
 let usedPaths = []
@@ -245,12 +246,31 @@ function illustrationsOf(entry, keys) {
     if (!keys?.includes(segment)) continue
     byKey[segment] ??= []
     byKey[segment].push({
-      filename,
+      src: `https://suttacentral.net/img/optimized-illustrations/${filename}.avif`,
       alt: alt ?? '',
       credit: [creator, creation_date].filter(Boolean).join(', '),
     })
   }
   return Object.keys(byKey).length ? byKey : null
+}
+
+/** Swaps each illustration's .net URL for a local copy, so it shows offline */
+async function localiseIllustrations(entries) {
+  const illustrations = entries.flatMap(entry =>
+    Object.values(entry.scx_illustrations ?? {}).flat()
+  )
+  await Promise.all(
+    illustrations.map(async illustration =>
+      Object.assign(
+        illustration,
+        // Twice the 480px it's shown at, for high density screens
+        await localImage(illustration.src, {
+          dir: 'illustrations',
+          height: 960,
+        })
+      )
+    )
+  )
 }
 
 /** Whether each of the views menu's text-specific settings applies, and what it shows */
@@ -588,5 +608,7 @@ function flatten(nodes, parent, parentPath) {
 export default async function () {
   const menu = await masterData()
   tree = menu
-  return onlySample(flatten(menu).filter(Boolean))
+  const entries = onlySample(flatten(menu).filter(Boolean))
+  await localiseIllustrations(entries)
+  return entries
 }

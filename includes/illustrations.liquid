@@ -2,8 +2,12 @@
 {% for illustration in illustrations %}
   <span class="illustration" role="figure" data-pagefind-ignore="all">
     <img
-      src="https://suttacentral.net/img/optimized-illustrations/{{ illustration.filename }}.avif"
+      src="{{ illustration.src }}"
       alt="{{ illustration.alt | escape }}"
+      {% if illustration.width %}
+        width="{{ illustration.width }}"
+        height="{{ illustration.height }}"
+      {% endif %}
       loading="lazy"
       decoding="async"
     >

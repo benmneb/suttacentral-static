@@ -29,6 +29,16 @@ describe('Every page', async () => {
     assert.equal(bad.length, 0, `Pages without a <title>:\n${listSome(bad)}`)
   })
 
+  // Everything has to work offline, so a remote image is one that couldn't be downloaded at build time
+  it('has no images from off the site', () => {
+    const bad = failures(
+      pages,
+      page => page.remoteImages.length > 0,
+      page => `${page.url}: ${page.remoteImages.slice(0, 3).join(', ')}`
+    )
+    assert.equal(bad.length, 0, `Pages with remote images:\n${listSome(bad)}`)
+  })
+
   it('has no links built from missing data', () => {
     const bad = failures(
       pages,
