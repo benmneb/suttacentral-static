@@ -1,6 +1,7 @@
 import masterData from './_masterData.js'
 import { breadcrumbTrail } from '../tools/breadcrumbs.js'
 import siteMetaData from './_siteMetaData.js'
+import { hasPitakaPage } from '../tools/pageUids.js'
 
 // The `masterData` tree, set before flattening, for each page's breadcrumbs (see `tools/breadcrumbs.js`)
 let tree = []
