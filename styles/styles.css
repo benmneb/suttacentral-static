@@ -718,6 +718,10 @@ body {
     --tts-controls-height: 2.75rem;
   }
 
+  :root:has(#listen-menu.hotkeys) {
+    --tts-controls-height: 3.5rem;
+  }
+
   .tts-controls {
     height: var(--tts-controls-height);
   }
@@ -988,7 +992,7 @@ aside {
 
           @supports selector(:popover-open) {
             &:popover-open,
-            &:has(#stop:enabled) {
+            &:has(#stop:enabled, #stop.pressed) {
               display: flex;
             }
 
@@ -1210,7 +1214,7 @@ aside {
         }
 
         li:has(> button:focus:not(:focus-visible, :active))
-          > #listen-menu:has(#stop:enabled):not(:popover-open) {
+          > #listen-menu:has(#stop:enabled, #stop.pressed):not(:popover-open) {
           visibility: visible;
         }
 
@@ -2118,6 +2122,14 @@ a:where([href]) {
   }
 }
 
+@keyframes key-press {
+  from {
+    opacity: 1;
+    background-color: var(--primary-color);
+    color: var(--background-color);
+  }
+}
+
 @keyframes aside-search-grow {
   to {
     flex-grow: 1;
@@ -2139,12 +2151,13 @@ a:where([href]) {
   /* While there's something to stop, the controls stay by the bar, so it can be paused or skipped with the
      menu closed. Only with popovers, as without them nothing would hide it again */
   @supports selector(:popover-open) {
-    &:has(#stop:enabled) {
+    &:has(#stop:enabled, #stop.pressed) {
       display: block;
     }
 
     @media (hover: none) {
-      &:has(#stop:enabled):not(:popover-open) > li:not(.tts-controls) {
+      &:has(#stop:enabled, #stop.pressed):not(:popover-open)
+        > li:not(.tts-controls) {
         visibility: hidden;
         height: 0;
         min-height: 0;
@@ -2155,9 +2168,9 @@ a:where([href]) {
     /* The rest stays in place, unseen and flat, so the controls keep the menu's width. Hidden 0.1s after the
        mouse leaves, like the other menus, so Safari doesn't flash it while opening */
     @media (hover: hover) {
-      li:not(:hover) > &:has(#stop:enabled):not(:popover-open),
+      li:not(:hover) > &:has(#stop:enabled, #stop.pressed):not(:popover-open),
       li:has(> button:focus:not(:focus-visible, :active))
-        > &:has(#stop:enabled):not(:popover-open) {
+        > &:has(#stop:enabled, #stop.pressed):not(:popover-open) {
         > li:not(.tts-controls) {
           visibility: hidden;
           height: 0;
@@ -2234,12 +2247,26 @@ a:where([href]) {
     &[disabled] {
       opacity: 0.2;
       cursor: not-allowed;
+
+      kbd {
+        pointer-events: none;
+      }
     }
 
     /* Flex, so the icon has no line box to sit low in */
     > span:first-of-type {
       display: flex;
       font-size: large;
+    }
+
+    > span:nth-of-type(2) {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    kbd {
+      margin: 0.3rem 0 0;
     }
 
     /* Like .sr-only, as they name the buttons */
@@ -2250,6 +2277,10 @@ a:where([href]) {
       overflow: hidden;
       clip-path: inset(50%);
       white-space: nowrap;
+    }
+
+    &.pressed {
+      animation: key-press 0.3s ease-out;
     }
   }
 }

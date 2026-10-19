@@ -4,7 +4,7 @@
  * Keeps the reading position when a view setting changes. Sidenotes rebuild each segment's layout, which loses
  * the browser's scroll anchor, and Safari has no scroll anchoring at all, so the first text below the menu is
  * put back where it was. Also keeps the References checkbox showing at least one group, and toggles the
- * settings from the keyboard, with the same keys as .net and a few more.
+ * settings and listen controls from the keyboard, with the same keys as .net and a few more.
  */
 ;(function () {
   'use strict'
@@ -21,6 +21,14 @@
   const SUB_SETTINGS = {
     m: 'segmenter-main',
     t: 'segmenter-pts',
+  }
+
+  const LISTEN_CONTROLS = {
+    h: 'prev',
+    j: 'playpause',
+    k: 'stop',
+    l: 'next',
+    a: 'auto-scroll',
   }
 
   const viewsMenu = document.getElementById('views-menu')
@@ -153,6 +161,7 @@
   const shortcuts = [
     ...Object.entries(VIEW_SETTINGS).map(([key, ids]) => [key, ids[0]]),
     ...Object.entries(SUB_SETTINGS),
+    ...Object.entries(LISTEN_CONTROLS),
   ]
   for (const [key, id] of shortcuts) {
     document
@@ -162,7 +171,9 @@
 
   // A fine pointer is the best guess as to whether there's a keyboard too
   if (matchMedia('(any-pointer: fine)').matches) {
-    viewsMenu.classList.add('hotkeys')
+    for (const id of ['views-menu', 'listen-menu']) {
+      document.getElementById(id)?.classList.add('hotkeys')
+    }
   }
 
   document.addEventListener('keydown', e => {
@@ -179,5 +190,35 @@
     const key = e.key.toLowerCase()
     if (VIEW_SETTINGS[key]) cycle(VIEW_SETTINGS[key])
     else if (SUB_SETTINGS[key]) toggleSub(SUB_SETTINGS[key])
+    else if (LISTEN_CONTROLS[key]) {
+      const el = document.getElementById(LISTEN_CONTROLS[key])
+      // Checked before the click, as stop disables itself
+      const flash = el instanceof HTMLButtonElement && !el.disabled
+      el?.click()
+      if (flash) flashPressed(el)
+    }
   })
+
+  // The reflow between restarts the animation
+  function flashPressed(el) {
+    el.classList.remove('pressed')
+    void el.offsetWidth
+    el.classList.add('pressed')
+  }
+
+  // A cancel comes after a quick second press has already started it over
+  for (const id of Object.values(LISTEN_CONTROLS)) {
+    for (const type of ['animationend', 'animationcancel']) {
+      document.getElementById(id)?.addEventListener(type, e => {
+        const el = e.currentTarget
+        if (e.animationName !== 'key-press') return
+        const running = el
+          .getAnimations?.()
+          .some(
+            a => a instanceof CSSAnimation && a.animationName === 'key-press'
+          )
+        if (!running) el.classList.remove('pressed')
+      })
+    }
+  }
 })()

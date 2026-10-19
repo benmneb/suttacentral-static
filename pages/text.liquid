@@ -333,17 +333,33 @@ eleventyComputed:
           </li>
           <li class="tts-controls">
             <button id="prev" type="button" disabled>
-              <span>{% icon "backward" %}</span><span><span>Prev</span></span>
+              <span>{% icon "backward" %}</span
+              ><span
+                ><span>Prev</span
+                ><kbd aria-hidden="true" title="Press H">H</kbd></span
+              >
             </button>
             <button id="playpause" type="button">
-              <span>{% icon "play" %}</span><span><span>Play</span></span>
+              <span>{% icon "play" %}</span
+              ><span
+                ><span>Play</span
+                ><kbd aria-hidden="true" title="Press J">J</kbd></span
+              >
             </button>
             <template id="pause-icon">{% icon "pause" %}</template>
             <button id="stop" type="button" disabled>
-              <span>{% icon "stop" %}</span><span><span>Stop</span></span>
+              <span>{% icon "stop" %}</span
+              ><span
+                ><span>Stop</span
+                ><kbd aria-hidden="true" title="Press K">K</kbd></span
+              >
             </button>
             <button id="next" type="button" disabled>
-              <span>{% icon "forward" %}</span><span><span>Next</span></span>
+              <span>{% icon "forward" %}</span
+              ><span
+                ><span>Next</span
+                ><kbd aria-hidden="true" title="Press L">L</kbd></span
+              >
             </button>
           </li>
           <li>
@@ -412,6 +428,7 @@ eleventyComputed:
                 {% icon "chevronDoubleDownMicro" -%}
                 <span>Auto-scroll</span>
               </span>
+              <kbd aria-hidden="true" title="Press A to toggle">A</kbd>
             </label>
             <input type="checkbox" id="auto-scroll">
           </li>
