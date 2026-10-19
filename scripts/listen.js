@@ -97,6 +97,7 @@
   })
 
   const textLang =
+    rootMenuEl.dataset.textLang ||
     document.querySelector('main > article')?.lang ||
     document.documentElement.lang ||
     undefined
@@ -456,6 +457,21 @@
     playPauseBtnIcon.textContent = ICON_PLAY
   }
 
+  // Text languages whose voices go by another code: Literary Chinese, Japanese, Kannada, Classical Tibetan,
+  // and Norwegian, as Bokmål
+  const VOICE_LANGS = {
+    lzh: 'zh',
+    jpn: 'ja',
+    kan: 'kn',
+    xct: 'bo',
+    no: 'nb',
+  }
+  // Where a language's regions are not just accents. zh-HK voices speak Cantonese, so Mandarin first, the
+  // mainland's and then Taiwan's
+  const VOICE_REGIONS = { zh: ['zh-cn', 'zh-tw'] }
+  // Android writes en_US for en-US
+  const tag = lang => (lang || '').replace('_', '-').toLowerCase()
+
   function populateVoiceList() {
     voices =
       typeof synth?.getVoices === 'function' ? synth.getVoices().slice() : []
@@ -488,7 +504,7 @@
       })
     }
 
-    // Determine preferred voice to select: default voice first, otherwise match browser lang
+    // Determine preferred voice to select: saved, then text language, then default voice, then browser lang
     const defaultVoice = voices.find(v => v.default)
     const browserLang = (
       navigator.language ||
@@ -496,8 +512,43 @@
       ''
     ).toString()
     const primaryBrowserLang = browserLang.split('-')[0]
-    let suitableVoiceName = defaultVoice ? defaultVoice.name : null
+    // Saved by the prefs script, while the device still has it
+    const savedName = voiceSelect.dataset.saved
+    let suitableVoiceName = voices.some(v => v.name === savedName)
+      ? savedName
+      : null
 
+    // Then try to match text language. Voices go by the two-letter code where there is one, and a voice for
+    // the modern language reads the classical one, as zh-CN does Taisho Chinese. Within the language:
+    // 1. A voice in a language the browser asks for, in the reader's order of preference (navigator.languages).
+    //    So a UK reader gets en-GB, a Brazilian reader pt-BR, and a Taiwanese reader zh-TW on Taisho texts
+    // 2. The main region from VOICE_REGIONS, only Chinese for now. Before the default, as Safari marks a
+    //    voice in every region of a language as its default
+    // 3. The device's default voice, if it's in that language
+    // 4. Any voice in the language
+    if (!suitableVoiceName && textLang) {
+      const speechLang = VOICE_LANGS[textLang] ?? textLang
+      const textLangVoices = voices.filter(
+        v => tag(v.lang).split('-')[0] === speechLang
+      )
+      const inRegions = regions =>
+        regions
+          .map(r => textLangVoices.find(v => tag(v.lang) === r))
+          .find(Boolean)
+      const voice =
+        inRegions((navigator.languages ?? [browserLang]).map(tag)) ??
+        inRegions(VOICE_REGIONS[speechLang] ?? []) ??
+        textLangVoices.find(v => v.default) ??
+        textLangVoices[0]
+      suitableVoiceName = voice?.name ?? null
+    }
+
+    // Fall back to default voice
+    if (!suitableVoiceName && defaultVoice) {
+      suitableVoiceName = defaultVoice.name
+    }
+
+    // Fall back to browser language
     if (!suitableVoiceName && browserLang) {
       // find first voice matching full lang, then primary subtag
       let found = voices.find(v => v.lang === browserLang)

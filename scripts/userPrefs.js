@@ -5,6 +5,8 @@
  * and text view settings (comments, segments, root text) to localStorage.
  * Automatically saves on user interaction.
  *
+ * The voice is kept per text language.
+ *
  * @requires localStorage
  */
 ;(function () {
@@ -19,13 +21,17 @@
     'rooter-side',
     'segmenter',
     'positioner',
-    'voice-select',
     'rate',
     'pitch',
     'auto-scroll',
   ]
 
   const STORAGE_KEY = 'user-prefs'
+
+  const voiceKey = lang => `voice-${(lang || '').split('-')[0].toLowerCase()}`
+  const VOICE_KEY = voiceKey(
+    document.getElementById('listen-menu')?.dataset.textLang
+  )
 
   /**
    * Get stored preferences from localStorage
@@ -41,43 +47,7 @@
   }
 
   /**
-   * Wait for the voice-select element to be populated with options.
-   * These can load asynchronously from SpeechSynthesis API,
-   * so may not be immediately available.
-   * Polls every 50ms until options are available or 5 seconds elapse.
-   *
-   * @returns {Promise<void>} Resolves when options are populated or element doesn't exist
-   */
-  function waitForVoiceSelect() {
-    return new Promise(resolve => {
-      const voiceSelect = document.getElementById('voice-select')
-      if (!voiceSelect) {
-        resolve()
-        return
-      }
-
-      if (voiceSelect.options.length > 1) {
-        resolve()
-        return
-      }
-
-      let elapsed = 0
-      const interval = setInterval(() => {
-        elapsed += 50
-        if (voiceSelect.options.length > 1) {
-          clearInterval(interval)
-          resolve()
-        } else if (elapsed >= 5000) {
-          clearInterval(interval)
-          console.warn('Timeout waiting for voice-select options')
-          resolve()
-        }
-      }, 50)
-    })
-  }
-
-  /**
-   * Load stored preferences (except voice-select) into existing elements.
+   * Load stored preferences into existing elements.
    */
   function load() {
     const saved = getStoredPrefs()
@@ -98,19 +68,54 @@
     })
   }
 
+  function setStoredPrefs(prefs) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs))
+    } catch (e) {
+      console.error('Failed to save preferences:', e)
+    }
+  }
+
   /**
-   * Load voice-select preference once options are available
+   * A voice saved before they were kept per language becomes its own language's voice
    */
-  function loadVoiceSelect() {
+  function migrateVoice() {
+    const prefs = getStoredPrefs()
+    const name = prefs['voice-select']
+    if (!name) return
+    const voices = window.speechSynthesis?.getVoices() ?? []
+    if (!voices.length) return
+    const voice = voices.find(v => v.name === name)
+    // Gone from the device, so it has no language to go to
+    if (voice) {
+      const key = voiceKey(voice.lang)
+      if (!(key in prefs)) prefs[key] = name
+    }
+    delete prefs['voice-select']
+    setStoredPrefs(prefs)
+    applyVoice(prefs)
+  }
+
+  /**
+   * Hands the listen script this language's voice
+   */
+  function applyVoice(prefs) {
     const el = document.getElementById('voice-select')
-    if (!el) return
-
-    const saved = getStoredPrefs()
-    if (!('voice-select' in saved)) return
-
-    const wanted = saved['voice-select']
-    const opt = [...el.options].find(o => o.dataset.name === wanted)
+    if (!el || !(VOICE_KEY in prefs)) return
+    el.dataset.saved = prefs[VOICE_KEY]
+    const opt = [...el.options].find(o => o.dataset.name === prefs[VOICE_KEY])
     if (opt) el.value = opt.value
+  }
+
+  /** Saves the voice for this language, when the reader picks it */
+  function saveVoice() {
+    const el = document.getElementById('voice-select')
+    const name = el?.options[el.selectedIndex]?.dataset.name
+    if (!name) return
+    const prefs = getStoredPrefs()
+    prefs[VOICE_KEY] = name
+    setStoredPrefs(prefs)
+    el.dataset.saved = name
   }
 
   /**
@@ -128,24 +133,13 @@
         return
       }
 
-      if (el instanceof HTMLSelectElement) {
-        const opt = el.options[el.selectedIndex]
-        // no option when the device has no voices, so the saved one is kept for when it does
-        if (opt) prefs[id] = opt.dataset.name
-        return
-      }
-
       // inputs with value
       if ('value' in el) {
         prefs[id] = el.value
       }
     })
 
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs))
-    } catch (e) {
-      console.error('Failed to save preferences:', e)
-    }
+    setStoredPrefs(prefs)
   }
 
   /**
@@ -157,9 +151,14 @@
       if (!el) return
       el.addEventListener(el.type === 'range' ? 'input' : 'change', save)
     })
+    document
+      .getElementById('voice-select')
+      ?.addEventListener('change', saveVoice)
   }
 
   load()
   init()
-  waitForVoiceSelect().then(loadVoiceSelect)
+  applyVoice(getStoredPrefs())
+  migrateVoice()
+  window.speechSynthesis?.addEventListener?.('voiceschanged', migrateVoice)
 })()
