@@ -1891,6 +1891,38 @@ a:where([href]) {
   }
 }
 
+@media not all and (max-width: 600px) {
+  aside fieldset :is(#views-menu, #listen-menu) {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+}
+
+/* Not in Safari, which scrolls the page under a position-area box instead of the box */
+@supports (position-area: bottom) and selector(:popover-open) and
+  (not (font: -apple-system-body)) {
+  @media not all and (max-width: 600px) {
+    aside fieldset :is(#contents-menu, #views-menu, #listen-menu),
+    [popover]:is(#info, #parallels) {
+      position: fixed;
+      inset: auto;
+      position-area: bottom span-left;
+      margin-top: 0;
+      /* position-area makes 100% the room under the anchor */
+      max-height: calc(100% - 0.5rem);
+    }
+
+    aside fieldset #contents-menu {
+      min-width: anchor-size(width);
+    }
+
+    /* Less their padding, as max-height is the content box's */
+    [popover]:is(#info, #parallels) {
+      max-height: calc(100% - 2.5rem);
+    }
+  }
+}
+
 @keyframes aside-search-in {
   to {
     max-width: 3rem;
