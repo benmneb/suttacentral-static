@@ -17,7 +17,7 @@ eleventyComputed:
         href="https://suttacentral.net/offline"
         rel="external"
       >
-        {% icon "devicePhoneMobileMicro" %}
+        {% icon "devicePhoneMobile" %}
         <span>Web app (PWA)</span>
       </a>
       <p>
@@ -28,7 +28,7 @@ eleventyComputed:
     </li>
     <li>
       <a class="with-icon" href="/editions">
-        <i class="i-bookOpen"></i>
+        {% icon "bookOpen" %}
         <span>Editions</span>
       </a>
       <p>
@@ -41,7 +41,7 @@ eleventyComputed:
     <ul>
       <li>
         <a class="with-icon" href="{{ _siteMetaData.archive }}">
-          {% icon "archiveBoxArrowDownMicro" %}
+          {% icon "archiveBoxArrowDown" %}
           <span>Archives and native apps</span>
         </a>
         <p>

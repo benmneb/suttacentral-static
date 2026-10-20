@@ -87,7 +87,7 @@ export const pitakaGuides = {
   ],
 }
 
-/** Each page's icon, as in .net's menu, by its path. Heroicon names, less "Micro" */
+/** Each page's icon, as in .net's menu, by its path, as a heroicon name */
 export const pageIcons = {
   '/introduction': 'lightBulb',
   '/start': 'flag',

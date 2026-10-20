@@ -7,7 +7,7 @@
       {% capture bylineKey %}{{ guide.label }}:2{% endcapture %}
       <li>
         <a href="{{ guide.href }}"
-          ><i class="i-{{ sitePagesData.pageIcons[guide.href] }}"></i
+          ><i class="icon i-{{ sitePagesData.pageIcons[guide.href] }}"></i
           ><cite>{{ titleKey | t | strip_html }}</cite></a
         >
         <span>{{ bylineKey | t | strip_html }}</span>
@@ -15,8 +15,9 @@
     {% endfor %}
     {% if readingEdition %}
       <li>
-        <a href="{{ readingEdition.href }}"
-          ><i class="i-bookOpen"></i><cite>{{ readingEdition.title }}</cite></a
+        <a href="{{ readingEdition.href }}">
+          {%- icon "bookOpen" -%}
+          <cite>{{ readingEdition.title }}</cite></a
         >
         <span>{{ readingEdition.creator }}</span>
         <span class="tagline">

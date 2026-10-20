@@ -3,14 +3,14 @@
     {% if isHome %}
       <li aria-current="page">
         <span>
-          {%- icon "homeMicro" -%}
+          {%- icon "home" -%}
           <span class="sr-only">Home</span></span
         >
       </li>
     {% else %}
       <li>
         <a href="/" aria-label="Home">
-          {%- icon "homeMicro" -%}
+          {%- icon "home" -%}
           <span class="sr-only">Home</span></a
         >
       </li>
@@ -25,7 +25,7 @@
         aria-label="Search texts"
         title="Cmd/Ctrl+K"
       >
-        {% icon "magnifyingGlassMicro" %}
+        {% icon "magnifyingGlass" %}
       </button>
     {% endunless %}
     <button
@@ -34,7 +34,7 @@
       aria-label="Site pages"
       title="Site pages"
     >
-      {% icon "bars3Micro" %}
+      {% icon "bars3" %}
     </button>
   </div>
 </nav>

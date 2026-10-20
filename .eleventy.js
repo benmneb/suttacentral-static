@@ -1,7 +1,7 @@
+import fs from 'fs'
 import htmlmin from 'html-minifier-terser'
 import masterData from './src/data/_masterData.js'
 import { recordStat } from './src/helpers/buildStats.js'
-import { heroicons } from './src/helpers/heroicons.js'
 import { localImage } from './src/helpers/images.js'
 import { minifyCss, minifyJs } from './src/helpers/minifyAssets.js'
 import { isMultiTextSpan } from './src/helpers/rangeSuttas.js'
@@ -34,6 +34,15 @@ const utilTemplates = [
   `${inputDir}/_robots.liquid`,
   `${inputDir}/_sitemap.liquid`,
 ]
+const iconNames = new Set(
+  ['styles.css', 'site-pages.css'].flatMap(file =>
+    [
+      ...fs
+        .readFileSync(`src/styles/${file}`, 'utf8')
+        .matchAll(/\.i-([A-Za-z0-9]+) \{/g),
+    ].map(match => match[1])
+  )
+)
 
 export default function (eleventyConfig) {
   if (process.env.ONLY_NAV) {
@@ -106,9 +115,9 @@ export default function (eleventyConfig) {
 
   eleventyConfig.addShortcode('rootTitle', rootTitle)
 
-  eleventyConfig.addShortcode('icon', function (name) {
-    if (!heroicons[name]) throw new Error(`No heroicon called "${name}"`)
-    return heroicons[name]
+  eleventyConfig.addShortcode('icon', function (name, size) {
+    if (!iconNames.has(name)) throw new Error(`No icon called "${name}"`)
+    return `<i class="icon${size ? ` ${size}` : ''} i-${name}"></i>`
   })
 
   eleventyConfig.addFilter('t', t)

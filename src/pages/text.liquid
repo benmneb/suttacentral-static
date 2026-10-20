@@ -63,7 +63,7 @@ eleventyComputed:
             title="Table of contents"
             id="contents-button"
           >
-            {% icon "numberedListMicro" %}
+            {% icon "numberedList" %}
           </button>
           <ol
             class="dropdown"
@@ -98,7 +98,7 @@ eleventyComputed:
           title="Show publication information"
           id="info-button"
         >
-          {% icon "informationCircleMicro" %}
+          {% icon "informationCircle" %}
         </button>
       </li>
       <li>
@@ -110,7 +110,7 @@ eleventyComputed:
           title="Text display settings"
           id="views-button"
         >
-          {% icon "eyeMicro" %}
+          {% icon "eye" %}
         </button>
         <ul
           class="dropdown"
@@ -124,7 +124,7 @@ eleventyComputed:
             <li>
               <label for="commenter">
                 <span class="with-icon">
-                  {% icon "chatBubbleBottomCenterTextMicro" -%}
+                  {% icon "chatBubbleBottomCenterText" -%}
                   <span>
                     {%- if entry.is_root %}Variants{% else %}Notes{% endif -%}
                   </span>
@@ -143,7 +143,7 @@ eleventyComputed:
             <li class="sub">
               <label for="commenter-inline">
                 <span class="with-icon">
-                  {% icon "bars3BottomLeftMicro" -%}
+                  {% icon "bars3BottomLeft" -%}
                   <span>Inline</span>
                 </span>
               </label>
@@ -156,7 +156,7 @@ eleventyComputed:
             <li class="sub sub-sub">
               <label for="commenter-side">
                 <span class="with-icon">
-                  {% icon "bars3BottomRightMicro" -%}
+                  {% icon "bars3BottomRight" -%}
                   <span>Sidenotes</span>
                 </span>
               </label>
@@ -167,7 +167,7 @@ eleventyComputed:
             <li>
               <label for="rooter">
                 <span class="with-icon">
-                  {% icon "languageMicro" -%}
+                  {% icon "language" -%}
                   <span>Root text</span>
                 </span>
                 <kbd aria-hidden="true" title="Press V to cycle through these"
@@ -183,7 +183,7 @@ eleventyComputed:
             <li class="sub">
               <label for="rooter-side">
                 <span class="with-icon">
-                  {% icon "viewColumnsMicro" -%}
+                  {% icon "viewColumns" -%}
                   <span>Side by side</span>
                 </span>
               </label>
@@ -192,7 +192,7 @@ eleventyComputed:
             <li class="sub">
               <label for="rooter-first">
                 <span class="with-icon">
-                  {% icon "arrowsUpDownMicro" -%}
+                  {% icon "arrowsUpDown" -%}
                   <span>Root first</span>
                 </span>
                 <kbd aria-hidden="true" title="Press F to toggle">F</kbd>
@@ -204,7 +204,7 @@ eleventyComputed:
             <li>
               <label for="illustrator">
                 <span class="with-icon">
-                  {% icon "photoMicro" -%}
+                  {% icon "photo" -%}
                   <span>Illustrations</span>
                 </span>
                 <kbd aria-hidden="true" title="Press I to toggle">I</kbd>
@@ -216,7 +216,7 @@ eleventyComputed:
             <li>
               <label for="highlighter" title="Highlight text-critical details">
                 <span class="with-icon">
-                  {% icon "paintBrushMicro" -%}
+                  {% icon "paintBrush" -%}
                   <span>Highlighting</span>
                 </span>
                 <kbd aria-hidden="true" title="Press O to toggle">O</kbd>
@@ -232,7 +232,7 @@ eleventyComputed:
             <li>
               <label for="paralleler">
                 <span class="with-icon">
-                  {% icon "arrowsRightLeftMicro" -%}
+                  {% icon "arrowsRightLeft" -%}
                   <span>Parallels</span>
                 </span>
                 <kbd aria-hidden="true" title="Press P to toggle">P</kbd>
@@ -246,7 +246,7 @@ eleventyComputed:
             <li>
               <label for="segmenter">
                 <span class="with-icon">
-                  {% icon "hashtagMicro" -%}
+                  {% icon "hashtag" -%}
                   <span>References</span>
                 </span>
                 <kbd aria-hidden="true" title="Press R to toggle">R</kbd>
@@ -265,7 +265,7 @@ eleventyComputed:
                 <li class="sub">
                   <label for="segmenter-main" title="SuttaCentral">
                     <span class="with-icon">
-                      {% icon "bookmarkMicro" -%}
+                      {% icon "bookmark" -%}
                       <span>Main</span>
                     </span>
                     <kbd aria-hidden="true" title="Press M to toggle">M</kbd>
@@ -285,7 +285,7 @@ eleventyComputed:
                     title="{{ 'pts' | referenceEdition }}"
                   >
                     <span class="with-icon">
-                      {% icon "documentMicro" -%}
+                      {% icon "document" -%}
                       <span>PTS</span>
                     </span>
                     <kbd aria-hidden="true" title="Press T to toggle">T</kbd>
@@ -304,7 +304,7 @@ eleventyComputed:
                     title="{{ entry.scx_other_editions }}"
                   >
                     <span class="with-icon">
-                      {% icon "rectangleStackMicro" -%}
+                      {% icon "rectangleStack" -%}
                       <span>Others</span>
                     </span>
                   </label>
@@ -320,7 +320,7 @@ eleventyComputed:
           <li>
             <label for="positioner">
               <span class="with-icon">
-                {% icon "mapPinMicro" -%}
+                {% icon "mapPin" -%}
                 <span>Pin menu</span>
               </span>
               <kbd aria-hidden="true" title="Press S to toggle">S</kbd>
@@ -338,7 +338,7 @@ eleventyComputed:
           title="Show parallel texts"
           id="parallels-button"
         >
-          {% icon "arrowsRightLeftMicro" %}
+          {% icon "arrowsRightLeft" %}
         </button>
       </li>
       <li>
@@ -350,7 +350,7 @@ eleventyComputed:
           title="Text to speech settings"
           id="listen-menu-button"
         >
-          {% icon "speakerWaveMicro" %}
+          {% icon "speakerWave" %}
         </button>
         <ul
           class="dropdown"
@@ -373,29 +373,29 @@ eleventyComputed:
           </li>
           <li class="tts-controls">
             <button id="prev" type="button" disabled>
-              <span>{% icon "backward" %}</span
+              <span>{% icon "backward", "mini" %}</span
               ><span
                 ><span>Prev</span
                 ><kbd aria-hidden="true" title="Press H">H</kbd></span
               >
             </button>
             <button id="playpause" type="button">
-              <span>{% icon "play" %}</span
+              <span>{% icon "play", "mini" %}</span
               ><span
                 ><span>Play</span
                 ><kbd aria-hidden="true" title="Press J">J</kbd></span
               >
             </button>
-            <template id="pause-icon">{% icon "pause" %}</template>
+            <template id="pause-icon">{% icon "pause", "mini" %}</template>
             <button id="stop" type="button" disabled>
-              <span>{% icon "stop" %}</span
+              <span>{% icon "stop", "mini" %}</span
               ><span
                 ><span>Stop</span
                 ><kbd aria-hidden="true" title="Press K">K</kbd></span
               >
             </button>
             <button id="next" type="button" disabled>
-              <span>{% icon "forward" %}</span
+              <span>{% icon "forward", "mini" %}</span
               ><span
                 ><span>Next</span
                 ><kbd aria-hidden="true" title="Press L">L</kbd></span
@@ -404,7 +404,7 @@ eleventyComputed:
           </li>
           <li>
             <label for="voice-select" class="with-icon">
-              {% icon "microphoneMicro" -%}
+              {% icon "microphone" -%}
               <span data-also-a="Rate" data-also-b="Pitch">Voice</span>
             </label>
             <select id="voice-select"></select>
@@ -416,7 +416,7 @@ eleventyComputed:
               aria-label="About voices"
               title="About voices"
             >
-              {% icon "informationCircleMicro" %}
+              {% icon "informationCircle" %}
             </button>
           </li>
           <li id="voice-info" class="voice-info" hidden>
@@ -434,7 +434,7 @@ eleventyComputed:
           </li>
           <li>
             <label for="rate" class="with-icon">
-              {% icon "clockMicro" -%}
+              {% icon "clock" -%}
               <span data-also-a="Voice" data-also-b="Pitch">Rate</span>
             </label>
             <input
@@ -449,7 +449,7 @@ eleventyComputed:
           </li>
           <li>
             <label for="pitch" class="with-icon">
-              {% icon "musicalNoteMicro" -%}
+              {% icon "musicalNote" -%}
               <span data-also-a="Voice" data-also-b="Rate">Pitch</span>
             </label>
             <input
@@ -465,7 +465,7 @@ eleventyComputed:
           <li>
             <label for="auto-scroll">
               <span class="with-icon">
-                {% icon "chevronDoubleDownMicro" -%}
+                {% icon "chevronDoubleDown" -%}
                 <span>Auto-scroll</span>
               </span>
               <kbd aria-hidden="true" title="Press A to toggle">A</kbd>
@@ -480,7 +480,7 @@ eleventyComputed:
           aria-label="Search texts"
           title="Cmd/Ctrl+K"
         >
-          {% icon "magnifyingGlassMicro" %}
+          {% icon "magnifyingGlass" %}
         </button>
       </li>
     </ul>

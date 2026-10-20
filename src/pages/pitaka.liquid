@@ -39,7 +39,7 @@ eleventyComputed:
     <p>
       <a class="with-icon" href="/{{ entry.uid }}">
         <span>Shortcut to all suttas</span>
-        {% icon "arrowRightMicro" %}
+        {% icon "arrowRight" %}
       </a>
     </p>
   {% endif %}
@@ -83,7 +83,7 @@ eleventyComputed:
                 {% endif %}
                 {% if child.yellow_brick_road %}
                   {% if child.root_lang_name %}
-                    {% icon "arrowRightMicro" %}
+                    {% icon "arrowRight" %}
                   {% endif %}
                   {% assign count = child.yellow_brick_road_count
                     | formatNumber
@@ -101,7 +101,7 @@ eleventyComputed:
             <p>
               <a class="with-icon" href="/{{ child.uid }}">
                 <span>Shortcut to all suttas</span>
-                {% icon "arrowRightMicro" %}
+                {% icon "arrowRight" %}
               </a>
             </p>
           {% endif %}
