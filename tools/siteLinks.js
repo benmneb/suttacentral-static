@@ -137,8 +137,8 @@ export function createSiteLinkFixer(tree) {
     if (start === -1 || end === -1) return html
     const base = `${NET}${pageUrl.replace(/(.)\/$/, '$1')}`
     const main = html.slice(start, end).replace(LINK, tag =>
-      // The licence's attribution, which names .net itself
-      /rel=["']dct:publisher/.test(tag)
+      // The licence's attribution, and links marked to stay on .net, ie its app on /offline
+      /rel=["'][^"']*\b(dct:publisher|external)\b/.test(tag)
         ? tag
         : tag.replace(
             HREF,
