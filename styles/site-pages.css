@@ -712,24 +712,9 @@ aside.related-pages {
         0 1px 0 0 rgb(255 255 255 / 0.1) inset;
     }
 
-    button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
+    .button {
       min-width: 2rem;
-      /* A line's height, so the icon-only ones match those with text */
-      min-height: calc(1lh + 0.5rem);
-      padding: 0.25rem 0.5rem;
-      border: none;
-      border-radius: var(--rounding);
-      color: var(--text-color);
-      background-color: var(--bg-alt-1);
-
-      &:is(:hover, :focus) {
-        color: var(--background-color);
-        background-color: var(--primary-color);
-      }
+      padding-inline: 0.5rem;
     }
   }
 
@@ -883,24 +868,6 @@ aside.related-pages {
 
           > p {
             margin: 0;
-          }
-
-          a {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            text-decoration: none;
-            border-radius: var(--rounding);
-            font-weight: 500;
-
-            &,
-            &:visited {
-              background-color: var(--primary-color);
-              color: var(--background-color);
-            }
-
-            &:hover {
-              background-color: var(--primary-color-alt);
-            }
           }
         }
 

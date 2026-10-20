@@ -53,7 +53,7 @@ eleventyComputed:
             <p>{{ edition.publication.translation_subtitle }}</p>
           </hgroup>
           <p>{{ edition.publication.creator_name }}</p>
-          <a href="{{ edition.href }}">Get this book</a>
+          <a class="button" href="{{ edition.href }}">Get this book</a>
         </header>
         <figure>
           {% capture cover %}https://suttacentral.net/img/publication-pages/{{ edition.uid }}-book.jpg{% endcapture %}

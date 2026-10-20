@@ -3191,19 +3191,41 @@ ul#search-results {
   }
 }
 
-button#show-more {
-  background-color: var(--background-color);
+.button {
+  align-items: center;
+  justify-content: center;
+  gap: 0.25em;
+  /* A line's height, so icon-only ones match those with text */
+  min-height: calc(1lh + 0.5rem);
+  padding: 0.25rem 0.75rem;
+  border: none;
   border-radius: var(--rounding);
-  border: 1px solid var(--primary-color);
-  padding: 0.2rem 0.6rem;
-  color: var(--primary-color);
+  color: var(--text-color);
+  background-color: var(--bg-alt-1);
   font-size: inherit;
+  text-decoration: none;
   cursor: pointer;
 
-  &:hover,
-  &:focus {
+  &:not([hidden]) {
+    display: inline-flex;
+  }
+
+  &:visited {
+    color: var(--text-color);
+  }
+
+  &:is(:hover, :focus) {
     color: var(--background-color);
     background-color: var(--primary-color);
+  }
+
+  &:active {
+    background-color: var(--primary-color-alt);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
