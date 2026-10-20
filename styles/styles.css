@@ -1210,6 +1210,9 @@ main:has(.segment) > :first-child {
   inset: 2.75rem 1rem auto auto;
   margin: 0;
   max-width: min(34rem, 100vw - 2rem);
+  /* 5.5rem clears the menu button, even when it wraps below search */
+  max-height: calc(100dvh - 5.5rem);
+  overflow-y: auto;
 
   section {
     height: fit-content;
