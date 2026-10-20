@@ -2128,6 +2128,19 @@ main {
       /* Not the browser's smaller control size */
       font-size: inherit;
       position: relative;
+      isolation: isolate;
+
+      /* Centred on the glyph, which sits 0.15-0.19em above the box's middle */
+      &::before {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        left: calc(50% - 0.35em);
+        top: calc(50% - 0.52em);
+        width: 0.7em;
+        height: 0.7em;
+        border-radius: var(--rounding);
+      }
 
       /* A bigger tap target, without moving the text */
       @media (pointer: coarse) {
@@ -2138,17 +2151,23 @@ main {
         }
       }
 
-      &:focus {
-        background-color: var(--primary-color);
+      &:is(:focus, [aria-expanded='true']) {
         color: var(--background-color);
+
+        &::before {
+          background-color: var(--primary-color);
+        }
       }
 
       &.variant-btn {
         color: var(--variant-btn-color);
 
-        &:focus {
-          background-color: var(--variant-btn-color);
+        &:is(:focus, [aria-expanded='true']) {
           color: var(--background-color);
+
+          &::before {
+            background-color: var(--variant-btn-color);
+          }
         }
       }
     }

@@ -4,7 +4,8 @@
  * Keeps the reading position when a view setting changes. Sidenotes rebuild each segment's layout, which loses
  * the browser's scroll anchor, and Safari has no scroll anchoring at all, so the first text below the menu is
  * put back where it was. Also keeps the References checkbox showing at least one group, and toggles the
- * settings and listen controls from the keyboard, with the same keys as .net and a few more.
+ * settings and listen controls from the keyboard, with the same keys as .net and a few more. And keeps a note's
+ * asterisk lit while the note is open.
  */
 ;(function () {
   'use strict'
@@ -33,6 +34,19 @@
     l: 'next',
     a: 'auto-scroll',
   }
+
+  // Safari doesn't focus a button on click, so :focus alone never lit it
+  document.addEventListener(
+    'toggle',
+    e => {
+      const id = e.target.id
+      if (!/^(comment|variant)-/.test(id ?? '')) return
+      document
+        .querySelector(`button[popovertarget="${CSS.escape(id)}"]`)
+        ?.setAttribute('aria-expanded', String(e.newState === 'open'))
+    },
+    true
+  )
 
   const viewsMenu = document.getElementById('views-menu')
   if (!viewsMenu) return
