@@ -23,7 +23,7 @@
     "build:search": "pnpm pagefind && node tools/cleanupPagefind.js",
     "sync:site-pages": "node tools/syncSitePages.js",
     "build:refetch": "REFETCH=1 pnpm predeploy",
-    "dev": "pnpm serve _site",
+    "dev": "node tools/serve.js",
     "dev:fresh": "pnpm predeploy && pnpm dev",
     "tauri:dev": "pnpm tauri dev",
     "tauri:build": "pnpm tauri build",
@@ -63,7 +63,7 @@
     "lint-staged": "^16.2.7",
     "ora": "^8.2.0",
     "prettier": "^3.7.3",
-    "serve": "^14.2.6",
+    "sirv": "^3.0.2",
     "terser": "^5.44.1",
     "vercel": "^50.1.0"
   }
