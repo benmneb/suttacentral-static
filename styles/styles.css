@@ -1088,6 +1088,40 @@ main:has(.segment) > :first-child {
   padding: 0;
 }
 
+@supports (anchor-name: --a) and (position-try-fallbacks: --a) {
+  @position-try --note-above {
+    top: auto;
+    bottom: anchor(top);
+  }
+
+  main > article[popover]:is([id^='comment-'], [id^='variant-']) {
+    inset: auto;
+    top: anchor(bottom);
+    /* 320px is the popover's widest, padding and all */
+    left: clamp(1rem, anchor(left), 100% - 320px - 1rem);
+    margin: 0.25rem 0;
+    position-try-fallbacks: --note-above;
+    overscroll-behavior: contain;
+  }
+
+  /* Safari lagged a frame on scroll, so it's told apart by an Apple-only font */
+  @supports (font: -apple-system-body) {
+    main > article[popover]:is([id^='comment-'], [id^='variant-']) {
+      position: absolute;
+      position-try-fallbacks: none;
+    }
+  }
+
+  @media only screen and (max-width: 600px) {
+    main > article[popover]:is([id^='comment-'], [id^='variant-']) {
+      left: 0.5rem;
+      right: 0.5rem;
+      width: auto;
+      max-width: none;
+    }
+  }
+}
+
 /* A set height, so what opens from the bar can clear the controls */
 @media (hover: none) {
   :root {

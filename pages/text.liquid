@@ -647,7 +647,7 @@ eleventyComputed:
               {% endif %}
               <span class="text">{% if is_heading %}{{ text | softHyphenateTitle }}{% else %}{{ text }}{% endif %}</span>
               {% unless comment == blank %}
-                <button class="variant-btn" popovertarget="comment-{{ key }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
+                <button class="variant-btn" popovertarget="comment-{{ key }}" style="anchor-name: --comment{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
                 <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">
                   Variant: {{ comment | replace: 'https://suttacentral.net', '' }}
                 </span>
@@ -663,7 +663,7 @@ eleventyComputed:
           {%- if comment -%}
             {% capture comments %}
             {{ comments }}
-            <article id="comment-{{ key }}" popover>
+            <article id="comment-{{ key }}" popover style="position-anchor: --comment{{ forloop.index }}">
               Variant: {{ comment | replace: 'https://suttacentral.net', '' }}
             </article>
             {% endcapture %}
@@ -823,7 +823,7 @@ eleventyComputed:
             {% endif %}
             <span class="text">{{ text }}</span>
               {% unless comment == blank %}
-                <button popovertarget="comment-{{ key }}" aria-label="Show {{ entry.author }}'s footnote for segment {{ key }}">*</button>
+                <button popovertarget="comment-{{ key }}" style="anchor-name: --comment{{ forloop.index }}" aria-label="Show {{ entry.author }}'s footnote for segment {{ key }}">*</button>
                 <span class="inline-comment" aria-label="{{ entry.author }}'s footnote for segment {{ key }}">
                   {{ comment | replace: 'https://suttacentral.net', '' }}
                 </span>
@@ -844,7 +844,7 @@ eleventyComputed:
                 {% endif %}
                 <span class="text">{% if is_heading %}{{ rootText | softHyphenateTitle }}{% else %}{{ rootText }}{% endif %}</span>
                 {% unless variant == blank %}
-                  <button class="variant-btn" popovertarget="variant-{{ key }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
+                  <button class="variant-btn" popovertarget="variant-{{ key }}" style="anchor-name: --variant{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
                   <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">
                     Variant: {{ variant | replace: 'https://suttacentral.net', '' }}
                   </span>
@@ -860,7 +860,7 @@ eleventyComputed:
           {%- if comment -%}
             {% capture comments %}
             {{ comments }}
-            <article id="comment-{{ key }}" popover>
+            <article id="comment-{{ key }}" popover style="position-anchor: --comment{{ forloop.index }}">
               {{ comment | replace: 'https://suttacentral.net', '' }}
             </article>
             {% endcapture %}
@@ -868,7 +868,7 @@ eleventyComputed:
           {%- if variant -%}
             {% capture comments %}
             {{ comments }}
-            <article id="variant-{{ key }}" popover>
+            <article id="variant-{{ key }}" popover style="position-anchor: --variant{{ forloop.index }}">
               Variant: {{ variant | replace: 'https://suttacentral.net', '' }}
             </article>
             {% endcapture %}
