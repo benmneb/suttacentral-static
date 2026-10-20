@@ -7,7 +7,11 @@
       name="description"
       content="{{ _siteMetaData.description }}"
     >
-    <title>{{ title | default: _siteMetaData.title }}</title>
+    {% assign pageTitle = _siteMetaData.title %}
+    {% if title %}
+      {% assign pageTitle = title | append: " @ " | append: pageTitle %}
+    {% endif %}
+    <title>{{ pageTitle }}</title>
     {% if og_tags %}
       {% assign parsedTags = og_tags | parseJSON %}
       {% for tag in parsedTags %}

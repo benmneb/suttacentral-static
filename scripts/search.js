@@ -109,7 +109,7 @@
 
   async function performSearch(query) {
     const searchId = ++latestSearch
-    document.title = `${query} on SuttaCentral Express`
+    document.title = `${query} @ SuttaCentral Express`
     countEl.hidden = false
     showMoreBtn.hidden = true
     const { filters, count } = getFilters()
