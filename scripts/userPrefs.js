@@ -125,7 +125,7 @@
     el.dataset.saved = name
   }
 
-  // The editions .net's reference param can name, as in tools/referenceEditions.js
+  // The editions .net's reference param can name, as in helpers/referenceEditions.js
   const REFERENCE_EDITIONS = [
     'bj',
     'cck',

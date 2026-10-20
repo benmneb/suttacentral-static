@@ -1,11 +1,11 @@
 import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
 import ora from 'ora'
-import { recordStat } from '../tools/buildStats.js'
-import { fixCommentLinks } from '../tools/commentLinks.js'
-import { fixPaginationLinks } from '../tools/paginationLinks.js'
-import { parseUidNumbers } from '../tools/rangeSuttas.js'
-import { fixMovedLegacyLinks } from '../tools/siteLinks.js'
-import { createLinkResolver } from '../tools/textLinks.js'
+import { recordStat } from '../helpers/buildStats.js'
+import { fixCommentLinks } from '../helpers/commentLinks.js'
+import { fixPaginationLinks } from '../helpers/paginationLinks.js'
+import { parseUidNumbers } from '../helpers/rangeSuttas.js'
+import { fixMovedLegacyLinks } from '../helpers/siteLinks.js'
+import { createLinkResolver } from '../helpers/textLinks.js'
 import shortcutsData from './_shortcuts.json' with { type: 'json' }
 
 const CACHE_DURATION = process.env.REFETCH ? '0s' : '*' // https://www.11ty.dev/docs/plugins/fetch/#change-the-cache-duration

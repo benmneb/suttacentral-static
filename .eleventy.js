@@ -1,23 +1,23 @@
 import htmlmin from 'html-minifier-terser'
 import masterData from './data/_masterData.js'
-import { recordStat } from './tools/buildStats.js'
-import { heroicons } from './tools/heroicons.js'
-import { localImage } from './tools/images.js'
-import { minifyCss, minifyJs } from './tools/minifyAssets.js'
-import { isMultiTextSpan } from './tools/rangeSuttas.js'
+import { recordStat } from './helpers/buildStats.js'
+import { heroicons } from './helpers/heroicons.js'
+import { localImage } from './helpers/images.js'
+import { minifyCss, minifyJs } from './helpers/minifyAssets.js'
+import { isMultiTextSpan } from './helpers/rangeSuttas.js'
 import {
   referenceEditionName,
   referenceGroup,
-} from './tools/referenceEditions.js'
-import { sampleUids } from './tools/samplePages.js'
-import { createSiteLinkFixer } from './tools/siteLinks.js'
-import { missingKeys, t } from './tools/siteStrings.js'
+} from './helpers/referenceEditions.js'
+import { sampleUids } from './helpers/samplePages.js'
+import { createSiteLinkFixer } from './helpers/siteLinks.js'
+import { missingKeys, t } from './helpers/siteStrings.js'
 import {
   formatVolpages,
   isHeadingHTML,
   rootTitle,
   softHyphenateTitle,
-} from './tools/strings.js'
+} from './helpers/strings.js'
 
 const inputDir = 'pages'
 const textTemplate = `${inputDir}/text.liquid`

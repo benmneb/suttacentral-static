@@ -1,7 +1,7 @@
 /**
  * Internal links go to pages that exist.
  *
- * The API links texts that may not exist (see `tools/textLinks.js`), and those
+ * The API links texts that may not exist (see `helpers/textLinks.js`), and those
  * are pointed at pages that do at build time, so a jump in dead links means
  * data changed under that. A few are known and left as they are, like parallels
  * in languages that aren't built (ie vi).

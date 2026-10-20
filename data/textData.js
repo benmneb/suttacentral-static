@@ -6,19 +6,19 @@ import {
   rangeUidToAcronym,
   uidIsInRange,
   uidToAcronym,
-} from '../tools/rangeSuttas.js'
+} from '../helpers/rangeSuttas.js'
 import masterData from './_masterData.js'
-import { breadcrumbTrail } from '../tools/breadcrumbs.js'
-import { onlySample } from '../tools/samplePages.js'
-import { referenceGroupsOf } from '../tools/referenceEditions.js'
-import { highlightsOf } from '../tools/highlights.js'
-import { parallelRunsOf } from '../tools/parallelRuns.js'
-import { localImage } from '../tools/images.js'
+import { breadcrumbTrail } from '../helpers/breadcrumbs.js'
+import { onlySample } from '../helpers/samplePages.js'
+import { referenceGroupsOf } from '../helpers/referenceEditions.js'
+import { highlightsOf } from '../helpers/highlights.js'
+import { parallelRunsOf } from '../helpers/parallelRuns.js'
+import { localImage } from '../helpers/images.js'
 import siteMetaData from './_siteMetaData.js'
 
 let usedPaths = []
 
-// The `masterData` tree, set before flattening, for each page's breadcrumbs (see `tools/breadcrumbs.js`)
+// The `masterData` tree, set before flattening, for each page's breadcrumbs (see `helpers/breadcrumbs.js`)
 let tree = []
 
 const trailOf = entry => breadcrumbTrail(tree, entry.scx_breadcrumb)

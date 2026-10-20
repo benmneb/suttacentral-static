@@ -11,7 +11,11 @@
  * its builds start with no `.cache`.
  */
 
-import { fetchStrings, STRING_FILES, templateKeys } from './siteStrings.js'
+import {
+  fetchStrings,
+  STRING_FILES,
+  templateKeys,
+} from '../helpers/siteStrings.js'
 
 function list(label, keys) {
   if (!keys.length) return

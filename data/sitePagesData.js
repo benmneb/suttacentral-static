@@ -5,8 +5,8 @@ import {
   mapBase,
   onMap,
   project,
-} from '../tools/mapBase.js'
-import { mapMarkers } from '../tools/mapMarkers.js'
+} from '../helpers/mapBase.js'
+import { mapMarkers } from '../helpers/mapMarkers.js'
 import {
   editionCollections,
   mapLayerKeys,
@@ -14,8 +14,8 @@ import {
   pitakaGuides,
   relatedPages,
   siteMap,
-} from '../tools/sitePages.js'
-import { loadStrings } from '../tools/siteStrings.js'
+} from '../helpers/sitePages.js'
+import { loadStrings } from '../helpers/siteStrings.js'
 import { fetchOptions, menuUrl } from './_masterData.js'
 
 const API = 'https://suttacentral.net/api'

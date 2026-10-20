@@ -8,12 +8,12 @@
 
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { siteMap } from '../tools/sitePages.js'
+import { siteMap } from '../helpers/sitePages.js'
 import {
   fetchStrings,
   STRING_FILES,
   templateKeys,
-} from '../tools/siteStrings.js'
+} from '../helpers/siteStrings.js'
 import { listSome, scanSite } from './lib/site.js'
 
 // Characters of text a site page's <main> has at least

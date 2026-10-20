@@ -1,10 +1,10 @@
 import masterData from './_masterData.js'
-import { breadcrumbTrail } from '../tools/breadcrumbs.js'
-import { onlySample } from '../tools/samplePages.js'
+import { breadcrumbTrail } from '../helpers/breadcrumbs.js'
+import { onlySample } from '../helpers/samplePages.js'
 import siteMetaData from './_siteMetaData.js'
-import { hasPitakaPage } from '../tools/pageUids.js'
+import { hasPitakaPage } from '../helpers/pageUids.js'
 
-// The `masterData` tree, set before flattening, for each page's breadcrumbs (see `tools/breadcrumbs.js`)
+// The `masterData` tree, set before flattening, for each page's breadcrumbs (see `helpers/breadcrumbs.js`)
 let tree = []
 
 const trailOf = entry => breadcrumbTrail(tree, entry.scx_breadcrumb)

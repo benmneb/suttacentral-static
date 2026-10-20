@@ -42,7 +42,7 @@
   const UPRIGHT_SCRIPTS =
     /[\p{Script=Han}\p{Script=Hangul}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Tibetan}]/u
 
-  /** Lets a long Pāli compound title wrap before its suffix, as in `tools/strings.js` */
+  /** Lets a long Pāli compound title wrap before its suffix, as in `helpers/strings.js` */
   const softHyphenateTitle = title =>
     title.replace(
       /(?<=\p{L})(sutta|vagga|paṇṇāsa|saṁyutta|nipāta)(?=\s*$)/u,
