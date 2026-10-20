@@ -107,25 +107,52 @@
     }
   }
 
-  async function performSearch(query) {
+  /*
+   * Ticks the author filter for each of .net's by:<author> in a query (ie ?query=by:sujato, as
+   * the language pages link), and returns the rest of the query to search for
+   */
+  function takeAuthorTokens(query) {
+    return query
+      .replace(/(^|\s)by:(\S+)/g, (match, space, uid) => {
+        const box = document.getElementById(`author-${uid}`)
+        if (!box) return match
+        box.checked = true
+        // Its group too, as a box under an unchecked group doesn't count
+        box
+          .closest('ul')
+          .closest('li')
+          .querySelector(':scope > input').checked = true
+        filtersEl.open = true
+        return space
+      })
+      .trim()
+  }
+
+  /*
+   * @param {string} query - What to search for, or '' to list all that the filters let through
+   * @param {string} [netQuery] - The same search on .net, for the footer link
+   */
+  async function performSearch(query, netQuery = query) {
     const searchId = ++latestSearch
-    document.title = `${query} @ SuttaCentral Express`
+    document.title = `${query || 'Search'} @ SuttaCentral Express`
     countEl.hidden = false
     showMoreBtn.hidden = true
     const { filters, count } = getFilters()
+    const forQuery = query ? ` for <b>${query}</b>` : ''
     const withFilters = count
       ? ` with ${count} filter${count !== 1 ? 's' : ''}`
       : ''
-    countEl.innerHTML = `Searching for <b>${query}</b>${withFilters}…`
+    countEl.innerHTML = `Searching${forQuery}${withFilters}…`
     resultsContainer.innerHTML = ''
 
-    const results = await pagefind.search(query, { filters })
+    // A null term lists every page the filters let through
+    const results = await pagefind.search(query || null, { filters })
     // A newer search (ie from ticking another filter) has started since
     if (searchId !== latestSearch) return
 
     const finalCountMsg = `${results.results.length} result${
       results.results.length !== 1 ? 's' : ''
-    } for <b>${query}</b>${withFilters}`
+    }${forQuery}${withFilters}`
 
     if (results.results.length === 0) {
       resultsContainer.innerHTML = ''
@@ -198,17 +225,21 @@
 
     // Update footer link
     const url = new URL(scRedirectLink.href)
-    url.searchParams.set('query', query)
+    url.searchParams.set('query', netQuery)
     scRedirectLink.href = url.toString()
+  }
+
+  // The by:<author> goes into the filters, so unticking it later isn't undone by the query
+  async function searchFor(query) {
+    const term = takeAuthorTokens(query)
+    input.value = term
+    await performSearch(term, query)
   }
 
   // Handle initial page load
   const params = new URLSearchParams(window.location.search)
   const initialQuery = params.get('query')
-  if (initialQuery) {
-    input.value = initialQuery
-    await performSearch(initialQuery)
-  }
+  if (initialQuery) await searchFor(initialQuery)
 
   form.addEventListener('submit', async e => {
     const url = new URL(window.location)
@@ -220,24 +251,28 @@
     url.searchParams.set('query', query)
     history.pushState({}, '', url)
 
-    await performSearch(query)
+    await searchFor(query)
   })
 
-  // Re-run the search on each filter change, there's nothing to filter without a query.
-  // Filters stay out of the URL, to keep it in sync with SuttaCentral.net
+  // Re-run the search on each filter change. Filters stay out of the URL, to keep it in sync with
+  // SuttaCentral.net
   filtersEl.addEventListener('change', async () => {
     const query = input.value.trim()
-    if (query) await performSearch(query)
+    if (query || getFilters().count) {
+      await performSearch(query)
+    } else {
+      latestSearch++
+      countEl.hidden = true
+      showMoreBtn.hidden = true
+      resultsContainer.innerHTML = ''
+    }
   })
 
   // Handle back/forward navigation
   window.addEventListener('popstate', async () => {
     const params = new URLSearchParams(window.location.search)
     const query = params.get('query')
-    if (query) {
-      input.value = query
-      await performSearch(query)
-    }
+    if (query) await searchFor(query)
   })
 
   document.addEventListener('keydown', function (event) {
