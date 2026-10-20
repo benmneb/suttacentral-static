@@ -62,7 +62,33 @@ eleventyComputed:
             {% capture pitaka_url %}false{% endcapture %}
           {% endif %}
           {% capture href %}{% if pitaka_url == 'false' %}/{{ child.uid }}/{% else %}/pitaka/{{ entry.scx_path }}/{{ child.uid }}/{% endif %}{% endcapture %}
-          <h2>{% rootTitle child, href %}</h2>
+          <hgroup>
+            <h2>{% rootTitle child, href %}</h2>
+            {% comment %} Like .net's card header, ie "SN 1–11 ∙ Pāli → 657 English" {% endcomment %}
+            {% if child.child_range
+              or child.root_lang_name
+              or child.yellow_brick_road
+            %}
+              <p class="card-details">
+                {% if child.child_range %}
+                  <span class="range">{{ child.child_range }}</span>
+                {% endif %}
+                {% if child.root_lang_name %}
+                  <span>{{ child.root_lang_name }}</span>
+                {% endif %}
+                {% if child.yellow_brick_road %}
+                  {% if child.root_lang_name %}
+                    {% icon "arrowRightMicro" %}
+                  {% endif %}
+                  {% assign count = child.yellow_brick_road_count
+                    | formatNumber
+                  %}
+                  <span aria-hidden="true">{{ count }} English</span>
+                  <span class="sr-only">English translations: {{ count }}</span>
+                {% endif %}
+              </p>
+            {% endif %}
+          </hgroup>
           {% if child.blurb %}
             <p>{{ child.blurb }}</p>
           {% endif %}

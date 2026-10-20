@@ -1971,6 +1971,22 @@ main {
       color: var(--text-color-secondary);
     }
 
+    .card-details {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+
+      .range:not(:last-child)::after {
+        content: '∙';
+        content: '∙' / '';
+        margin-inline: 0.5em;
+      }
+
+      > .icon {
+        margin-inline: 0.5em;
+      }
+    }
+
     /* Smaller rather than fainter, which would drop it under 4.5:1 */
     .volpages {
       font-size: small;

@@ -87,6 +87,9 @@ export default function (eleventyConfig) {
   eleventyConfig.addFilter('softHyphenateTitle', softHyphenateTitle)
   eleventyConfig.addFilter('isHeading', isHeadingHTML)
   eleventyConfig.addFilter('formatVolpages', formatVolpages)
+  eleventyConfig.addFilter('formatNumber', function (number) {
+    return new Intl.NumberFormat('en').format(number)
+  })
 
   eleventyConfig.addShortcode('rootTitle', rootTitle)
 
