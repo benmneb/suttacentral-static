@@ -158,6 +158,23 @@
   }
 }
 
+.root-title {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* An inline-flex is never narrower than its longest word */
+  overflow-wrap: anywhere;
+
+  > span {
+    color: var(--text-color-secondary);
+    font-size: 0.8em;
+  }
+
+  .upright {
+    font-style: normal;
+  }
+}
+
 .icon {
   inline-size: 1.25em;
   block-size: 1.25em;
@@ -1945,7 +1962,7 @@ main {
     h2,
     h3,
     h4 {
-      margin-bottom: 0;
+      margin-bottom: 0.4rem;
       overflow-wrap: break-word;
     }
 

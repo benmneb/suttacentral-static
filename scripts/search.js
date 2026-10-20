@@ -38,6 +38,32 @@
   // Hidden until now, as filtering can't work without this script
   filtersEl.hidden = false
 
+  // By script, as romanised titles like Madhyamāgama are tagged lzh too
+  const UPRIGHT_SCRIPTS =
+    /[\p{Script=Han}\p{Script=Hangul}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Tibetan}]/u
+
+  /** Lets a long Pāli compound title wrap before its suffix, as in `tools/strings.js` */
+  const softHyphenateTitle = title =>
+    title.replace(
+      /(?<=\p{L})(sutta|vagga|paṇṇāsa|saṁyutta|nipāta)(?=\s*$)/u,
+      '\u00ad$1'
+    )
+
+  /** The root title in italics over the translation, linked, as on the menu pages */
+  function titleHTML(root, translation, href) {
+    root = root?.trim()
+    translation = translation?.trim()
+    if (
+      !root ||
+      !translation ||
+      root.toLowerCase() === translation.toLowerCase()
+    ) {
+      return `<a href="${href}">${softHyphenateTitle(translation || root || '')}</a>`
+    }
+    const upright = UPRIGHT_SCRIPTS.test(root) ? ' class="upright"' : ''
+    return `<span class="root-title"><a href="${href}"><dfn${upright}>${softHyphenateTitle(root)}</dfn></a><span> ${translation}</span></span>`
+  }
+
   /*
    * The deepest checked branches, as checking a child narrows its parent down to it.
    * Anything checked under an unchecked (so hidden) branch doesn't count.
@@ -132,18 +158,16 @@
       allData.forEach(data => {
         const readableLang = languageNames.of(data.meta.lang) // 'en' to 'English' etc
         const englishTitle = data.meta.translatorsTitle || data.meta.title // usually falls back to Sujato's
-        const bestTitle =
-          data.meta.lang === 'en' ? englishTitle : data.meta.originalTitle
+        const title =
+          data.meta.lang === 'en'
+            ? titleHTML(data.meta.originalTitle, englishTitle, data.url)
+            : titleHTML(data.meta.originalTitle, null, data.url)
         const acronym = data.meta.acronym
 
         const listItem = document.createElement('li')
         listItem.innerHTML = `
 				 <article>
-					 <h2>
-						 <a href="${data.url}">
-							 ${bestTitle}
-						 </a>
-					 </h2>
+					 <h2>${title}</h2>
 					 <dl>
 						 <dt class="sr-only">Acronym</dt>
 						 <dd>${

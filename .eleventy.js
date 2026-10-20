@@ -11,6 +11,7 @@ import { sampleUids } from './tools/samplePages.js'
 import {
   formatVolpages,
   isHeadingHTML,
+  rootTitle,
   softHyphenateTitle,
 } from './tools/strings.js'
 
@@ -86,6 +87,8 @@ export default function (eleventyConfig) {
   eleventyConfig.addFilter('softHyphenateTitle', softHyphenateTitle)
   eleventyConfig.addFilter('isHeading', isHeadingHTML)
   eleventyConfig.addFilter('formatVolpages', formatVolpages)
+
+  eleventyConfig.addShortcode('rootTitle', rootTitle)
 
   eleventyConfig.addShortcode('icon', function (name) {
     if (!heroicons[name]) throw new Error(`No heroicon called "${name}"`)

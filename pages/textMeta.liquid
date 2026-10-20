@@ -32,7 +32,10 @@ eleventyComputed:
 
 <main>
   <!-- This has it's own file because it's reused in text.liquid -->
-  {% include "textMetaContent.liquid", entry: entry, title: title %}
+  {% include "textMetaContent.liquid",
+    entry: entry,
+    rangeTitle: entry.scx_range_sutta_title
+  %}
 </main>
 
 <nav aria-label="Article pagination">

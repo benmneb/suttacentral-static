@@ -1,7 +1,7 @@
 /**
  * Strings
  *
- * Formatting for titles and references, used as filters in `.eleventy.js`.
+ * Formatting for titles and references, used as filters and shortcodes in `.eleventy.js`.
  */
 
 /** Lets a long Pāli compound title wrap before its suffix, ie "Mahādukkhakkhandha-" over "sutta" */
@@ -45,4 +45,40 @@ export function formatVolpages(volpages) {
   const firstNum = firstParts[firstParts.length - 1]
   const lastNum = lastParts[lastParts.length - 1]
   return `${prefix} ${firstNum}–${lastNum}`
+}
+
+// By script, as romanised titles like Madhyamāgama are tagged lzh too
+const UPRIGHT_SCRIPTS =
+  /[\p{Script=Han}\p{Script=Hangul}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Tibetan}]/u
+
+/**
+ * A menu or suttaplex entry's title, its root title in italics over the translation. Plain text where there's
+ * only one, or they're the same
+ * @param {Object} entry - With `original_title` or `root_name`, and `translated_title` or `translated_name`
+ * @param {string} [href] - Links the root title
+ */
+export function rootTitle(entry, href) {
+  // The API leaves trailing spaces on names
+  const root = (entry?.original_title || entry?.root_name)?.trim()
+  const translation = (
+    entry?.translated_title || entry?.translated_name
+  )?.trim()
+  const lang = entry?.root_lang || entry?.root_lang_iso
+  const link = text => (href ? `<a href="${href}">${text}</a>` : text)
+
+  if (
+    !root ||
+    !translation ||
+    root.toLowerCase() === translation.toLowerCase()
+  ) {
+    return link(softHyphenateTitle(translation || root))
+  }
+
+  const attributes = [
+    lang && ` lang="${lang}"`,
+    UPRIGHT_SCRIPTS.test(root) && ' class="upright"',
+  ]
+  const dfn = `<dfn${attributes.filter(Boolean).join('')}>${softHyphenateTitle(root)}</dfn>`
+  // The space keeps the two apart in reader mode and copied text
+  return `<span class="root-title">${link(dfn)}<span> ${translation}</span></span>`
 }

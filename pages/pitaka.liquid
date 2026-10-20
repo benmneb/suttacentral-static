@@ -31,7 +31,7 @@ eleventyComputed:
 </header>
 
 <main>
-  <h1>{{ title }}</h1>
+  <h1>{% rootTitle entry %}</h1>
 
   <p>{{ entry.blurb }}</p>
 
@@ -61,14 +61,8 @@ eleventyComputed:
           {% if child.uid | endswith: '-pm' %}
             {% capture pitaka_url %}false{% endcapture %}
           {% endif %}
-          <h2>
-            <a href="{% if pitaka_url == 'false' %}/{{ child.uid }}/{% else %}/pitaka/{{ entry.scx_path }}/{{ child.uid }}/{% endif %}">
-              {{ child.original_title | default: child.root_name -}}
-              {%- if child.translated_title or child.translated_name -%}
-                —{{ child.translated_title | default: child.translated_name -}}
-              {%- endif %}
-            </a>
-          </h2>
+          {% capture href %}{% if pitaka_url == 'false' %}/{{ child.uid }}/{% else %}/pitaka/{{ entry.scx_path }}/{{ child.uid }}/{% endif %}{% endcapture %}
+          <h2>{% rootTitle child, href %}</h2>
           {% if child.blurb %}
             <p>{{ child.blurb }}</p>
           {% endif %}

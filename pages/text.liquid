@@ -940,18 +940,8 @@ eleventyComputed:
   {% endif %}
 
   <article id="parallels" popover>
-    {% assign left_title = entry.original_title | default: entry.root_name %}
-    {% assign right_title = entry.translated_title
-      | default: entry.translated_name
-    %}
-    {% if right_title != blank %}
-      {% assign full_title = left_title | append: "—" | append: right_title %}
-    {% else %}
-      {% assign full_title = left_title %}
-    {% endif %}
     {% include "textMetaContent.liquid",
       entry: entry,
-      title: full_title,
       translations: entry._suttas_data.suttaplex.translations,
       parallelsOpen: true
     %}

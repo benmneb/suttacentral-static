@@ -31,7 +31,7 @@ eleventyComputed:
 </header>
 
 <main>
-  <h1>{{ title }}</h1>
+  <h1>{% rootTitle entry %}</h1>
 
   {% if entry.blurb %}
     <p>{{ entry.blurb }}</p>
@@ -52,12 +52,7 @@ eleventyComputed:
         {% comment %} The id is where breadcrumbs link to for things with no page of their own, ie pātimokkha sections {% endcomment %}
         <li id="{{ child.uid }}">
           <hgroup>
-            <h2>
-              {{ child.original_title | default: child.root_name -}}
-              {%- if child.translated_title or child.translated_name -%}
-                —{{ child.translated_title | default: child.translated_name -}}
-              {%- endif %}
-            </h2>
+            <h2>{% rootTitle child %}</h2>
             {%- if child.acronym %}
               <p>{{ child.acronym }}</p>
             {% endif %}
@@ -76,21 +71,7 @@ eleventyComputed:
               {% for grandchild in child.children %}
                 <li>
                   <hgroup>
-                    <h3>
-                      {{
-                        grandchild.original_title
-                        | default: grandchild.root_name
-                      -}}
-                      {%- if grandchild.translated_title
-                        or grandchild.translated_name
-                      -%}
-                        —
-                        {{-
-                          grandchild.translated_title
-                          | default: grandchild.translated_name
-                        -}}
-                      {%- endif %}
-                    </h3>
+                    <h3>{% rootTitle grandchild %}</h3>
                     {%- if grandchild.acronym %}
                       <p>{{ grandchild.acronym }}</p>
                     {% endif %}
@@ -108,21 +89,7 @@ eleventyComputed:
               {% for grandchild in child.children %}
                 <li>
                   <hgroup>
-                    <h3>
-                      {{
-                        grandchild.original_title
-                        | default: grandchild.root_name
-                      -}}
-                      {%- if grandchild.translated_title
-                        or grandchild.translated_name
-                      -%}
-                        —
-                        {{-
-                          grandchild.translated_title
-                          | default: grandchild.translated_name
-                        -}}
-                      {%- endif %}
-                    </h3>
+                    <h3>{% rootTitle grandchild %}</h3>
                     {%- if grandchild.acronym %}
                       <p>{{ grandchild.acronym }}</p>
                     {% endif %}
@@ -138,21 +105,7 @@ eleventyComputed:
                     {% for greatgrandchild in grandchild.children %}
                       <li>
                         <hgroup>
-                          <h4>
-                            {{
-                              greatgrandchild.original_title
-                              | default: greatgrandchild.root_name
-                            -}}
-                            {%- if greatgrandchild.translated_title
-                              or greatgrandchild.translated_name
-                            -%}
-                              —
-                              {{-
-                                greatgrandchild.translated_title
-                                | default: greatgrandchild.translated_name
-                              -}}
-                            {%- endif %}
-                          </h4>
+                          <h4>{% rootTitle greatgrandchild %}</h4>
                           {%- if greatgrandchild.acronym %}
                             <p>{{ greatgrandchild.acronym }}</p>
                           {% endif %}

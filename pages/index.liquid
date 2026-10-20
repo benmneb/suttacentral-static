@@ -10,15 +10,19 @@ eleventyComputed:
 </header>
 
 <main>
-  <h1>Tipiṭaka—the Three Baskets of the Buddhist canon</h1>
+  <h1>
+    <span class="root-title"
+      ><dfn lang="pli">Tipiṭaka</dfn
+      ><span> the Three Baskets of the Buddhist canon</span></span
+    >
+  </h1>
 
   <ul>
     {% for item in indexData %}
       <li>
         <h2>
-          <a href="pitaka/{{item.uid}}">
-            {{- item.root_name }}—{{ item.translated_name -}}
-          </a>
+          {% capture href %}pitaka/{{ item.uid }}{% endcapture %}
+          {% rootTitle item, href %}
         </h2>
         <p>{{ item.blurb }}</p>
       </li>

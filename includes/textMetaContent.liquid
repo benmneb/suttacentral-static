@@ -1,7 +1,13 @@
 <!-- This has it's own file because it's used in text.liquid as well -->
 {% unless isPatimokkha %}
   <hgroup>
-    <h1>{{ title }}</h1>
+    <h1>
+      {%- if rangeTitle -%}
+        {{ rangeTitle }}
+      {%- else -%}
+        {% rootTitle entry %}
+      {%- endif -%}
+    </h1>
     {%- if entry.acronym %}
       {% assign volpages = entry.volpages | formatVolpages %}
       {% assign alt_volpages = entry.alt_volpages | formatVolpages %}
