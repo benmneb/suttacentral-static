@@ -1495,14 +1495,18 @@ aside {
     }
 
     /* Flat rather than hidden, so the menu keeps its width */
-    #views-menu.toast {
+    :is(#views-menu, #listen-menu).toast {
       display: block;
       z-index: 1;
     }
 
     @supports selector(:popover-open) {
       @media (hover: none) {
-        #views-menu.toast:not(:popover-open) > li:not(.toasted) {
+        #views-menu.toast:not(:popover-open) > li:not(.toasted),
+        #listen-menu.toast:not(:popover-open):not(
+            :has(#stop:enabled, #stop.pressed)
+          )
+          > li:not(.toasted) {
           visibility: hidden;
           height: 0;
           min-height: 0;
@@ -1513,6 +1517,11 @@ aside {
       @media (hover: hover) {
         li:not(:hover)
           > #views-menu.toast:not(:popover-open)
+          > li:not(.toasted),
+        li:not(:hover)
+          > #listen-menu.toast:not(:popover-open):not(
+            :has(#stop:enabled, #stop.pressed)
+          )
           > li:not(.toasted) {
           visibility: hidden;
           height: 0;
@@ -1523,7 +1532,9 @@ aside {
     }
 
     @supports not selector(:popover-open) {
-      li:not(:hover):not(:focus-within) > #views-menu.toast > li:not(.toasted) {
+      li:not(:hover):not(:focus-within)
+        > :is(#views-menu, #listen-menu).toast
+        > li:not(.toasted) {
         visibility: hidden;
         height: 0;
         min-height: 0;
@@ -1534,6 +1545,7 @@ aside {
     /* .detached is set by the scripts when the bar is out of sight */
     @supports selector(:popover-open) {
       #views-menu.toast.detached:not(:popover-open),
+      #listen-menu.toast.detached:not(:popover-open),
       #listen-menu.detached:has(#stop:enabled, #stop.pressed):not(
           :popover-open
         ) {
@@ -1865,10 +1877,10 @@ aside {
       > li.sub-sub > label {
         padding-inline-start: calc(0.7rem + 2.5em);
       }
+    }
 
-      > li.pressed {
-        animation: key-press 0.3s ease-out;
-      }
+    :is(#views-menu, #listen-menu) > li.pressed {
+      animation: key-press 0.3s ease-out;
     }
 
     .dropdown:popover-open {
@@ -2916,7 +2928,7 @@ a:where([href]) {
 
     @media (hover: none) {
       &:has(#stop:enabled, #stop.pressed):not(:popover-open)
-        > li:not(.tts-controls) {
+        > li:not(.tts-controls):not(.toasted) {
         visibility: hidden;
         height: 0;
         min-height: 0;
@@ -2930,7 +2942,7 @@ a:where([href]) {
       li:not(:hover) > &:has(#stop:enabled, #stop.pressed):not(:popover-open),
       li:has(> button:focus:not(:focus-visible, :active))
         > &:has(#stop:enabled, #stop.pressed):not(:popover-open) {
-        > li:not(.tts-controls) {
+        > li:not(.tts-controls):not(.toasted) {
           visibility: hidden;
           height: 0;
           min-height: 0;

@@ -175,7 +175,8 @@
   }
 
   const viewsButton = document.getElementById('views-button')
-  const ttsControls = document.querySelector('#listen-menu > .tts-controls')
+  const listenMenu = document.getElementById('listen-menu')
+  const ttsControls = listenMenu?.querySelector(':scope > .tts-controls')
   let rowsTimer
 
   function checkedStates() {
@@ -185,10 +186,18 @@
 
   function clearShownRows() {
     removeEventListener('scroll', placeRows)
-    viewsMenu.classList.remove('toast')
     viewsMenu.style.removeProperty('--past-tts')
-    for (const li of viewsMenu.querySelectorAll(':scope > li.toasted'))
-      li.classList.remove('toasted', 'pressed')
+    for (const menu of [viewsMenu, listenMenu]) {
+      menu?.classList.remove('toast')
+      for (const li of menu?.querySelectorAll(':scope > li.toasted') ?? [])
+        li.classList.remove('toasted', 'pressed')
+    }
+  }
+
+  function toast(menu) {
+    menu.classList.add('toast')
+    clearTimeout(rowsTimer)
+    rowsTimer = setTimeout(clearShownRows, 1500)
   }
 
   function placeRows() {
@@ -233,16 +242,26 @@
       viewsMenu.style.setProperty('--past-tts', `${ttsControls.offsetHeight}px`)
     placeRows()
     addEventListener('scroll', placeRows, { passive: true })
-    viewsMenu.classList.add('toast')
-    clearTimeout(rowsTimer)
-    rowsTimer = setTimeout(clearShownRows, 1500)
+    toast(viewsMenu)
+  }
+
+  function showListenRow(el) {
+    const li = el.closest('li')
+    if (!listenMenu || li?.parentElement !== listenMenu) return
+    clearShownRows()
+    li.classList.add('toasted')
+    flashPressed(li)
+    toast(listenMenu)
   }
 
   // Not on cancel, which comes after a quick second press put it back on
-  viewsMenu.addEventListener('animationend', e => {
-    if (e.animationName === 'key-press' && e.target instanceof HTMLElement)
-      e.target.classList.remove('pressed')
-  })
+  for (const menu of [viewsMenu, listenMenu]) {
+    menu?.addEventListener('animationend', e => {
+      if (e.animationName !== 'key-press') return
+      if (e.target instanceof HTMLElement && e.target.parentElement === menu)
+        e.target.classList.remove('pressed')
+    })
+  }
 
   // Set here rather than in the markup so they're only announced when they work
   const shortcuts = [
@@ -282,6 +301,12 @@
       showChanges(VIEW_SETTINGS[key] ?? [SUB_SETTINGS[key]], before)
     } else if (LISTEN_CONTROLS[key]) {
       const el = document.getElementById(LISTEN_CONTROLS[key])
+      if (el instanceof HTMLInputElement) {
+        if (!hasRoom(el)) return
+        el.click()
+        showListenRow(el)
+        return
+      }
       // Checked before the click, as stop disables itself
       const flash = el instanceof HTMLButtonElement && !el.disabled
       el?.click()
