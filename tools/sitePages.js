@@ -39,10 +39,10 @@ export const relatedPages = {
   ],
   tech: [
     { href: '/languages', label: 'interface:languages' },
-    { href: '/pali-tipitaka', label: 'interface:overview' },
     { href: '/numbering', label: 'interface:numbering' },
     { href: '/abbreviations', label: 'interface:abbreviations' },
     { href: '/methodology', label: 'interface:methodology' },
+    { href: '/pali-tipitaka', label: 'interface:overview' },
   ],
   indexes: [
     { href: '/subjects', label: 'interface:subjects' },
