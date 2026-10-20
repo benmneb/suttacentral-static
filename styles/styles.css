@@ -1529,16 +1529,22 @@ aside {
       }
     }
 
-    /* .detached is set by the script when the bar is out of sight */
+    /* .detached is set by the scripts when the bar is out of sight */
     @supports selector(:popover-open) {
-      #views-menu.toast.detached:not(:popover-open) {
+      #views-menu.toast.detached:not(:popover-open),
+      #listen-menu.detached:has(#stop:enabled, #stop.pressed):not(
+          :popover-open
+        ) {
         position: fixed;
-        top: 0;
+        top: var(--past-tts, 0px);
         right: 0;
+        z-index: 1;
 
         @supports (anchor-name: --a) {
           /* Firefox otherwise scrolls it out of sight with its anchor */
-          position-visibility: always;
+          & {
+            position-visibility: always;
+          }
 
           @media not all and (max-width: 600px) {
             right: anchor(right);

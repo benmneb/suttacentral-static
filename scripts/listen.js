@@ -1000,6 +1000,12 @@
   const controlsEl = rootMenuEl.querySelector('.tts-controls')
   controlsEl?.addEventListener('click', closeMenuOnTouch)
 
+  if (menuButton && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) =>
+      rootMenuEl.classList.toggle('detached', !entry.isIntersecting)
+    ).observe(menuButton)
+  }
+
   // On touch the controls show outside an open menu, so a tap on them would light dismiss it. It's reopened
   // where it was before the next paint, as CSS can't stop the dismissal
   let keepOpen = false
