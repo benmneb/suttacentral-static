@@ -37,7 +37,10 @@ eleventyComputed:
 
   {% if entry.scx_shortcut %}
     <p>
-      <a href="/{{ entry.uid }}">Shortcut to all suttas →</a>
+      <a class="with-icon" href="/{{ entry.uid }}">
+        <span>Shortcut to all suttas</span>
+        {% icon "arrowRightMicro" %}
+      </a>
     </p>
   {% endif %}
 
@@ -94,7 +97,10 @@ eleventyComputed:
           {% endif %}
           {% if child.scx_shortcut %}
             <p>
-              <a href="/{{ child.uid }}">Shortcut to all suttas →</a>
+              <a class="with-icon" href="/{{ child.uid }}">
+                <span>Shortcut to all suttas</span>
+                {% icon "arrowRightMicro" %}
+              </a>
             </p>
           {% endif %}
         </li>
