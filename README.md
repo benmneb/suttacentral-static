@@ -41,4 +41,6 @@ This project uses the public SuttaCentral APIs at build time to generate a fully
 
 Donated to the public domain via [CC0](https://creativecommons.org/publicdomain/zero/1.0/)
 
-[UI icons](tools/heroicons.js) from [Heroicons](https://heroicons.com) by Tailwind Labs, MIT licensed
+Favicon via [thesunshade](https://github.com/thesunshade/citation-helper)
+
+[UI icons](tools/heroicons.js) via [Heroicons](https://heroicons.com) by Tailwind Labs, MIT licensed
