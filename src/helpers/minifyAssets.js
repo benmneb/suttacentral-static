@@ -14,7 +14,7 @@
  *
  * @example
  * // Use programmatically
- * import { minifyCss, minifyJs } from './helpers/minifyAssets.js'
+ * import { minifyCss, minifyJs } from './src/helpers/minifyAssets.js'
  * await minifyCss({ srcDir: './src/styles', destDir: './dist/styles' })
  * await minifyJs({ srcDir: './src/scripts', destDir: './dist/scripts' })
  */
@@ -31,7 +31,7 @@ function ensureDir(dir) {
 }
 
 export async function minifyCss({
-  srcDir = path.join(process.cwd(), 'styles'),
+  srcDir = path.join(process.cwd(), 'src', 'styles'),
   destDir = path.join(process.cwd(), '_site', 'styles'),
 } = {}) {
   if (!fs.existsSync(srcDir)) {
@@ -75,7 +75,7 @@ export async function minifyCss({
 }
 
 export async function minifyJs({
-  srcDir = path.join(process.cwd(), 'scripts'),
+  srcDir = path.join(process.cwd(), 'src', 'scripts'),
   destDir = path.join(process.cwd(), '_site', 'scripts'),
 } = {}) {
   if (!fs.existsSync(srcDir)) {

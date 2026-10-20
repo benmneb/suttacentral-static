@@ -2,18 +2,18 @@
  * The site pages have their words and are all built.
  *
  * Their words are fetched from .net at build time, and the markup in
- * `pages/site/` names each one by its key, so a key .net drops or renames
+ * `src/pages/site/` names each one by its key, so a key .net drops or renames
  * leaves a hole. The keys are checked against `.cache`, so without a build.
  */
 
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { siteMap } from '../helpers/sitePages.js'
+import { siteMap } from '../src/helpers/sitePages.js'
 import {
   fetchStrings,
   STRING_FILES,
   templateKeys,
-} from '../helpers/siteStrings.js'
+} from '../src/helpers/siteStrings.js'
 import { listSome, scanSite } from './lib/site.js'
 
 // Characters of text a site page's <main> has at least
@@ -33,7 +33,7 @@ describe('Site page strings', () => {
     assert.equal(
       missing.length,
       0,
-      `Keys .net doesn't have, which pages/site/ needs changing for:\n${listSome(missing)}`
+      `Keys .net doesn't have, which src/pages/site/ needs changing for:\n${listSome(missing)}`
     )
   })
 })

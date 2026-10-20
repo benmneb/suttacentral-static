@@ -10,7 +10,7 @@
 
 import fs from 'fs/promises'
 import path from 'path'
-import { sitePageRoots } from '../../helpers/sitePages.js'
+import { sitePageRoots } from '../../src/helpers/sitePages.js'
 
 export const SITE_DIR = path.resolve(process.env.SITE_DIR || '_site')
 

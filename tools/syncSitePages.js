@@ -6,7 +6,7 @@
  *
  *   pnpm sync:site-pages
  *
- * It also lists the keys that need the markup in `pages/site/` changing: ones the pages use that .net
+ * It also lists the keys that need the markup in `src/pages/site/` changing: ones the pages use that .net
  * dropped (which the site pages test fails on), and new ones no page shows yet. CI doesn't need it, as
  * its builds start with no `.cache`.
  */
@@ -15,7 +15,7 @@ import {
   fetchStrings,
   STRING_FILES,
   templateKeys,
-} from '../helpers/siteStrings.js'
+} from '../src/helpers/siteStrings.js'
 
 function list(label, keys) {
   if (!keys.length) return
@@ -71,7 +71,7 @@ if (dropped.length) {
 }
 if (unused.length) {
   console.log(
-    `\nℹ️  New keys no page shows yet, which may need adding to pages/site/:`
+    `\nℹ️  New keys no page shows yet, which may need adding to src/pages/site/:`
   )
   list('new', unused)
 }

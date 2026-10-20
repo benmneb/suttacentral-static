@@ -17,7 +17,7 @@ import {
   parallelsUrl,
   segmentedTranslationUrl,
   suttasUrl,
-} from '../data/_masterData.js'
+} from '../src/data/_masterData.js'
 import { decodeEntities, readPage, scanSite, textOf } from './lib/site.js'
 
 /**

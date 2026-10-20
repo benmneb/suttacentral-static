@@ -8,7 +8,7 @@
  *   pnpm minify:assets   // Both
  */
 
-import { minifyCss, minifyJs } from '../helpers/minifyAssets.js'
+import { minifyCss, minifyJs } from '../src/helpers/minifyAssets.js'
 
 const arg = process.argv[2]
 

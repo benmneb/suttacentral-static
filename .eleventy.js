@@ -1,25 +1,25 @@
 import htmlmin from 'html-minifier-terser'
-import masterData from './data/_masterData.js'
-import { recordStat } from './helpers/buildStats.js'
-import { heroicons } from './helpers/heroicons.js'
-import { localImage } from './helpers/images.js'
-import { minifyCss, minifyJs } from './helpers/minifyAssets.js'
-import { isMultiTextSpan } from './helpers/rangeSuttas.js'
+import masterData from './src/data/_masterData.js'
+import { recordStat } from './src/helpers/buildStats.js'
+import { heroicons } from './src/helpers/heroicons.js'
+import { localImage } from './src/helpers/images.js'
+import { minifyCss, minifyJs } from './src/helpers/minifyAssets.js'
+import { isMultiTextSpan } from './src/helpers/rangeSuttas.js'
 import {
   referenceEditionName,
   referenceGroup,
-} from './helpers/referenceEditions.js'
-import { sampleUids } from './helpers/samplePages.js'
-import { createSiteLinkFixer } from './helpers/siteLinks.js'
-import { missingKeys, t } from './helpers/siteStrings.js'
+} from './src/helpers/referenceEditions.js'
+import { sampleUids } from './src/helpers/samplePages.js'
+import { createSiteLinkFixer } from './src/helpers/siteLinks.js'
+import { missingKeys, t } from './src/helpers/siteStrings.js'
 import {
   formatVolpages,
   isHeadingHTML,
   rootTitle,
   softHyphenateTitle,
-} from './helpers/strings.js'
+} from './src/helpers/strings.js'
 
-const inputDir = 'pages'
+const inputDir = 'src/pages'
 const textTemplate = `${inputDir}/text.liquid`
 const navTemplates = [
   `${inputDir}/index.liquid`,
@@ -179,9 +179,9 @@ export default function (eleventyConfig) {
     }
   })
 
-  eleventyConfig.addPassthroughCopy('images')
+  eleventyConfig.addPassthroughCopy({ 'src/images': 'images' })
 
-  eleventyConfig.addPassthroughCopy('styles')
+  eleventyConfig.addPassthroughCopy({ 'src/styles': 'styles' })
   eleventyConfig.on('eleventy.after', async () => {
     try {
       await minifyCss()
@@ -190,7 +190,7 @@ export default function (eleventyConfig) {
     }
   })
 
-  eleventyConfig.addPassthroughCopy('scripts')
+  eleventyConfig.addPassthroughCopy({ 'src/scripts': 'scripts' })
   eleventyConfig.on('eleventy.after', async () => {
     try {
       await minifyJs()

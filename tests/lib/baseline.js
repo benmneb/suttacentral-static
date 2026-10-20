@@ -3,7 +3,7 @@
  *
  * What's live on the production site, for a new build to be compared with.
  * Production is the baseline so nothing has to be stored between builds:
- * the sitemap lists every page (see `pages/_sitemap.liquid`), and Pagefind's
+ * the sitemap lists every page (see `src/pages/_sitemap.liquid`), and Pagefind's
  * entry file says how many pages are searchable.
  *
  * `SKIP_BASELINE=1` skips the comparisons, ie for a local build without
@@ -11,7 +11,7 @@
  * so a release is never auto-deployed without being compared.
  */
 
-import siteMetaData from '../../data/_siteMetaData.js'
+import siteMetaData from '../../src/data/_siteMetaData.js'
 
 export const SKIP_BASELINE = Boolean(process.env.SKIP_BASELINE)
 

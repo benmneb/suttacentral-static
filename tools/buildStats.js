@@ -1,12 +1,12 @@
 /**
  * Build Stats
  *
- * Prints the stats from `helpers/buildStats.js` after a build, and adds them to `$GITHUB_OUTPUT` in CI.
+ * Prints the stats from `src/helpers/buildStats.js` after a build, and adds them to `$GITHUB_OUTPUT` in CI.
  * Never throws or exits non-zero, so stats can't break a build.
  */
 
 import fs from 'fs'
-import { collect } from '../helpers/buildStats.js'
+import { collect } from '../src/helpers/buildStats.js'
 
 try {
   const outputs = collect()

@@ -8,6 +8,6 @@ pnpm-lock.yaml
 .vscode
 .vercel
 .cache
-pages/_sitemap.liquid
+src/pages/_sitemap.liquid
 tauri/target
 tauri/gen/schemas
