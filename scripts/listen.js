@@ -36,6 +36,7 @@
   const LABEL_RESUME = 'Play'
 
   const synth = window.speechSynthesis
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)')
   const canHighlightRanges =
     typeof CSS !== 'undefined' &&
     !!CSS.highlights &&
@@ -474,7 +475,7 @@
     const rect = range?.height ? range : el.getBoundingClientRect()
     window.scrollBy({
       top: rect.top + rect.height / 2 - readingMiddle(),
-      behavior: 'smooth',
+      behavior: reducedMotion.matches ? 'auto' : 'smooth',
     })
   }
 

@@ -874,7 +874,6 @@ main:has(.segment) > :first-child {
       linear-gradient(var(--parallel-color) 0 0) left / var(--parallel-line)
         100%;
     background-repeat: no-repeat;
-    transition: opacity 0.15s;
   }
 
   &[data-outer]::before {

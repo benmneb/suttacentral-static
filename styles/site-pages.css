@@ -591,11 +591,6 @@ aside.related-pages {
     opacity: 0.3;
   }
 
-  .map-places > button,
-  .map-frame svg :is(.area, .journey) {
-    transition: opacity 0.15s;
-  }
-
   .map-places > button:has(+ :popover-open) {
     --map-marker-outline: var(--primary-color);
     color: var(--primary-color);
