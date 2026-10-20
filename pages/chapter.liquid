@@ -37,6 +37,8 @@ eleventyComputed:
     <p>{{ entry.blurb }}</p>
   {% endif %}
 
+  {% include "furtherReading.liquid", uid: entry.uid %}
+
   {% assign isPatimokkha = entry.uid | endswith: "-pm" %}
   {% if isPatimokkha %}
     {% include "textMetaContent.liquid", entry: entry, isPatimokkha: true %}

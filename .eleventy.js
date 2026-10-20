@@ -1,6 +1,8 @@
 import htmlmin from 'html-minifier-terser'
+import masterData from './data/_masterData.js'
 import { recordStat } from './tools/buildStats.js'
 import { heroicons } from './tools/heroicons.js'
+import { localImage } from './tools/images.js'
 import { minifyCss, minifyJs } from './tools/minifyAssets.js'
 import { isMultiTextSpan } from './tools/rangeSuttas.js'
 import {
@@ -8,6 +10,8 @@ import {
   referenceGroup,
 } from './tools/referenceEditions.js'
 import { sampleUids } from './tools/samplePages.js'
+import { createSiteLinkFixer } from './tools/siteLinks.js'
+import { missingKeys, t } from './tools/siteStrings.js'
 import {
   formatVolpages,
   isHeadingHTML,
@@ -23,6 +27,7 @@ const navTemplates = [
   `${inputDir}/chapter.liquid`,
   `${inputDir}/textMeta.liquid`,
 ]
+const siteTemplates = `${inputDir}/site/**`
 const utilTemplates = [
   `${inputDir}/_search.liquid`,
   `${inputDir}/_404.liquid`,
@@ -33,21 +38,29 @@ const utilTemplates = [
 export default function (eleventyConfig) {
   if (process.env.ONLY_NAV) {
     eleventyConfig.ignores.add(textTemplate)
+    eleventyConfig.ignores.add(siteTemplates)
     utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
     console.log('⏭️  Building only nav pages (ONLY_NAV enabled)')
   } else if (process.env.ONLY_TEXTS) {
     navTemplates.forEach(page => eleventyConfig.ignores.add(page))
+    eleventyConfig.ignores.add(siteTemplates)
     utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
     console.log('📄 Building only text pages (ONLY_TEXTS enabled)')
   } else if (process.env.ONLY_UTILS) {
     eleventyConfig.ignores.add(textTemplate)
     navTemplates.forEach(page => eleventyConfig.ignores.add(page))
     console.log('🧰 Building only utility pages (ONLY_UTILS enabled)')
+  } else if (process.env.ONLY_SITE) {
+    eleventyConfig.ignores.add(textTemplate)
+    navTemplates.forEach(page => eleventyConfig.ignores.add(page))
+    utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
+    console.log('ℹ️  Building only site pages (ONLY_SITE enabled)')
   }
 
   // Not the sitemap, which would be written over with only the sample in it
   if (sampleUids) {
     utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
+    eleventyConfig.ignores.add(siteTemplates)
     console.log(`🧪 Building only ${sampleUids.join(', ')} (ONLY_UIDS enabled)`)
   }
 
@@ -98,6 +111,24 @@ export default function (eleventyConfig) {
     return heroicons[name]
   })
 
+  eleventyConfig.addFilter('t', t)
+
+  // A remote image as a local one, as everything has to work offline
+  eleventyConfig.addShortcode(
+    'siteImage',
+    async function (url, alt = '', height = 1600) {
+      const image = await localImage(url, { dir: 'site-pages', height })
+      const altText = String(alt)
+        .replace(/<[^>]*>/g, '')
+        .replace(/&(?!#?\w+;)/g, '&amp;')
+        .replace(/"/g, '&quot;')
+      const size = image.width
+        ? ` width="${image.width}" height="${image.height}"`
+        : ''
+      return `<img src="${image.src}" alt="${altText}"${size} loading="lazy">`
+    }
+  )
+
   eleventyConfig.addFilter('parseJSON', function (value) {
     try {
       return JSON.parse(value)
@@ -105,6 +136,13 @@ export default function (eleventyConfig) {
       console.error('parseJSON error:', e)
       return {}
     }
+  })
+
+  let siteLinkFixer
+  eleventyConfig.addTransform('siteLinks', async function (content) {
+    if (!this.page.inputPath?.startsWith(`./${inputDir}/site/`)) return content
+    siteLinkFixer ??= masterData().then(createSiteLinkFixer)
+    return (await siteLinkFixer)(content, this.page.url)
   })
 
   eleventyConfig.addTransform('htmlmin', function (content) {
@@ -132,6 +170,13 @@ export default function (eleventyConfig) {
       files: results?.length,
       seconds: (Date.now() - buildStart) / 1000,
     })
+    const missing = missingKeys()
+    recordStat('siteStrings', { missing: missing.length })
+    if (missing.length) {
+      console.warn(
+        `⚠️  Site page strings .net doesn't have, left empty: ${missing.join(', ')}`
+      )
+    }
   })
 
   eleventyConfig.addPassthroughCopy('images')

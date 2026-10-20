@@ -1,0 +1,69 @@
+---
+layout: sitePage.liquid
+fetchedFrom: editions
+permalink: /editions/index.html
+mainClass: editions
+eleventyComputed:
+  title: '{{ "publication:editionsToolbarTitle" | t | strip_html }}'
+---
+<article>
+  <hgroup>
+    <h1>{{ "publication:suttaCentralEditions" | t }}</h1>
+    <p>{{ "publication:editionsSubtitle" | t }}</p>
+  </hgroup>
+
+  <header>
+    <section>
+      <p>{{ "publication:editions1" | t }}</p>
+      <p>{{ "publication:editions2" | t }}</p>
+      <ul>
+        <li>{{ "publication:orderPrint" | t }}</li>
+        <li>
+          <a
+            href="https://github.com/suttacentral/editions/archive/refs/heads/main.zip"
+          >
+            {{- "publication:download" | t -}}
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/suttacentral/editions">
+            {{- "publication:githubSource" | t -}}
+          </a>
+        </li>
+      </ul>
+      <aside>
+        <strong>{{ "publication:aboutTitle" | t }}</strong>
+        <p>{{ "publication:about1" | t }}</p>
+        <p>{{ "publication:about2" | t }}</p>
+        <p>{{ "publication:about3" | t }}</p>
+        <p>{{ "publication:about4" | t }}</p>
+      </aside>
+    </section>
+    {% assign imageUrl = "https://suttacentral.net/img/publication-pages/editions-kn-wet.jpg" %}
+    {% assign imageAlt = "Stack of SuttaCentral edition books" %}
+    {% siteImage imageUrl, imageAlt %}
+  </header>
+
+  <section>
+    {% for edition in sitePagesData.editions %}
+      <article>
+        <header>
+          <hgroup>
+            <h2>{{ edition.title }}</h2>
+            <p>{{ edition.publication.translation_subtitle }}</p>
+          </hgroup>
+          <p>{{ edition.publication.creator_name }}</p>
+          <a href="{{ edition.href }}">Get this book</a>
+        </header>
+        <figure>
+          {% capture cover %}https://suttacentral.net/img/publication-pages/{{ edition.uid }}-book.jpg{% endcapture %}
+          {% capture alt %}Cover art for {{ edition.title }}{% endcapture %}
+          {% siteImage cover, alt, 600 %}
+          {% if edition.blurb %}
+            <figcaption>{{ edition.blurb }}</figcaption>
+          {% endif %}
+        </figure>
+      </article>
+    {% endfor %}
+  </section>
+</article>

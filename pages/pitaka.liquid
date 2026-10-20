@@ -44,6 +44,8 @@ eleventyComputed:
     </p>
   {% endif %}
 
+  {% include "furtherReading.liquid", uid: entry.uid %}
+
   {% if entry.children.length %}
     <ul>
       {% for child in entry.children %}
@@ -103,6 +105,7 @@ eleventyComputed:
               </a>
             </p>
           {% endif %}
+          {% include "furtherReading.liquid", uid: child.uid %}
         </li>
       {% endfor %}
     </ul>

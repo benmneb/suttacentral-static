@@ -1,0 +1,32 @@
+---
+layout: base.liquid
+styles:
+  - site-pages.css
+---
+<header>
+  {% capture breadcrumbsList %}
+    {% for crumb in crumbs %}
+      <li>
+        <a href="{{ crumb.href }}">{{ crumb.name }}</a>
+      </li>
+    {% endfor %}
+    <li>
+      <span aria-current="page">{{ crumb | default: title }}</span>
+    </li>
+  {% endcapture %}
+  {% include "headerNav.liquid", breadcrumbsList: breadcrumbsList %}
+</header>
+
+{% if category %}
+  {% include "relatedPages.liquid" %}
+{% endif %}
+
+<main class="site-page{% if mainClass %} {{ mainClass }}{% endif %}">
+  {{ content }}
+</main>
+
+{% assign route = page.url | remove_first: "/" | remove_last: "/" %}
+{% assign fetchedAt = sitePagesData.fetchedAt[fetchedFrom]
+  | default: sitePagesData.fetchedAt.strings
+%}
+{% include "footer.liquid", route: route, fetchedAt: fetchedAt %}

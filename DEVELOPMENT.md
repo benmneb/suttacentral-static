@@ -206,6 +206,7 @@ Then, when a release passes the tests, or you publish a draft release or pre-rel
 - **Golden pages:** a page for each shape of data (segmented, root, legacy, range, vinaya, abhidhamma, pātimokkha, navigation) matches the API data in `.cache` it was built from
 - **Links:** internal links go to pages that exist
 - **Search:** the search index has every text page, and hasn't shrunk since production
+- **Site pages:** every key the site pages use is in the strings fetched from .net (read from `.cache`, no build needed), and every page in the site pages menu is built with a heading and its text
 
 The site's structure comes from SuttaCentral's APIs, so pages coming and going with them is fine - only losing more than a few fails. The limits are constants at the top of each `tests/*.test.js` file. A full run takes a few minutes, mostly reading the 1.8gb of HTML.
 

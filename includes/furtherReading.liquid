@@ -1,0 +1,29 @@
+{% assign readingGuides = sitePagesData.pitakaGuides[uid] %}
+{% assign readingEdition = sitePagesData.editionLinks[uid] %}
+{% if readingGuides or readingEdition %}
+  <ul class="further-reading" aria-label="Further reading">
+    {% for guide in readingGuides %}
+      {% capture titleKey %}{{ guide.label }}:1{% endcapture %}
+      {% capture bylineKey %}{{ guide.label }}:2{% endcapture %}
+      <li>
+        <a href="{{ guide.href }}"
+          ><i class="i-{{ sitePagesData.pageIcons[guide.href] }}"></i
+          ><cite>{{ titleKey | t | strip_html }}</cite></a
+        >
+        <span>{{ bylineKey | t | strip_html }}</span>
+      </li>
+    {% endfor %}
+    {% if readingEdition %}
+      <li>
+        <a href="{{ readingEdition.href }}"
+          ><i class="i-bookOpen"></i><cite>{{ readingEdition.title }}</cite></a
+        >
+        <span>{{ readingEdition.creator }}</span>
+        <span class="tagline">
+          A SuttaCentral Edition available in print and multiple digital formats
+          for offline reading
+        </span>
+      </li>
+    {% endif %}
+  </ul>
+{% endif %}

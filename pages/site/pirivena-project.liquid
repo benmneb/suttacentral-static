@@ -1,0 +1,46 @@
+---
+layout: sitePage.liquid
+permalink: /pirivena-project/index.html
+eleventyComputed:
+  title: '{{ "pirivenaPage:title" | t | strip_html }}'
+---
+<article>
+  <h1>{{ "pirivenaPage:title" | t | escape }}</h1>
+  <figure>
+    {% assign alt = "pirivenaPage:imageAlt" | t %}
+    {% assign imageUrl = "https://suttacentral.net/img/static-pages/pirivena-monks-walking.jpg" %}
+    {% siteImage imageUrl, alt %}
+    <figcaption>{{ "pirivenaPage:photoCaption" | t | escape }}</figcaption>
+  </figure>
+  <p>{{ "pirivenaPage:1" | t | escape }}</p>
+  <p>{{ "pirivenaPage:2" | t | escape }}</p>
+  <p>{{ "pirivenaPage:3" | t | escape }}</p>
+  <p>{{ "pirivenaPage:4" | t | escape }}</p>
+  <p>{{ "pirivenaPage:5" | t | escape }}</p>
+  <ul>
+    <li>Vinayapiṭaka — 6 {{ "pirivenaPage:volumes" | t | escape }}</li>
+    <li>Dīghanikāya — 3 {{ "pirivenaPage:volumes" | t | escape }}</li>
+    <li>Majjhimanikāya — 3 {{ "pirivenaPage:volumes" | t | escape }}</li>
+    <li>Saṁyuttanikāya — 5 {{ "pirivenaPage:volumes" | t | escape }}</li>
+    <li>Aṅguttaranikāya — 5 {{ "pirivenaPage:volumes" | t | escape }}</li>
+    <li>
+      Khuddakanikāya — Dhammapada, Udāna, Itivuttaka, Suttanipāta, Theragāthā,
+      Therīgāthā; {{ "pirivenaPage:1volume" | t | escape }}
+    </li>
+  </ul>
+  <p>{{ "pirivenaPage:6" | t | escape }}</p>
+  <p>{{ "pirivenaPage:7" | t | escape }}</p>
+  <p>{{ "pirivenaPage:8" | t | escape }}</p>
+  <p>
+    {{ "pirivenaPage:contact" | t | escape }}: Deepika Weerakoon
+    (suttacentraldevelopmenttrust@gmail.com).
+  </p>
+  <div class="donate-button-container">
+    <a
+      class="link-button block-link"
+      href="https://suttacentral-pirivena-pitaka.raiselysite.com/"
+    >
+      {{ "pirivenaPage:button" | t | escape }}
+    </a>
+  </div>
+</article>

@@ -1,0 +1,201 @@
+---
+layout: sitePage.liquid
+fetchedFrom: editions
+mainClass: edition
+
+pagination:
+  data: sitePagesData.editionPages
+  size: 1
+  alias: entry
+  addAllPagesToCollections: true
+
+permalink: '/{{ entry.scx_path }}/index.html'
+eleventyComputed:
+  title: '{{ entry.title }}—{{ entry.publication.creator_name }}'
+  crumb: '{{ entry.title }}'
+  crumbs:
+    - name: '{{ "publication:editionsToolbarTitle" | t | strip_html }}'
+      href: /editions
+---
+{% assign publication = entry.publication %}
+<article>
+  <hgroup>
+    <h1>{{ entry.title }}</h1>
+    {% if publication.translation_subtitle %}
+      <p>{{ publication.translation_subtitle }}</p>
+    {% endif %}
+    <p>{{ publication.creator_name }}</p>
+  </hgroup>
+
+  <section>
+    <header>
+      <h2>This translation</h2>
+      <p>{{ publication.text_description }}</p>
+      {% if entry.matter.size > 0 %}
+        <nav aria-label="Book sections">
+          <p>Preview:</p>
+          <ul>
+            {% for matter in entry.matter %}
+              <li>
+                <a href="/{{ matter.scx_path }}">{{ matter.label }}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </nav>
+      {% endif %}
+    </header>
+    <figure>
+      {% capture cover %}https://suttacentral.net/img/publication-pages/{{ entry.uid }}-book.jpg{% endcapture %}
+      {% capture alt %}Cover art for {{ entry.title }}{% endcapture %}
+      {% siteImage cover, alt, 600 %}
+      <figcaption>Paperback edition of {{ entry.title }}</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <table>
+      <caption>
+        Get this book
+      </caption>
+      <tbody>
+        {% for volume in entry.volumes %}
+          <tr>
+            {% if forloop.first %}
+              <td rowspan="{{ entry.volumes.size }}">Paperback</td>
+            {% endif %}
+            <td>
+              <a href="{{ volume.volume_lulu_url }}" rel="external">
+                {%- if volume.volume_number -%}
+                  Buy Volume {{ volume.volume_number | slice: 3, 9 }}
+                {%- else -%}
+                  Buy on Lulu
+                {%- endif -%}
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+        {% if entry.files.epub %}
+          <tr>
+            <td>EPUB</td>
+            <td>
+              <a href="{{ entry.files.epub.download_url }}" download
+                >Download</a
+              >
+            </td>
+          </tr>
+        {% endif %}
+        {% if entry.files.pdf %}
+          <tr>
+            <td>PDF</td>
+            <td>
+              <a href="{{ entry.files.pdf.download_url }}" download>Download</a>
+            </td>
+          </tr>
+        {% endif %}
+        {% if entry.files.html %}
+          <tr>
+            <td>
+              HTML
+              <small class="with-icon">
+                <span>(right click</span>
+                {% icon "arrowRightMicro" %}
+                <span>save)</span>
+              </small>
+            </td>
+            <td>
+              <a href="{{ entry.files.html.download_url }}" download
+                >Download</a
+              >
+            </td>
+          </tr>
+        {% endif %}
+        {% if entry.files.tex %}
+          <tr>
+            <td>LaTeX</td>
+            <td>
+              <a href="{{ entry.files.tex.download_url }}" download>Download</a>
+            </td>
+          </tr>
+        {% endif %}
+        <tr>
+          <td>Web</td>
+          <td>
+            <a href="{{ entry.readHref }}">Read on {{ _siteMetaData.title }}</a>
+          </td>
+        </tr>
+      </tbody>
+      {% if entry.files.updated %}
+        <tfoot>
+          <tr>
+            <td colspan="2">Updated {{ entry.files.updated }}</td>
+          </tr>
+        </tfoot>
+      {% endif %}
+    </table>
+  </section>
+
+  {% if entry.menu %}
+    <section>
+      <h2>The {{ entry.menu.root_name }}</h2>
+      {% if entry.menu.blurb %}
+        <p>{{ entry.menu.blurb }}</p>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  {% if entry.bio %}
+    <section>
+      <h2>The Author</h2>
+      <figure>
+        {% capture photo %}https://suttacentral.net/img/publication-pages/{{ publication.creator_uid }}.jpg{% endcapture %}
+        {% capture alt %}Photo of {{ publication.creator_name }}{% endcapture %}
+        {% siteImage photo, alt, 300 %}
+        <figcaption>
+          Bhante {{ publication.creator_uid | capitalize }}
+        </figcaption>
+      </figure>
+      {{ entry.bio }}
+    </section>
+  {% endif %}
+
+  <section>
+    <h2>Publication details</h2>
+    <dl>
+      <dt>SuttaCentral publication number</dt>
+      <dd>{{ publication.publication_number }}</dd>
+
+      <dt>Source</dt>
+      <dd>
+        <a href="{{ publication.source_url }}">{{ publication.source_url }}</a>
+      </dd>
+
+      <dt>Text ID</dt>
+      <dd>{{ publication.text_uid | upcase }}</dd>
+
+      <dt>Publication status</dt>
+      <dd>{{ publication.publication_status }}</dd>
+
+      <dt>License</dt>
+      <dd>
+        <p>{{ publication.license_statement }}</p>
+        <a rel="license" href="{{ publication.license_url }}">
+          {% assign imageUrl = "https://suttacentral.net/img/publication-pages/cc-zero.svg" %}
+          {% assign imageAlt = "CC0" %}
+          {% siteImage imageUrl, imageAlt, 62 %}
+          <span>
+            <strong>
+              {{- publication.license_type }}
+              ({{ publication.license_abbreviation -}}
+              )
+            </strong>
+            <br>
+            To the extent possible under law,
+            {{ publication.creator_name }} has waived all copyright and related
+            or neighboring rights to {{ entry.title }}. This work is published
+            from Australia.
+          </span>
+        </a>
+      </dd>
+    </dl>
+  </section>
+</article>

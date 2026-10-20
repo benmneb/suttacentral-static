@@ -10,6 +10,7 @@
 
 import fs from 'fs/promises'
 import path from 'path'
+import { sitePageRoots } from '../../tools/sitePages.js'
 
 export const SITE_DIR = path.resolve(process.env.SITE_DIR || '_site')
 
@@ -34,6 +35,7 @@ export function urlForFile(file) {
  * - `text`: a translation or root text, ie `/mn1/en/sujato/`
  * - `pitaka`: the tree of collections, ie `/pitaka/sutta/`
  * - `nav`: a collection, chapter or text's own page, ie `/mn/` or `/mn1/`
+ * - `site`: a page about the site or the texts, ie `/about/` or `/edition/mn/en/sujato/`
  * - `util`: the home, search and 404 pages
  * @param {string} url
  */
@@ -41,6 +43,7 @@ export function pageKind(url) {
   if (url === '/' || UNLISTED_PAGES.includes(url)) return 'util'
   if (url.startsWith('/pitaka/')) return 'pitaka'
   const parts = url.split('/').filter(Boolean)
+  if (sitePageRoots.has(parts[0])) return 'site'
   if (parts.length === 3) return 'text'
   return 'nav'
 }
@@ -131,6 +134,7 @@ function factsFor(url, html) {
     url,
     kind: pageKind(url),
     title: decodeEntities(title).trim(),
+    h1: /<h1[\s>]/.test(main),
     // The piṭaka a page sits in, from the first step of its breadcrumbs
     pitaka: html.match(/href="\/pitaka\/(sutta|vinaya|abhidhamma)"/)?.[1],
     searchable: html.includes('data-pagefind-body'),

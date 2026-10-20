@@ -51,8 +51,9 @@ function translationFor(translations, lang) {
  * @returns a function taking a link's uid, lang and author, which returns where it should go
  * instead as `{ uid, lang, author }` (lang and author are null for a bare /<uid> page),
  * or null to leave it be. `selfUid` is never returned, so a page can't link to itself.
- * It also has `hasText(uid)`, and `hasSegment(uid, lang, author, segment)` for whether
- * that text has a segment with that id (ie "sn35.80", "en", "sujato", "1.1")
+ * It also has `hasText(uid)`, `hasTranslation(uid, lang, author)`, and
+ * `hasSegment(uid, lang, author, segment)` for whether that text has a segment with that id
+ * (ie "sn35.80", "en", "sujato", "1.1")
  */
 export function createLinkResolver(tree) {
   const index = indexTexts(tree)
@@ -81,6 +82,8 @@ export function createLinkResolver(tree) {
   }
 
   resolve.hasText = uid => !!index.get(uid)?.length
+  resolve.hasTranslation = (uid, lang, author) =>
+    !!index.get(uid)?.some(t => t.lang === lang && t.author_uid === author)
   resolve.hasSegment = (uid, lang, author, segment) =>
     !!index
       .get(uid)

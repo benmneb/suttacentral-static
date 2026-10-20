@@ -1,0 +1,41 @@
+---
+layout: sitePage.liquid
+fetchedFrom: abbreviations
+permalink: /abbreviations/index.html
+category: tech
+eleventyComputed:
+  title: '{{ "abbreviations:1" | t | strip_html }}'
+---
+<article>
+  <h1>{{ "abbreviations:1" | t }}</h1>
+  <p>{{ "abbreviations:2" | t }}</p>
+  <ul>
+    <li>{{ "abbreviations:3" | t }}</li>
+    <li>{{ "abbreviations:4" | t }}</li>
+    <li>{{ "abbreviations:5" | t }}</li>
+    <li>{{ "abbreviations:6" | t }}</li>
+    <li>{{ "abbreviations:7" | t }}</li>
+  </ul>
+  <p>{{ "abbreviations:8" | t }}</p>
+  {% assign tables = "texts,editions,schools" | split: "," %}
+  {% for table in tables %}
+    <table>
+      <caption>
+        {% case table %}
+          {% when "texts" %}
+            {{ "abbreviations:9" | t | escape }}
+          {% when "editions" %}
+            Edition Abbreviations
+          {% else %}
+            School Abbreviations
+        {% endcase %}
+      </caption>
+      {% for abbreviation in sitePagesData.abbreviations[table] %}
+        <tr>
+          <td>{{ abbreviation.acronym }}</td>
+          <td>{{ abbreviation.name }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% endfor %}
+</article>

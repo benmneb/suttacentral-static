@@ -1,0 +1,77 @@
+---
+layout: sitePage.liquid
+fetchedFrom: languages
+category: tech
+currentHref: /languages
+mainClass: language
+
+pagination:
+  data: sitePagesData.languagePages
+  size: 1
+  alias: entry
+  addAllPagesToCollections: true
+
+permalink: '/{{ entry.scx_path }}/index.html'
+eleventyComputed:
+  title: '{{ entry.name }}'
+  crumbs:
+    - name: '{{ "interface:languages" | t | strip_html }}'
+      href: /languages
+---
+<article>
+  <h1>{{ entry.name }}</h1>
+
+  {% if entry.percent %}
+    {% assign percent = entry.percent | at_least: 0 | at_most: 100 %}
+    {% assign offset = 100 | minus: percent | times: 502.65 | divided_by: 100 %}
+    <figure>
+      <svg viewBox="0 0 220 220" aria-hidden="true">
+        <circle r="80" cx="110" cy="110" class="pie-track"></circle>
+        <circle
+          r="80"
+          cx="110"
+          cy="110"
+          class="pie-share"
+          stroke-dasharray="502.65"
+          stroke-dashoffset="{{ offset }}"
+          transform="rotate(-90 110 110)"
+        ></circle>
+        <text x="110" y="110">{{ percent }}%</text>
+      </svg>
+      <figcaption>
+        {{
+          "languages:percentageOfOriginalTexts"
+          | t
+          | replace: "{lang}", entry.name
+        }}
+      </figcaption>
+    </figure>
+  {% endif %}
+
+  {% for group in entry.divisions %}
+    <h3>{{ group.root }}</h3>
+    <ul>
+      {% for division in group.divisions %}
+        <li>{{ division.name }} ({{ division.total | formatNumber }})</li>
+      {% endfor %}
+    </ul>
+  {% endfor %}
+
+  <h2>
+    {% if entry.percent %}
+      {{ "languages:translators" | t }}
+    {% else %}
+      {{ "languages:authors" | t }}
+    {% endif %}
+  </h2>
+  <ul>
+    {% for author in entry.authors %}
+      <li>
+        <a href="/search?query=by:{{ author.author_uid }}">
+          {{- author.name -}}
+        </a>
+        ({{ author.total | formatNumber }})
+      </li>
+    {% endfor %}
+  </ul>
+</article>

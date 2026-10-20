@@ -23,7 +23,7 @@ Desktop performance comparison for `/dn1/en/sujato` via <https://pagespeed.web.d
 
 ### Minimal
 
-- No editions, essays, guides, map, testimonies, dictionaries, subjects, similes, names or terms pages—it’s just the tipitaka, Web 1.0 style
+- No testimonies or dictionaries—it’s the tipitaka and the pages about it (guides, essays, indexes, map, editions), Web 1.0 style
 - No translations other than English
 - No javascript needed for reading the texts, navigating between them, or adjusting view settings. If you want your view settings to persist, to use the on-site text-to-speech or static search, enable javascript
 

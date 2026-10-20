@@ -1,0 +1,24 @@
+{% assign current = "/" | append: route %}
+<nav id="site-pages" popover aria-label="Site pages">
+  {% for group in sitePagesData.siteMap %}
+    <section>
+      <h2>{{ group.heading }}</h2>
+      <ul>
+        {% for link in group.pages %}
+          {% assign pageIcon = sitePagesData.pageIcons[link.href] %}
+          <li>
+            {% if link.href == current %}
+              <span aria-current="page"
+                ><i class="i-{{ pageIcon }}"></i>{{ link.label | t -}}
+              </span>
+            {% else %}
+              <a href="{{ link.href }}"
+                ><i class="i-{{ pageIcon }}"></i>{{ link.label | t -}}
+              </a>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endfor %}
+</nav>

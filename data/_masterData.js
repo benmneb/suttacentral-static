@@ -4,6 +4,7 @@ import { recordStat } from '../tools/buildStats.js'
 import { fixCommentLinks } from '../tools/commentLinks.js'
 import { fixPaginationLinks } from '../tools/paginationLinks.js'
 import { parseUidNumbers } from '../tools/rangeSuttas.js'
+import { fixMovedLegacyLinks } from '../tools/siteLinks.js'
 import { createLinkResolver } from '../tools/textLinks.js'
 import shortcutsData from './_shortcuts.json' with { type: 'json' }
 
@@ -358,6 +359,8 @@ export default async function () {
     spinner.info(
       `Pointed ${fixedPagination} prev/next links at pages that exist`
     )
+    const movedLinks = fixMovedLegacyLinks(tree)
+    spinner.info(`Pointed links in ${movedLinks} texts at paths .net moved`)
     cachedMasterData = tree
     return tree
   } catch (e) {

@@ -1,0 +1,50 @@
+---
+layout: sitePage.liquid
+permalink: /offline/index.html
+category: misc
+mainClass: offline
+eleventyComputed:
+  title: '{{ "interface:offlineTitle" | t | strip_html }}'
+  crumb: '{{ "interface:offline" | t | strip_html }}'
+---
+<article>
+  <h1>{{ title }}</h1>
+  <h2>SuttaCentral</h2>
+  <ul>
+    <li>
+      <a class="with-icon" href="https://suttacentral.net/offline">
+        {% icon "devicePhoneMobileMicro" %}
+        <span>Web app (PWA)</span>
+      </a>
+      <p>
+        Install SuttaCentral.net as an app and keep the texts you choose for
+        reading offline. Needs JavaScript and an up to date browser, and can be
+        unreliable to install.
+      </p>
+    </li>
+    <li>
+      <a class="with-icon" href="/editions">
+        <i class="i-bookOpen"></i>
+        <span>Editions</span>
+      </a>
+      <p>
+        Whole books of translations, as ePub, PDF or HTML files, or in print.
+      </p>
+    </li>
+  </ul>
+  {% if _siteMetaData.archive %}
+    <h2>{{ _siteMetaData.title }}</h2>
+    <ul>
+      <li>
+        <a class="with-icon" href="{{ _siteMetaData.archive }}">
+          {% icon "archiveBoxArrowDownMicro" %}
+          <span>Archives and native apps</span>
+        </a>
+        <p>
+          This whole site as plain HTML to download, which works on any computer
+          or smartphone, plus apps to install.
+        </p>
+      </li>
+    </ul>
+  {% endif %}
+</article>

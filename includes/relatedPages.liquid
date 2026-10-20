@@ -1,0 +1,16 @@
+{% assign current = currentHref | default: page.url | remove_last: "/" %}
+<aside class="related-pages">
+  <nav aria-label="Related pages">
+    <ol>
+      {% for link in sitePagesData.relatedPages[category] %}
+        <li>
+          {% if link.href == current %}
+            <span aria-current="page">{{ link.label | t }}</span>
+          {% else %}
+            <a href="{{ link.href }}">{{ link.label | t }}</a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  </nav>
+</aside>

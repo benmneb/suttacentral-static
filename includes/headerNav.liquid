@@ -17,16 +17,26 @@
       {{ breadcrumbsList }}
     {% endif %}
   </ul>
-  {% unless excludeSearch %}
+  <div>
+    {% unless excludeSearch %}
+      <button
+        type="submit"
+        popovertarget="search-modal"
+        aria-label="Search texts"
+        title="Cmd/Ctrl+K"
+      >
+        {% icon "magnifyingGlassMicro" %}
+      </button>
+    {% endunless %}
     <button
-      type="submit"
-      popovertarget="search-modal"
-      aria-label="Search texts"
-      title="Cmd/Ctrl+K"
+      type="button"
+      popovertarget="site-pages"
+      aria-label="Site pages"
+      title="Site pages"
     >
-      {% icon "magnifyingGlassMicro" %}
+      {% icon "bars3Micro" %}
     </button>
-  {% endunless %}
+  </div>
 </nav>
 {% unless excludeSearch %}
   <section id="search-modal" popover>

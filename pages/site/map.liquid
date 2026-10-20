@@ -1,0 +1,52 @@
+---
+layout: sitePage.liquid
+fetchedFrom: map
+permalink: /map/index.html
+category: misc
+mainClass: map
+eleventyComputed:
+  title: '{{ "map:1" | t | strip_html }}'
+---
+{% comment %}
+  Not .net's interactive map, which needs its map tiles from online
+{% endcomment %}
+<article>
+  <h1>{{ "map:1" | t }}</h1>
+
+  <section aria-labelledby="static-map-heading">
+    <h2 id="static-map-heading">{{ "map:2" | t }}</h2>
+    <figure>
+      {% assign imageUrl = "https://suttacentral.net/img/static-pages/jambudipa_map.jpg" %}
+      {% assign imageAlt = "Hand-drawn map of Jambudipa" %}
+      {% siteImage imageUrl, imageAlt, 2068 %}
+      <figcaption>{{ "map:3" | t }}</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="places-index-heading">
+    <h2 id="places-index-heading">Index of Places</h2>
+    {% for layer in sitePagesData.mapLayers %}
+      <details>
+        <summary>
+          {% if layer.labelKey %}
+            {{ layer.labelKey | t }}
+          {% else %}
+            {{ layer.name }}
+          {% endif %}
+        </summary>
+        <ul>
+          {% for place in layer.places %}
+            <li>
+              {% if place.define %}
+                {{ place.marker }}
+                <a href="/define/{{ place.define }}">{{ place.name }}</a>
+              {% else %}
+                {{ place.name }}
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </details>
+    {% endfor %}
+  </section>
+</article>

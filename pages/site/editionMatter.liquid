@@ -1,0 +1,22 @@
+---
+layout: sitePage.liquid
+fetchedFrom: editions
+mainClass: matter
+
+pagination:
+  data: sitePagesData.matterPages
+  size: 1
+  alias: entry
+  addAllPagesToCollections: true
+
+permalink: '/{{ entry.scx_path }}/index.html'
+eleventyComputed:
+  title: '{{ entry.label }}—{{ entry.editionTitle }}'
+  crumb: '{{ entry.label }}'
+  crumbs:
+    - name: '{{ "publication:editionsToolbarTitle" | t | strip_html }}'
+      href: /editions
+    - name: '{{ entry.editionTitle }}'
+      href: '{{ entry.editionHref }}'
+---
+{{ entry.html }}

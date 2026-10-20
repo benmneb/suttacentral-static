@@ -1,0 +1,32 @@
+---
+layout: sitePage.liquid
+fetchedFrom: languages
+permalink: /languages/index.html
+category: tech
+eleventyComputed:
+  title: '{{ "interface:languages" | t | strip_html }}'
+---
+<article>
+  <h1>{{ "languages:languagesOnSuttaCentral" | t }}</h1>
+  {% assign groups = "ancient,modern" | split: "," %}
+  {% for group in groups %}
+    {% assign languages = sitePagesData.languages[group] %}
+    <h2>
+      {% if group == "ancient" %}
+        {{ "languages:ancientLanguages" | t }}
+      {% else %}
+        {{ "languages:modernLanguages" | t }}
+      {% endif %}
+      ({{ languages.size }})
+    </h2>
+    <ul class="languages-list">
+      {% for language in languages %}
+        <li>
+          <a href="/languages/{{ language.iso_code }}">
+            {{- language.name }} ({{ language.total | formatNumber }})</a
+          >
+        </li>
+      {% endfor %}
+    </ul>
+  {% endfor %}
+</article>
