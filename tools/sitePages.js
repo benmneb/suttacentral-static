@@ -21,7 +21,6 @@ export const relatedPages = {
     { href: '/discourses-guide-sujato', label: 'interface:discourses' },
     { href: '/vinaya-guide-brahmali', label: 'interface:vinaya' },
     { href: '/abhidhamma-guide-sujato', label: 'interface:abhidhamma' },
-    { href: '/pali-tipitaka', label: 'interface:overview' },
   ],
   misc: [
     { href: '/introduction', label: 'interface:introduction' },
@@ -40,6 +39,7 @@ export const relatedPages = {
   ],
   tech: [
     { href: '/languages', label: 'interface:languages' },
+    { href: '/pali-tipitaka', label: 'interface:overview' },
     { href: '/numbering', label: 'interface:numbering' },
     { href: '/abbreviations', label: 'interface:abbreviations' },
     { href: '/methodology', label: 'interface:methodology' },
@@ -104,7 +104,7 @@ export const pageIcons = {
   '/discourses-guide-sujato': 'documentText',
   '/vinaya-guide-brahmali': 'documentText',
   '/abhidhamma-guide-sujato': 'documentText',
-  '/pali-tipitaka': 'documentText',
+  '/pali-tipitaka': 'rectangleStack',
   '/subjects': 'tag',
   '/similes': 'sparkles',
   '/names': 'identification',
