@@ -25,6 +25,11 @@
     {% for sheet in styles %}
       <link rel="stylesheet" href="/styles/{{ sheet }}">
     {% endfor %}
+    {% if headStyle %}
+      <style>
+        {{ headStyle }}
+      </style>
+    {% endif %}
     <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="64x64" href="/images/favicon-64x64.png">
     <link rel="icon" type="image/png" sizes="250x250" href="/images/favicon-250x250.png">

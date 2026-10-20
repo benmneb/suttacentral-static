@@ -4,12 +4,12 @@ fetchedFrom: map
 permalink: /map/index.html
 category: misc
 mainClass: map
+scripts:
+  - map.js
 eleventyComputed:
   title: '{{ "map:1" | t | strip_html }}'
+  headStyle: '{% for layer in sitePagesData.map.layers %}{% assign layerIndex = forloop.index %}.interactive-map:has(#map-layer-{{ layerIndex }}:not(:checked)) .layer-{{ layerIndex }}{display:none}{% for place in layer.places %}{% if place.shape.type == "area" or place.shape.type == "line" %}.map-frame:has(#place-{{ layerIndex }}-{{ forloop.index }}:popover-open) .shape-{{ layerIndex }}-{{ forloop.index }}{opacity:1;stroke:var(--primary-color)}{% endif %}{% endfor %}{% endfor %}'
 ---
-{% comment %}
-  Not .net's interactive map, which needs its map tiles from online
-{% endcomment %}
 <article>
   <h1>{{ "map:1" | t }}</h1>
 
@@ -23,9 +23,218 @@ eleventyComputed:
     </figure>
   </section>
 
+  {% assign map = sitePagesData.map %}
+  <svg class="map-symbols" aria-hidden="true">
+    {% for symbol in map.symbols %}
+      <symbol id="marker-{{ symbol.name }}" viewBox="{{ symbol.viewBox }}">
+        {{- symbol.content -}}
+      </symbol>
+    {% endfor %}
+  </svg>
+
+  {% if map.base %}
+    {% assign viewBox = map.base.viewBox | split: " " %}
+    <section aria-labelledby="interactive-map-heading">
+      <h2 id="interactive-map-heading">{{ "map:4" | t }}</h2>
+      <div
+        class="interactive-map"
+        style="--home-width: {{ viewBox[2] }}; --home-height: {{ viewBox[3] }}"
+      >
+        <a class="skip" href="#places-index-heading">Skip the map</a>
+        <div
+          class="map-frame"
+          style="--x0: {{ viewBox[0] }}; --y0: {{ viewBox[1] }}; --width: {{ viewBox[2] }}; --height: {{ viewBox[3] }}"
+        >
+          <svg
+            viewBox="{{ map.base.viewBox }}"
+            data-extent="{{ map.base.extent }}"
+            aria-hidden="true"
+          >
+            <path class="land" d="{{ map.base.land }}" />
+            <path class="borders today" d="{{ map.base.borders }}" />
+            <path class="rivers" d="{{ map.base.rivers }}" />
+            {% for layer in map.layers %}
+              {% assign layerIndex = forloop.index %}
+              {% for place in layer.places %}
+                {% if place.shape.type == "area" %}
+                  <path
+                    class="area layer-{{ layerIndex }} shape-{{ layerIndex }}-{{ forloop.index }}"
+                    data-place="{{ layerIndex }}-{{ forloop.index }}"
+                    d="{{ place.shape.d }}"
+                    fill="{{ place.shape.fill }}"
+                    fill-opacity="{{ place.shape.fillOpacity }}"
+                  />
+                {% elsif place.shape.type == "line" %}
+                  <path
+                    class="journey layer-{{ layerIndex }} shape-{{ layerIndex }}-{{ forloop.index }}"
+                    data-place="{{ layerIndex }}-{{ forloop.index }}"
+                    d="{{ place.shape.d }}"
+                  />
+                {% endif %}
+              {% endfor %}
+            {% endfor %}
+          </svg>
+          <div class="map-labels today" aria-hidden="true">
+            {% for country in map.base.today.countries %}
+              <span
+                class="country"
+                style="--x: {{ country.x }}; --y: {{ country.y }}"
+              >
+                {{- country.name -}}
+              </span>
+            {% endfor %}
+            {% for town in map.base.today.towns %}
+              <span
+                class="town{% if town.major %} major{% endif %}"
+                style="--x: {{ town.x }}; --y: {{ town.y }}"
+              >
+                {{- town.name -}}
+              </span>
+            {% endfor %}
+          </div>
+          <div class="map-places">
+            {% assign kinds = "area,line,point" | split: "," %}
+            {% for kind in kinds %}
+              {% for layer in map.layers %}
+                {% assign layerIndex = forloop.index %}
+                {% for place in layer.places %}
+                  {% if place.shape.type == kind %}
+                    <button
+                      type="button"
+                      class="{{ kind }} layer-{{ layerIndex }}"
+                      popovertarget="place-{{ layerIndex }}-{{ forloop.index }}"
+                      style="--x: {{ place.shape.x }}; --y: {{ place.shape.y }}; anchor-name: --place-{{ layerIndex }}-{{ forloop.index }}"
+                    >
+                      {%- if kind == "point" -%}
+                        <svg aria-hidden="true">
+                          <use href="#marker-{{ place.icon }}" />
+                        </svg>
+                        <span class="sr-only">{{ place.name }}</span>
+                      {%- else -%}
+                        {{ place.name }}
+                      {%- endif -%}
+                    </button>
+                    <div
+                      id="place-{{ layerIndex }}-{{ forloop.index }}"
+                      class="map-place"
+                      style="position-anchor: --place-{{ layerIndex }}-{{ forloop.index }}"
+                      popover
+                    >
+                      {% capture layerName %}
+                        {%- if layer.labelKey -%}
+                          {{ layer.labelKey | t }}
+                        {%- else -%}
+                          {{ layer.name }}
+                        {%- endif -%}
+                      {% endcapture %}
+                      <strong>
+                        {%- if place.define -%}
+                          <a href="/define/{{ place.define }}">
+                            {{- place.name -}}
+                          </a>
+                        {%- else -%}
+                          {{ place.name }}
+                        {%- endif -%}
+                      </strong>
+                      {% if layerName != place.name %}
+                        <span>{{ layerName }}</span>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              {% endfor %}
+            {% endfor %}
+          </div>
+        </div>
+        <div class="map-controls">
+          <fieldset class="map-layers">
+            <legend class="sr-only">Layers</legend>
+            {% for layer in map.layers %}
+              {% unless layer.onMap %}{% continue %}{% endunless %}
+              <label>
+                <input
+                  type="checkbox"
+                  id="map-layer-{{ forloop.index }}"
+                  checked
+                >
+                <span>
+                  {%- if layer.labelKey -%}
+                    {{ layer.labelKey | t }}
+                  {%- else -%}
+                    {{ layer.name }}
+                  {%- endif -%}
+                </span>
+              </label>
+            {% endfor %}
+            <label>
+              <input type="checkbox" id="map-layer-today">
+              <span>Present day</span>
+            </label>
+          </fieldset>
+          <fieldset class="map-view" hidden>
+            <legend class="sr-only">View</legend>
+            <button
+              type="button"
+              data-zoom="in"
+              aria-label="Zoom in"
+              aria-keyshortcuts="I"
+              title="Zoom in (I)"
+            >
+              {% icon "plusMicro" %}
+            </button>
+            <button
+              type="button"
+              data-zoom="out"
+              aria-label="Zoom out"
+              aria-keyshortcuts="O"
+              title="Zoom out (O)"
+            >
+              {% icon "minusMicro" %}
+            </button>
+            <button
+              type="button"
+              class="with-icon"
+              data-zoom="reset"
+              aria-keyshortcuts="R"
+              title="Reset (R)"
+            >
+              {% icon "arrowPathMicro" %}
+              <span>Reset</span>
+            </button>
+            <button
+              type="button"
+              class="with-icon"
+              data-fullscreen
+              aria-keyshortcuts="F"
+              title="Full screen (F)"
+            >
+              {% icon "arrowsPointingOutMicro" %}
+              <span>Full screen</span>
+            </button>
+            <dl>
+              <div>
+                <dt>Zoom</dt>
+                <dd>
+                  double click/tap, or <kbd>ctrl</kbd>/<kbd>cmd</kbd> and
+                  scroll, or pinch, or <kbd>I</kbd> <kbd>O</kbd>
+                </dd>
+              </div>
+              <div>
+                <dt>Move</dt>
+                <dd>
+                  drag or <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd>
+                </dd>
+              </div>
+            </dl>
+          </fieldset>
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
   <section aria-labelledby="places-index-heading">
     <h2 id="places-index-heading">Index of Places</h2>
-    {% for layer in sitePagesData.mapLayers %}
+    {% for layer in map.layers %}
       <details>
         <summary>
           {% if layer.labelKey %}
@@ -38,7 +247,9 @@ eleventyComputed:
           {% for place in layer.places %}
             <li>
               {% if place.define %}
-                {{ place.marker }}
+                <svg class="marker" aria-hidden="true">
+                  <use href="#marker-{{ place.icon }}" />
+                </svg>
                 <a href="/define/{{ place.define }}">{{ place.name }}</a>
               {% else %}
                 {{ place.name }}

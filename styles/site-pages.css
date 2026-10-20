@@ -335,10 +335,29 @@ aside.related-pages {
 }
 
 .site-page.map {
+  /* .net's own dark fills are lost on the dark land, so they're lighter here, and outlined dark between them */
+  --map-marker-outline: var(--bg-hard);
+  --map-marker-amber: #ffc107;
+  --map-marker-gold: #ffcb61;
+  --map-marker-green: var(--aqua);
+  --map-marker-grey: var(--gray-dim);
+  --map-marker-red: var(--red);
+
+  @media (prefers-color-scheme: light) {
+    --map-marker-outline: var(--fg-alt-1);
+    --map-marker-green: #3b763b;
+    --map-marker-grey: #717171;
+    --map-marker-red: #b30309;
+  }
+
   article {
     h1,
     h2:not(#places-index-heading) {
       text-align: center;
+    }
+
+    section:has(> #places-index-heading) {
+      margin-top: 2rem;
     }
   }
 
@@ -357,6 +376,360 @@ aside.related-pages {
       max-width: var(--content-max-width);
       margin-inline: auto;
       padding-inline: 1rem;
+    }
+  }
+
+  .map-symbols {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+
+  /* 100vw counts a classic scrollbar, so each gutter loses half of one */
+  .interactive-map {
+    width: calc(100vw - 2rem);
+    margin-inline: calc(50% - 50vw + 1rem);
+
+    .skip:not(:focus) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+
+    /* .pseudo-fullscreen where the Fullscreen API is missing or refused, ie iPhones and app webviews */
+    &:fullscreen,
+    &.pseudo-fullscreen {
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      box-sizing: border-box;
+      background-color: var(--background-color);
+      overflow-y: auto;
+
+      .map-frame {
+        flex: 1;
+        height: auto;
+        aspect-ratio: auto;
+      }
+    }
+
+    &.pseudo-fullscreen {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      width: auto;
+      margin: 0;
+    }
+  }
+
+  /* --x0 --y0 --width --height are the map units in view, kept up to date by map.js, so the places over the
+     map move with it */
+  .map-frame {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: var(--home-width) / var(--home-height);
+    border-radius: var(--rounding);
+    background-color: var(--bg-hard);
+    touch-action: none;
+    user-select: none;
+    cursor: grab;
+
+    /* Shorter once map.js can widen the view to fill it, as without it the view is the frame's shape */
+    &.fitted {
+      aspect-ratio: auto;
+      height: min(
+        80svh,
+        (100vw - 2rem) * var(--home-height) / var(--home-width)
+      );
+    }
+
+    &.dragging {
+      cursor: grabbing;
+    }
+
+    svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    path {
+      vector-effect: non-scaling-stroke;
+    }
+
+    [data-place] {
+      cursor: pointer;
+    }
+
+    .land {
+      fill: var(--bg-alt-1);
+      stroke: var(--fg-alt-4);
+      stroke-width: 0.75px;
+    }
+
+    .borders {
+      fill: none;
+      stroke: var(--fg-alt-4);
+      stroke-width: 0.5px;
+      stroke-dasharray: 4 3;
+    }
+
+    .rivers {
+      fill: none;
+      stroke: var(--blue);
+      stroke-width: 1px;
+    }
+
+    .journey {
+      fill: none;
+      stroke: var(--fg-alt-3);
+      stroke-width: 2.5px;
+    }
+  }
+
+  .map-places > button,
+  .map-labels > * {
+    position: absolute;
+    left: calc((var(--x) - var(--x0)) / var(--width) * 100%);
+    top: calc((var(--y) - var(--y0)) / var(--height) * 100%);
+    translate: -50% -50%;
+    white-space: nowrap;
+  }
+
+  /* Undoing the text pages' note buttons, which share button[popovertarget] in a section */
+  .map-places button {
+    display: block;
+    margin: 0;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    line-height: 1;
+
+    &::before,
+    &::after {
+      content: none;
+    }
+
+    &.point {
+      width: 1.5rem;
+      height: 1.5rem;
+
+      svg {
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    &:is(.area, .line) {
+      font-size: 0.75rem;
+      font-style: italic;
+      color: var(--fg-alt-2);
+      text-shadow:
+        0 0 2px var(--bg-alt-1),
+        0 0 2px var(--bg-alt-1);
+    }
+
+    &:is(:hover, :focus-visible) {
+      --map-marker-outline: var(--primary-color);
+      outline: none;
+      scale: 1.3;
+    }
+
+    &:is(.area, .line):is(:hover, :focus-visible) {
+      color: var(--primary-color);
+      text-decoration: underline;
+    }
+  }
+
+  .map-labels {
+    pointer-events: none;
+    font-family: var(--sans-serif-font);
+    color: var(--fg-alt-3);
+    text-shadow:
+      0 0 2px var(--bg-alt-1),
+      0 0 2px var(--bg-alt-1);
+
+    .town {
+      font-size: 0.7rem;
+      padding-inline-start: 0.6rem;
+      translate: -0.25rem -50%;
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: calc(50% - 0.2rem);
+        width: 0.4rem;
+        height: 0.4rem;
+        border-radius: 50%;
+        background-color: var(--fg-alt-3);
+      }
+    }
+
+    .country {
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--fg-alt-4);
+    }
+  }
+
+  .interactive-map:not(:has(#map-layer-today:checked)) .today,
+  .map-frame:not([data-zoomed]) .town:not(.major) {
+    display: none;
+  }
+
+  /* The place whose popover is open stands out, as the text pages' inline parallels do */
+  .map-places:has(> :popover-open) > button:not(:has(+ :popover-open)),
+  .map-frame:has(:popover-open) svg :is(.area, .journey) {
+    opacity: 0.3;
+  }
+
+  .map-places > button,
+  .map-frame svg :is(.area, .journey) {
+    transition: opacity 0.15s;
+  }
+
+  .map-places > button:has(+ :popover-open) {
+    --map-marker-outline: var(--primary-color);
+    color: var(--primary-color);
+    scale: 1.3;
+  }
+
+  .map-place {
+    user-select: text;
+    cursor: auto;
+
+    strong,
+    span {
+      display: block;
+    }
+
+    span {
+      color: var(--text-color-secondary);
+      font-size: small;
+    }
+  }
+
+  @supports (anchor-name: --a) {
+    .map-place {
+      inset: auto;
+      position-area: bottom;
+      margin: 0.25rem 0;
+      position-try-fallbacks: flip-block;
+    }
+  }
+
+  /* Fit-content with 1fr columns makes both as wide as the wider, while there's room */
+  .map-controls {
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr) minmax(min-content, 1fr);
+    gap: 0.75rem 1.5rem;
+    width: fit-content;
+    margin: 0.75rem auto 0;
+    font-size: small;
+
+    @media (max-width: 830px) {
+      grid-template-columns: auto;
+    }
+
+    fieldset:not([hidden]) {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.25rem;
+      margin: 0;
+      padding: 0;
+      border: none;
+
+      label {
+        display: flex;
+        gap: 0.2rem;
+      }
+    }
+
+    /* Down then across, so each column is one kind: places, areas, then journeys and the present day */
+    .map-layers:not([hidden]) {
+      display: grid;
+      grid-auto-flow: column;
+      grid-template-rows: repeat(3, auto);
+      gap: 0.25rem 1.25rem;
+
+      @media (max-width: 600px) {
+        grid-auto-flow: row;
+        grid-template-rows: none;
+        grid-template-columns: repeat(2, auto);
+      }
+    }
+
+    .map-view:not([hidden]) {
+      display: grid;
+      grid-template-columns: repeat(4, auto) 1fr;
+      justify-content: start;
+    }
+
+    .map-view dl {
+      display: flex;
+      flex-direction: column;
+      grid-column: 1 / -1;
+      margin: 0.25rem 0 0;
+      color: var(--text-color-secondary);
+
+      dt {
+        display: inline;
+        margin: 0;
+        font-weight: 600;
+        color: var(--headings-color);
+
+        &::after {
+          content: ': ';
+          content: ': ' / '';
+        }
+      }
+
+      dd {
+        display: inline;
+        margin: 0;
+      }
+    }
+
+    /* As the text pages' hotkeys */
+    kbd {
+      border: 1px solid var(--shadow-color);
+      border-radius: var(--rounding);
+      padding: 0 0.2rem;
+      color: var(--text-color);
+      font-size: xx-small;
+      background-color: var(--background-color-secondary);
+      box-shadow:
+        0 1px 1px rgb(0 0 0 / 0.2),
+        0 1px 0 0 rgb(255 255 255 / 0.1) inset;
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      min-width: 2rem;
+      /* A line's height, so the icon-only ones match those with text */
+      min-height: calc(1lh + 0.5rem);
+      padding: 0.25rem 0.5rem;
+      border: none;
+      border-radius: var(--rounding);
+      color: var(--text-color);
+      background-color: var(--bg-alt-1);
+
+      &:is(:hover, :focus) {
+        color: var(--background-color);
+        background-color: var(--primary-color);
+      }
     }
   }
 
@@ -750,4 +1123,8 @@ aside.related-pages {
   sup {
     line-height: 0;
   }
+}
+
+body:has(.interactive-map.pseudo-fullscreen) {
+  overflow: hidden;
 }

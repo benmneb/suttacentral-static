@@ -1,4 +1,11 @@
 import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
+import {
+  geometryPath,
+  labelPoint,
+  mapBase,
+  onMap,
+  project,
+} from '../tools/mapBase.js'
 import { mapMarkers } from '../tools/mapMarkers.js'
 import {
   editionCollections,
@@ -56,24 +63,84 @@ async function abbreviations() {
 // Numeric, so the journeys' 10) comes after 9), not 1)
 const byName = new Intl.Collator('en', { numeric: true })
 
-/** The map's places, in its layers, as `{ name, labelKey, places: [{ name, define, marker }] }` */
-async function mapLayers() {
-  const data = await tryFetchJson(`${API}/map_data`, [])
+// .net's marker fills, by the name of the variable each is drawn with, as dark mode needs lighter ones
+const MARKER_COLOURS = {
+  '#ffc107': 'amber',
+  '#ffcb61': 'gold',
+  '#3b763b': 'green',
+  '#717171': 'grey',
+  '#b30309': 'red',
+}
+
+// Where a feature goes on the map, or nothing for one off its edges. Outlines are left to the theme's colours,
+// as .net's can barely be seen on the land
+function mapShape(geometry, style = {}) {
+  if (geometry.type === 'Point') {
+    const [lon, lat] = geometry.coordinates
+    if (!onMap(lon, lat)) return null
+    const [x, y] = project(lon, lat)
+    return { type: 'point', x, y }
+  }
+  const [x, y] = labelPoint(geometry)
+  if (!geometry.type.endsWith('Polygon')) {
+    return { type: 'line', d: geometryPath(geometry), x, y }
+  }
+  return {
+    type: 'area',
+    d: geometryPath(geometry),
+    x,
+    y,
+    fill: style.fillColor ?? style.color ?? '#3f5ba9',
+    fillOpacity: style.fillOpacity ?? 0.2,
+  }
+}
+
+/**
+ * The map's places, in its layers, as `{ name, labelKey, places: [{ name, define, icon, shape }] }`,
+ * and its base and marker symbols for the SVG map
+ */
+async function mapData() {
+  const [data, base] = await Promise.all([
+    tryFetchJson(`${API}/map_data`, []),
+    mapBase(),
+  ])
   const layers = new Map()
-  for (const { properties } of data[0]?.features ?? []) {
+  for (const { properties, geometry } of data[0]?.features ?? []) {
     if (!properties?.layer) continue
     if (!layers.has(properties.layer)) layers.set(properties.layer, [])
+    const icon = mapMarkers[properties.icon] ? properties.icon : 'circle'
     layers.get(properties.layer).push({
       name: properties.name,
       define: properties.define,
-      marker: mapMarkers[properties.icon],
+      icon,
+      // Off the map, as .net puts them at spots far from the subcontinent (Sagga at Perth)
+      shape:
+        geometry &&
+        properties.layer !== 'Extraterrestrial Places' &&
+        mapShape(geometry, properties.style),
     })
   }
-  return [...layers].map(([name, places]) => ({
-    name,
-    labelKey: mapLayerKeys[name],
-    places: places.sort((a, b) => byName.compare(a.name ?? '', b.name ?? '')),
-  }))
+  return {
+    base,
+    // Each icon once, for the places to <use>, outlined in the theme's colours too
+    symbols: Object.entries(mapMarkers).map(([name, svg]) => ({
+      name,
+      viewBox: svg.match(/viewBox="([^"]+)"/)[1],
+      content: svg
+        .replace(/^<svg[^>]*>|<\/svg>$/g, '')
+        .replace(/fill="([^"]*)" stroke="[^"]*"/g, (match, fill) => {
+          const colour = MARKER_COLOURS[fill]
+          const fillStyle = colour ? `var(--map-marker-${colour})` : fill
+          return `style="fill: ${fillStyle}; stroke: var(--map-marker-outline); stroke-width: 1"`
+        }),
+    })),
+    layers: [...layers].map(([name, places]) => ({
+      name,
+      labelKey: mapLayerKeys[name],
+      onMap: places.some(place => place.shape),
+      places: places.sort((a, b) => byName.compare(a.name ?? '', b.name ?? '')),
+    })),
+  }
 }
 
 /**
@@ -237,13 +304,13 @@ export default async function () {
   const [
     stringsFetchedAt,
     abbreviationsData,
-    mapData,
+    map,
     languagesData,
     editionsData,
   ] = await Promise.all([
     loadStrings(),
     abbreviations(),
-    mapLayers(),
+    mapData(),
     languages(),
     editions(),
   ])
@@ -254,7 +321,7 @@ export default async function () {
     pageIcons,
     pitakaGuides,
     abbreviations: abbreviationsData,
-    mapLayers: mapData,
+    map,
     languages: languagesData,
     languagePages: languagesData.pages,
     editions: editionsData,
