@@ -5,7 +5,7 @@
  * the browser's scroll anchor, and Safari has no scroll anchoring at all, so the first text below the menu is
  * put back where it was. Also keeps the References checkbox showing at least one group, and toggles the
  * settings and listen controls from the keyboard, with the same keys as .net and a few more. And keeps a note's
- * asterisk lit while the note is open.
+ * asterisk lit while the note is open, and loads word lookup once it's turned on.
  */
 ;(function () {
   'use strict'
@@ -25,6 +25,7 @@
   const SUB_SETTINGS = {
     m: 'segmenter-main',
     t: 'segmenter-pts',
+    d: 'definer',
   }
 
   const LISTEN_CONTROLS = {
@@ -335,5 +336,52 @@
         if (!running) el.classList.remove('pressed')
       })
     }
+  }
+
+  // Word lookup's scripts and dictionaries, fetched only once it's turned on
+  const definer = document.getElementById('definer')
+  if (definer instanceof HTMLInputElement) {
+    let loading = null
+    // Shown now, as the Chinese one does nothing without JS
+    definer.closest('li').hidden = false
+    // The root words' links without their hrefs, as with JS they're only for finding the word, and Safari can't
+    // start selecting text on a link. So they hit-test again too, as the OS dictionary (a hard press on macOS)
+    // needs them to
+    const links = document.querySelectorAll(
+      '.segment .text a[href^="/define/"]'
+    )
+    for (const link of links) {
+      link.dataset.href = link.getAttribute('href')
+      link.removeAttribute('href')
+    }
+    document.documentElement.dataset.lookupJs = ''
+
+    const loadScript = src =>
+      new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = src
+        script.onload = resolve
+        script.onerror = reject
+        document.head.append(script)
+      })
+
+    function loadLookup() {
+      loading ??= (async () => {
+        definer.disabled = true
+        try {
+          await loadScript('/scripts/dictionary.js')
+          await loadScript('/scripts/lookup.js')
+        } catch {
+          // Offline, and never fetched, so the links go to /define as without JS
+          for (const link of links) link.setAttribute('href', link.dataset.href)
+          delete document.documentElement.dataset.lookupJs
+        } finally {
+          definer.disabled = false
+        }
+      })()
+    }
+
+    if (definer.checked) loadLookup()
+    definer.addEventListener('change', () => definer.checked && loadLookup())
   }
 })()

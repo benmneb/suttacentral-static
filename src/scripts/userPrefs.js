@@ -20,6 +20,7 @@
     'rooter',
     'rooter-first',
     'rooter-side',
+    'definer',
     'segmenter',
     'segmenter-main',
     'segmenter-pts',

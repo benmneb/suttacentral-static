@@ -3,7 +3,10 @@ import htmlmin from 'html-minifier-terser'
 import masterData from './src/data/_masterData.js'
 import { recordStat } from './src/helpers/buildStats.js'
 import { defineHref, loadDefineWords } from './src/helpers/defineWords.js'
+import { loadDictionaries } from './src/helpers/dictionaries.js'
 import { localImage } from './src/helpers/images.js'
+import { loadLookup } from './src/helpers/lookupAnswers.js'
+import { writeLookupShards } from './src/helpers/lookupShards.js'
 import { minifyCss, minifyJs } from './src/helpers/minifyAssets.js'
 import { isMultiTextSpan } from './src/helpers/rangeSuttas.js'
 import {
@@ -141,6 +144,21 @@ export default function (eleventyConfig) {
   eleventyConfig.addFilter('pageLabel', link => link.text ?? t(link.label))
   eleventyConfig.addFilter('defineHref', defineHref)
 
+  // Each word of a Pāli root text as a link to its /define page, for word lookup
+  eleventyConfig.addFilter('lookupLinks', async function (html, lang) {
+    if (lang !== 'pli') return html
+    return (await loadLookup()).linkWords(html)
+  })
+
+  // Which root languages have word lookup, as its dictionaries were fetched
+  eleventyConfig.addGlobalData('lookup', async () => {
+    const [lookup, dictionaries] = await Promise.all([
+      loadLookup(),
+      loadDictionaries(),
+    ])
+    return { pli: lookup.available, lzh: !!dictionaries.ddb?.data.length }
+  })
+
   // A remote image as a local one, as everything has to work offline
   eleventyConfig.addShortcode(
     'siteImage',
@@ -212,6 +230,22 @@ export default function (eleventyConfig) {
       console.warn(
         `⚠️  Site page strings .net doesn't have, left empty: ${missing.join(', ')}`
       )
+    }
+  })
+
+  // A sample build adds its texts' words to the answers already written
+  const buildsTexts = ![
+    'ONLY_NAV',
+    'ONLY_SITE',
+    'ONLY_UTILS',
+    'ONLY_DEFINE',
+  ].some(flag => process.env[flag])
+  eleventyConfig.on('eleventy.after', async () => {
+    if (!buildsTexts) return
+    try {
+      await writeLookupShards({ merge: !!sampleUids })
+    } catch (e) {
+      console.error('Error while writing the lookup dictionaries:', e)
     }
   })
 

@@ -163,6 +163,35 @@ eleventyComputed:
               <input type="checkbox" id="commenter-side">
             </li>
           {% endif %}
+          {% comment %} Word lookup's dictionary, for a Pāli or Chinese root text {% endcomment %}
+          {% assign lookupLang = entry.root_lang %}
+          {% if entry.is_root %}
+            {% assign lookupLang = entry.lang %}
+          {% endif %}
+          {% assign lookupDict = "" %}
+          {% if entry.segmented != blank %}
+            {% if lookupLang == "pli" and lookup.pli %}
+              {% assign lookupDict = "pli-en" %}
+            {% elsif lookupLang == "lzh" and lookup.lzh %}
+              {% assign lookupDict = "lzh-en" %}
+            {% endif %}
+          {% endif %}
+          {% if entry.is_root and lookupDict != blank %}
+            <li
+              {% if lookupDict == "lzh-en" %}
+                hidden
+              {% endif %}
+            >
+              <label for="definer">
+                <span class="with-icon">
+                  {% icon "bookOpen" -%}
+                  <span>Word lookup</span>
+                </span>
+                <kbd aria-hidden="true" title="Press D to toggle">D</kbd>
+              </label>
+              <input type="checkbox" id="definer" data-dict="{{ lookupDict }}">
+            </li>
+          {% endif %}
           {% unless entry.is_root or entry.segmented == blank %}
             <li>
               <label for="rooter">
@@ -177,7 +206,7 @@ eleventyComputed:
               <input
                 type="checkbox"
                 id="rooter"
-                aria-controls="rooter-side rooter-first"
+                aria-controls="rooter-side rooter-first{% if lookupDict != blank %} definer{% endif %}"
               >
             </li>
             <li class="sub">
@@ -199,6 +228,27 @@ eleventyComputed:
               </label>
               <input type="checkbox" id="rooter-first">
             </li>
+            {% if lookupDict != blank %}
+              <li
+                class="sub"
+                {% if lookupDict == "lzh-en" %}
+                  hidden
+                {% endif %}
+              >
+                <label for="definer">
+                  <span class="with-icon">
+                    {% icon "bookOpen" -%}
+                    <span>Word lookup</span>
+                  </span>
+                  <kbd aria-hidden="true" title="Press D to toggle">D</kbd>
+                </label>
+                <input
+                  type="checkbox"
+                  id="definer"
+                  data-dict="{{ lookupDict }}"
+                >
+              </li>
+            {% endif %}
           {% endunless %}
           {% if entry.scx_illustrations %}
             <li>
@@ -645,7 +695,7 @@ eleventyComputed:
                   {% endif %}
                 {% endif %}
               {% endif %}
-              <span class="text">{% if is_heading %}{{ text | softHyphenateTitle }}{% else %}{{ text }}{% endif %}</span>
+              <span class="text">{% if is_heading %}{{ text | softHyphenateTitle | lookupLinks: entry.lang }}{% else %}{{ text | lookupLinks: entry.lang }}{% endif %}</span>
               {% unless comment == blank %}
                 <button class="variant-btn" popovertarget="comment-{{ key }}" style="anchor-name: --comment{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
                 <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">
@@ -842,7 +892,7 @@ eleventyComputed:
                     {% capture rootText %}{{ entry.scx_range_sutta_title }}{% endcapture %}
                   {% endif %}
                 {% endif %}
-                <span class="text">{% if is_heading %}{{ rootText | softHyphenateTitle }}{% else %}{{ rootText }}{% endif %}</span>
+                <span class="text">{% if is_heading %}{{ rootText | softHyphenateTitle | lookupLinks: entry.root_lang }}{% else %}{{ rootText | lookupLinks: entry.root_lang }}{% endif %}</span>
                 {% unless variant == blank %}
                   <button class="variant-btn" popovertarget="variant-{{ key }}" style="anchor-name: --variant{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
                   <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">
@@ -946,6 +996,13 @@ eleventyComputed:
       parallelsOpen: true
     %}
   </article>
+  {% if lookupDict != blank %}
+    <article
+      id="definition"
+      popover
+      aria-label="Word definition"
+    ></article>
+  {% endif %}
 </main>
 
 <nav aria-label="Article pagination">

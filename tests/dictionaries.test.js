@@ -1,5 +1,5 @@
 /**
- * The dictionaries for word lookup and the /define pages are all there, and so are the pages.
+ * The dictionaries for word lookup and the /define pages are all there, and so are the pages and lookup's shards.
  *
  * They're fetched from GitHub at build time, and a file that fails or shrinks only leaves its words out,
  * so the cached copies are checked first, without a build, then the pages built from them.
@@ -9,12 +9,14 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { describe, it } from 'node:test'
+import vm from 'node:vm'
 import {
   DICTIONARY_FILES,
   entriesOf,
   fetchDictionary,
 } from '../src/helpers/dictionaries.js'
-import { mainOf, readPage, SITE_DIR } from './lib/site.js'
+import { cleanPaliWord } from '../src/helpers/lookupAnswers.js'
+import { mainOf, readPage, SITE_DIR, textOf } from './lib/site.js'
 
 // About 95% of the words each had in October 2026
 const MIN_WORDS = {
@@ -61,6 +63,33 @@ const DEFINITION_FIELDS = ['definition', 'text', 'xr', 'homonyms']
 
 // Share of a dictionary's entries that may have no definition, as DDB has a blank one or two
 const MAX_BROKEN_SHARE = 0.001
+
+// Root texts whose words word lookup has to know, and the share it has to link to a /define page and to answer,
+// each about 2 points under what they had in October 2026
+const LOOKUP_PAGES = ['/mn1/pli/ms/', '/dn16/pli/ms/', '/mn10/pli/ms/']
+const MIN_LINKED_SHARE = 0.97
+const MIN_ANSWERED_SHARE = 0.97
+
+// Words lookup has to answer, and the headword each links to
+const LOOKUP_CANARIES = {
+  evaṁ: 'evaṁ',
+  bhagavā: 'bhagavā',
+  sāvatthiyaṁ: 'sāvatthī',
+  bhikkhū: 'bhikkhu',
+}
+
+// Pages with the Word lookup setting, by the dictionary it uses
+const LOOKUP_ROWS = {
+  '/mn1/pli/ms/': 'pli-en',
+  '/mn1/en/sujato/': 'pli-en',
+  '/ma1/lzh/sct/': 'lzh-en',
+}
+
+// Bytes a shard can have, its prefix's own words being more than the 100 KB it's split at in places
+const MAX_SHARD_BYTES = 200 * 1024
+
+// As lookup.js finds a Pāli word
+const WORD = /[\p{L}\p{M}\u00ad\u2027]+(?:[’'”][\p{L}\p{M}\u00ad\u2027]+)*/gu
 
 describe('Dictionaries', async () => {
   const dictionaries = Object.fromEntries(
@@ -181,4 +210,124 @@ describe('The /define pages', () => {
     const d = JSON.parse(await readPage('/dictionaries/define-words/d.json'))
     assert.ok(d.includes('dhamma'))
   })
+})
+
+describe('Word lookup', async () => {
+  const dir = path.join(SITE_DIR, 'dictionaries')
+  const readJson = async file =>
+    JSON.parse(await fs.readFile(path.join(dir, file), 'utf8'))
+  const context = { window: {} }
+  vm.runInNewContext(
+    await fs.readFile(
+      new URL('../src/scripts/dictionary.js', import.meta.url),
+      'utf8'
+    ),
+    context
+  )
+  const client = context.window.scxDictionary
+  const pliIndex = await readJson('pli-en/index.json')
+  const shards = new Map()
+  const answerOf = async word => {
+    const key = cleanPaliWord(word)
+    for (let i = key.length; i > 0; i--) {
+      const n = pliIndex.prefixes[key.slice(0, i)]
+      if (n === undefined) continue
+      if (!shards.has(n)) shards.set(n, await readJson(`pli-en/${n}.json`))
+      return shards.get(n)[key] ?? []
+    }
+    return []
+  }
+
+  for (const name of ['pli-en', 'lzh-en']) {
+    it(`has every ${name} shard its index lists, each small enough`, async () => {
+      const index = await readJson(`${name}/index.json`)
+      const files = index.prefixes
+        ? Object.entries(index.prefixes)
+        : Array.from({ length: index.shards }, (_, n) => [null, n])
+      const bad = []
+      for (const [prefix, n] of files) {
+        const file = path.join(dir, name, `${n}.json`)
+        let shard
+        try {
+          shard = JSON.parse(await fs.readFile(file, 'utf8'))
+        } catch {
+          // A Chinese shard can be empty, where no term starts with a character of its code points
+          if (!prefix) continue
+          bad.push(`${n}.json is missing or broken`)
+          continue
+        }
+        const { size } = await fs.stat(file)
+        if (size > MAX_SHARD_BYTES) bad.push(`${n}.json is ${size} bytes`)
+        if (prefix === null) continue
+        const stray = Object.keys(shard).find(key => !key.startsWith(prefix))
+        if (stray) bad.push(`${n}.json has ${stray}, not starting ${prefix}`)
+      }
+      assert.equal(bad.length, 0, bad.slice(0, 20).join('\n'))
+    })
+  }
+
+  it('cleans words in the browser as the build does', async () => {
+    const html = await readPage(LOOKUP_PAGES[0])
+    const words = textOf(mainOf(html)).match(WORD) ?? []
+    const differ = words.filter(
+      word => client.cleanWord(word) !== cleanPaliWord(word)
+    )
+    assert.equal(differ.length, 0, differ.slice(0, 20).join(', '))
+  })
+
+  for (const url of LOOKUP_PAGES) {
+    it(`links and answers the words of ${url}`, async () => {
+      const html = await readPage(url)
+      let words = 0
+      let linked = 0
+      let answered = 0
+      for (const [, text] of html.matchAll(
+        /<span class="translation" lang="pli" translate="no"><span class="text">(.*?)<\/span>/g
+      )) {
+        linked += (text.match(/<a href="\/define\//g) ?? []).length
+        for (const word of text.replace(/<[^>]*>/g, '').match(WORD) ?? []) {
+          words++
+          if ((await answerOf(word)).length) answered++
+        }
+      }
+      assert.ok(words > 0, 'No Pāli root text')
+      assert.ok(
+        linked / words >= MIN_LINKED_SHARE,
+        `Only ${linked} of ${words} words linked`
+      )
+      assert.ok(
+        answered / words >= MIN_ANSWERED_SHARE,
+        `Only ${answered} of ${words} words answered`
+      )
+    })
+  }
+
+  it('answers the canaries, and links each to its headword', async () => {
+    const html = await readPage('/mn1/pli/ms/')
+    for (const [word, headword] of Object.entries(LOOKUP_CANARIES)) {
+      const answer = await answerOf(word)
+      assert.ok(answer.length, `No answer for ${word}`)
+      assert.ok(
+        answer.some(match => match.b === headword || match.h === headword),
+        `${word} isn't answered with ${headword}: ${JSON.stringify(answer).slice(0, 200)}`
+      )
+    }
+    assert.match(html, /<a href="\/define\/evaṁ" tabindex="-1">Evaṁ<\/a>/)
+  })
+
+  it('answers a Chinese term', async () => {
+    const index = await readJson('lzh-en/index.json')
+    const shard = await readJson(
+      `lzh-en/${'一'.codePointAt(0) % index.shards}.json`
+    )
+    assert.ok(shard['一']?.d, 'No entry for 一')
+  })
+
+  for (const [url, dict] of Object.entries(LOOKUP_ROWS)) {
+    it(`has the setting on ${url}`, async () => {
+      const html = await readPage(url)
+      assert.match(html, new RegExp(`id="definer" data-dict="${dict}"`))
+      assert.match(html, /id="definition" popover aria-label/)
+    })
+  }
 })

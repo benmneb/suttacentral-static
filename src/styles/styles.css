@@ -234,6 +234,10 @@
   --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M7.702 1.368a.75.75 0 0 1 .597 0c2.098.91 4.105 1.99 6.004 3.223a.75.75 0 0 1-.194 1.348A34.27 34.27 0 0 0 8.341 8.25a.75.75 0 0 1-.682 0c-.625-.32-1.262-.62-1.909-.901v-.542a36.878 36.878 0 0 1 2.568-1.33.75.75 0 0 0-.636-1.357 38.39 38.39 0 0 0-3.06 1.605.75.75 0 0 0-.372.648v.365c-.773-.294-1.56-.56-2.359-.8a.75.75 0 0 1-.194-1.347 40.901 40.901 0 0 1 6.005-3.223ZM4.25 8.348c-.53-.212-1.067-.411-1.611-.596a40.973 40.973 0 0 0-.418 2.97.75.75 0 0 0 .474.776c.175.068.35.138.524.21a5.544 5.544 0 0 1-.58.681.75.75 0 1 0 1.06 1.06c.35-.349.655-.726.915-1.124a29.282 29.282 0 0 0-1.395-.617A5.483 5.483 0 0 0 4.25 8.5v-.152Z'/%3E %3Cpath d='M7.603 13.96c-.96-.6-1.958-1.147-2.989-1.635a6.981 6.981 0 0 0 1.12-3.341c.419.192.834.393 1.244.602a2.25 2.25 0 0 0 2.045 0 32.787 32.787 0 0 1 4.338-1.834c.175.978.315 1.969.419 2.97a.75.75 0 0 1-.474.776 29.385 29.385 0 0 0-4.909 2.461.75.75 0 0 1-.794 0Z'/%3E%3C/svg%3E");
 }
 
+.i-arrowLeft {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M14 8a.75.75 0 0 1-.75.75H4.56l3.22 3.22a.75.75 0 1 1-1.06 1.06l-4.5-4.5a.75.75 0 0 1 0-1.06l4.5-4.5a.75.75 0 0 1 1.06 1.06L4.56 7.25h8.69A.75.75 0 0 1 14 8Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+}
+
 .i-arrowRight {
   --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M2 8a.75.75 0 0 1 .75-.75h8.69L8.22 4.03a.75.75 0 0 1 1.06-1.06l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 0 1-1.06-1.06l3.22-3.22H2.75A.75.75 0 0 1 2 8Z' clip-rule='evenodd'/%3E%3C/svg%3E");
 }
@@ -424,6 +428,10 @@
 
 .i-viewColumns {
   --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M9.836 3h-3.67v10h3.67V3ZM11.336 13H13.5a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 13.5 3h-2.164v10ZM2.5 3h2.166v10H2.5A1.5 1.5 0 0 1 1 11.5v-7A1.5 1.5 0 0 1 2.5 3Z'/%3E%3C/svg%3E");
+}
+
+.i-xMark {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z'/%3E%3C/svg%3E");
 }
 
 /* Generated, not in the markup, so every link off the site gets one */
@@ -1476,6 +1484,23 @@ main:has(.segment) > :first-child {
 @media only screen and (max-width: 600px) {
   body:has(#positioner:checked) {
     padding-bottom: 2.75rem;
+
+    [popover]#definition {
+      bottom: 2.75rem;
+      clip-path: inset(-2rem 0 0);
+
+      @media not (prefers-color-scheme: light) {
+        nav {
+          border-bottom: 1px solid var(--bg-alt-3);
+        }
+      }
+    }
+
+    @media (hover: none) {
+      &:has(#stop:enabled) [popover]#definition {
+        bottom: calc(2.75rem + var(--tts-controls-height));
+      }
+    }
 
     :is(h2, h3, h4, .segment, .reference, a.ref) {
       scroll-margin-top: 0;
@@ -2975,7 +3000,7 @@ a:where([href]) {
   > li:has(#commenter-side),
 &:has(#rooter):not(:has(#rooter:checked))
   #views-menu
-  > li:is(:has(#rooter-side), :has(#rooter-first)),
+  > li:is(:has(#rooter-side), :has(#rooter-first), :has(#definer)),
 &:not(:has(#segmenter:checked))
   #views-menu
   > li:is(
@@ -3142,6 +3167,188 @@ a:where([href]) {
 
 ::highlight(tts-hover) {
   background-color: var(--tts-hover-background-color);
+}
+
+/* Chinese lookup's row until lookup.js shows it, as the menu's rows are flex, which beats [hidden] */
+#views-menu > li[hidden] {
+  display: none;
+}
+
+/* Word lookup's links on each root word, which look like the text they are */
+.segment .text a[href^='/define/'] {
+  color: inherit;
+  text-decoration: none;
+  /* Not followable while the setting is off. With JS they have no href, see viewSettings.js */
+  pointer-events: none;
+  /* Not the pointer the UA gives a link, as it's only text while the setting is off */
+  cursor: text;
+  user-select: text;
+
+  &:visited {
+    color: inherit;
+  }
+
+  &:hover,
+  &:active {
+    color: inherit;
+    background-color: transparent;
+  }
+}
+
+&:has(#definer:checked) .segment .text a:is([href^='/define/'], [data-href]) {
+  pointer-events: auto;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--background-color);
+    background-color: var(--primary-color);
+  }
+
+  &[aria-busy='true'] {
+    cursor: progress;
+  }
+}
+
+/* Any word can be tapped with JS, not only those with a link */
+:root[data-lookup-js]:has(#definer:checked)
+  .segment
+  > :is(.translation, .root):is([lang='pli'], [lang='lzh'])
+  > .text {
+  cursor: pointer;
+}
+
+.segment .text a[data-href].looked-up {
+  color: var(--background-color);
+  background-color: var(--primary-color);
+}
+
+::highlight(lookup) {
+  color: var(--background-color);
+  background-color: var(--primary-color);
+}
+
+[popover]#definition {
+  box-sizing: border-box;
+  max-width: none;
+  max-height: none;
+  width: 100%;
+  height: 30vh;
+  overflow: hidden;
+  position: fixed;
+  inset: auto 0 0 0;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+
+  &:popover-open {
+    display: flex;
+    flex-direction: column;
+  }
+
+  section {
+    width: calc(100% - 1rem);
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: 0.5rem 0.5rem 0;
+    overflow-y: auto;
+    flex: 1;
+
+    > dfn {
+      font-weight: bold;
+      font-style: normal;
+      color: var(--headings-color);
+    }
+
+    > ol {
+      margin: 0.5rem 0;
+      padding-left: 1.5rem;
+
+      li {
+        margin-bottom: 0.25rem;
+      }
+    }
+
+    dl {
+      margin: 0 0 0 0.5rem;
+      padding: 0.4rem 0;
+
+      dt dfn {
+        font-weight: bold;
+        font-style: normal;
+        color: var(--text-color);
+      }
+
+      dd {
+        margin: 0;
+      }
+    }
+
+    ol.definition {
+      margin: 0.15rem 0;
+      padding-left: 1.5rem;
+
+      li {
+        margin-bottom: 0.15rem;
+      }
+    }
+
+    ul.xr {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .grammar {
+      font-style: italic;
+      color: var(--text-color-secondary);
+    }
+
+    a {
+      text-decoration: none;
+    }
+  }
+
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    margin: 0;
+    height: 2.3rem;
+    border-top: 1px solid var(--bg-alt-3);
+    font-size: large;
+
+    button {
+      flex: 1;
+      border: none;
+    }
+
+    [data-close] {
+      flex: none;
+      border-right: 1px solid var(--bg-alt-3);
+      border-left: 1px solid var(--bg-alt-3);
+    }
+
+    a {
+      border-left: 1px solid var(--bg-alt-3);
+    }
+
+    button,
+    a {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: none;
+      padding: 0.3rem 0.75rem;
+      cursor: pointer;
+      color: inherit;
+      font: inherit;
+
+      &:hover:not(:disabled) {
+        color: inherit;
+        background-color: var(--details-summary-hover-background);
+      }
+    }
+  }
 }
 
 .tts-controls {
