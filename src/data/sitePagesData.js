@@ -12,7 +12,6 @@ import {
   mapLayerKeys,
   pageIcons,
   pitakaGuides,
-  relatedPages,
   siteMap,
 } from '../helpers/sitePages.js'
 import { loadDictionaries } from '../helpers/dictionaries.js'
@@ -330,7 +329,6 @@ export default async function () {
   ])
 
   return {
-    relatedPages,
     siteMap,
     pageIcons,
     pitakaGuides,

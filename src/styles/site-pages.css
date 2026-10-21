@@ -23,46 +23,6 @@
   --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8.75 3.75a.75.75 0 0 0-1.5 0v3.5h-3.5a.75.75 0 0 0 0 1.5h3.5v3.5a.75.75 0 0 0 1.5 0v-3.5h3.5a.75.75 0 0 0 0-1.5h-3.5v-3.5Z'/%3E%3C/svg%3E");
 }
 
-aside.related-pages {
-  justify-content: start;
-  margin-bottom: 2rem;
-
-  nav {
-    background-color: var(--bg-alt-1);
-    border-top-right-radius: var(--rounding);
-    border-bottom-right-radius: var(--rounding);
-    pointer-events: auto;
-  }
-
-  ol {
-    list-style: none;
-    margin: 0;
-    padding: 0 0.5rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.2rem 0;
-  }
-
-  li {
-    display: flex;
-    color: var(--fg-alt-3);
-
-    &:not(:last-of-type) {
-      margin-right: 0.5rem;
-
-      &::after {
-        content: '∙';
-        content: '∙' / '';
-        margin-left: 0.5rem;
-      }
-    }
-  }
-
-  a {
-    text-decoration: none;
-  }
-}
-
 .site-page {
   /* Not the search results' pagination */
   nav {

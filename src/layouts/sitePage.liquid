@@ -17,10 +17,6 @@ styles:
   {% include "headerNav.liquid", breadcrumbsList: breadcrumbsList %}
 </header>
 
-{% if category %}
-  {% include "relatedPages.liquid" %}
-{% endif %}
-
 <main class="site-page{% if mainClass %} {{ mainClass }}{% endif %}">
   {{ content }}
 </main>
