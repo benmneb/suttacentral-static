@@ -6,7 +6,7 @@
 
 ## A fast and minimal alternative frontend for [SuttaCentral.net](https://suttacentral.net)
 
-- Includes all sutta, vinaya and abhidhamma texts in their root languages, all English translations, footnotes, parallels, main reference links and flexible text view settings
+- Includes all sutta, vinaya and abhidhamma texts in their root languages, all English translations, footnotes, parallels, reference links and flexible text view settings
 - Mirrors the URL structure of suttacentral.net. Just switch the `.net` for `.express`, or use the [browser extension](https://git.sr.ht/~benmneb/suttacentral-redirect) from the [Chrome](https://chromewebstore.google.com/detail/suttacentral-redirect/noaddajdfegpjfgpmbhcbahofgkceaan) or [Firefox](https://addons.mozilla.org/firefox/addon/suttacentral-redirect/) store
 - Works offline with full functionality via desktop and Android apps, and site archives, all available for download in [Github](https://github.com/benmneb/suttacentral-static/releases/latest) and [Codeberg](https://codeberg.org/benmneb/suttacentral-static/releases/latest) releases
 
@@ -23,9 +23,8 @@ Desktop performance comparison for `/dn1/en/sujato` via <https://pagespeed.web.d
 
 ### Minimal
 
-- No testimonies or dictionaries—it’s the tipitaka and the pages about it (guides, essays, indexes, map, editions), Web 1.0 style
 - No translations other than English
-- No javascript needed for reading the texts, navigating between them, or adjusting view settings. If you want your view settings to persist, to use the on-site text-to-speech or static search, enable javascript
+- No Javascript needed for reading any content or using any core-features. But if you want your settings to persist, to enable inline root-word lookup, to use the on-site text-to-speech or static search: enable JS
 
 ### Alternative
 
@@ -39,8 +38,10 @@ This project uses the public SuttaCentral APIs at build time to generate a fully
 
 ## License
 
+_Programmed for the purpose of pleasing people pursuing perfection_
+
 Donated to the public domain via [CC0](https://creativecommons.org/publicdomain/zero/1.0/)
 
 Favicon via [thesunshade](https://github.com/thesunshade/citation-helper)
 
-[UI icons](src/styles/styles.css) via [Heroicons](https://heroicons.com) by Tailwind Labs, MIT licensed
+[UI icons](src/styles/styles.css) via [Heroicons](https://heroicons.com) by Tailwind Labs, MIT

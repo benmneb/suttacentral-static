@@ -14,7 +14,7 @@ See <https://todo.sr.ht/~benmneb/suttacentral-static> for inspiration, but note 
 
 ## Deploying and releasing
 
-The final build is 68,000+ HTML files at about 1.8gb uncompressed. This is pretty big for a static site, and the only free-tier I know for sure that can handle it is Vercel. But, to get around their free-tier [limits](https://vercel.com/docs/limits) of build time (45 mins), static file count (15,000), and total files size (100mb), the trick is to first build it somewhere other than their servers, then compress the result and upload it to Vercel for hosting
+The final build is 138,000+ HTML files at about 3.4gb uncompressed. This is pretty big for a static site, and the only free-tier I know for sure that can handle it is Vercel. But, to get around their free-tier [limits](https://vercel.com/docs/limits) of build time (45 mins), static file count (15,000), and total files size (100mb), the trick is to first build it somewhere other than their servers, then compress the result and upload it to Vercel for hosting
 
 Following are two options to do that. The first builds locally on your machine, and the second builds on GitHub Actions. They both then deploy to a free [Vercel account](https://vercel.com/signup) via the corresponding environment variables/secrets (see each section below)
 
@@ -207,8 +207,9 @@ Then, when a release passes the tests, or you publish a draft release or pre-rel
 - **Links:** internal links go to pages that exist
 - **Search:** the search index has every text page, and hasn't shrunk since production
 - **Site pages:** every key the site pages use is in the strings fetched from .net (read from `.cache`, no build needed), and every page in the site pages menu is built with a heading and its text
+- **Dictionaries:** each dictionary in `.cache` has at least about 95% of the words it had (no build needed), the `/define` pages have their entries and `/map` links to them, and word lookup's files are all there and link and answer at least 97% of the sample texts' words
 
-The site's structure comes from SuttaCentral's APIs, so pages coming and going with them is fine - only losing more than a few fails. The limits are constants at the top of each `tests/*.test.js` file. A full run takes a few minutes, mostly reading the 1.8gb of HTML.
+The site's structure comes from SuttaCentral's APIs, so pages coming and going with them is fine - only losing more than a few fails. The limits are constants at the top of each `tests/*.test.js` file. A full run takes a few minutes, mostly reading the mass of HTML.
 
 #### Tag format
 
@@ -323,7 +324,7 @@ Verify signature
 gpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt
 ```
 
-**Android APKs can also be verified on-device** (with any app verifier app) against the signing certificate's SHA-256 fingerprint. CI refuses to publish an APK that doesn't match it (`ANDROID_CERT_SHA256` in the workflow):
+**Android APKs can also be verified on-device** (with any app verifier app) against the following signing certificate's SHA-256 fingerprint. CI refuses to publish an APK that doesn't match it (`ANDROID_CERT_SHA256` in the workflow):
 
 ```text
 4A:4C:B7:86:C3:4C:CE:76:7D:C6:B8:D1:7B:BC:3F:F1:91:31:30:D2:59:16:E6:B8:61:AD:DF:C8:AB:9F:C0:AB
