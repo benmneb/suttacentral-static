@@ -4,6 +4,12 @@ layout: base.liquid
 permalink: 404.html
 eleventyExcludeFromCollections: true
 
+title: 'Page not found'
+headStyle: |
+  .not-found ul { padding: 0; }
+  .not-found li { list-style: none; margin: 0.5rem 0; }
+  .not-found .icon { color: inherit; }
+
 eleventyComputed:
   scripts:
     - '404.js'
@@ -12,29 +18,41 @@ eleventyComputed:
   {% include "headerNav.liquid" %}
 </header>
 
-<main>
-  <h1>Page Not Found</h1>
-  <p>
-    <a href="/">Go home</a>
-  </p>
-  <p>
-    <a href="/search">Search for something</a>
-  </p>
-  {% if _siteMetaData.suggestions %}
-    <p>
-      Should there be a page here?
-      <a href="{{ _siteMetaData.suggestions }}">Report it</a>
-    </p>
-  {% elsif _siteMetaData.contact %}
-    <p>
-      Should there be a page here?
-      <a
-        id="let-me-know"
-        href="mailto:{{ _siteMetaData.contact }}?subject=%5BSCX%5D%20Re%3A%20404"
-        >Let me know</a
-      >
-    </p>
-  {% endif %}
+<main class="not-found">
+  <h1>Page not found</h1>
+  <ul>
+    <li>
+      <a class="with-icon" href="/">
+        {%- icon "home" -%}
+        <span>Go home</span>
+      </a>
+    </li>
+    <li>
+      <a class="with-icon" href="/search">
+        {%- icon "magnifyingGlass" -%}
+        <span>Search for something</span>
+      </a>
+    </li>
+    {% if _siteMetaData.suggestions %}
+      <li>
+        <a class="with-icon" href="{{ _siteMetaData.suggestions }}">
+          {%- icon "flag" -%}
+          <span>Report a missing page</span>
+        </a>
+      </li>
+    {% elsif _siteMetaData.contact %}
+      <li>
+        <a
+          class="with-icon"
+          id="let-me-know"
+          href="mailto:{{ _siteMetaData.contact }}?subject=%5BSCX%5D%20Re%3A%20404"
+        >
+          {%- icon "flag" -%}
+          <span>Report a missing page</span>
+        </a>
+      </li>
+    {% endif %}
+  </ul>
 </main>
 
 {% include "footer.liquid", route: "404" %}
