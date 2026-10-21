@@ -13,7 +13,7 @@ pagination:
 
 permalink: '/define/{{ term.word }}/index.html'
 eleventyComputed:
-  title: '{{ "dictionary:dictionaryResultsText" | t | strip_html }} {{ term.word }}'
+  title: 'Pali dictionary results for {{ term.word }}'
   crumb: '{{ term.word }}'
   crumbs:
     - name: Definitions
@@ -23,7 +23,7 @@ eleventyComputed:
   <h1>Definitions</h1>
   <p>
     {{ term.entries.size | formatNumber }}
-    {{ "search:resultsFor" | t }}
+    results for
     <b lang="pli" translate="no">{{ term.word }}</b>
   </p>
 </hgroup>
@@ -93,7 +93,7 @@ eleventyComputed:
     {% include "defineForm.liquid" %}
     {% if term.adjacent.size > 0 %}
       <article>
-        <h2>{{ "dictionary:adjacentTerms" | t }}</h2>
+        <h2>Adjacent Terms</h2>
         <ol>
           {% for word in term.adjacent %}
             {% if word == term.word %}
@@ -115,7 +115,7 @@ eleventyComputed:
     {% endif %}
     {% if term.similar.size > 0 %}
       <article>
-        <h2>{{ "dictionary:similarSpelling" | t }}</h2>
+        <h2>Similar Spelling</h2>
         <ol>
           {% for word in term.similar %}
             <li>

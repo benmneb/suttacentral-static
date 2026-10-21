@@ -9,89 +9,127 @@
  */
 
 /**
- * The site pages menu in the header, as `{ heading, pages }`, each page `{ href, label }`, the label a key of
- * .net's strings, or `{ href, text }`
- */
+ * The site pages menu in the header, as `{ heading, pages }`, each page `{ href, label }` */
 export const siteMap = [
   {
     heading: 'Explore',
     pages: [
-      { href: '/introduction', label: 'interface:introduction' },
-      { href: '/start', label: 'interface:start' },
-      {
-        href: 'https://suttacentral.net/donations',
-        label: 'interface:donations',
-      },
-      { href: '/map', label: 'interface:map' },
-      { href: '/offline', label: 'interface:offline' },
-      { href: '/editions', label: 'publication:editionsToolbarTitle' },
+      { href: '/introduction', label: 'Introduction' },
+      { href: '/start', label: 'Getting Started' },
+      { href: 'https://suttacentral.net/donations', label: 'Donations' },
+      { href: '/map', label: 'Map' },
+      { href: '/offline', label: 'Use Offline' },
+      { href: '/editions', label: 'Editions' },
     ],
   },
   {
     heading: 'Guides',
     pages: [
-      { href: '/general-guide-sujato', label: 'interface:general' },
-      { href: '/dn-guide-sujato', label: 'interface:long' },
-      { href: '/mn-guide-sujato', label: 'interface:middle' },
-      { href: '/sn-guide-sujato', label: 'interface:linked' },
-      { href: '/an-guide-sujato', label: 'interface:numbered' },
+      { href: '/general-guide-sujato', label: 'General' },
+      { href: '/dn-guide-sujato', label: 'Long' },
+      { href: '/mn-guide-sujato', label: 'Middle' },
+      { href: '/sn-guide-sujato', label: 'Linked' },
+      { href: '/an-guide-sujato', label: 'Numbered' },
     ],
   },
   {
     heading: 'Essays',
     pages: [
-      { href: '/discourses-guide-sujato', label: 'interface:discourses' },
-      { href: '/vinaya-guide-brahmali', label: 'interface:vinaya' },
-      { href: '/abhidhamma-guide-sujato', label: 'interface:abhidhamma' },
+      { href: '/discourses-guide-sujato', label: 'Discourses' },
+      { href: '/vinaya-guide-brahmali', label: 'Monastic Law' },
+      { href: '/abhidhamma-guide-sujato', label: 'Systematic Treatises' },
     ],
   },
   {
     heading: 'Indexes',
     pages: [
-      { href: '/subjects', label: 'interface:subjects' },
-      { href: '/similes', label: 'interface:similes' },
-      { href: '/names', label: 'interface:names' },
-      { href: '/terminology', label: 'interface:terminology' },
+      { href: '/subjects', label: 'Subjects' },
+      { href: '/similes', label: 'Similes' },
+      { href: '/names', label: 'Names' },
+      { href: '/terminology', label: 'Terminology' },
     ],
   },
   {
     heading: 'Reference',
     pages: [
-      { href: '/languages', label: 'interface:languages' },
-      { href: '/numbering', label: 'interface:numbering' },
-      { href: '/abbreviations', label: 'interface:abbreviations' },
-      { href: '/methodology', label: 'interface:methodology' },
-      { href: '/pali-tipitaka', label: 'interface:overview' },
-      // .net's own name for /define, which has no key in its strings
-      { href: '/define', text: 'Definitions' },
+      { href: '/languages', label: 'Languages' },
+      { href: '/numbering', label: 'Numbering' },
+      { href: '/abbreviations', label: 'Abbreviations' },
+      { href: '/methodology', label: 'Methodology' },
+      { href: '/pali-tipitaka', label: 'Canon Overview' },
+      { href: '/define', label: 'Definitions' },
     ],
   },
   {
     heading: 'About',
     pages: [
-      { href: '/acknowledgments', label: 'interface:acknowledgments' },
-      { href: '/licensing', label: 'interface:licensing' },
-      { href: '/about', label: 'interface:about' },
+      { href: '/acknowledgments', label: 'Acknowledgments' },
+      { href: '/licensing', label: 'Licensing' },
+      { href: '/about', label: 'About' },
     ],
   },
 ]
 
-/**
- * The guides to a piṭaka or collection, on its page, as the keys of their title (`:1`) and byline (`:2`)
- */
+/** The guides to a piṭaka or collection, on its page, as `{ href, title, byline }` */
 export const pitakaGuides = {
   sutta: [
-    { href: '/general-guide-sujato', label: 'general-guide-sujato' },
-    { href: '/discourses-guide-sujato', label: 'discourses' },
+    {
+      href: '/general-guide-sujato',
+      title: 'A Reader’s Guide to the Pali Suttas',
+      byline: 'Bhikkhu Sujato, 2019',
+    },
+    {
+      href: '/discourses-guide-sujato',
+      title: 'Discourses: conversations with the Buddha',
+      byline: 'Bhikkhu Sujato',
+    },
   ],
-  vinaya: [{ href: '/vinaya-guide-brahmali', label: 'vinaya' }],
-  abhidhamma: [{ href: '/abhidhamma-guide-sujato', label: 'abhidhamma' }],
-  dn: [{ href: '/dn-guide-sujato', label: 'dn-guide-sujato' }],
-  mn: [{ href: '/mn-guide-sujato', label: 'mn-guide-sujato' }],
-  sn: [{ href: '/sn-guide-sujato', label: 'sn-guide-sujato' }],
+  vinaya: [
+    {
+      href: '/vinaya-guide-brahmali',
+      title: 'The Monastic Law: how monastic communities should live',
+      byline: 'Bhikkhu Brahmali',
+    },
+  ],
+  abhidhamma: [
+    {
+      href: '/abhidhamma-guide-sujato',
+      title: 'Abhidhamma: a systematic analysis of the doctrine',
+      byline: 'Bhikkhu Sujato',
+    },
+  ],
+  dn: [
+    {
+      href: '/dn-guide-sujato',
+      title: 'The Long Discourses: Dhamma as literature and compilation',
+      byline: 'Bhikkhu Sujato, 2019',
+    },
+  ],
+  mn: [
+    {
+      href: '/mn-guide-sujato',
+      title: 'The Middle Discourses: conversations on matters of deep truth',
+      byline: 'Bhikkhu Sujato, 2019',
+    },
+  ],
+  sn: [
+    {
+      href: '/sn-guide-sujato',
+      title: 'The Linked Discourses: the blueprint for Buddhist philosophy',
+      byline: 'Bhikkhu Sujato, 2019',
+    },
+  ],
   an: [
-    { href: '/an-guide-sujato', label: 'an-guide-sujato' },
-    { href: '/an-introduction-bodhi', label: 'an-introduction-bodhi' },
+    {
+      href: '/an-guide-sujato',
+      title: 'The Numbered Discourses: things that are useful every day',
+      byline: 'Bhikkhu Sujato, 2019',
+    },
+    {
+      href: '/an-introduction-bodhi',
+      title: 'A Thematic Guide to the Aṅguttara Nikāya',
+      byline: 'Bhikkhu Bodhi, 2012',
+    },
   ],
 }
 
@@ -168,13 +206,7 @@ export const sitePageRoots = new Set([
   'edition',
 ])
 
-/** Keys the templates use only through the lists above, so the strings check can find them */
+/** Keys the templates use only through `mapLayerKeys`, so the strings check can find them */
 export function configKeys() {
-  return [
-    ...siteMap.flatMap(({ pages }) => pages.map(p => p.label).filter(Boolean)),
-    ...Object.values(pitakaGuides).flatMap(guides =>
-      guides.flatMap(({ label }) => [`${label}:1`, `${label}:2`])
-    ),
-    ...Object.values(mapLayerKeys),
-  ]
+  return Object.values(mapLayerKeys)
 }

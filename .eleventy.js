@@ -141,7 +141,6 @@ export default function (eleventyConfig) {
   })
 
   eleventyConfig.addFilter('t', t)
-  eleventyConfig.addFilter('pageLabel', link => link.text ?? t(link.label))
   eleventyConfig.addFilter('defineHref', defineHref)
 
   // Each word of a Pāli root text as a link to its /define page, for word lookup

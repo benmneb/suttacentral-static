@@ -3,14 +3,12 @@
 {% if readingGuides or readingEdition %}
   <ul class="further-reading" aria-label="Further reading">
     {% for guide in readingGuides %}
-      {% capture titleKey %}{{ guide.label }}:1{% endcapture %}
-      {% capture bylineKey %}{{ guide.label }}:2{% endcapture %}
       <li>
         <a href="{{ guide.href }}"
           ><i class="icon i-{{ sitePagesData.pageIcons[guide.href] }}"></i
-          ><cite>{{ titleKey | t | strip_html }}</cite></a
+          ><cite>{{ guide.title }}</cite></a
         >
-        <span>{{ bylineKey | t | strip_html }}</span>
+        <span>{{ guide.byline }}</span>
       </li>
     {% endfor %}
     {% if readingEdition %}

@@ -9,11 +9,11 @@
           <li>
             {% if link.href == current %}
               <span aria-current="page"
-                ><i class="icon i-{{ pageIcon }}"></i>{{ link | pageLabel -}}
+                ><i class="icon i-{{ pageIcon }}"></i>{{ link.label -}}
               </span>
             {% else %}
               <a href="{{ link.href }}"
-                ><i class="icon i-{{ pageIcon }}"></i>{{ link | pageLabel -}}
+                ><i class="icon i-{{ pageIcon }}"></i>{{ link.label -}}
               </a>
             {% endif %}
           </li>
