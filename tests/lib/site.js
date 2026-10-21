@@ -118,6 +118,9 @@ export function internalTarget(link, pageUrl) {
   }
 }
 
+// A copy, as a match is a slice of the page that would keep all its HTML in memory
+const copyOf = str => str && JSON.parse(JSON.stringify(str))
+
 function factsFor(url, html) {
   const title = html.match(/<title>([^<]*)<\/title>/)?.[1] ?? ''
   const main = mainOf(html)
@@ -133,10 +136,12 @@ function factsFor(url, html) {
   return {
     url,
     kind: pageKind(url),
-    title: decodeEntities(title).trim(),
+    title: copyOf(decodeEntities(title).trim()),
     h1: /<h1[\s>]/.test(main),
     // The piṭaka a page sits in, from the first step of its breadcrumbs
-    pitaka: html.match(/href="\/pitaka\/(sutta|vinaya|abhidhamma)"/)?.[1],
+    pitaka: copyOf(
+      html.match(/href="\/pitaka\/(sutta|vinaya|abhidhamma)"/)?.[1]
+    ),
     searchable: html.includes('data-pagefind-body'),
     segments: html.split('class="segment"').length - 1,
     mainTextLength: textOf(
