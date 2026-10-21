@@ -4,7 +4,8 @@
  * Pans and zooms the map on /map: ctrl/⌘ + scroll (so the page still scrolls), pinching, double clicking or
  * tapping, dragging, the view buttons and their hotkeys (I, O, R, F), H J K L to move, and full screen. It
  * changes the SVG's viewBox, and the --x0 --y0 --width --height the places over it are positioned by, gliding
- * there for buttons and keys. Without it the map shows its first view, and its places and layers still work.
+ * there for buttons and keys, and opens the place a link's #place-… names. Without it the map shows its first
+ * view, and its places and layers still work.
  */
 ;(function () {
   'use strict'
@@ -315,6 +316,23 @@
     event.preventDefault()
     button.click()
   })
+
+  // A place a /define page links to, ie /map#place-3-12, zoomed to and opened
+  function openLinkedPlace() {
+    const popover = document.getElementById(
+      decodeURIComponent(location.hash.slice(1))
+    )
+    if (!popover?.matches('.map-place')) return
+    const button = frame.querySelector(`[popovertarget="${popover.id}"]`)
+    const x = Number(button.style.getPropertyValue('--x'))
+    const y = Number(button.style.getPropertyValue('--y'))
+    const [, , width, height] = fitting(home)
+    show([x - width / 4, y - height / 4, width / 2, height / 2])
+    figure.scrollIntoView({ block: 'center' })
+    popover.showPopover()
+  }
+  openLinkedPlace()
+  window.addEventListener('hashchange', openLinkedPlace)
 
   viewControls.hidden = false
 })()

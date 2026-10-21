@@ -1,17 +1,20 @@
 /**
- * The dictionaries for word lookup and the /define pages are all there.
+ * The dictionaries for word lookup and the /define pages are all there, and so are the pages.
  *
  * They're fetched from GitHub at build time, and a file that fails or shrinks only leaves its words out,
- * so the cached copies are checked here, without a build.
+ * so the cached copies are checked first, without a build, then the pages built from them.
  */
 
 import assert from 'node:assert/strict'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import { describe, it } from 'node:test'
 import {
   DICTIONARY_FILES,
   entriesOf,
   fetchDictionary,
 } from '../src/helpers/dictionaries.js'
+import { mainOf, readPage, SITE_DIR } from './lib/site.js'
 
 // About 95% of the words each had in October 2026
 const MIN_WORDS = {
@@ -21,13 +24,40 @@ const MIN_WORDS = {
   pts: 15_000,
   dppn: 1_300,
   dhammika: 750,
-  glossary: 5_500,
   dpd_i2h: 70_000,
   dpd_deconstructor: 20_000,
 }
 
+// /define pages that have to be there, and the dictionary of each of their entries, as each of an NCPED
+// entry's homonyms is one (gaha)
+const DEFINE_PAGES = {
+  '/define/dhamma/': ['ncped', 'dppn', 'pts', 'dpd'],
+  '/define/sāvatthī/': ['ncped', 'dppn', 'dpd'],
+  '/define/ima/': ['dpd'],
+  '/define/aggāḷave cetiye/': ['dppn'],
+  '/define/gaha/': ['ncped', 'ncped', 'dhammika', 'pts', 'dpd'],
+}
+
+// .net's adjacent terms for buddha, which only has words with a full entry
+const BUDDHA_ADJACENT = [
+  'bujjhati',
+  'bujjhana',
+  'bujjhanaka',
+  'bujjhitar',
+  'buḍḍha',
+  'buddha',
+  'buddhaka',
+  'buddhatā',
+  'buddhati',
+  'buddhatta',
+  'buddhi',
+]
+
+// The map's places DPPN has no entry for, which stay linked to .net
+const MAP_DEFINES_MISSING = ['piprahwa stupa', 'siṁsapāvana3']
+
 // The fields of an sc-data entry the pages show, as some NCPED entries are only a cross-reference or homonyms
-const DEFINITION_FIELDS = ['definition', 'text', 'gloss', 'xr', 'homonyms']
+const DEFINITION_FIELDS = ['definition', 'text', 'xr', 'homonyms']
 
 // Share of a dictionary's entries that may have no definition, as DDB has a blank one or two
 const MAX_BROKEN_SHARE = 0.001
@@ -71,5 +101,84 @@ describe('Dictionaries', async () => {
       0,
       `Entries with no word or definition:\n${bad.join('\n')}`
     )
+  })
+})
+
+describe('The /define pages', () => {
+  it('include /define, with its search', async () => {
+    const html = await readPage('/define/')
+    assert.match(html, /<h1>/)
+    assert.match(html, /class="define-form"/)
+  })
+
+  for (const [url, dictionaries] of Object.entries(DEFINE_PAGES)) {
+    it(`include ${url}, with its entries`, async () => {
+      const html = await readPage(url)
+      assert.match(html, /<h1>/)
+      const found = [...html.matchAll(/<dt class="(\w+)"/g)].map(
+        ([, name]) => name
+      )
+      assert.deepEqual(found, dictionaries)
+    })
+  }
+
+  it('link other words here, not on .net, ie akatavedi to katavedi(n)', async () => {
+    const urls = [...Object.keys(DEFINE_PAGES), '/define/akatavedi/']
+    const remote = []
+    for (const url of urls) {
+      const main = mainOf(await readPage(url))
+      if (main.includes('https://suttacentral.net/define/')) remote.push(url)
+    }
+    assert.equal(remote.length, 0, `Linked to .net:\n${remote.join('\n')}`)
+    assert.match(
+      await readPage('/define/akatavedi/'),
+      /href="\/define\/katavedin"/
+    )
+  })
+
+  it("list .net's adjacent terms", async () => {
+    const html = await readPage('/define/buddha/')
+    const terms = html.slice(html.indexOf('Adjacent Terms</h2>'))
+    const list = terms.slice(0, terms.indexOf('</ol>'))
+    const words = [...list.matchAll(/translate="no">([^<]+)</g)].map(
+      ([, word]) => word
+    )
+    assert.deepEqual(words, BUDDHA_ADJACENT)
+  })
+
+  it('link a DPPN place to it on /map', async () => {
+    const html = await readPage('/define/sāvatthī/')
+    const id = html.match(/href="\/map#(place-\d+-\d+)"/)?.[1]
+    assert.ok(id, 'No /map link on /define/sāvatthī')
+    assert.match(await readPage('/map/'), new RegExp(`id="${id}"`))
+  })
+
+  it('are linked from /map, other than for places DPPN lacks', async () => {
+    const html = await readPage('/map/')
+    const remote = [
+      ...html.matchAll(/href="https:\/\/suttacentral\.net\/define\/([^"]+)"/g),
+    ].map(([, word]) => decodeURIComponent(word))
+    const unexpected = [...new Set(remote)].filter(
+      word => !MAP_DEFINES_MISSING.includes(word)
+    )
+    assert.equal(
+      unexpected.length,
+      0,
+      `/map links these to .net:\n${unexpected.join('\n')}`
+    )
+    assert.match(html, /href="\/define\/sāvatthī"/)
+  })
+
+  it('have their words listed for the /define search, by first letter', async () => {
+    const dir = path.join(SITE_DIR, 'dictionaries', 'define-words')
+    const lists = await Promise.all(
+      (await fs.readdir(dir)).map(async file =>
+        JSON.parse(await fs.readFile(path.join(dir, file), 'utf8'))
+      )
+    )
+    const total = lists.reduce((sum, words) => sum + words.length, 0)
+    assert.ok(total >= 60_000, `Only ${total} words`)
+    const d = JSON.parse(await readPage('/dictionaries/define-words/d.json'))
+    assert.ok(d.includes('dhamma'))
   })
 })

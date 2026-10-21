@@ -3,12 +3,13 @@
  *
  * Links in the site pages' words are .net's, written for .net: to its own pages, as absolute URLs or
  * paths, some relative (ie "snp" on /general-guide-sujato), some to paths it has since moved. Each is
- * read as .net would, then pointed at the page here if it's built, or left on .net if not (ie /define/*,
- * texts in other languages). Texts go where `textLinks.js` sends them.
+ * read as .net would, then pointed at the page here if it's built, or left on .net if not (ie /define/* for
+ * a word with no page here, texts in other languages). Texts go where `textLinks.js` sends them.
  *
  * Legacy texts' links only get the paths .net moved, as everything else in them is left as the API has it.
  */
 
+import { defineHref, linkedWord } from './defineWords.js'
 import { collectPageUids, collectPitakaPaths } from './pageUids.js'
 import { sitePageRoots } from './sitePages.js'
 import { createLinkResolver } from './textLinks.js'
@@ -82,10 +83,11 @@ export function fixMovedLegacyLinks(tree) {
 
 /**
  * @param {object[]} tree - `_masterData`
+ * @param {Map<string, unknown>} defineWords - The words with a /define page
  * @returns {(html: string, pageUrl: string) => string} which points every link in a site page's
  *   `<main>` at a page here where one's built, or at .net
  */
-export function createSiteLinkFixer(tree) {
+export function createSiteLinkFixer(tree, defineWords) {
   const resolve = createLinkResolver(tree)
   const pageUids = collectPageUids(tree)
   const pitakaPaths = collectPitakaPaths(tree)
@@ -100,6 +102,12 @@ export function createSiteLinkFixer(tree) {
     if (!parts.length || path === '/search') return path
     if (parts[0] === 'pitaka') {
       return pitakaPaths.has(parts.slice(1).join('/')) ? path : null
+    }
+    if (parts[0] === 'define') {
+      if (!defineWords.size || parts.length > 2) return null
+      if (parts.length === 1) return path
+      const word = linkedWord(parts[1], defineWords)
+      return word ? defineHref(word) : null
     }
     if (sitePageRoots.has(parts[0])) return path
     if (parts.length === 1) {

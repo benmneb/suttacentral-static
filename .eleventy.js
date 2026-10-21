@@ -2,6 +2,7 @@ import fs from 'fs'
 import htmlmin from 'html-minifier-terser'
 import masterData from './src/data/_masterData.js'
 import { recordStat } from './src/helpers/buildStats.js'
+import { defineHref, loadDefineWords } from './src/helpers/defineWords.js'
 import { localImage } from './src/helpers/images.js'
 import { minifyCss, minifyJs } from './src/helpers/minifyAssets.js'
 import { isMultiTextSpan } from './src/helpers/rangeSuttas.js'
@@ -28,6 +29,7 @@ const navTemplates = [
   `${inputDir}/textMeta.liquid`,
 ]
 const siteTemplates = `${inputDir}/site/**`
+const defineTemplates = `${inputDir}/define/**`
 const utilTemplates = [
   `${inputDir}/_search.liquid`,
   `${inputDir}/_404.liquid`,
@@ -52,25 +54,36 @@ export default function (eleventyConfig) {
   if (process.env.ONLY_NAV) {
     eleventyConfig.ignores.add(textTemplate)
     eleventyConfig.ignores.add(siteTemplates)
+    eleventyConfig.ignores.add(defineTemplates)
     utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
     console.log('⏭️  Building only nav pages (ONLY_NAV enabled)')
   } else if (process.env.ONLY_TEXTS) {
     navTemplates.forEach(page => eleventyConfig.ignores.add(page))
     eleventyConfig.ignores.add(siteTemplates)
+    eleventyConfig.ignores.add(defineTemplates)
     utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
     console.log('📄 Building only text pages (ONLY_TEXTS enabled)')
   } else if (process.env.ONLY_UTILS) {
     eleventyConfig.ignores.add(textTemplate)
     navTemplates.forEach(page => eleventyConfig.ignores.add(page))
+    eleventyConfig.ignores.add(defineTemplates)
     console.log('🧰 Building only utility pages (ONLY_UTILS enabled)')
   } else if (process.env.ONLY_SITE) {
     eleventyConfig.ignores.add(textTemplate)
     navTemplates.forEach(page => eleventyConfig.ignores.add(page))
+    eleventyConfig.ignores.add(defineTemplates)
     utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
     console.log('ℹ️  Building only site pages (ONLY_SITE enabled)')
+  } else if (process.env.ONLY_DEFINE) {
+    eleventyConfig.ignores.add(textTemplate)
+    navTemplates.forEach(page => eleventyConfig.ignores.add(page))
+    eleventyConfig.ignores.add(siteTemplates)
+    utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
+    console.log('📖 Building only /define pages (ONLY_DEFINE enabled)')
   }
 
-  // Not the sitemap, which would be written over with only the sample in it
+  // Not the sitemap, which would be written over with only the sample in it.
+  // The /define pages are narrowed to a sample of their own, in `defineData.js`
   if (sampleUids) {
     utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
     eleventyConfig.ignores.add(siteTemplates)
@@ -125,6 +138,8 @@ export default function (eleventyConfig) {
   })
 
   eleventyConfig.addFilter('t', t)
+  eleventyConfig.addFilter('pageLabel', link => link.text ?? t(link.label))
+  eleventyConfig.addFilter('defineHref', defineHref)
 
   // A remote image as a local one, as everything has to work offline
   eleventyConfig.addShortcode(
@@ -153,8 +168,16 @@ export default function (eleventyConfig) {
 
   let siteLinkFixer
   eleventyConfig.addTransform('siteLinks', async function (content) {
-    if (!this.page.inputPath?.startsWith(`./${inputDir}/site/`)) return content
-    siteLinkFixer ??= masterData().then(createSiteLinkFixer)
+    const { inputPath = '' } = this.page
+    if (
+      !inputPath.startsWith(`./${inputDir}/site/`) &&
+      !inputPath.startsWith(`./${inputDir}/define/`)
+    ) {
+      return content
+    }
+    siteLinkFixer ??= Promise.all([masterData(), loadDefineWords()]).then(
+      ([tree, defineWords]) => createSiteLinkFixer(tree, defineWords)
+    )
     return (await siteLinkFixer)(content, this.page.url)
   })
 

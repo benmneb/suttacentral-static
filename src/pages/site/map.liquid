@@ -8,7 +8,7 @@ scripts:
   - map.js
 eleventyComputed:
   title: '{{ "map:1" | t | strip_html }}'
-  headStyle: '{% for layer in sitePagesData.map.layers %}{% assign layerIndex = forloop.index %}.interactive-map:has(#map-layer-{{ layerIndex }}:not(:checked)) .layer-{{ layerIndex }}{display:none}{% for place in layer.places %}{% if place.shape.type == "area" or place.shape.type == "line" %}.map-frame:has(#place-{{ layerIndex }}-{{ forloop.index }}:popover-open) .shape-{{ layerIndex }}-{{ forloop.index }}{opacity:1;stroke:var(--primary-color)}{% endif %}{% endfor %}{% endfor %}'
+  headStyle: '{% for layer in sitePagesData.map.layers %}{% assign layerIndex = forloop.index %}.interactive-map:has(#map-layer-{{ layerIndex }}:not(:checked)) .layer-{{ layerIndex }}{display:none}{% for place in layer.places %}{% if place.shape.type == "area" or place.shape.type == "line" %}.map-frame:has(#{{ place.id }}:popover-open) .shape-{{ layerIndex }}-{{ forloop.index }}{opacity:1;stroke:var(--primary-color)}{% endif %}{% endfor %}{% endfor %}'
 ---
 <article>
   <h1>{{ "map:1" | t }}</h1>
@@ -102,7 +102,7 @@ eleventyComputed:
                     <button
                       type="button"
                       class="{{ kind }} layer-{{ layerIndex }}"
-                      popovertarget="place-{{ layerIndex }}-{{ forloop.index }}"
+                      popovertarget="{{ place.id }}"
                       style="--x: {{ place.shape.x }}; --y: {{ place.shape.y }}; anchor-name: --place-{{ layerIndex }}-{{ forloop.index }}"
                     >
                       {%- if kind == "point" -%}
@@ -115,7 +115,7 @@ eleventyComputed:
                       {%- endif -%}
                     </button>
                     <div
-                      id="place-{{ layerIndex }}-{{ forloop.index }}"
+                      id="{{ place.id }}"
                       class="map-place"
                       style="position-anchor: --place-{{ layerIndex }}-{{ forloop.index }}"
                       popover

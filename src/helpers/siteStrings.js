@@ -18,7 +18,7 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const TEMPLATE_DIRS = ['pages', 'includes', 'layouts']
 const CACHE_DURATION = process.env.REFETCH ? '0s' : '*'
 
-// Not donations, search etc, which have no pages here
+// Not donations etc, which have no pages here. Search is only for "results for" on the /define pages
 export const STRING_FILES = [
   'abbreviations',
   'abhidhamma',
@@ -41,6 +41,7 @@ export const STRING_FILES = [
   'pali-tipitaka',
   'pirivena',
   'publication',
+  'search',
   'similes',
   'sn-guide-sujato',
   'start',

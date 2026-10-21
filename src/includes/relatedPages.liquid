@@ -5,9 +5,9 @@
       {% for link in sitePagesData.relatedPages[category] %}
         <li>
           {% if link.href == current %}
-            <span aria-current="page">{{ link.label | t }}</span>
+            <span aria-current="page">{{ link | pageLabel }}</span>
           {% else %}
-            <a href="{{ link.href }}">{{ link.label | t }}</a>
+            <a href="{{ link.href }}">{{ link | pageLabel }}</a>
           {% endif %}
         </li>
       {% endfor %}

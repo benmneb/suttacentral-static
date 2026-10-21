@@ -15,6 +15,7 @@ import {
   relatedPages,
   siteMap,
 } from '../helpers/sitePages.js'
+import { loadDictionaries } from '../helpers/dictionaries.js'
 import { loadStrings } from '../helpers/siteStrings.js'
 import { fetchOptions, menuUrl } from './_masterData.js'
 
@@ -96,8 +97,8 @@ function mapShape(geometry, style = {}) {
 }
 
 /**
- * The map's places, in its layers, as `{ name, labelKey, places: [{ name, define, icon, shape }] }`,
- * and its base and marker symbols for the SVG map
+ * The map's places, in its layers, as `{ name, labelKey, places: [{ id, name, define, icon, shape }] }`,
+ * the id of each one's popover by its `define`, and its base and marker symbols for the SVG map
  */
 async function mapData() {
   const [data, base] = await Promise.all([
@@ -120,6 +121,21 @@ async function mapData() {
         mapShape(geometry, properties.style),
     })
   }
+  const sortedLayers = [...layers].map(([name, places], i) => ({
+    name,
+    labelKey: mapLayerKeys[name],
+    onMap: places.some(place => place.shape),
+    places: places
+      .sort((a, b) => byName.compare(a.name ?? '', b.name ?? ''))
+      .map((place, j) => ({ ...place, id: `place-${i + 1}-${j + 1}` })),
+  }))
+  // The popover of each place on the map, by the word of its /define page, for those pages' links to it
+  const placeIds = {}
+  for (const { places } of sortedLayers) {
+    for (const place of places) {
+      if (place.define && place.shape) placeIds[place.define] ??= place.id
+    }
+  }
   return {
     base,
     // Each icon once, for the places to <use>, outlined in the theme's colours too
@@ -134,12 +150,8 @@ async function mapData() {
           return `style="fill: ${fillStyle}; stroke: var(--map-marker-outline); stroke-width: 1"`
         }),
     })),
-    layers: [...layers].map(([name, places]) => ({
-      name,
-      labelKey: mapLayerKeys[name],
-      onMap: places.some(place => place.shape),
-      places: places.sort((a, b) => byName.compare(a.name ?? '', b.name ?? '')),
-    })),
+    layers: sortedLayers,
+    placeIds,
   }
 }
 
@@ -303,12 +315,14 @@ async function editions() {
 export default async function () {
   const [
     stringsFetchedAt,
+    dictionaries,
     abbreviationsData,
     map,
     languagesData,
     editionsData,
   ] = await Promise.all([
     loadStrings(),
+    loadDictionaries(),
     abbreviations(),
     mapData(),
     languages(),
@@ -340,6 +354,10 @@ export default async function () {
       map: fetchedAt(`${API}/map_data`),
       languages: fetchedAt(`${API}/translation_count`),
       editions: fetchedAt(`${API}/publication/editions`),
+      dictionaries: Object.values(dictionaries)
+        .filter(Boolean)
+        .map(({ fetchedAt }) => fetchedAt)
+        .sort((a, b) => Date.parse(b) - Date.parse(a))[0],
     },
     matterPages: editionsData.flatMap(({ matter, title, href }) =>
       matter.map(page => ({

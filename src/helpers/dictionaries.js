@@ -25,7 +25,6 @@ export const DICTIONARY_FILES = {
   pts: `${SC_DATA}/complex/en/pli2en_pts.json`,
   dppn: `${SC_DATA}/complex/en/pli2en_dppn.json`,
   dhammika: `${SC_DATA}/complex/en/pli2en_dhammika.json`,
-  glossary: `${SC_DATA}/glossaries/en/pli2en_glossary.json`,
   dpd_i2h: `${DPD_LOOKUPS}/dpd_i2h.js`,
   dpd_deconstructor: `${DPD_LOOKUPS}/dpd_deconstructor.js`,
 }

@@ -1,0 +1,131 @@
+---
+layout: sitePage.liquid
+fetchedFrom: dictionaries
+mainClass: define
+scripts:
+  - define.js
+
+pagination:
+  data: defineData.pages
+  size: 1
+  alias: term
+  addAllPagesToCollections: true
+
+permalink: '/define/{{ term.word }}/index.html'
+eleventyComputed:
+  title: '{{ "dictionary:dictionaryResultsText" | t | strip_html }} {{ term.word }}'
+  crumb: '{{ term.word }}'
+  crumbs:
+    - name: Definitions
+      href: /define
+---
+<hgroup>
+  <h1>Definitions</h1>
+  <p>
+    {{ term.entries.size | formatNumber }}
+    {{ "search:resultsFor" | t }}
+    <b lang="pli" translate="no">{{ term.word }}</b>
+  </p>
+</hgroup>
+<section>
+  <article>
+    <dl>
+      {% for entry in term.entries %}
+        <dt class="{{ entry.name }}">
+          {{- entry.title -}}
+          {%- if entry.name == "dpd" %}
+            <a
+              href="https://dpdict.net/?q={{ term.word | url_encode }}"
+              aria-label="{{ term.word }} in the Digital Pāḷi Dictionary"
+            ></a>
+          {%- endif %}
+        </dt>
+        {% if entry.grammar %}
+          <dd>
+            <em>{{ entry.grammar }}</em>
+          </dd>
+        {% endif %}
+        {% if entry.mapTag %}
+          {% assign placeId = sitePagesData.map.placeIds[entry.mapView] %}
+          {% capture mapLink %}
+            {%- if placeId -%}
+              <p class="on-map">
+                <a href="/map#{{ placeId }}">{% icon "mapPin" %}On the map</a>
+              </p>
+            {%- endif -%}
+          {% endcapture %}
+          <dd>{{ entry.html | replace: entry.mapTag, mapLink }}</dd>
+        {% elsif entry.html %}
+          <dd>{{ entry.html }}</dd>
+        {% endif %}
+        {% if entry.definitions.size > 0 %}
+          <dd>
+            {% if entry.numbered %}
+              <ol>
+                {% for definition in entry.definitions %}
+                  <li>{{ definition }}</li>
+                {% endfor %}
+              </ol>
+            {% else %}
+              {{ entry.definitions | join: "; " }}
+            {% endif %}
+          </dd>
+        {% endif %}
+        {% if entry.xrs.size > 0 %}
+          <dd>
+            <ul>
+              {% for xr in entry.xrs %}
+                <li lang="pli" translate="no">
+                  {%- if xr.word -%}
+                    <a href="{{ xr.word | defineHref }}">{{ xr.text }}</a>
+                  {%- else -%}
+                    {{ xr.text }}
+                  {%- endif -%}
+                </li>
+              {% endfor %}
+            </ul>
+          </dd>
+        {% endif %}
+      {% endfor %}
+    </dl>
+  </article>
+  <nav aria-label="Other words">
+    {% include "defineForm.liquid" %}
+    {% if term.adjacent.size > 0 %}
+      <article>
+        <h2>{{ "dictionary:adjacentTerms" | t }}</h2>
+        <ol>
+          {% for word in term.adjacent %}
+            {% if word == term.word %}
+              <li class="no-list-item">
+                <span aria-current="page" lang="pli" translate="no">
+                  {{- word -}}
+                </span>
+              </li>
+            {% else %}
+              <li>
+                <a href="{{ word | defineHref }}" lang="pli" translate="no">
+                  {{- word -}}
+                </a>
+              </li>
+            {% endif %}
+          {% endfor %}
+        </ol>
+      </article>
+    {% endif %}
+    {% if term.similar.size > 0 %}
+      <article>
+        <h2>{{ "dictionary:similarSpelling" | t }}</h2>
+        <ol>
+          {% for word in term.similar %}
+            <li>
+              <a href="{{ word | defineHref }}" lang="pli" translate="no">
+                {{- word -}}
+              </a>
+            </li>
+          {% endfor %}
+        </ol>
+      </article>
+    {% endif %}
+  </nav>
+</section>

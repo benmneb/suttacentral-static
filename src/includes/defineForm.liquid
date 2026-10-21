@@ -1,0 +1,27 @@
+{% comment %} Without define.js it searches the /define pages on DuckDuckGo, as the site search form does the site {% endcomment %}
+<form
+  action="https://duckduckgo.com"
+  method="get"
+  role="search"
+  class="define-form"
+>
+  <label for="define-query" class="sr-only">Search Pāli words</label>
+  <input
+    id="define-query"
+    type="search"
+    name="q"
+    placeholder="Search Pāli words…"
+    autocomplete="off"
+    autocorrect="off"
+    autocapitalize="off"
+    spellcheck="false"
+    lang="pli"
+    required
+  >
+  <input type="hidden" name="sites" value="{{ _siteMetaData.host }}/define">
+  <button aria-label="Define" type="submit">
+    {% icon "magnifyingGlass", "mini" %}
+  </button>
+</form>
+<p id="define-count" role="status" hidden></p>
+<ol id="define-results" hidden></ol>

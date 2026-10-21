@@ -1,0 +1,9 @@
+---
+pagination:
+  data: defineData.wordLists
+  size: 1
+  alias: list
+permalink: '/dictionaries/define-words/{{ list.letter }}.json'
+eleventyExcludeFromCollections: true
+---
+{{ list.words | json }}

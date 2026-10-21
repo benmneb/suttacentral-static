@@ -38,6 +38,13 @@ describe('API fetch', () => {
     )
   })
 
+  it('fetched every dictionary', () => {
+    const counts = stats.dictionaries ?? {}
+    const failed = Object.keys(counts).filter(name => !counts[name])
+    assert.ok(stats.dictionaries, 'No dictionary stats were recorded')
+    assert.equal(failed.length, 0, `Couldn't fetch: ${failed.join(', ')}`)
+  })
+
   it('had no failed fetches, other than /publication_info', () => {
     const errors = stats.fetch?.fetchErrors - stats.fetch?.pubInfoErrors
     assert.ok(

@@ -8,7 +8,10 @@
  * Lives here, not in `data/`, as every file in there becomes global data.
  */
 
-/** Each group of related pages, linked above each other page in the group, as `{ href, label }` */
+/**
+ * Each group of related pages, linked above each other page in the group, as `{ href, label }`, the label a
+ * key of .net's strings, or `{ href, text }`
+ */
 export const relatedPages = {
   guides: [
     { href: '/general-guide-sujato', label: 'interface:general' },
@@ -43,6 +46,8 @@ export const relatedPages = {
     { href: '/abbreviations', label: 'interface:abbreviations' },
     { href: '/methodology', label: 'interface:methodology' },
     { href: '/pali-tipitaka', label: 'interface:overview' },
+    // .net's own name for /define, which has no key in its strings
+    { href: '/define', text: 'Definitions' },
   ],
   indexes: [
     { href: '/subjects', label: 'interface:subjects' },
@@ -105,6 +110,7 @@ export const pageIcons = {
   '/vinaya-guide-brahmali': 'documentText',
   '/abhidhamma-guide-sujato': 'documentText',
   '/pali-tipitaka': 'rectangleStack',
+  '/define': 'bookOpen',
   '/subjects': 'tag',
   '/similes': 'sparkles',
   '/names': 'identification',
@@ -162,8 +168,10 @@ export const sitePageRoots = new Set([
 /** Keys the templates use only through the lists above, so the strings check can find them */
 export function configKeys() {
   return [
-    ...Object.values(relatedPages).flatMap(pages => pages.map(p => p.label)),
-    ...siteMap.flatMap(({ pages }) => pages.map(p => p.label)),
+    ...Object.values(relatedPages).flatMap(pages =>
+      pages.map(p => p.label).filter(Boolean)
+    ),
+    ...siteMap.flatMap(({ pages }) => pages.map(p => p.label).filter(Boolean)),
     ...Object.values(pitakaGuides).flatMap(guides =>
       guides.flatMap(({ label }) => [`${label}:1`, `${label}:2`])
     ),
