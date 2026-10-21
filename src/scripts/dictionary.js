@@ -8,6 +8,7 @@
  * @example
  * await scxDictionary.lookup('pli-en', 'Bhikkhave’ti') // [{ b: 'bhikkhave', d: [...], p: 1 }, ...]
  * await scxDictionary.lookupLzh('如是我聞', 1) // [{ term: '如是', start: 0, p: 'rú shì', d: 'thus' }, ...]
+ * await scxDictionary.definePage('samma') // 'sammā'
  */
 ;(function () {
   'use strict'
@@ -21,6 +22,7 @@
 
   const indexes = new Map()
   const shards = new Map()
+  const wordLists = new Map()
 
   /** A word as the dictionaries have it, as `cleanPaliWord` in `lookupAnswers.js` */
   function cleanWord(word) {
@@ -33,6 +35,13 @@
       .replace(/ṁk/g, 'ṅk')
       .normalize('NFC')
   }
+
+  /** A word without its diacritics, so "samma" finds sammā */
+  const asciify = word =>
+    word
+      .normalize('NFD')
+      .replace(/\p{Diacritic}|\u00ad/gu, '')
+      .normalize('NFC')
 
   // Fetched once, or again after one that failed
   function fetchOnce(cache, url) {
@@ -107,5 +116,23 @@
     return found.flat().sort((a, b) => b.term.length - a.term.length)
   }
 
-  window.scxDictionary = { cleanWord, lookup, lookupLzh }
+  /** The word whose /define page a word has, with or without its diacritics, or null if there's none */
+  async function definePage(word) {
+    const key = cleanWord(word)
+    const ascii = asciify(key)
+    // As `defineData.js` splits the list of words, by first letter
+    const letter = /[a-z]/.test(ascii[0]) ? ascii[0] : '_'
+    const words = await fetchOnce(
+      wordLists,
+      `/dictionaries/define-words/${letter}.json`
+    )
+    if (!words) return null
+    return (
+      words.find(w => w === key) ??
+      words.find(w => asciify(w) === ascii) ??
+      null
+    )
+  }
+
+  window.scxDictionary = { cleanWord, definePage, lookup, lookupLzh }
 })()

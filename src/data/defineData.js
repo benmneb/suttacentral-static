@@ -197,14 +197,21 @@ const DEFINE_LINK =
   /<a [^>]*?href='(?:https:\/\/suttacentral\.net)?\/define\/([^'#?]+)'[^>]*>(.*?)<\/a>/gs
 
 /**
- * A word's entries as SSR lists them, one for each in each dictionary in .net's order, and one for each of
- * an NCPED entry's homonyms: `{ name, title, grammar, definitions, numbered, xrs, html, mapTag, mapView }`, with each
-`xrs` item's `word` null where it has no page
+ * A word's entries as SSR lists them, one for each in each dictionary in .net's order, but DPD's first, as word
+ * lookup and /search show it and link here, and one for each of an NCPED entry's homonyms:
+ * `{ name, title, grammar, definitions, numbered, xrs, html, mapTag, mapView }`, with each `xrs` item's `word`
+ * null where it has no page
  */
 function entriesOf(word, entries, words) {
   const found = []
   const add = (name, entry) =>
     found.push({ name, title: DICTIONARY_TITLES[name], ...entry })
+  if (entries.dpd.length) {
+    add('dpd', {
+      definitions: dpdDefinitions(word, entries.dpd, words),
+      numbered: true,
+    })
+  }
   for (const entry of entries.ncped) {
     for (const { grammar, definition, xr } of entry.homonyms ?? [entry]) {
       add('ncped', {
@@ -233,12 +240,6 @@ function entriesOf(word, entries, words) {
         })
       add(name, { html, mapTag, mapView })
     }
-  }
-  if (entries.dpd.length) {
-    add('dpd', {
-      definitions: dpdDefinitions(word, entries.dpd, words),
-      numbered: true,
-    })
   }
   return found
 }

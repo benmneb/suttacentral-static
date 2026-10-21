@@ -4,7 +4,8 @@
  * Writes word lookup's answers into small JSON files in `_site/dictionaries/`, so a tap fetches only the one its
  * word is in, and works offline:
  *
- * - `pli-en/`: the answer for every Pāli word form the root texts have (`lookupAnswers.js`), grouped by prefix
+ * - `pli-en/`: the answer for every Pāli word form the root texts have, and every word with a /define page
+ *   (`lookupAnswers.js`), grouped by prefix
  * - `lzh-en/`: the Digital Dictionary of Buddhism's entries, grouped by their first character
  *
  * Each has an `index.json` saying which file a key is in. The files are numbered, not named by prefix, as
@@ -17,7 +18,8 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { loadDictionaries } from './dictionaries.js'
-import { loadLookup } from './lookupAnswers.js'
+import { loadDefineWords } from './defineWords.js'
+import { cleanPaliWord, loadLookup } from './lookupAnswers.js'
 
 const OUTPUT_DIR = path.join('_site', 'dictionaries')
 
@@ -101,11 +103,17 @@ async function writtenAnswers() {
  * @param {{ merge?: boolean }} [options] - Keep the answers already written, as a sample build renders only a few texts
  */
 export async function writeLookupShards({ merge = false } = {}) {
-  const [lookup, dictionaries] = await Promise.all([
+  const [lookup, dictionaries, words] = await Promise.all([
     loadLookup(),
     loadDictionaries(),
+    loadDefineWords(),
   ])
 
+  // Every word with a /define page too, so /search can show a headword's definition the texts never use as is
+  for (const word of words.keys()) {
+    const form = cleanPaliWord(word)
+    if (form && !form.includes(' ')) lookup.answerOf(form)
+  }
   const answers = new Map(merge ? await writtenAnswers() : [])
   for (const [form, answer] of lookup.answers()) {
     if (answer.length) answers.set(form, answer)

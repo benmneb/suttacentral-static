@@ -3517,6 +3517,51 @@ p#search-count {
   position: relative;
 }
 
+aside#search-dictionary {
+  display: block;
+  pointer-events: auto;
+  border: 1px solid var(--bg-alt-3);
+  border-radius: var(--rounding);
+  padding: 1rem;
+  margin-bottom: 2rem;
+
+  &[hidden] {
+    display: none;
+  }
+
+  > h2 {
+    margin: 0 0 1rem;
+    font-size: small;
+    font-weight: normal;
+    color: var(--text-color-secondary);
+  }
+
+  > p:last-child {
+    margin-bottom: 0;
+  }
+
+  &.only-link {
+    padding: 0.5rem 1rem;
+
+    > h2 {
+      margin: 0;
+      font-size: inherit;
+    }
+  }
+
+  dt {
+    font-weight: bold;
+  }
+
+  dd {
+    margin: 0;
+  }
+
+  a > .icon {
+    margin-inline-start: 0.25em;
+  }
+}
+
 ul#search-results {
   padding: 0;
   margin: 0;

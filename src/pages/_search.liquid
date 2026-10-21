@@ -84,8 +84,24 @@ eleventyComputed:
           {% endfor %}
         </ul>
       </fieldset>
+      <fieldset>
+        <legend>Pāli dictionaries</legend>
+        <ul>
+          <li>
+            <input type="checkbox" id="search-dictionary-results" checked>
+            <label for="search-dictionary-results">Pāli dictionary hits</label>
+          </li>
+        </ul>
+      </fieldset>
     </details>
   </search>
+  <aside
+    id="search-dictionary"
+    aria-labelledby="search-dictionary-heading"
+    data-definitions-label="Pāli definitions for"
+    data-all-label="All Pāli dictionaries"
+    hidden
+  ></aside>
   <ul
     id="search-results"
     aria-live="polite"

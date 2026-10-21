@@ -4,7 +4,8 @@
  * Client-side full-text search using Pagefind static search index.
  * Handles search queries, filters, result rendering, pagination, and browser
  * history management. Searches across all texts and displays results
- * with excerpts and metadata. Syncs URL structure with SuttaCentral.net.
+ * with excerpts and metadata, and a one word query's definition from the
+ * dictionaries above them. Syncs URL structure with SuttaCentral.net.
  *
  * @module PagefindSearch
  * @requires /pagefind/pagefind.js - Static search index generated at build time
@@ -32,6 +33,16 @@
   const showMoreBtn = document.getElementById('show-more')
   const scRedirectLink = document.getElementById('sc-redirect')
   const filtersEl = document.getElementById('search-filters')
+  const dictionaryEl = document.getElementById('search-dictionary')
+  const dictionaryToggle = document.getElementById('search-dictionary-results')
+  const DICTIONARY_PREF = 'search-dictionary-results'
+  // Remembered, as it's not a filter of the results, and kept out of the URL as filters are
+  try {
+    if (localStorage.getItem(DICTIONARY_PREF) === 'off') {
+      if (dictionaryToggle) dictionaryToggle.checked = false
+    }
+  } catch {}
+
   const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
   let latestSearch = 0
 
@@ -128,6 +139,78 @@
       .trim()
   }
 
+  // A query of one word, which may be a Pāli one
+  const ONE_WORD = /^[\p{L}\p{M}\u00ad’'-]+$/u
+  const MAX_DEFINITIONS = 3
+
+  let dictionary = null
+
+  // Fetched only once a search is of one word
+  function loadDictionary() {
+    dictionary ??= new Promise(resolve => {
+      const script = document.createElement('script')
+      script.src = '/scripts/dictionary.js'
+      script.onload = () => resolve(window.scxDictionary)
+      script.onerror = () => {
+        dictionary = null
+        resolve(null)
+      }
+      document.head.append(script)
+    })
+    return dictionary
+  }
+
+  const escape = text =>
+    String(text).replace(/[&<>"]/g, char => `&#${char.charCodeAt(0)};`)
+
+  /*
+   * What the dictionaries have for a one word query, above the results, as on .net: DPD's answer from word
+   * lookup, and a link to its /define page
+   */
+  async function showDefinition(query, searchId) {
+    if (!dictionaryEl) return
+    dictionaryEl.hidden = true
+    dictionaryEl.innerHTML = ''
+    if (dictionaryToggle && !dictionaryToggle.checked) return
+    if (!ONE_WORD.test(query)) return
+    const lookup = await loadDictionary()
+    if (!lookup) return
+    const page = await lookup.definePage(query)
+    const answer = (await lookup.lookup('pli-en', page ?? query)) ?? []
+    const matches = answer.filter(match => match.d)
+    if (searchId !== latestSearch || (!page && !matches.length)) return
+
+    // Show only the first few, as a word like dhamma has loads
+    let shown = 0
+    const total = matches.reduce((sum, match) => sum + match.d.length, 0)
+    const definitions = matches
+      .map(match => {
+        const defs = match.d.slice(0, MAX_DEFINITIONS - shown)
+        shown += defs.length
+        if (!defs.length) return ''
+        return (
+          `<dt lang="pli" translate="no">${escape(match.b)}</dt>` +
+          (match.g ? `<dd><em>${escape(match.g)}</em></dd>` : '') +
+          `<dd><ol>${defs.map(d => `<li>${d}</li>`).join('')}</ol></dd>`
+        )
+      })
+      .join('')
+    const left = total - shown
+    const more = left
+      ? `<p>…and ${left} more definition${left === 1 ? '' : 's'}</p>`
+      : ''
+    const href = page && `/define/${encodeURI(page)}`
+    // Only a link to its page where DPD has nothing for it, ie a, which PTS has
+    dictionaryEl.innerHTML = matches.length
+      ? `<h2 id="search-dictionary-heading">Digital Pāḷi Dictionary</h2><dl>${definitions}</dl>${more}` +
+        (page
+          ? `<p><a href="${href}">${escape(dictionaryEl.dataset.allLabel)}<i class="icon i-arrowRight"></i></a></p>`
+          : '')
+      : `<h2 id="search-dictionary-heading"><a href="${href}">${escape(dictionaryEl.dataset.definitionsLabel)} <b lang="pli" translate="no">${escape(page)}</b><i class="icon i-arrowRight"></i></a></h2>`
+    dictionaryEl.classList.toggle('only-link', !matches.length)
+    dictionaryEl.hidden = false
+  }
+
   /*
    * @param {string} query - What to search for, or '' to list all that the filters let through
    * @param {string} [netQuery] - The same search on .net, for the footer link
@@ -144,6 +227,7 @@
       : ''
     countEl.innerHTML = `Searching${forQuery}${withFilters}…`
     resultsContainer.innerHTML = ''
+    showDefinition(query, searchId)
 
     // A null term lists every page the filters let through
     const results = await pagefind.search(query || null, { filters })
@@ -256,13 +340,22 @@
 
   // Re-run the search on each filter change. Filters stay out of the URL, to keep it in sync with
   // SuttaCentral.net
-  filtersEl.addEventListener('change', async () => {
+  filtersEl.addEventListener('change', async e => {
     const query = input.value.trim()
+    if (e.target === dictionaryToggle) {
+      try {
+        if (dictionaryToggle.checked) localStorage.removeItem(DICTIONARY_PREF)
+        else localStorage.setItem(DICTIONARY_PREF, 'off')
+      } catch {}
+      showDefinition(query, latestSearch)
+      return
+    }
     if (query || getFilters().count) {
       await performSearch(query)
     } else {
       latestSearch++
       countEl.hidden = true
+      if (dictionaryEl) dictionaryEl.hidden = true
       showMoreBtn.hidden = true
       resultsContainer.innerHTML = ''
     }

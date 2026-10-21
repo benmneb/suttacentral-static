@@ -30,14 +30,14 @@ const MIN_WORDS = {
   dpd_deconstructor: 20_000,
 }
 
-// /define pages that have to be there, and the dictionary of each of their entries, as each of an NCPED
-// entry's homonyms is one (gaha)
+// /define pages that have to be there, and the dictionary of each of their entries, DPD's first, and each of
+// an NCPED entry's homonyms one (gaha)
 const DEFINE_PAGES = {
-  '/define/dhamma/': ['ncped', 'dppn', 'pts', 'dpd'],
-  '/define/sāvatthī/': ['ncped', 'dppn', 'dpd'],
+  '/define/dhamma/': ['dpd', 'ncped', 'dppn', 'pts'],
+  '/define/sāvatthī/': ['dpd', 'ncped', 'dppn'],
   '/define/ima/': ['dpd'],
   '/define/aggāḷave cetiye/': ['dppn'],
-  '/define/gaha/': ['ncped', 'ncped', 'dhammika', 'pts', 'dpd'],
+  '/define/gaha/': ['dpd', 'ncped', 'ncped', 'dhammika', 'pts'],
 }
 
 // .net's adjacent terms for buddha, which only has words with a full entry
@@ -313,6 +313,10 @@ describe('Word lookup', async () => {
       )
     }
     assert.match(html, /<a href="\/define\/evaṁ" tabindex="-1">Evaṁ<\/a>/)
+  })
+
+  it("has room on /search for a word's definition", async () => {
+    assert.match(await readPage('/search/'), /id="search-dictionary"/)
   })
 
   it('answers a Chinese term', async () => {
