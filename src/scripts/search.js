@@ -43,12 +43,15 @@
   ]
   // Remembered by id, as they're not filters of the results, and kept out of the URL as filters are
   const answerToggles = [dictionaryToggle, sitePagesToggle]
-  const notesToggle = document.getElementById('search-notes')
   for (const toggle of answerToggles) {
     try {
       if (localStorage.getItem(toggle.id) === 'off') toggle.checked = false
     } catch {}
   }
+
+  const textsBox = document.getElementById('search-texts')
+  const titlesBox = document.getElementById('search-titles')
+  const notesBox = document.getElementById('search-notes')
 
   const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
   let latestSearch = 0
@@ -174,7 +177,8 @@
 
   /*
    * Ticks the filters for each of .net's by:, author:, in: and lang: in a query (ie ?query=by:sujato, as
-   * the language pages link), and for its list <language>, and returns the rest of the query to search for.
+   * the language pages link), and for its list <language>, sets what to include for its title: (and SCX's own
+   * note:), and returns the rest of the query to search for.
    * One with nothing here (ie by:sabbamitta, who translates into German) is dropped, so the rest is still found
    */
   function takeFilterTokens(query) {
@@ -194,6 +198,13 @@
       )
       .replace(/\s+/g, ' ')
       .trim()
+      .replace(/^(title|note):\s*/i, (match, name) => {
+        const title = name.toLowerCase() === 'title'
+        textsBox.checked = titlesBox.checked = title
+        notesBox.checked = !title
+        filtersEl.open = true
+        return ''
+      })
   }
 
   /*
@@ -205,9 +216,15 @@
     return { any: wanted.split(/\s+OR\s+/), not }
   }
 
-  // .net's searches of only titles, references or volume and page, plus one of only notes
-  const MODE = /^(title|note|ref|volpage):\s*/i
-  const IN_MODE = { title: ' in titles', note: ' in notes' }
+  // .net's searches of only references or volume and page
+  const MODE = /^(ref|volpage):\s*/i
+
+  /** The bundles the "Include in search" boxes pick, by name */
+  const includedBundles = () =>
+    [
+      textsBox.checked && (titlesBox.checked ? 'titles' : 'texts'),
+      notesBox.checked && 'notes',
+    ].filter(Boolean)
 
   const bundles = {}
 
@@ -407,30 +424,35 @@
     scRedirectLink.href = url.toString()
 
     const { filters, count } = getFilters()
-    const mode = query.match(MODE)?.[1].toLowerCase()
     const term = query.replace(MODE, '')
-    const forQuery = term
-      ? ` for <b>${escape(term)}</b>${IN_MODE[mode] ?? ''}`
-      : ''
+    const included = includedBundles()
+    const forQuery = term ? ` for <b>${escape(term)}</b>` : ''
+    const inBundles =
+      included.join() === 'texts' ? '' : ` in ${included.join(' and ')}`
     const withFilters = count
       ? ` with ${count} filter${count !== 1 ? 's' : ''}`
       : ''
-    countEl.innerHTML = `Searching${forQuery}${withFilters}…`
+    countEl.innerHTML = `Searching${forQuery}${inBundles}${withFilters}…`
     resultsContainer.innerHTML = ''
     showDefinition(term, searchId)
     showSitePages(term)
 
     if (/^list authors$/i.test(query)) return listAuthors()
 
-    const only = { title: 'titles', note: 'notes' }[mode]
-    const sources = only
-      ? [loadBundle(only)]
-      : [pagefind, term && notesToggle.checked && loadBundle('notes')]
+    if (!included.length) {
+      countEl.textContent = 'Tick something under “Include in search”'
+      filtersEl.open = true
+      return
+    }
+
     const results = (
       await Promise.all(
-        sources
-          .filter(Boolean)
-          .map(async bundle => find(term, filters, await bundle))
+        included.map(async name => {
+          const bundle = name === 'texts' ? pagefind : await loadBundle(name)
+          const found = await find(term, filters, bundle)
+          for (const result of found) result.bundle = name
+          return found
+        })
       )
     )
       .flat()
@@ -440,7 +462,7 @@
 
     const finalCountMsg = `${results.length} result${
       results.length !== 1 ? 's' : ''
-    }${forQuery}${withFilters}`
+    }${forQuery}${inBundles}${withFilters}`
 
     if (results.length === 0) {
       resultsContainer.innerHTML = ''
@@ -467,7 +489,7 @@
         resultsContainer.innerHTML = ''
       }
 
-      allData.forEach(data => {
+      allData.forEach((data, i) => {
         const readableLang = languageNames.of(data.meta.lang) // 'en' to 'English' etc
         const englishTitle = data.meta.translatorsTitle || data.meta.title // usually falls back to Sujato's
         const title = titleHTML(
@@ -497,7 +519,7 @@
 				 <article>
 					 <h2>${title}</h2>
 					 <dl>${details}</dl>
-					 ${mode === 'title' ? '' : `<p lang="${data.meta.lang}">…${data.excerpt}…</p>`}
+					 ${batch[i].bundle === 'titles' ? '' : `<p lang="${data.meta.lang}">…${data.excerpt}…</p>`}
 				 </article>
 			 `
         resultsContainer.appendChild(listItem)

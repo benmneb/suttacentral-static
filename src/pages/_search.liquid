@@ -26,6 +26,25 @@ eleventyComputed:
     <details id="search-filters" hidden>
       <summary>Filter</summary>
       <fieldset>
+        <legend>Include in search</legend>
+        <ul>
+          <li>
+            <input type="checkbox" id="search-texts" checked>
+            <label for="search-texts">Texts</label>
+            <ul>
+              <li>
+                <input type="checkbox" id="search-titles">
+                <label for="search-titles">Titles only</label>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <input type="checkbox" id="search-notes">
+            <label for="search-notes">Translators' notes</label>
+          </li>
+        </ul>
+      </fieldset>
+      <fieldset>
         <legend>Collection</legend>
         <ul id="search-filters-collection">
           {% include "searchFilterTree.liquid",
@@ -94,15 +113,6 @@ eleventyComputed:
           <li>
             <input type="checkbox" id="search-site-pages-results" checked>
             <label for="search-site-pages-results">Site pages</label>
-          </li>
-        </ul>
-      </fieldset>
-      <fieldset>
-        <legend>Also search</legend>
-        <ul>
-          <li>
-            <input type="checkbox" id="search-notes">
-            <label for="search-notes">Translators' notes</label>
           </li>
         </ul>
       </fieldset>
