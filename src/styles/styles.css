@@ -1510,6 +1510,7 @@ aside:where(body > *) {
   display: flex;
   justify-content: end;
   pointer-events: none;
+  z-index: 1;
 
   &:has(#positioner:checked) {
     position: sticky;
