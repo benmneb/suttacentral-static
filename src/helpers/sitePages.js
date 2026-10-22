@@ -2,8 +2,8 @@
  * Site Pages
  *
  * The pages about SuttaCentral and its texts that .net has besides the texts themselves: guides, essays,
- * indexes, the map, editions and so on, grouped as in .net's menus. Their words are .net's, fetched at build
- * time (`siteStrings.js`), and their markup is in `pages/site/`.
+ * indexes, the map, editions and so on, grouped mostly as in .net's menus. Their words are .net's, fetched
+ * at build time (`siteStrings.js`), and their markup is in `pages/site/`.
  *
  * Lives here, not in `data/`, as every file in there becomes global data.
  */
@@ -47,6 +47,7 @@ export const siteMap = [
       { href: '/similes', label: 'Similes' },
       { href: '/names', label: 'Names' },
       { href: '/terminology', label: 'Terminology' },
+      { href: '/pali-tipitaka', label: 'Canon Overview' },
     ],
   },
   {
@@ -56,7 +57,6 @@ export const siteMap = [
       { href: '/numbering', label: 'Numbering' },
       { href: '/abbreviations', label: 'Abbreviations' },
       { href: '/methodology', label: 'Methodology' },
-      { href: '/pali-tipitaka', label: 'Canon Overview' },
       { href: '/define', label: 'Definitions' },
     ],
   },
@@ -150,12 +150,12 @@ export const pageIcons = {
   '/discourses-guide-sujato': 'documentText',
   '/vinaya-guide-brahmali': 'documentText',
   '/abhidhamma-guide-sujato': 'documentText',
-  '/pali-tipitaka': 'rectangleStack',
   '/define': 'bookOpen',
   '/subjects': 'tag',
   '/similes': 'sparkles',
   '/names': 'identification',
   '/terminology': 'chatBubbleBottomCenterText',
+  '/pali-tipitaka': 'rectangleStack',
   '/languages': 'language',
   '/numbering': 'numberedList',
   '/abbreviations': 'scissors',
