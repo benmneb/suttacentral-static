@@ -3653,6 +3653,10 @@ ul#search-results {
           content: '∙' / '';
           margin-left: 0.5rem;
         }
+
+        > .icon:not(.i-hashtag) {
+          margin-inline-end: 0.2rem;
+        }
       }
     }
 
