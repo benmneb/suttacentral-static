@@ -1508,7 +1508,8 @@ main:has(.segment) > :first-child {
   }
 }
 
-aside {
+/* Only the text pages' bar, not asides in a page, ie on /search */
+aside:where(body > *) {
   display: flex;
   justify-content: end;
   pointer-events: none;
@@ -3517,17 +3518,15 @@ p#search-count {
   position: relative;
 }
 
+aside#search-site-pages > .further-reading {
+  margin: 0 0 2rem;
+}
+
 aside#search-dictionary {
-  display: block;
-  pointer-events: auto;
   border: 1px solid var(--bg-alt-3);
   border-radius: var(--rounding);
   padding: 1rem;
   margin-bottom: 2rem;
-
-  &[hidden] {
-    display: none;
-  }
 
   > h2 {
     margin: 0 0 1rem;

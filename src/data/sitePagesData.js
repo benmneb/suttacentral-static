@@ -16,7 +16,7 @@ import {
 } from '../helpers/sitePages.js'
 import { loadDictionaries } from '../helpers/dictionaries.js'
 import { loadStrings } from '../helpers/siteStrings.js'
-import { fetchOptions, menuUrl } from './_masterData.js'
+import masterData, { fetchOptions, menuUrl } from './_masterData.js'
 
 const API = 'https://suttacentral.net/api'
 const EDITIONS_REPO = 'https://github.com/suttacentral/editions'
@@ -308,6 +308,107 @@ async function editions() {
   return found.filter(Boolean)
 }
 
+/** A name's words without diacritics, as /search matches them, ie "Dīgha Nikāya" as "digha nikaya" */
+function searchName(name) {
+  return (
+    name
+      .normalize('NFD')
+      .replace(/\p{M}/gu, '')
+      .toLowerCase()
+      .match(/[\p{L}\p{N}]+/gu)
+      ?.join(' ') ?? ''
+  )
+}
+
+/** Each collection's uid, acronym and names, ie dn, Long Discourses, Dīghanikāya, Dīgha, by uid */
+async function collectionNames(uids) {
+  const names = new Map()
+  ;(function walk(nodes) {
+    for (const node of nodes ?? []) {
+      if (uids.has(node.uid) && !names.has(node.uid)) {
+        names.set(node.uid, [
+          node.uid,
+          node.acronym,
+          node.translated_name,
+          node.root_name,
+          node.root_name?.replace(/nikāya$/, ''),
+        ])
+      }
+      walk(node.children)
+    }
+  })(await masterData())
+  return names
+}
+
+/**
+ * The cards /search can show above its results: each site page, and each guide and edition, found by their names
+ * and their collection's, or the heading they're under in the menu, as `{ href, title, byline, icon, edition, names,
+ * category, tags }`. The names are split by |, and a tag is a word a query can add to a name, ie "dn guide"
+ */
+async function searchCards(editionLinks) {
+  const uids = [...Object.keys(pitakaGuides), ...Object.keys(editionLinks)]
+  const names = await collectionNames(new Set(uids))
+  for (const [uid, { title }] of Object.entries(editionLinks)) {
+    names.get(uid)?.push(title)
+  }
+  const labels = new Map(
+    siteMap.flatMap(({ pages }) =>
+      pages.map(({ href, label }) => [href, label])
+    )
+  )
+  const headings = new Map(
+    siteMap.flatMap(({ heading, pages }) =>
+      pages.map(({ href }) => [href, heading])
+    )
+  )
+  const guides = new Map(
+    Object.values(pitakaGuides)
+      .flat()
+      .map(guide => [guide.href, guide])
+  )
+  const guideCards = [...guides.values()].map(({ href, title, byline }) => {
+    const guideUids = uids.filter(uid =>
+      pitakaGuides[uid]?.some(guide => guide.href === href)
+    )
+    return {
+      href,
+      title,
+      byline,
+      names: [
+        labels.get(href),
+        title,
+        ...guideUids.flatMap(uid => names.get(uid) ?? []),
+      ],
+      tags: 'guide guides',
+    }
+  })
+  const editionCards = Object.entries(editionLinks).map(
+    ([uid, { href, title, creator }]) => ({
+      href,
+      title,
+      byline: creator,
+      icon: 'bookOpen',
+      edition: true,
+      names: names.get(uid) ?? [uid, title],
+      tags: 'edition editions',
+    })
+  )
+  const pages = [...labels]
+    .filter(([href]) => href.startsWith('/') && !guides.has(href))
+    .map(([href, label]) => ({
+      href,
+      title: label,
+      names: [label, href.slice(1)],
+      tags: '',
+    }))
+  return [...pages, ...guideCards, ...editionCards].map(card => ({
+    icon: pageIcons[card.href],
+    ...card,
+    names: [...new Set(card.names.filter(Boolean).map(searchName))].join('|'),
+    category: searchName(headings.get(card.href) ?? ''),
+  }))
+}
+
 /**
  * The site pages' data: the menus, and what the pages made from .net's API show
  */
@@ -327,6 +428,12 @@ export default async function () {
     languages(),
     editions(),
   ])
+  const editionLinks = Object.fromEntries(
+    editionsData.map(({ uid, href, title, publication }) => [
+      uid,
+      { href, title, creator: publication.creator_name },
+    ])
+  )
 
   return {
     siteMap,
@@ -338,12 +445,8 @@ export default async function () {
     languagePages: languagesData.pages,
     editions: editionsData,
     // The editions as menus and cards link them, by collection
-    editionLinks: Object.fromEntries(
-      editionsData.map(({ uid, href, title, publication }) => [
-        uid,
-        { href, title, creator: publication.creator_name },
-      ])
-    ),
+    editionLinks,
+    searchCards: await searchCards(editionLinks),
     editionPages: editionsData,
     // For the footer, by the `fetchedFrom` a page names, or the strings for the rest
     fetchedAt: {

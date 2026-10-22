@@ -85,11 +85,15 @@ eleventyComputed:
         </ul>
       </fieldset>
       <fieldset>
-        <legend>Pāli dictionaries</legend>
+        <legend>Show above results</legend>
         <ul>
           <li>
             <input type="checkbox" id="search-dictionary-results" checked>
-            <label for="search-dictionary-results">Pāli dictionary hits</label>
+            <label for="search-dictionary-results">Pāli definitions</label>
+          </li>
+          <li>
+            <input type="checkbox" id="search-site-pages-results" checked>
+            <label for="search-site-pages-results">Site pages</label>
           </li>
         </ul>
       </fieldset>
@@ -102,6 +106,32 @@ eleventyComputed:
     data-all-label="All Pāli dictionaries"
     hidden
   ></aside>
+  <aside id="search-site-pages" aria-label="Site pages" hidden>
+    <ul class="further-reading"></ul>
+  </aside>
+  <template id="search-site-page-cards">
+    {% for card in sitePagesData.searchCards %}
+      <li
+        data-names="{{ card.names }}"
+        data-category="{{ card.category }}"
+        data-tags="{{ card.tags }}"
+      >
+        <a href="{{ card.href }}"
+          ><i class="icon i-{{ card.icon }}"></i
+          ><cite>{{ card.title }}</cite></a
+        >
+        {% if card.byline %}
+          <span>{{ card.byline }}</span>
+        {% endif %}
+        {% if card.edition %}
+          <span class="tagline">
+            A SuttaCentral Edition available in print and multiple digital
+            formats for offline reading
+          </span>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </template>
   <ul
     id="search-results"
     aria-live="polite"

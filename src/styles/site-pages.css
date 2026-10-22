@@ -940,8 +940,6 @@
       }
 
       aside {
-        display: block;
-        pointer-events: auto;
         background-color: var(--background-color-secondary);
         padding: 1rem;
         border-radius: var(--rounding);

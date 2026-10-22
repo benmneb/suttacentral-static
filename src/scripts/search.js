@@ -35,13 +35,18 @@
   const filtersEl = document.getElementById('search-filters')
   const dictionaryEl = document.getElementById('search-dictionary')
   const dictionaryToggle = document.getElementById('search-dictionary-results')
-  const DICTIONARY_PREF = 'search-dictionary-results'
-  // Remembered, as it's not a filter of the results, and kept out of the URL as filters are
-  try {
-    if (localStorage.getItem(DICTIONARY_PREF) === 'off') {
-      if (dictionaryToggle) dictionaryToggle.checked = false
-    }
-  } catch {}
+  const sitePagesEl = document.getElementById('search-site-pages')
+  const sitePagesToggle = document.getElementById('search-site-pages-results')
+  const sitePageCards = [
+    ...document.getElementById('search-site-page-cards').content.children,
+  ]
+  // Remembered by id, as they're not filters of the results, and kept out of the URL as filters are
+  const answerToggles = [dictionaryToggle, sitePagesToggle]
+  for (const toggle of answerToggles) {
+    try {
+      if (localStorage.getItem(toggle.id) === 'off') toggle.checked = false
+    } catch {}
+  }
 
   const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
   let latestSearch = 0
@@ -198,6 +203,9 @@
     return { any: wanted.split(/\s+OR\s+/), not }
   }
 
+  // .net's searches of only titles, references or volume and page
+  const MODE = /^(title|ref|volpage):\s*/i
+
   /** Pagefind's results for a query, with one search per term of .net's operators, best first */
   async function find(query, filters) {
     // A null term lists every page the filters let through
@@ -311,6 +319,62 @@
     dictionaryEl.hidden = false
   }
 
+  // Too common to tell which page is meant
+  const STOP_WORDS = new Set(['a', 'and', 'for', 'in', 'of', 'on', 'the', 'to'])
+  // As `searchName` in sitePagesData.js makes a card's names
+  const nameWords = text =>
+    (
+      text
+        .normalize('NFD')
+        .replace(/\p{M}/gu, '')
+        .toLowerCase()
+        .match(/[\p{L}\p{N}]+/gu) ?? []
+    ).filter(word => !STOP_WORDS.has(word))
+  // The same word, or it without a short ending, ie simile for similes, but not dhamma for dhammapada
+  const sameWord = (word, name) =>
+    name === word ||
+    (word.length > 2 && name.startsWith(word) && name.length - word.length <= 2)
+
+  // Whether the words are those of a name, ie simile for similes or "digha nikaya" for Dīghanikāya
+  const sameName = (words, name) => {
+    const parts = nameWords(name)
+    return (
+      words.length > 0 &&
+      ((parts.length === words.length &&
+        parts.every((part, i) => sameWord(words[i], part))) ||
+        sameWord(words.join(''), parts.join('')))
+    )
+  }
+
+  /** Whether a query is one of a card's names, maybe with one of its tags, ie "dn guide" */
+  function namesCard(card, wanted) {
+    const tags = card.dataset.tags.split(' ')
+    const words = wanted.filter(word => !tags.some(tag => sameWord(word, tag)))
+    return card.dataset.names.split('|').some(name => sameName(words, name))
+  }
+
+  /**
+   * The site pages a query names (ie map, similes, dn guide, Dīgha Nikāya, or a menu heading like Essays), above
+   * the results, as the further reading on the collection pages
+   */
+  function showSitePages(query) {
+    const shown = new Set()
+    if (sitePagesToggle.checked) {
+      const wanted = nameWords(query.replace(MODE, ''))
+      sitePageCards
+        .filter(card => namesCard(card, wanted))
+        .forEach(card => shown.add(card))
+      sitePageCards
+        .filter(card => sameName(wanted, card.dataset.category))
+        .forEach(card => shown.add(card))
+    }
+    const cards = [...shown]
+    sitePagesEl
+      .querySelector('ul')
+      .replaceChildren(...cards.map(card => card.cloneNode(true)))
+    sitePagesEl.hidden = !cards.length
+  }
+
   /*
    * @param {string} query - What to search for, or '' to list all that the filters let through
    * @param {string} [netQuery] - The same search on .net, for the footer link
@@ -334,10 +398,11 @@
     countEl.innerHTML = `Searching${forQuery}${withFilters}…`
     resultsContainer.innerHTML = ''
     showDefinition(query, searchId)
+    showSitePages(query)
 
     if (/^list authors$/i.test(query)) return listAuthors()
 
-    const term = query.replace(/^(title|ref|volpage):\s*/i, '')
+    const term = query.replace(MODE, '')
     const results = await find(term, filters)
     // A newer search (ie from ticking another filter) has started since
     if (searchId !== latestSearch) return
@@ -453,12 +518,13 @@
   // SuttaCentral.net
   filtersEl.addEventListener('change', async e => {
     const query = cleanQuery(input.value)
-    if (e.target === dictionaryToggle) {
+    if (answerToggles.includes(e.target)) {
       try {
-        if (dictionaryToggle.checked) localStorage.removeItem(DICTIONARY_PREF)
-        else localStorage.setItem(DICTIONARY_PREF, 'off')
+        if (e.target.checked) localStorage.removeItem(e.target.id)
+        else localStorage.setItem(e.target.id, 'off')
       } catch {}
-      showDefinition(query, latestSearch)
+      if (e.target === dictionaryToggle) showDefinition(query, latestSearch)
+      else showSitePages(query)
       return
     }
     if (query || getFilters().count) {
@@ -467,6 +533,7 @@
       latestSearch++
       countEl.hidden = true
       if (dictionaryEl) dictionaryEl.hidden = true
+      sitePagesEl.hidden = true
       showMoreBtn.hidden = true
       resultsContainer.innerHTML = ''
     }
