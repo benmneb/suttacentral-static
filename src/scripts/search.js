@@ -60,19 +60,25 @@
       '\u00ad$1'
     )
 
-  /** The root title in italics over the translation, linked, as on the menu pages */
-  function titleHTML(root, translation, href) {
+  /**
+   * The root title in italics over the translation, linked, as on the menu pages. Just the one in italics
+   * where `showTranslation` is false, there's only one, or they're the same
+   */
+  function titleHTML(root, translation, href, rootLang, showTranslation) {
     root = root?.trim()
     translation = translation?.trim()
-    if (
+    const link = text => `<a href="${href}">${text}</a>`
+    const single =
       !root ||
-      !translation ||
-      root.toLowerCase() === translation.toLowerCase()
-    ) {
-      return `<a href="${href}">${softHyphenateTitle(translation || root || '')}</a>`
-    }
-    const upright = UPRIGHT_SCRIPTS.test(root) ? ' class="upright"' : ''
-    return `<span class="root-title"><a href="${href}"><dfn${upright}>${softHyphenateTitle(root)}</dfn></a><span> ${translation}</span></span>`
+      (showTranslation && root.toLowerCase() === translation?.toLowerCase())
+    const title = single ? translation || root || '' : root
+    const attributes = [
+      !single && rootLang && ` lang="${rootLang}"`,
+      UPRIGHT_SCRIPTS.test(title) && ' class="upright"',
+    ]
+    const dfn = `<dfn${attributes.filter(Boolean).join('')}>${softHyphenateTitle(title)}</dfn>`
+    if (single || !translation || !showTranslation) return link(dfn)
+    return `<span class="root-title">${link(dfn)}<span> ${translation}</span></span>`
   }
 
   /*
@@ -269,10 +275,13 @@
       allData.forEach(data => {
         const readableLang = languageNames.of(data.meta.lang) // 'en' to 'English' etc
         const englishTitle = data.meta.translatorsTitle || data.meta.title // usually falls back to Sujato's
-        const title =
+        const title = titleHTML(
+          data.meta.originalTitle,
+          englishTitle,
+          data.url,
+          data.meta.rootLang,
           data.meta.lang === 'en'
-            ? titleHTML(data.meta.originalTitle, englishTitle, data.url)
-            : titleHTML(data.meta.originalTitle, null, data.url)
+        )
         const acronym = data.meta.acronym
 
         const listItem = document.createElement('li')

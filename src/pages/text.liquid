@@ -546,7 +546,8 @@ eleventyComputed:
   data-title="{{ entry.translated_title | default: entry.translated_name }}"
   data-translatorstitle="{{ entry._suttas_data.translation.title | default: '' }}"
   data-originaltitle="{{ entry.original_title }}"
-  data-pagefind-meta="acronym[data-acronym], author[data-author], lang[data-lang], title[data-title], translatorsTitle[data-translatorstitle], originalTitle[data-originaltitle]"
+  data-rootlang="{{ entry.root_lang }}"
+  data-pagefind-meta="acronym[data-acronym], author[data-author], lang[data-lang], title[data-title], translatorsTitle[data-translatorstitle], originalTitle[data-originaltitle], rootLang[data-rootlang]"
   data-pagefind-filter="author[data-authoruid], lang[data-lang]"
   {% if entry.scx_parallel_lanes > 0 %}
     style="--parallel-lanes: {{ entry.scx_parallel_lanes }}"

@@ -169,10 +169,10 @@
     color: var(--text-color-secondary);
     font-size: 0.8em;
   }
+}
 
-  .upright {
-    font-style: normal;
-  }
+dfn.upright {
+  font-style: normal;
 }
 
 /*
