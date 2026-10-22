@@ -1,15 +1,7 @@
 import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
-import {
-  geometryPath,
-  labelPoint,
-  mapBase,
-  onMap,
-  project,
-} from '../helpers/mapBase.js'
-import { mapMarkers } from '../helpers/mapMarkers.js'
+import { mapData } from '../helpers/mapPlaces.js'
 import {
   editionCollections,
-  mapLayerKeys,
   pageIcons,
   pitakaGuides,
   siteMap,
@@ -58,100 +50,6 @@ async function abbreviations() {
     )
   )
   return { texts, editions, schools }
-}
-
-// Numeric, so the journeys' 10) comes after 9), not 1)
-const byName = new Intl.Collator('en', { numeric: true })
-
-// .net's marker fills, by the name of the variable each is drawn with, as dark mode needs lighter ones
-const MARKER_COLOURS = {
-  '#ffc107': 'amber',
-  '#ffcb61': 'gold',
-  '#3b763b': 'green',
-  '#717171': 'grey',
-  '#b30309': 'red',
-}
-
-// Where a feature goes on the map, or nothing for one off its edges. Outlines are left to the theme's colours,
-// as .net's can barely be seen on the land
-function mapShape(geometry, style = {}) {
-  if (geometry.type === 'Point') {
-    const [lon, lat] = geometry.coordinates
-    if (!onMap(lon, lat)) return null
-    const [x, y] = project(lon, lat)
-    return { type: 'point', x, y }
-  }
-  const [x, y] = labelPoint(geometry)
-  if (!geometry.type.endsWith('Polygon')) {
-    return { type: 'line', d: geometryPath(geometry), x, y }
-  }
-  return {
-    type: 'area',
-    d: geometryPath(geometry),
-    x,
-    y,
-    fill: style.fillColor ?? style.color ?? '#3f5ba9',
-    fillOpacity: style.fillOpacity ?? 0.2,
-  }
-}
-
-/**
- * The map's places, in its layers, as `{ name, labelKey, places: [{ id, name, define, icon, shape }] }`,
- * the id of each one's popover by its `define`, and its base and marker symbols for the SVG map
- */
-async function mapData() {
-  const [data, base] = await Promise.all([
-    tryFetchJson(`${API}/map_data`, []),
-    mapBase(),
-  ])
-  const layers = new Map()
-  for (const { properties, geometry } of data[0]?.features ?? []) {
-    if (!properties?.layer) continue
-    if (!layers.has(properties.layer)) layers.set(properties.layer, [])
-    const icon = mapMarkers[properties.icon] ? properties.icon : 'circle'
-    layers.get(properties.layer).push({
-      name: properties.name,
-      define: properties.define,
-      icon,
-      // Off the map, as .net puts them at spots far from the subcontinent (Sagga at Perth)
-      shape:
-        geometry &&
-        properties.layer !== 'Extraterrestrial Places' &&
-        mapShape(geometry, properties.style),
-    })
-  }
-  const sortedLayers = [...layers].map(([name, places], i) => ({
-    name,
-    labelKey: mapLayerKeys[name],
-    onMap: places.some(place => place.shape),
-    places: places
-      .sort((a, b) => byName.compare(a.name ?? '', b.name ?? ''))
-      .map((place, j) => ({ ...place, id: `place-${i + 1}-${j + 1}` })),
-  }))
-  // The popover of each place on the map, by the word of its /define page, for those pages' links to it
-  const placeIds = {}
-  for (const { places } of sortedLayers) {
-    for (const place of places) {
-      if (place.define && place.shape) placeIds[place.define] ??= place.id
-    }
-  }
-  return {
-    base,
-    // Each icon once, for the places to <use>, outlined in the theme's colours too
-    symbols: Object.entries(mapMarkers).map(([name, svg]) => ({
-      name,
-      viewBox: svg.match(/viewBox="([^"]+)"/)[1],
-      content: svg
-        .replace(/^<svg[^>]*>|<\/svg>$/g, '')
-        .replace(/fill="([^"]*)" stroke="[^"]*"/g, (match, fill) => {
-          const colour = MARKER_COLOURS[fill]
-          const fillStyle = colour ? `var(--map-marker-${colour})` : fill
-          return `style="fill: ${fillStyle}; stroke: var(--map-marker-outline); stroke-width: 1"`
-        }),
-    })),
-    layers: sortedLayers,
-    placeIds,
-  }
 }
 
 /**

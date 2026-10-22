@@ -7,6 +7,8 @@ import { loadDictionaries } from './src/helpers/dictionaries.js'
 import { localImage } from './src/helpers/images.js'
 import { loadLookup } from './src/helpers/lookupAnswers.js'
 import { writeLookupShards } from './src/helpers/lookupShards.js'
+import { mapData } from './src/helpers/mapPlaces.js'
+import { writeMiniMap } from './src/helpers/miniMap.js'
 import { minifyCss, minifyJs } from './src/helpers/minifyAssets.js'
 import { isMultiTextSpan } from './src/helpers/rangeSuttas.js'
 import {
@@ -261,6 +263,19 @@ export default function (eleventyConfig) {
       await writeVolpages(await masterData())
     } catch (e) {
       console.error('Error while writing the PTS pages:', e)
+    }
+  })
+
+  // With /map, /define and /search, whose mini maps share it
+  const buildsMiniMaps = !['ONLY_NAV', 'ONLY_TEXTS'].some(
+    flag => process.env[flag]
+  )
+  eleventyConfig.on('eleventy.after', async () => {
+    if (!buildsMiniMaps) return
+    try {
+      await writeMiniMap(await mapData())
+    } catch (e) {
+      console.error('Error while writing the mini maps:', e)
     }
   })
 

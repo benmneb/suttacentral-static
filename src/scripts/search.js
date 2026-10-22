@@ -553,6 +553,15 @@
   const escape = text =>
     String(text).replace(/[&<>"]/g, char => `&#${char.charCodeAt(0)};`)
 
+  /** A place on a bit of the map, as `includes/miniMap.liquid` draws it */
+  function miniMapHTML({ id, icon, type, view, x, y }) {
+    const shape =
+      type === 'point'
+        ? `<use href="/map/base.svg#marker-${icon}" transform="translate(${x} ${y})" x="-3" y="-3" width="6" height="6" />`
+        : `<use class="${type}" href="/map/base.svg#${id.replace('place', 'shape')}" />`
+    return `<div class="mini-map"><svg viewBox="${view}" aria-hidden="true"><use href="/map/base.svg#base" /><a href="/map#${id}" tabindex="-1">${shape}</a></svg><a href="/map#${id}"><i class="icon i-map"></i>View on full map</a></div>`
+  }
+
   /*
    * What the dictionaries have for a one word query, above the results, as on .net: DPD's answer from word
    * lookup, and a link to its /define page
@@ -566,8 +575,12 @@
     const lookup = await loadDictionary()
     if (!lookup) return
     const page = await lookup.definePage(query)
-    const answer = (await lookup.lookup('pli-en', page ?? query)) ?? []
-    const matches = answer.filter(match => match.d)
+    const [answer, places] = await Promise.all([
+      lookup.lookup('pli-en', page ?? query),
+      page && fetchJSON('/map/places.json'),
+    ])
+    const place = places?.[page]
+    const matches = (answer ?? []).filter(match => match.d)
     if (searchId !== latestSearch || (!page && !matches.length)) return
 
     // Show only the first few, as a word like dhamma has loads
@@ -591,12 +604,13 @@
       : ''
     const href = page && `/define/${encodeURI(page)}`
     // Only a link to its page where DPD has nothing for it, ie a, which PTS has
+    const map = place ? miniMapHTML(place) : ''
     dictionaryEl.innerHTML = matches.length
-      ? `<h2 id="search-dictionary-heading">Digital Pāḷi Dictionary</h2><dl>${definitions}</dl>${more}` +
+      ? `<h2 id="search-dictionary-heading">Digital Pāḷi Dictionary</h2><dl>${definitions}</dl>${more}${map}` +
         (page
           ? `<p><a href="${href}">${escape(dictionaryEl.dataset.allLabel)}<i class="icon i-arrowRight"></i></a></p>`
           : '')
-      : `<h2 id="search-dictionary-heading"><a href="${href}">${escape(dictionaryEl.dataset.definitionsLabel)} <b lang="pli" translate="no">${escape(page)}</b><i class="icon i-arrowRight"></i></a></h2>`
+      : `<h2 id="search-dictionary-heading"><a href="${href}">${escape(dictionaryEl.dataset.definitionsLabel)} <b lang="pli" translate="no">${escape(page)}</b><i class="icon i-arrowRight"></i></a></h2>${map}`
     dictionaryEl.classList.toggle('only-link', !matches.length)
     dictionaryEl.hidden = false
   }

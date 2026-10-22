@@ -1,0 +1,26 @@
+{%- comment -%}
+  A place from `sitePagesData.map.places` on a bit of the map, as search.js's `miniMapHTML` draws it too
+{%- endcomment -%}
+<div class="mini-map">
+  <svg viewBox="{{ place.view }}" aria-hidden="true">
+    <use href="/map/base.svg#base" />
+    <a href="/map#{{ place.id }}" tabindex="-1">
+      {% if place.type == "point" %}
+        <use
+          href="/map/base.svg#marker-{{ place.icon }}"
+          transform="translate({{ place.x }} {{ place.y }})"
+          x="-3"
+          y="-3"
+          width="6"
+          height="6"
+        />
+      {% else %}
+        <use
+          class="{{ place.type }}"
+          href="/map/base.svg#{{ place.id | replace: "place", "shape" }}"
+        />
+      {% endif %}
+    </a>
+  </svg>
+  <a href="/map#{{ place.id }}">{% icon "map" %}View on full map</a>
+</div>

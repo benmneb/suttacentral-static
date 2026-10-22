@@ -463,21 +463,6 @@
 }
 
 .site-page.map {
-  /* .net's own dark fills are lost on the dark land, so they're lighter here, and outlined dark between them */
-  --map-marker-outline: var(--bg-hard);
-  --map-marker-amber: #ffc107;
-  --map-marker-gold: #ffcb61;
-  --map-marker-green: var(--aqua);
-  --map-marker-grey: var(--gray-dim);
-  --map-marker-red: var(--red);
-
-  @media (prefers-color-scheme: light) {
-    --map-marker-outline: var(--fg-alt-1);
-    --map-marker-green: #3b763b;
-    --map-marker-grey: #717171;
-    --map-marker-red: #b30309;
-  }
-
   article {
     h1,
     h2:not(#places-index-heading) {
@@ -723,6 +708,22 @@
     --map-marker-outline: var(--primary-color);
     color: var(--primary-color);
     scale: 1.3;
+  }
+
+  /* For no JS users */
+  /* Without map.js, which opens it, the place a /define page links to, ie /map#place-3-12, till another opens */
+  .map-frame:not(.fitted) {
+    &:not(:has(:popover-open)) .map-place:target {
+      display: block;
+      position: absolute;
+      z-index: 1;
+    }
+
+    .map-places > button:has(+ :target) {
+      --map-marker-outline: var(--primary-color);
+      color: var(--primary-color);
+      scale: 1.3;
+    }
   }
 
   .map-place {

@@ -46,11 +46,13 @@ eleventyComputed:
           </dd>
         {% endif %}
         {% if entry.mapTag %}
-          {% assign placeId = sitePagesData.map.placeIds[entry.mapView] %}
+          {% assign place = sitePagesData.map.places[entry.mapView] %}
           {% capture mapLink %}
-            {%- if placeId -%}
+            {%- if place and sitePagesData.map.base -%}
+              {% include "miniMap.liquid", place: place %}
+            {%- elsif place -%}
               <p class="on-map">
-                <a href="/map#{{ placeId }}">{% icon "mapPin" %}On the map</a>
+                <a href="/map#{{ place.id }}">{% icon "mapPin" %}On the map</a>
               </p>
             {%- endif -%}
           {% endcapture %}

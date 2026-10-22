@@ -3561,6 +3561,64 @@ aside#search-dictionary {
   }
 }
 
+/* .net's own dark fills are lost on the dark land, so they're lighter here, and outlined dark between them */
+:is(.site-page.map, .mini-map) {
+  --map-marker-outline: var(--bg-hard);
+  --map-marker-amber: #ffc107;
+  --map-marker-gold: #ffcb61;
+  --map-marker-green: var(--aqua);
+  --map-marker-grey: var(--gray-dim);
+  --map-marker-red: var(--red);
+
+  @media (prefers-color-scheme: light) {
+    --map-marker-outline: var(--fg-alt-1);
+    --map-marker-green: #3b763b;
+    --map-marker-grey: #717171;
+    --map-marker-red: #b30309;
+  }
+}
+
+/* The land and rivers in /map/base.svg take these through its <use> */
+.mini-map {
+  --map-land: var(--bg-alt-1);
+  --map-coast: var(--fg-alt-4);
+  --map-river: var(--blue);
+  display: block;
+  width: min(100%, 24rem);
+  margin-block: 1rem 0;
+
+  svg {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    margin-bottom: 0.5rem;
+    border-radius: var(--rounding);
+    background-color: var(--bg-hard);
+  }
+
+  /* Out of the tab order, so a ring would only ever show on a click */
+  svg a[tabindex='-1'] {
+    outline: none;
+  }
+
+  .area {
+    fill: var(--primary-color);
+    fill-opacity: 0.25;
+    stroke: var(--primary-color);
+    stroke-width: 1.5px;
+  }
+
+  .line {
+    fill: none;
+    stroke: var(--primary-color);
+    stroke-width: 2.5px;
+  }
+
+  .icon {
+    margin-inline-end: 0.375rem;
+  }
+}
+
 ul#search-results {
   padding: 0;
   margin: 0;
