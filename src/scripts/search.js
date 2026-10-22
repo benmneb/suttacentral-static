@@ -823,6 +823,16 @@
     await performSearch(term, query)
   }
 
+  function clearResults() {
+    latestSearch++
+    document.title = 'Search @ SuttaCentral Express'
+    countEl.hidden = true
+    if (dictionaryEl) dictionaryEl.hidden = true
+    sitePagesEl.hidden = true
+    showMoreBtn.hidden = true
+    resultsContainer.innerHTML = ''
+  }
+
   // Handle initial page load
   const params = new URLSearchParams(window.location.search)
   const initialQuery = params.get('query')
@@ -855,23 +865,18 @@
       else showSitePages(term)
       return
     }
-    if (query || getFilters().count) {
-      await performSearch(query)
-    } else {
-      latestSearch++
-      countEl.hidden = true
-      if (dictionaryEl) dictionaryEl.hidden = true
-      sitePagesEl.hidden = true
-      showMoreBtn.hidden = true
-      resultsContainer.innerHTML = ''
-    }
+    if (query || getFilters().count) await performSearch(query)
+    else clearResults()
   })
 
   // Handle back/forward navigation
   window.addEventListener('popstate', async () => {
     const params = new URLSearchParams(window.location.search)
     const query = params.get('query')
-    if (query) await searchFor(query)
+    if (query) return searchFor(query)
+    input.value = ''
+    if (getFilters().count) await performSearch('')
+    else clearResults()
   })
 
   document.addEventListener('keydown', function (event) {
