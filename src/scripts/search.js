@@ -55,6 +55,11 @@
   const siteBox = document.getElementById('search-site')
 
   const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
+  /** A language's name as the Language filter labels it, else as Intl does */
+  // Not Intl alone, as Chrome's turns 'pli' into a bare 'pi'
+  const languageName = lang =>
+    document.getElementById(`lang-${lang}`)?.labels[0]?.textContent.trim() ??
+    languageNames.of(lang)
   const listFormat = new Intl.ListFormat('en')
   let latestSearch = 0
 
@@ -456,7 +461,7 @@
     const editions = pages
       .map(({ page, anchor }) => {
         const [, lang, author] = page.split('/')
-        const name = languageNames.of(lang)
+        const name = languageName(lang)
         const translator =
           lang === 'en' || langs.filter(other => other === lang).length > 1
             ? (document
@@ -763,7 +768,7 @@
           resultsContainer.appendChild(listItem)
           return
         }
-        const readableLang = languageNames.of(data.meta.lang) // 'en' to 'English' etc
+        const readableLang = languageName(data.meta.lang) // 'en' to 'English' etc
         const englishTitle = data.meta.translatorsTitle || data.meta.title // usually falls back to Sujato's
         const title = titleHTML(
           data.meta.originalTitle,
