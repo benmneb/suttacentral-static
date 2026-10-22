@@ -10,6 +10,11 @@ styles:
         <a href="{{ crumb.href }}">{{ crumb.name }}</a>
       </li>
     {% endfor %}
+    {% if parentCrumb %}
+      <li>
+        <a href="{{ parentHref }}">{{ parentCrumb }}</a>
+      </li>
+    {% endif %}
     <li>
       <span aria-current="page">{{ crumb | default: title }}</span>
     </li>

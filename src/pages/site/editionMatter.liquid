@@ -16,7 +16,8 @@ eleventyComputed:
   crumbs:
     - name: '{{ "publication:editionsToolbarTitle" | t | strip_html }}'
       href: /editions
-    - name: '{{ entry.editionTitle }}'
-      href: '{{ entry.editionHref }}'
+  # Not in crumbs, as paged copies share its array, so every page gets the last one computed
+  parentCrumb: '{{ entry.editionTitle }}'
+  parentHref: '{{ entry.editionHref }}'
 ---
 {{ entry.html }}
