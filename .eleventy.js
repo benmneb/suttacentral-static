@@ -22,6 +22,7 @@ import {
   rootTitle,
   softHyphenateTitle,
 } from './src/helpers/strings.js'
+import { writeVolpages } from './src/helpers/volpages.js'
 
 const inputDir = 'src/pages'
 const textTemplate = `${inputDir}/text.liquid`
@@ -245,6 +246,21 @@ export default function (eleventyConfig) {
       await writeLookupShards({ merge: !!sampleUids })
     } catch (e) {
       console.error('Error while writing the lookup dictionaries:', e)
+    }
+  })
+
+  // With /search, but not in a sample build, which has only some texts
+  const buildsSearch =
+    !sampleUids &&
+    !['ONLY_NAV', 'ONLY_TEXTS', 'ONLY_SITE', 'ONLY_DEFINE'].some(
+      flag => process.env[flag]
+    )
+  eleventyConfig.on('eleventy.after', async () => {
+    if (!buildsSearch) return
+    try {
+      await writeVolpages(await masterData())
+    } catch (e) {
+      console.error('Error while writing the PTS pages:', e)
     }
   })
 

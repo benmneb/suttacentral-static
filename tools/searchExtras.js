@@ -7,6 +7,8 @@
  *   _site/pagefind-titles/   each text's titles, for .net's `title: term`
  *   _site/pagefind-notes/    each translator's note, one record per note
  *   _site/pagefind-site/     the site pages' text, ie the guides and the editions' introductions
+ *   _site/search/refs/       the pages each reference is on, ie sya13.544, for .net's `ref:`, in shards
+ *   _site/search/texts/      the acronym and titles of the texts those are on
  *
  * Run by `pnpm build:search`, after the main index.
  *
@@ -17,6 +19,8 @@ import fs from 'fs/promises'
 import path from 'path'
 import * as pagefind from 'pagefind'
 import { recordStat } from '../src/helpers/buildStats.js'
+import { groupByPrefix } from '../src/helpers/lookupShards.js'
+import { parseUidNumbers } from '../src/helpers/rangeSuttas.js'
 import {
   pageIcons,
   pitakaGuides,
@@ -132,6 +136,90 @@ function repeatedNumbers(html) {
     seen.add(number)
   }
   return repeated
+}
+
+// Each reference's pages, ie "sya13.544" → mn91/pli/ms and mn91/en/sujato, by its id in lower case
+const references = new Map()
+// The acronym and titles of each text with references
+const referenceTexts = new Map()
+
+/** Notes down the references on a text page */
+function collectReferences(page, html) {
+  const at = page.url.slice(1, -1)
+  for (const [, id] of html.matchAll(/<a class="ref\b[^"]*" id="([^"]*)"/g)) {
+    const key = id.toLowerCase()
+    if (!references.has(key)) references.set(key, { id, pages: new Set() })
+    references.get(key).pages.add(at)
+    if (!referenceTexts.has(page.uid)) {
+      const { acronym, originalTitle, title, rootLang } = page.meta
+      referenceTexts.set(page.uid, [acronym, originalTitle, title, rootLang])
+    }
+  }
+}
+
+/** Whether a range's page is also there as one of its texts', ie an1.1-10/pli/ms as an1.1/pli/ms */
+function inTextOfRange(at, pages) {
+  const [uid, ...edition] = at.split('/')
+  const range = parseUidNumbers(uid)
+  if (!range || range.start === range.end) return false
+  for (let n = range.start; n <= range.end; n++) {
+    if (pages.has([`${range.prefix}${n}`, ...edition].join('/'))) return true
+  }
+  return false
+}
+
+const byUid = new Intl.Collator('en', { numeric: true }).compare
+
+/**
+ * A reference's pages, each once: not a range's where its texts have their own, and one of those that all
+ * show the same text, ie an11.262 to an11.309, which are each AN 11.262–309
+ */
+function referencePages(pages) {
+  const shown = new Map()
+  for (const at of [...pages].sort(byUid)) {
+    if (inTextOfRange(at, pages)) continue
+    const [uid, ...edition] = at.split('/')
+    const text = `${referenceTexts.get(uid)[0]} ${edition.join('/')}`
+    if (!shown.has(text)) shown.set(text, at)
+  }
+  return [...shown.values()]
+}
+
+/** Writes entries in shards by prefix, as `lookupShards.js` does the dictionaries, with an index of them */
+async function writeShards(dir, entries) {
+  await fs.rm(dir, { recursive: true, force: true })
+  await fs.mkdir(dir, { recursive: true })
+  const prefixes = {}
+  for (const [prefix, group] of groupByPrefix(entries)) {
+    const shard = Object.keys(prefixes).length
+    prefixes[prefix] = shard
+    await fs.writeFile(
+      path.join(dir, `${shard}.json`),
+      JSON.stringify(Object.fromEntries(group))
+    )
+  }
+  await fs.writeFile(
+    path.join(dir, 'index.json'),
+    JSON.stringify({ by: 'prefix', prefixes })
+  )
+  console.log(
+    `🔎 Wrote ${entries.length} entries to ${dir}, in ${Object.keys(prefixes).length} files`
+  )
+}
+
+/**
+ * Writes each reference's pages, with its id first where that isn't in lower case, and the acronym and
+ * titles of the texts they're on, by uid
+ */
+async function writeReferences() {
+  await writeShards(
+    path.join(SITE_DIR, 'search', 'refs'),
+    [...references].map(([key, { id, pages }]) => [
+      key,
+      [...(id === key ? [] : [id]), ...referencePages(pages)],
+    ])
+  )
+  await writeShards(path.join(SITE_DIR, 'search', 'texts'), [...referenceTexts])
 }
 
 /** The site pages, but not /define's words, which /search answers on its own */
@@ -290,6 +378,7 @@ for (let i = 0; i < files.length; i += READ_CONCURRENCY) {
         .catch(() => null)
       const page = html && textPage(file, html)
       if (!page) return
+      collectReferences(page, html)
       for (const [name, bundle] of Object.entries(bundles)) {
         for (const record of bundle.records?.(page, html) ?? []) {
           const { errors } = await indexes[name].addCustomRecord(record)
@@ -329,8 +418,10 @@ for (const [name, { outputPath }] of Object.entries(bundles)) {
   console.log(`🔎 Wrote ${counts[name]} records to ${outputPath}`)
 }
 await pagefind.close()
+await writeReferences()
 
 recordStat('searchExtras', {
   ...counts,
+  references: references.size,
   seconds: (Date.now() - start) / 1000,
 })

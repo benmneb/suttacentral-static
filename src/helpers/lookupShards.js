@@ -41,7 +41,7 @@ function sizeOf(entries) {
  * after. A key is in the group of the longest prefix it starts with, so `sa` stays in `sa` while `saddha` goes
  * on down to `sad`
  */
-function groupByPrefix(entries, prefix = '') {
+export function groupByPrefix(entries, prefix = '') {
   const groups = new Map()
   if (prefix && sizeOf(entries) <= MAX_SHARD_BYTES) {
     groups.set(prefix, entries)

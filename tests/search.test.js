@@ -90,4 +90,44 @@ describe('Search index', async () => {
       `The site bundle has ${site} pages, the site ${written}`
     )
   })
+
+  it('has only text pages, and their titles, in the reference shards', async () => {
+    const shards = async dir => {
+      const files = await fs.readdir(path.join(SITE_DIR, 'search', dir))
+      return Promise.all(
+        files
+          .filter(file => file !== 'index.json')
+          .map(async file =>
+            JSON.parse(
+              await fs.readFile(
+                path.join(SITE_DIR, 'search', dir, file),
+                'utf8'
+              )
+            )
+          )
+      )
+    }
+    const texts = new Set((await shards('texts')).flatMap(Object.keys))
+    const missing = (await shards('refs'))
+      .flatMap(shard => Object.values(shard).flat())
+      .filter(at => at.includes('/'))
+      .filter(
+        at => !pages.get(`/${at}/`)?.searchable || !texts.has(at.split('/')[0])
+      )
+    assert.deepEqual(
+      [...new Set(missing)].slice(0, 10),
+      [],
+      `${missing.length} reference pages aren't text pages with titles`
+    )
+  })
+
+  it('has DN 16 alone on PTS DN ii 72, as volpage: finds it', async () => {
+    const dn = JSON.parse(
+      await fs.readFile(path.join(SITE_DIR, 'search/volpages/dn.json'), 'utf8')
+    )
+    const onPage = dn.pages
+      .filter(([, vol, first, last]) => vol === 2 && first <= 72 && 72 <= last)
+      .map(([uid]) => uid)
+    assert.deepEqual(onPage, ['dn16'])
+  })
 })

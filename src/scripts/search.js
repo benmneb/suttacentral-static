@@ -317,6 +317,218 @@
     countEl.textContent = `${total} authors`
   }
 
+  const fetched = new Map()
+
+  /** JSON from the site, fetched once, or again after one that failed */
+  function fetchJSON(url) {
+    if (!fetched.has(url)) {
+      fetched.set(
+        url,
+        fetch(url)
+          .then(response => {
+            if (!response.ok) throw new Error(response.statusText)
+            return response.json()
+          })
+          .catch(() => {
+            fetched.delete(url)
+            return null
+          })
+      )
+    }
+    return fetched.get(url)
+  }
+
+  /** A key's entry in one of the sets of shards searchExtras.js writes, in the shard of its longest prefix */
+  async function shardEntry(dir, key) {
+    const index = await fetchJSON(`/search/${dir}/index.json`)
+    for (let i = key.length; i > 0 && index; i--) {
+      const shard = index.prefixes[key.slice(0, i)]
+      if (shard !== undefined) {
+        return (await fetchJSON(`/search/${dir}/${shard}.json`))?.[key]
+      }
+    }
+  }
+
+  /** The pages a reference is on, as { page, anchor }, ie dn16/pli/ms and its anchor pts-vp-pli2.72 */
+  async function findReference(id) {
+    const key = id.toLowerCase()
+    const [first, ...rest] = (await shardEntry('refs', key)) ?? []
+    if (!first) return []
+    // An id that isn't in lower case comes first
+    const [anchor, pages] = first.includes('/')
+      ? [key, [first, ...rest]]
+      : [first, rest]
+    return pages.map(page => ({ page, anchor }))
+  }
+
+  // .net's nikāya letters, ie M for MN, and the Vinaya as a whole
+  const BOOKS = { d: 'dn', m: 'mn', s: 'sn', a: 'an', vin: 'pli-tv' }
+  const ROMAN_NUMERALS = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii']
+  const ROMAN_VALUES = { i: 1, v: 5, x: 10, l: 50 }
+  const romanToInt = roman =>
+    [...roman].reduce((sum, char, i) => {
+      const value = ROMAN_VALUES[char]
+      return sum + (value < (ROMAN_VALUES[roman[i + 1]] ?? 0) ? -value : value)
+    }, 0)
+
+  /** .net's volpage: query, ie "SN ii 4", "M II 246", "S.II,236" or "PTS 2.72", as { book, vol, page } */
+  function parseVolpage(query) {
+    const words = query
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter(Boolean)
+    if (words[0] === 'pts') words.shift()
+    let book = ''
+    if (/^[a-z]+$/.test(words[0]) && !/^[ivxl]+$/.test(words[0])) {
+      book = BOOKS[words[0]] ?? words[0]
+      words.shift()
+    }
+    let vol = 0
+    if (/^[ivxl]+$/.test(words[0])) vol = romanToInt(words.shift())
+    else if (words.length > 1) vol = Number(words.shift())
+    const page = words.length ? parseInt(words[0], 10) : undefined
+    return { book, vol, page }
+  }
+
+  const byUid = new Intl.Collator('en', { numeric: true }).compare
+
+  // ie sn for sn12.39, but not for snp1.1
+  const inBook = (uid, book) =>
+    uid.startsWith(book) && !/[a-z]/.test(uid[book.length] ?? '')
+
+  /**
+   * The texts on a PTS volume's page, or in all of a volume, as [uid, { text, pages }], with the pages
+   * of theirs that have that page's reference
+   */
+  async function findVolpage(query) {
+    const { book, vol, page } = parseVolpage(query)
+    if (Number.isNaN(page) || (!vol && page === undefined)) return []
+    const names = book
+      ? [book]
+      : ((await fetchJSON('/search/volpages/index.json'))?.books ?? [])
+    const files = await Promise.all(
+      names.map(name => fetchJSON(`/search/volpages/${name}.json`))
+    )
+    const found = new Map()
+    for (const file of files.filter(Boolean)) {
+      for (const [uid, textVol, first, last] of file.pages) {
+        if (book && !inBook(uid, book)) continue
+        if (vol && textVol !== vol) continue
+        if (page !== undefined && (page < first || page > last)) continue
+        found.set(uid, { text: file.texts[uid], pages: [] })
+      }
+    }
+    if (page !== undefined) {
+      // As bilara has them, and as legacy texts do, ie mn.i.1
+      const ids = [
+        `pts-vp-pli${vol ? `${vol}.` : ''}${page}`,
+        book && vol && `${book}.${ROMAN_NUMERALS[vol - 1]}.${page}`,
+      ]
+      const pages = await Promise.all(ids.filter(Boolean).map(findReference))
+      for (const at of pages.flat()) {
+        found.get(at.page.split('/')[0])?.pages.push(at)
+      }
+    }
+    return [...found].sort(([a], [b]) => byUid(a, b))
+  }
+
+  /** The texts with a reference, as [uid, { pages }] */
+  async function findReferences(query) {
+    let id = query.replace(/\s+/g, '')
+    // .net's ref:PTS 1.1, which bilara has as pts-vp-pli1.1
+    id = id.replace(/^pts(?=\d)/i, 'pts-vp-pli')
+    const found = new Map()
+    for (const at of await findReference(id)) {
+      const uid = at.page.split('/')[0]
+      if (!found.has(uid)) found.set(uid, { pages: [] })
+      found.get(uid).pages.push(at)
+    }
+    return [...found].sort(([a], [b]) => byUid(a, b))
+  }
+
+  /**
+   * A text with the reference or on the page, linked to the spot in each of its pages, with its root text
+   * first. A text with no such spot links to its own page
+   */
+  function referenceHTML(uid, { text = [], pages }, mode) {
+    const [acronym = uid, root, title, rootLang, volpages] = text
+    const langs = pages.map(({ page }) => page.split('/')[1])
+    const editions = pages
+      .map(({ page, anchor }) => {
+        const [, lang, author] = page.split('/')
+        const name = languageNames.of(lang)
+        const translator =
+          lang === 'en' || langs.filter(other => other === lang).length > 1
+            ? (document
+                .getElementById(`author-${author}`)
+                ?.labels[0]?.textContent.trim() ?? author)
+            : ''
+        const href = `/${page}#${anchor}`
+        return {
+          lang,
+          name,
+          href,
+          html: `<a href="${href}">${escape(name)}</a>${translator ? ` (${escape(translator)})` : ''}`,
+        }
+      })
+      .sort(
+        (a, b) =>
+          (b.lang === rootLang) - (a.lang === rootLang) ||
+          a.name.localeCompare(b.name)
+      )
+    const where =
+      mode === 'volpage'
+        ? escape(volpages)
+        : `<mark>${escape(pages[0].anchor)}</mark>`
+    return `
+			 <article>
+				 <h2>${titleHTML(root, title || acronym, editions[0]?.href ?? `/${uid}`, rootLang, true)}</h2>
+				 <dl>
+					 <dt class="sr-only">Acronym</dt><dd>${escape(acronym)}</dd>
+					 <dt class="sr-only">${mode === 'volpage' ? 'Volume and page' : 'Reference'}</dt>
+					 <dd class="with-icon"><i class="icon i-hashtag"></i><span>${where}</span></dd>
+				 </dl>
+				 ${editions.length ? `<p>${editions.map(edition => edition.html).join(', ')}</p>` : ''}
+			 </article>
+		 `
+  }
+
+  const REFERENCES_PAGE_SIZE = 20
+
+  /** .net's ref: and volpage: searches, which are of their own data, so the filters don't apply */
+  async function showReferences(mode, term, searchId, forQuery, inData) {
+    const found = await (mode === 'ref'
+      ? findReferences(term)
+      : findVolpage(term))
+    if (searchId !== latestSearch) return
+    const finalCountMsg = `${found.length} result${found.length !== 1 ? 's' : ''}${forQuery}${inData}`
+    countEl.innerHTML = finalCountMsg
+    let shown = 0
+    async function showMore() {
+      const batch = found.slice(shown, shown + REFERENCES_PAGE_SIZE)
+      if (mode === 'ref') {
+        await Promise.all(
+          batch.map(async ([uid, result]) => {
+            result.text = await shardEntry('texts', uid)
+          })
+        )
+        if (searchId !== latestSearch) return
+      }
+      resultsContainer.insertAdjacentHTML(
+        'beforeend',
+        batch
+          .map(
+            ([uid, result]) => `<li>${referenceHTML(uid, result, mode)}</li>`
+          )
+          .join('')
+      )
+      shown += batch.length
+      showMoreBtn.hidden = shown >= found.length
+    }
+    await showMore()
+    showMoreBtn.onclick = showMore
+  }
+
   // A query of one word, which may be a Pāli one
   const ONE_WORD = /^[\p{L}\p{M}’'-]+$/u
   const MAX_DEFINITIONS = 3
@@ -462,21 +674,23 @@
 
     const { filters, count } = getFilters()
     const term = query.replace(MODE, '')
+    const mode = query.match(MODE)?.[1].toLowerCase()
     const included = includedBundles()
     const forQuery = term ? ` for <b>${escape(term)}</b>` : ''
-    const inBundles =
-      included.join() === 'texts'
+    const inBundles = mode
+      ? ` in ${mode === 'ref' ? 'references' : 'PTS volumes and pages'}`
+      : included.join() === 'texts'
         ? ''
         : ` in ${listFormat.format(included.map(name => BUNDLE_NAMES[name] ?? name))}`
-    const withFilters = count
-      ? ` with ${count} filter${count !== 1 ? 's' : ''}`
-      : ''
+    const withFilters =
+      count && !mode ? ` with ${count} filter${count !== 1 ? 's' : ''}` : ''
     countEl.innerHTML = `Searching${forQuery}${inBundles}${withFilters}…`
     resultsContainer.innerHTML = ''
-    showDefinition(term, searchId)
-    showSitePages(term)
+    showDefinition(mode ? '' : term, searchId)
+    showSitePages(mode ? '' : term)
 
     if (/^list authors$/i.test(query)) return listAuthors()
+    if (mode) return showReferences(mode, term, searchId, forQuery, inBundles)
 
     if (!included.length) {
       countEl.textContent = 'Tick something under “Include in search”'
