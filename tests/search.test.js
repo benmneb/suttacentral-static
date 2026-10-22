@@ -6,8 +6,9 @@ import assert from 'node:assert/strict'
 import fs from 'fs/promises'
 import path from 'path'
 import { describe, it } from 'node:test'
+import { parseUidNumbers } from '../src/helpers/rangeSuttas.js'
 import { SKIP_BASELINE, productionPagefindEntry } from './lib/baseline.js'
-import { SITE_DIR, scanSite } from './lib/site.js'
+import { SITE_DIR, listSome, scanSite } from './lib/site.js'
 
 // Share of production's indexed pages the new index can lose
 const MAX_DROP_SHARE = 0.01
@@ -51,6 +52,31 @@ describe('Search index', async () => {
       )
     }
   )
+
+  it("has each text's text once", () => {
+    const indexedText = [...pages.values()].filter(page => page.textIndexed)
+    const at = new Set(indexedText.map(page => page.url))
+    const seen = new Map()
+    const bad = []
+    for (const page of indexedText) {
+      const [, uid, lang, author] = page.url.split('/')
+      // The title is the acronym and author, ie "AN 11.262–309—Bhikkhu Sujato"
+      const text = `${lang} ${page.title}`
+      if (seen.has(text)) bad.push(`${page.url} is ${seen.get(text)}`)
+      else seen.set(text, page.url)
+      const range = parseUidNumbers(uid)
+      if (!range || range.start === range.end) continue
+      for (let n = range.start; n <= range.end; n++) {
+        const own = `/${range.prefix}${n}/${lang}/${author}/`
+        if (at.has(own)) bad.push(`${page.url} has ${own}`)
+      }
+    }
+    assert.equal(
+      bad.length,
+      0,
+      `Texts in the main index twice:\n${listSome(bad)}`
+    )
+  })
 
   it("has every text's titles in the titles bundle", async () => {
     const titles = pageCount(await readEntry('pagefind-titles'))

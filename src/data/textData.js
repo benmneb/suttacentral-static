@@ -428,6 +428,7 @@ function flatten(nodes, parent, parentPath) {
       if (usedPaths.includes(scx_path)) return null
       usedPaths.push(scx_path)
       const { translations, ...parentWithoutTranslations } = parent
+      let rangeUnindexed = false
 
       // Manually create individual range suttas, from eg: /an1.1-10 and /dhp1-20
       // Only segmented texts can have individual range suttas
@@ -550,9 +551,23 @@ function flatten(nodes, parent, parentPath) {
             ),
           }
         })
+
+        // Each document in the main index once: on the first page that shows just it, or else the range's
+        const firsts = new Map()
+        for (const { uid, scx_range_sutta_shown_uid: shown } of rangeEntries) {
+          if (shown && shown !== parent.uid && !firsts.has(shown))
+            firsts.set(shown, uid)
+        }
+        rangeUnindexed =
+          keyPrefixes.length > 0 &&
+          keyPrefixes.every(prefix => firsts.has(prefix))
+
         results.push(
           ...rangeEntries.map(entry => ({
             ...entry,
+            scx_unindexed:
+              !rangeUnindexed ||
+              firsts.get(entry.scx_range_sutta_shown_uid) !== entry.uid,
             scx_breadcrumb_trail: trailOf(entry),
             scx_json_ld: generateTextJsonLd(entry),
             scx_og_tags: generateTextOGTags(entry),
@@ -569,6 +584,7 @@ function flatten(nodes, parent, parentPath) {
         ...node,
         scx_path,
         scx_breadcrumb: currentPath,
+        scx_unindexed: rangeUnindexed,
       }
       results.push({
         ...entry,

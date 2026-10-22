@@ -69,7 +69,7 @@ async function candidatePages() {
  */
 function textPage(file, html) {
   const main = html.match(/<main\b([^>]*)>/)?.[1]
-  if (!main?.includes('data-pagefind-body')) return null
+  if (!main?.includes('data-acronym=')) return null
   const attribute = name =>
     decode(main.match(new RegExp(` data-${name}="([^"]*)"`))?.[1] ?? '').trim()
   const header = html.slice(0, html.indexOf('<main'))

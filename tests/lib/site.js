@@ -143,6 +143,8 @@ function factsFor(url, html) {
       html.match(/href="\/pitaka\/(sutta|vinaya|abhidhamma)"/)?.[1]
     ),
     searchable: html.includes('data-pagefind-body'),
+    // Its text in the main index, not just its breadcrumb
+    textIndexed: /<main\b[^>]*\bdata-pagefind-body/.test(html),
     segments: html.split('class="segment"').length - 1,
     notes: [
       ...html.matchAll(
