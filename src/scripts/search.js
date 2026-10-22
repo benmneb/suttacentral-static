@@ -784,8 +784,7 @@
         const language = `<dt class="sr-only">Language</dt><dd>${readableLang}</dd>`
         const details = data.meta.segment
           ? `<dt class="sr-only">Note</dt>
-						 <dd class="with-icon"><i class="icon i-chatBubbleBottomCenterText"></i><span>${data.meta.segment.includes(':') ? data.meta.segment : `${acronym}:${data.meta.segment}`} note by ${data.meta.author}</span></dd>
-						 ${language}`
+						 <dd class="with-icon"><i class="icon i-chatBubbleBottomCenterText"></i><span>${data.meta.segment.includes(':') ? data.meta.segment : `${acronym}:${data.meta.segment}`} note by ${data.meta.author}</span></dd>`
           : `<dt class="sr-only">Acronym</dt>
 						 <dd>${acronym}</dd>
 						 ${language}
