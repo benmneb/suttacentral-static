@@ -52,8 +52,10 @@
   const textsBox = document.getElementById('search-texts')
   const titlesBox = document.getElementById('search-titles')
   const notesBox = document.getElementById('search-notes')
+  const siteBox = document.getElementById('search-site')
 
   const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
+  const listFormat = new Intl.ListFormat('en')
   let latestSearch = 0
 
   // Hidden until now, as filtering can't work without this script
@@ -177,8 +179,8 @@
 
   /*
    * Ticks the filters for each of .net's by:, author:, in: and lang: in a query (ie ?query=by:sujato, as
-   * the language pages link), and for its list <language>, sets what to include for its title: (and SCX's own
-   * note:), and returns the rest of the query to search for.
+   * the language pages link), and for its list <language>, sets what to include for its title: and
+   * in:article (and SCX's own note:), and returns the rest of the query to search for.
    * One with nothing here (ie by:sabbamitta, who translates into German) is dropped, so the rest is still found
    */
   function takeFilterTokens(query) {
@@ -190,6 +192,10 @@
       .replace(
         /(^|\s)(by|author|in|lang):(\S+)/gi,
         (match, space, name, value) => {
+          if (/^in:article$/i.test(match.trim())) {
+            includeOnly(siteBox)
+            return space
+          }
           const boxes = filterBoxes(name.toLowerCase(), value.toLowerCase())
           boxes.forEach(tick)
           if (boxes.length) filtersEl.open = true
@@ -199,12 +205,18 @@
       .replace(/\s+/g, ' ')
       .trim()
       .replace(/^(title|note):\s*/i, (match, name) => {
-        const title = name.toLowerCase() === 'title'
-        textsBox.checked = titlesBox.checked = title
-        notesBox.checked = !title
-        filtersEl.open = true
+        if (name.toLowerCase() === 'title') includeOnly(textsBox, titlesBox)
+        else includeOnly(notesBox)
         return ''
       })
+  }
+
+  /** Ticks only these boxes of "Include in search" */
+  function includeOnly(...boxes) {
+    for (const box of [textsBox, titlesBox, notesBox, siteBox]) {
+      box.checked = boxes.includes(box)
+    }
+    filtersEl.open = true
   }
 
   /*
@@ -224,9 +236,34 @@
     [
       textsBox.checked && (titlesBox.checked ? 'titles' : 'texts'),
       notesBox.checked && 'notes',
+      siteBox.checked && 'site',
     ].filter(Boolean)
 
+  const BUNDLE_NAMES = { site: 'site pages' }
+
   const bundles = {}
+
+  /** A site page's result, at its section with the most hits, with its icon, kind, edition and author */
+  function sitePageHTML(data) {
+    const { title, icon, kind, edition, author } = data.meta
+    const section = data.sub_results.reduce(
+      (best, sub) =>
+        sub.locations.length > best.locations.length ? sub : best,
+      data.sub_results[0] ?? data
+    )
+    const details = [
+      `<dt class="sr-only">Kind</dt><dd class="with-icon"><i class="icon i-${icon}"></i><span>${escape(kind)}</span></dd>`,
+      edition && `<dt class="sr-only">Edition</dt><dd>${escape(edition)}</dd>`,
+      author && `<dt class="sr-only">Author</dt><dd>${escape(author)}</dd>`,
+    ]
+    return `
+			 <article>
+				 <h2><a href="${section.url}"><cite>${escape(title)}</cite></a></h2>
+				 <dl>${details.filter(Boolean).join('')}</dl>
+				 <p lang="en">…${section.excerpt}…</p>
+			 </article>
+		 `
+  }
 
   /** One of the extra indexes searchExtras.js writes, fetched only when a search needs it */
   function loadBundle(name) {
@@ -428,7 +465,9 @@
     const included = includedBundles()
     const forQuery = term ? ` for <b>${escape(term)}</b>` : ''
     const inBundles =
-      included.join() === 'texts' ? '' : ` in ${included.join(' and ')}`
+      included.join() === 'texts'
+        ? ''
+        : ` in ${listFormat.format(included.map(name => BUNDLE_NAMES[name] ?? name))}`
     const withFilters = count
       ? ` with ${count} filter${count !== 1 ? 's' : ''}`
       : ''
@@ -490,6 +529,12 @@
       }
 
       allData.forEach((data, i) => {
+        const listItem = document.createElement('li')
+        if (batch[i].bundle === 'site') {
+          listItem.innerHTML = sitePageHTML(data)
+          resultsContainer.appendChild(listItem)
+          return
+        }
         const readableLang = languageNames.of(data.meta.lang) // 'en' to 'English' etc
         const englishTitle = data.meta.translatorsTitle || data.meta.title // usually falls back to Sujato's
         const title = titleHTML(
@@ -514,7 +559,6 @@
 						 <dt class="sr-only">Author</dt>
 						 <dd>${data.meta.author}</dd>`
 
-        const listItem = document.createElement('li')
         listItem.innerHTML = `
 				 <article>
 					 <h2>${title}</h2>

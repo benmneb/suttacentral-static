@@ -78,4 +78,16 @@ describe('Search index', async () => {
       `The notes bundle has ${notes} notes, the English translations ${written}`
     )
   })
+
+  it('has every site page but /define in the site bundle', async () => {
+    const site = pageCount(await readEntry('pagefind-site'))
+    const written = [...pages.values()].filter(
+      page => page.kind === 'site' && !page.url.startsWith('/define/')
+    ).length
+    assert.equal(
+      site,
+      written,
+      `The site bundle has ${site} pages, the site ${written}`
+    )
+  })
 })

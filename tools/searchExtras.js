@@ -1,11 +1,12 @@
 /**
  * Search Extras
  *
- * Builds the Pagefind bundles /search loads only when a search needs them, from the text pages
+ * Builds the Pagefind bundles /search loads only when a search needs them, from the pages
  * already in `_site`:
  *
  *   _site/pagefind-titles/   each text's titles, for .net's `title: term`
  *   _site/pagefind-notes/    each translator's note, one record per note
+ *   _site/pagefind-site/     the site pages' text, ie the guides and the editions' introductions
  *
  * Run by `pnpm build:search`, after the main index.
  *
@@ -16,6 +17,12 @@ import fs from 'fs/promises'
 import path from 'path'
 import * as pagefind from 'pagefind'
 import { recordStat } from '../src/helpers/buildStats.js'
+import {
+  pageIcons,
+  pitakaGuides,
+  siteMap,
+  sitePageRoots,
+} from '../src/helpers/sitePages.js'
 
 const SITE_DIR = '_site'
 const READ_CONCURRENCY = 64
@@ -127,7 +134,107 @@ function repeatedNumbers(html) {
   return repeated
 }
 
-/** Each bundle's output, and the records it takes from a text page */
+/** The site pages, but not /define's words, which /search answers on its own */
+async function sitePageFiles() {
+  const roots = [...sitePageRoots].filter(root => root !== 'define')
+  const files = await Promise.all(
+    roots.map(async root =>
+      (await fs.readdir(path.join(SITE_DIR, root), { recursive: true }))
+        .filter(file => path.basename(file) === 'index.html')
+        .map(file => path.join(root, file))
+    )
+  )
+  return files.flat()
+}
+
+/** The authors /search can filter by, as uid → name, from its Author checkboxes */
+async function searchAuthors() {
+  const html = await fs.readFile(
+    path.join(SITE_DIR, 'search/index.html'),
+    'utf8'
+  )
+  return new Map(
+    [
+      ...html.matchAll(
+        /name="author" value="([^"]*)"[^>]*> *<label[^>]*>([^<]*)/g
+      ),
+    ].map(([, uid, name]) => [uid, decode(name).trim()])
+  )
+}
+
+// Each site page's kind, from its menu heading
+const KINDS = {
+  Explore: 'Explore',
+  Guides: 'Guide',
+  Essays: 'Essay',
+  Indexes: 'Index',
+  Reference: 'Reference',
+  About: 'About',
+}
+const pageKinds = new Map([
+  ...Object.values(pitakaGuides)
+    .flat()
+    .map(({ href }) => [href, 'Guide']),
+  ...siteMap.flatMap(({ heading, pages }) =>
+    pages.map(({ href }) => [href, KINDS[heading]])
+  ),
+])
+
+const attribute = value =>
+  value.replaceAll('&', '&amp;').replaceAll('"', '&quot;')
+
+/**
+ * A site page as `addHTMLFile` takes it, with its icon, kind, author and edition as meta, its tab's title
+ * when its heading is another page's too, and its author as a filter when they have texts
+ */
+function sitePage(file, html, sharedTitle) {
+  const url = urlOf(file).slice(0, -1)
+  const [, root, , , authorUid] = url.split('/')
+  const isEdition = root === 'edition'
+  // ie "Preface—Middle Discourses" for /edition/mn/en/sujato/preface, or "Middle Discourses—Bhikkhu Sujato"
+  // for /edition/mn/en/sujato itself
+  const tabTitle =
+    isEdition &&
+    html.match(/<title>([^<]*)—([^<]*) @ SuttaCentral Express<\/title>/)
+  const isMatter = url.split('/').length > 5
+  const label = isMatter && tabTitle?.[1]
+  const edition = tabTitle?.[isMatter ? 2 : 1]
+  const meta = {
+    icon: pageIcons[`/${root}`] ?? (isEdition ? 'bookOpen' : 'documentText'),
+    kind: isEdition ? 'Edition' : (pageKinds.get(`/${root}`) ?? 'Site page'),
+    // ie every edition's foreword, "The SuttaCentral Editions Series", as "Foreword—Long Discourses"
+    title: sharedTitle && label && decode(`${label}—${edition}`),
+    edition: edition && decode(edition),
+  }
+  const byline = decode(html.match(/<p class="byline">([^<]*)/)?.[1] ?? '')
+  // ie "Rod Bucknell, updated by Sujato", or "Bhikkhu Sujato, 2019"
+  meta.author = isEdition
+    ? authors.get(authorUid)
+    : byline.replace(/, \d{4}$/, '').trim()
+  const uid = isEdition
+    ? authorUid
+    : [...authors].find(([, name]) => name === byline.split(',')[0].trim())?.[0]
+
+  const shown = Object.entries(meta).filter(([, value]) => value)
+  const attributes = [
+    ...shown.map(([key, value]) => `data-${key}="${attribute(value)}"`),
+    `data-pagefind-meta="${shown.map(([key]) => `${key}[data-${key}]`).join(', ')}"`,
+    uid &&
+      `data-authoruid="${uid}" data-pagefind-filter="author[data-authoruid]"`,
+  ]
+  return {
+    url,
+    content: html
+      .replace('<main', `<main ${attributes.filter(Boolean).join(' ')}`)
+      // Pagefind runs these into the next cell or term, ie the similes' "Raft" into "eightfold"
+      .replace(/<\/(dt|dd|td|th)>/g, ' $&'),
+  }
+}
+
+/**
+ * Each bundle's output, and the records it takes from a text page, or for the site bundle the
+ * pages it's made from and its own index settings
+ */
 const bundles = {
   titles: {
     outputPath: path.join(SITE_DIR, 'pagefind-titles'),
@@ -151,12 +258,23 @@ const bundles = {
     outputPath: path.join(SITE_DIR, 'pagefind-notes'),
     records: notes,
   },
+  site: {
+    outputPath: path.join(SITE_DIR, 'pagefind-site'),
+    // Not pagefind.yml's exclusions, which would drop the site pages' sutta references (.ref). The guides'
+    // contents only repeat their headings, and the map's labels are today's towns
+    config: () => ({ rootSelector: 'main', excludeSelectors: ['nav', 'svg'] }),
+    files: sitePageFiles,
+  },
 }
 
 const start = Date.now()
+const authors = await searchAuthors()
 const indexes = {}
-for (const name of Object.keys(bundles)) {
-  const { index, errors } = await pagefind.createIndex({ forceLanguage: 'en' })
+for (const [name, bundle] of Object.entries(bundles)) {
+  const { index, errors } = await pagefind.createIndex({
+    forceLanguage: 'en',
+    ...bundle.config?.(),
+  })
   if (errors.length) throw new Error(`${name}: ${errors.join(', ')}`)
   indexes[name] = index
 }
@@ -173,7 +291,7 @@ for (let i = 0; i < files.length; i += READ_CONCURRENCY) {
       const page = html && textPage(file, html)
       if (!page) return
       for (const [name, bundle] of Object.entries(bundles)) {
-        for (const record of bundle.records(page, html)) {
+        for (const record of bundle.records?.(page, html) ?? []) {
           const { errors } = await indexes[name].addCustomRecord(record)
           if (errors.length)
             console.warn(`${name} ${record.url}:`, errors.join(', '))
@@ -182,6 +300,27 @@ for (let i = 0; i < files.length; i += READ_CONCURRENCY) {
       }
     })
   )
+}
+
+for (const [name, bundle] of Object.entries(bundles)) {
+  const pages = await Promise.all(
+    ((await bundle.files?.()) ?? []).map(async file => [
+      file,
+      await fs.readFile(path.join(SITE_DIR, file), 'utf8'),
+    ])
+  )
+  const headings = pages.map(
+    ([, html]) => html.match(/<h1[^>]*>(.*?)<\/h1>/s)?.[1]
+  )
+  for (const [i, [file, html]] of pages.entries()) {
+    const shared =
+      headings.filter(heading => heading === headings[i]).length > 1
+    const { errors } = await indexes[name].addHTMLFile(
+      sitePage(file, html, shared)
+    )
+    if (errors.length) console.warn(`${name} ${file}:`, errors.join(', '))
+    else counts[name]++
+  }
 }
 
 for (const [name, { outputPath }] of Object.entries(bundles)) {
