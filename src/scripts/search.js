@@ -206,11 +206,22 @@
   // .net's searches of only titles, references or volume and page
   const MODE = /^(title|ref|volpage):\s*/i
 
-  /** Pagefind's results for a query, with one search per term of .net's operators, best first */
-  async function find(query, filters) {
+  let titles = null
+
+  // The index of only the texts' titles, fetched only on a search for `title:{term}`
+  function loadTitles() {
+    titles ??= import('/pagefind-titles/pagefind.js').then(async bundle => {
+      await bundle.options({ pageSize })
+      return bundle
+    })
+    return titles
+  }
+
+  /** A bundle's results for a query, with one search per term of .net's operators, best first */
+  async function find(query, filters, bundle = pagefind) {
     // A null term lists every page the filters let through
     const search = async term =>
-      (await pagefind.search(term || null, { filters })).results
+      (await bundle.search(term || null, { filters })).results
     const { any, not } = parseOperators(query)
     if (any.length === 1 && !not.length) return search(any[0])
 
@@ -360,7 +371,7 @@
   function showSitePages(query) {
     const shown = new Set()
     if (sitePagesToggle.checked) {
-      const wanted = nameWords(query.replace(MODE, ''))
+      const wanted = nameWords(query)
       sitePageCards
         .filter(card => namesCard(card, wanted))
         .forEach(card => shown.add(card))
@@ -391,19 +402,26 @@
     scRedirectLink.href = url.toString()
 
     const { filters, count } = getFilters()
-    const forQuery = query ? ` for <b>${escape(query)}</b>` : ''
+    const mode = query.match(MODE)?.[1].toLowerCase()
+    const term = query.replace(MODE, '')
+    const forQuery = term
+      ? ` for <b>${escape(term)}</b>${mode === 'title' ? ' in titles' : ''}`
+      : ''
     const withFilters = count
       ? ` with ${count} filter${count !== 1 ? 's' : ''}`
       : ''
     countEl.innerHTML = `Searching${forQuery}${withFilters}…`
     resultsContainer.innerHTML = ''
-    showDefinition(query, searchId)
-    showSitePages(query)
+    showDefinition(term, searchId)
+    showSitePages(term)
 
     if (/^list authors$/i.test(query)) return listAuthors()
 
-    const term = query.replace(MODE, '')
-    const results = await find(term, filters)
+    const results = await find(
+      term,
+      filters,
+      mode === 'title' ? await loadTitles() : pagefind
+    )
     // A newer search (ie from ticking another filter) has started since
     if (searchId !== latestSearch) return
 
@@ -421,7 +439,7 @@
 
     let resultsLoaded = 0
     const equalise = t => t.toLowerCase().replace(/\s/g, '')
-    const equalisedQuery = equalise(query)
+    const equalisedQuery = equalise(term)
 
     async function showMore() {
       const batch = results.slice(resultsLoaded, resultsLoaded + pageSize)
@@ -464,7 +482,7 @@
 						 <dt class="sr-only">Author</dt>
 						 <dd>${data.meta.author}</dd>
 					 </dl>
-					 <p lang="${data.meta.lang}">…${data.excerpt}…</p>
+					 ${mode === 'title' ? '' : `<p lang="${data.meta.lang}">…${data.excerpt}…</p>`}
 				 </article>
 			 `
         resultsContainer.appendChild(listItem)
@@ -523,8 +541,9 @@
         if (e.target.checked) localStorage.removeItem(e.target.id)
         else localStorage.setItem(e.target.id, 'off')
       } catch {}
-      if (e.target === dictionaryToggle) showDefinition(query, latestSearch)
-      else showSitePages(query)
+      const term = query.replace(MODE, '')
+      if (e.target === dictionaryToggle) showDefinition(term, latestSearch)
+      else showSitePages(term)
       return
     }
     if (query || getFilters().count) {

@@ -1,24 +1,32 @@
 /**
  * Cleanup script for Pagefind UI files
  *
- * Removes unused Pagefind UI assets after the build process.
- * SCX uses a custom search UI and only import the core pagefind.js,
- * so the default UI CSS/JS files are not needed and can be safely deleted.
+ * Removes unused Pagefind UI assets after the build process, from the main bundle and the
+ * extra ones `searchExtras.js` writes. SCX uses a custom search UI and only import the core
+ * pagefind.js, so the default UI CSS/JS files are not needed and can be safely deleted.
  *
  * @module cleanupPagefind
  */
 
-import { unlink } from 'fs/promises'
+import { readdir, unlink } from 'fs/promises'
 
-const filesToRemove = [
-  '_site/pagefind/pagefind-ui.css',
-  '_site/pagefind/pagefind-ui.js',
-  '_site/pagefind/pagefind-modular-ui.css',
-  '_site/pagefind/pagefind-modular-ui.js',
-  '_site/pagefind/pagefind-highlight.js',
+const uiFiles = [
+  'pagefind-ui.css',
+  'pagefind-ui.js',
+  'pagefind-modular-ui.css',
+  'pagefind-modular-ui.js',
+  'pagefind-component-ui.css',
+  'pagefind-component-ui.js',
+  'pagefind-highlight.js',
 ]
 
-for (const file of filesToRemove) {
+const bundles = (await readdir('_site')).filter(dir =>
+  dir.startsWith('pagefind')
+)
+
+for (const file of bundles.flatMap(dir =>
+  uiFiles.map(name => `_site/${dir}/${name}`)
+)) {
   try {
     await unlink(file)
     console.log(`Deleted: ${file}`)

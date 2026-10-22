@@ -21,7 +21,7 @@
     "minify:css": "node tools/minifyAssets.js css",
     "minify:js": "node tools/minifyAssets.js js",
     "minify:assets": "node tools/minifyAssets.js",
-    "build:search": "pnpm pagefind && node tools/cleanupPagefind.js",
+    "build:search": "pnpm pagefind && node tools/searchExtras.js && node tools/cleanupPagefind.js",
     "sync:site-pages": "node tools/syncSitePages.js",
     "sync:dictionaries": "node tools/syncDictionaries.js",
     "build:refetch": "REFETCH=1 pnpm predeploy",

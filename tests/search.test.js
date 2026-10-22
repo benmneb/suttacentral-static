@@ -1,5 +1,5 @@
 /**
- * The search index covers every text.
+ * The search index covers every text, as do the extra bundles that are only loaded for some searches.
  */
 
 import assert from 'node:assert/strict'
@@ -12,6 +12,13 @@ import { SITE_DIR, scanSite } from './lib/site.js'
 // Share of production's indexed pages the new index can lose
 const MAX_DROP_SHARE = 0.01
 
+const readEntry = async bundle =>
+  JSON.parse(
+    await fs
+      .readFile(path.join(SITE_DIR, bundle, 'pagefind-entry.json'), 'utf8')
+      .catch(() => '{}')
+  )
+
 const pageCount = entry =>
   Object.values(entry.languages ?? {}).reduce(
     (sum, language) => sum + language.page_count,
@@ -20,11 +27,7 @@ const pageCount = entry =>
 
 describe('Search index', async () => {
   const { pages } = await scanSite()
-  const entryFile = path.join(SITE_DIR, 'pagefind', 'pagefind-entry.json')
-  const entry = JSON.parse(
-    await fs.readFile(entryFile, 'utf8').catch(() => '{}')
-  )
-  const indexed = pageCount(entry)
+  const indexed = pageCount(await readEntry('pagefind'))
 
   it('has every searchable page', () => {
     const searchable = [...pages.values()].filter(
@@ -48,4 +51,13 @@ describe('Search index', async () => {
       )
     }
   )
+
+  it("has every text's titles in the titles bundle", async () => {
+    const titles = pageCount(await readEntry('pagefind-titles'))
+    assert.equal(
+      titles,
+      indexed,
+      `The titles bundle has ${titles} texts, the main index ${indexed}`
+    )
+  })
 })
