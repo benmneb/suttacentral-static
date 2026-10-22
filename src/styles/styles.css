@@ -1084,10 +1084,7 @@ main:has(.segment) > :first-child {
   .parallel-list {
     margin: 0;
     padding-left: 2rem;
-
-    li {
-      list-style-type: none;
-    }
+    list-style-type: none;
   }
 }
 
@@ -2463,16 +2460,18 @@ main {
           }
         }
       }
+    }
+  }
 
-      .parallel-list-item-full {
-        list-style-type: '⇆  ';
-      }
-      .parallel-list-item-mention {
-        list-style-type: '〞';
-      }
-      .parallel-list-item-retelling {
-        list-style-type: '↺ ';
-      }
+  :is(.texts-list details, .parallel-runs [popover]) {
+    .parallel-list-item-full {
+      list-style-type: '⇆  ';
+    }
+    .parallel-list-item-mention {
+      list-style-type: '〞';
+    }
+    .parallel-list-item-retelling {
+      list-style-type: '↺ ';
     }
   }
 
