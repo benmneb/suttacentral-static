@@ -178,23 +178,22 @@ eleventyComputed:
       <dt>License</dt>
       <dd>
         <p>{{ publication.license_statement }}</p>
-        <a rel="license" href="{{ publication.license_url }}">
+        <div>
           {% assign imageUrl = "https://suttacentral.net/img/publication-pages/cc-zero.svg" %}
-          {% assign imageAlt = "CC0" %}
-          {% siteImage imageUrl, imageAlt, 62 %}
-          <span>
-            <strong>
+          {% siteImage imageUrl, "", 62 %}
+          <p>
+            <a rel="license" href="{{ publication.license_url }}">
               {{- publication.license_type }}
               ({{ publication.license_abbreviation -}}
               )
-            </strong>
+            </a>
             <br>
             To the extent possible under law,
             {{ publication.creator_name }} has waived all copyright and related
             or neighboring rights to {{ entry.title }}. This work is published
             from Australia.
-          </span>
-        </a>
+          </p>
+        </div>
       </dd>
     </dl>
   </section>
