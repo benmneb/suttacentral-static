@@ -2,6 +2,9 @@ import masterData from './_masterData.js'
 
 const collator = new Intl.Collator('en')
 
+const SHARED_PREFIX =
+  /^(Basket of|Collections of|Monastic Law of the|Systematic Treatises of the) /
+
 /*
  * Whether this node, or anything under it, has a text to find.
  */
@@ -12,6 +15,7 @@ function hasTexts(node) {
 /*
  * Keeps only the branches, down to the last one before the texts (the "chapters"),
  * with the same stopping rule as `chapterData.js`, and drops any without a text in them.
+ * Names drop a prefix the tree already makes plain, eg "Basket of".
  */
 function buildTree(nodes) {
   return nodes.flatMap(node => {
@@ -25,7 +29,9 @@ function buildTree(nodes) {
     return [
       {
         uid: node.uid,
-        name: (node.translated_name || node.root_name || node.uid).trim(),
+        name: (node.translated_name || node.root_name || node.uid)
+          .trim()
+          .replace(SHARED_PREFIX, ''),
         children: isLastBranch ? [] : buildTree(node.children || []),
       },
     ]
