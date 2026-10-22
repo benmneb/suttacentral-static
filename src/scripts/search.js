@@ -314,7 +314,7 @@
         return `<li><table><caption>${escape(name)}</caption><thead><tr><th>Name</th><th>ID</th></tr></thead><tbody>${rows.join('')}</tbody></table></li>`
       })
       .join('')
-    countEl.textContent = `${total} authors`
+    countEl.textContent = `${total.toLocaleString('en')} authors`
   }
 
   const fetched = new Map()
@@ -501,7 +501,7 @@
       ? findReferences(term)
       : findVolpage(term))
     if (searchId !== latestSearch) return
-    const finalCountMsg = `${found.length} result${found.length !== 1 ? 's' : ''}${forQuery}${inData}`
+    const finalCountMsg = `${found.length.toLocaleString('en')} result${found.length !== 1 ? 's' : ''}${forQuery}${inData}`
     countEl.innerHTML = finalCountMsg
     let shown = 0
     async function showMore() {
@@ -727,7 +727,7 @@
     // A newer search (ie from ticking another filter) has started since
     if (searchId !== latestSearch) return
 
-    const finalCountMsg = `${results.length} result${
+    const finalCountMsg = `${results.length.toLocaleString('en')} result${
       results.length !== 1 ? 's' : ''
     }${forQuery}${inBundles}${withFilters}`
 
