@@ -3604,6 +3604,27 @@ ul#search-results {
       background-color: var(--tts-highlight-background-color);
     }
   }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  caption {
+    text-align: start;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+
+  th {
+    text-align: start;
+    font-weight: normal;
+    color: var(--text-color-secondary);
+  }
+
+  :is(th, td) {
+    padding: 0.25rem 1.5rem 0.25rem 0;
+    vertical-align: baseline;
+  }
 }
 
 .button {

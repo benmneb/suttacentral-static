@@ -124,25 +124,119 @@
     }
   }
 
+  // .net's in: shortcuts, from its /search-filter page, with pli-tv-vi for pli-tv, which here would take in
+  // the abhidhamma too
+  const COLLECTION_SETS = {
+    ebs: 'dn da mn ma sn sa sa-2 sa-3 an ea ea-2 kp iti ud snp dhp thig thag sf',
+    ebt: 'dn da mn ma sn sa sa-2 sa-3 an ea ea-2 kp iti ud snp dhp thig thag pli-tv-vi lzh-mg lzh-mi lzh-dg lzh-sarv lzh-mu lzh-ka lzh-upp san-mg san-lo up ea-ot d sf',
+    ebct: 'da ma sa sa-2 sa-3 ea ea-2 lzh-mg lzh-mi lzh-dg lzh-sarv lzh-mu lzh-ka lzh-upp ea-ot d',
+  }
+
+  /** Ticks a filter's box and the branches above it, as a box under an unchecked one doesn't count */
+  function tick(box) {
+    box.checked = true
+    let li = box.closest('li')
+    while ((li = li.parentElement.closest('li'))) {
+      li.querySelector(':scope > input').checked = true
+    }
+  }
+
+  function collectionBoxes(uid) {
+    const boxes = [...filtersEl.querySelectorAll('input[name="in"]')]
+    const exact = boxes.filter(box => box.value === uid)
+    if (exact.length) return exact
+    // ie .net's pli-tv or lzh-mg, which aren't branches here, as the highest branches under them
+    const under = boxes.filter(box => box.value.startsWith(`${uid}-`))
+    return under.filter(
+      box =>
+        !under.some(other => other !== box && other.closest('li').contains(box))
+    )
+  }
+
+  function filterBoxes(name, value) {
+    if (name === 'in') {
+      return (COLLECTION_SETS[value]?.split(' ') ?? [value]).flatMap(
+        collectionBoxes
+      )
+    }
+    const box = document.getElementById(
+      `${name === 'lang' ? 'lang' : 'author'}-${value}`
+    )
+    return box ? [box] : []
+  }
+
   /*
-   * Ticks the author filter for each of .net's by:<author> in a query (ie ?query=by:sujato, as
-   * the language pages link), and returns the rest of the query to search for
+   * Ticks the filters for each of .net's by:, author:, in: and lang: in a query (ie ?query=by:sujato, as
+   * the language pages link), and for its list <language>, and returns the rest of the query to search for.
+   * One with nothing here (ie by:sabbamitta, who translates into German) is dropped, so the rest is still found
    */
-  function takeAuthorTokens(query) {
+  function takeFilterTokens(query) {
+    const list = query.match(/^list\s+(\S+)$/i)
+    if (list && filterBoxes('lang', list[1].toLowerCase()).length) {
+      query = `lang:${list[1]}`
+    }
     return query
-      .replace(/(^|\s)by:(\S+)/g, (match, space, uid) => {
-        const box = document.getElementById(`author-${uid}`)
-        if (!box) return match
-        box.checked = true
-        // Its group too, as a box under an unchecked group doesn't count
-        box
-          .closest('ul')
-          .closest('li')
-          .querySelector(':scope > input').checked = true
-        filtersEl.open = true
-        return space
-      })
+      .replace(
+        /(^|\s)(by|author|in|lang):(\S+)/gi,
+        (match, space, name, value) => {
+          const boxes = filterBoxes(name.toLowerCase(), value.toLowerCase())
+          boxes.forEach(tick)
+          if (boxes.length) filtersEl.open = true
+          return space
+        }
+      )
+      .replace(/\s+/g, ' ')
       .trim()
+  }
+
+  /*
+   * .net's operators, which Pagefind has none of, ie `greed OR desire NOT anicca` as
+   * { any: ['greed', 'desire'], not: ['anicca'] }. AND just goes, as Pagefind finds pages with every word anyway
+   */
+  function parseOperators(query) {
+    const [wanted, ...not] = query.replace(/\s+AND\s+/g, ' ').split(/\s+NOT\s+/)
+    return { any: wanted.split(/\s+OR\s+/), not }
+  }
+
+  /** Pagefind's results for a query, with one search per term of .net's operators, best first */
+  async function find(query, filters) {
+    // A null term lists every page the filters let through
+    const search = async term =>
+      (await pagefind.search(term || null, { filters })).results
+    const { any, not } = parseOperators(query)
+    if (any.length === 1 && !not.length) return search(any[0])
+
+    const [wanted, unwanted] = await Promise.all([
+      Promise.all(any.map(search)),
+      Promise.all(not.map(search)),
+    ])
+    const excluded = new Set(unwanted.flat().map(result => result.id))
+    const best = new Map()
+    for (const result of wanted.flat()) {
+      if (excluded.has(result.id)) continue
+      if (!(best.get(result.id)?.score >= result.score)) {
+        best.set(result.id, result)
+      }
+    }
+    return [...best.values()].sort((a, b) => b.score - a.score)
+  }
+
+  /** .net's `list authors`: everyone in the Author filter, each linked to their texts */
+  function listAuthors() {
+    const groups = [...document.querySelectorAll('#search-filters-author > li')]
+    let total = 0
+    resultsContainer.innerHTML = groups
+      .map(group => {
+        const rows = [...group.querySelectorAll('input[name="author"]')].map(
+          box =>
+            `<tr><td><a href="/search?query=by:${box.value}">${escape(box.labels[0].textContent.trim())}</a></td><td><code>${box.value}</code></td></tr>`
+        )
+        total += rows.length
+        const name = group.querySelector(':scope > label').textContent.trim()
+        return `<li><table><caption>${escape(name)}</caption><thead><tr><th>Name</th><th>ID</th></tr></thead><tbody>${rows.join('')}</tbody></table></li>`
+      })
+      .join('')
+    countEl.textContent = `${total} authors`
   }
 
   // A query of one word, which may be a Pāli one
@@ -226,6 +320,12 @@
     document.title = `${query || 'Search'} @ SuttaCentral Express`
     countEl.hidden = false
     showMoreBtn.hidden = true
+
+    // Update footer link
+    const url = new URL(scRedirectLink.href)
+    url.searchParams.set('query', netQuery)
+    scRedirectLink.href = url.toString()
+
     const { filters, count } = getFilters()
     const forQuery = query ? ` for <b>${escape(query)}</b>` : ''
     const withFilters = count
@@ -235,16 +335,18 @@
     resultsContainer.innerHTML = ''
     showDefinition(query, searchId)
 
-    // A null term lists every page the filters let through
-    const results = await pagefind.search(query || null, { filters })
+    if (/^list authors$/i.test(query)) return listAuthors()
+
+    const term = query.replace(/^(title|ref|volpage):\s*/i, '')
+    const results = await find(term, filters)
     // A newer search (ie from ticking another filter) has started since
     if (searchId !== latestSearch) return
 
-    const finalCountMsg = `${results.results.length} result${
-      results.results.length !== 1 ? 's' : ''
+    const finalCountMsg = `${results.length} result${
+      results.length !== 1 ? 's' : ''
     }${forQuery}${withFilters}`
 
-    if (results.results.length === 0) {
+    if (results.length === 0) {
       resultsContainer.innerHTML = ''
       countEl.innerHTML = finalCountMsg
       return
@@ -257,10 +359,7 @@
     const equalisedQuery = equalise(query)
 
     async function showMore() {
-      const batch = results.results.slice(
-        resultsLoaded,
-        resultsLoaded + pageSize
-      )
+      const batch = results.slice(resultsLoaded, resultsLoaded + pageSize)
 
       const dataPromises = batch.map(result => result.data())
       const allData = await Promise.all(dataPromises)
@@ -307,7 +406,7 @@
       })
 
       resultsLoaded += batch.length
-      showMoreBtn.hidden = resultsLoaded >= results.results.length
+      showMoreBtn.hidden = resultsLoaded >= results.length
     }
 
     // Load initial batch
@@ -315,11 +414,6 @@
     if (searchId !== latestSearch) return
 
     showMoreBtn.onclick = showMore
-
-    // Update footer link
-    const url = new URL(scRedirectLink.href)
-    url.searchParams.set('query', netQuery)
-    scRedirectLink.href = url.toString()
   }
 
   // Pagefind splits words on a soft hyphen, which a title copied from a page has in it
@@ -329,10 +423,10 @@
       .replace(/\p{Cf}/gu, '')
       .trim()
 
-  // The by:<author> goes into the filters, so unticking it later isn't undone by the query
+  // The filters in a query go into the filter boxes, so unticking one later isn't undone by the query
   async function searchFor(query) {
     query = cleanQuery(query)
-    const term = takeAuthorTokens(query)
+    const term = takeFilterTokens(query)
     input.value = term
     await performSearch(term, query)
   }
