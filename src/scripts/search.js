@@ -140,7 +140,7 @@
   }
 
   // A query of one word, which may be a Pāli one
-  const ONE_WORD = /^[\p{L}\p{M}\u00ad’'-]+$/u
+  const ONE_WORD = /^[\p{L}\p{M}’'-]+$/u
   const MAX_DEFINITIONS = 3
 
   let dictionary = null
@@ -313,8 +313,16 @@
     scRedirectLink.href = url.toString()
   }
 
+  // Pagefind splits words on a soft hyphen, which a title copied from a page has in it
+  const cleanQuery = query =>
+    query
+      .normalize('NFC')
+      .replace(/\p{Cf}/gu, '')
+      .trim()
+
   // The by:<author> goes into the filters, so unticking it later isn't undone by the query
   async function searchFor(query) {
+    query = cleanQuery(query)
     const term = takeAuthorTokens(query)
     input.value = term
     await performSearch(term, query)
@@ -328,7 +336,7 @@
   form.addEventListener('submit', async e => {
     const url = new URL(window.location)
     if (url.pathname.includes('/search')) e.preventDefault()
-    const query = input.value.trim()
+    const query = cleanQuery(input.value)
 
     // Update URL without reload
     url.pathname = '/search'
@@ -341,7 +349,7 @@
   // Re-run the search on each filter change. Filters stay out of the URL, to keep it in sync with
   // SuttaCentral.net
   filtersEl.addEventListener('change', async e => {
-    const query = input.value.trim()
+    const query = cleanQuery(input.value)
     if (e.target === dictionaryToggle) {
       try {
         if (dictionaryToggle.checked) localStorage.removeItem(DICTIONARY_PREF)
