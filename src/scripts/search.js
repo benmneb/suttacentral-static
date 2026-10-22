@@ -815,10 +815,35 @@
       .replace(/\p{Cf}/gu, '')
       .trim()
 
-  // The filters in a query go into the filter boxes, so unticking one later isn't undone by the query
-  async function searchFor(query) {
+  const searchBoxes = () =>
+    [...filtersEl.querySelectorAll('input[type="checkbox"]')].filter(
+      box => !answerToggles.includes(box)
+    )
+
+  // In history.state, as filters stay out of the URL, so going back shows the filters a search had
+  const saveBoxes = () =>
+    history.replaceState(
+      {
+        boxes: searchBoxes()
+          .filter(box => box.checked)
+          .map(box => box.id),
+      },
+      ''
+    )
+
+  function restoreBoxes(ids) {
+    for (const box of searchBoxes()) box.checked = ids.includes(box.id)
+  }
+
+  /*
+   * The filters in a query go into the filter boxes, so unticking one later isn't undone by the query.
+   * `boxes` are the ids of the boxes ticked when this search was last shown, to tick those instead
+   */
+  async function searchFor(query, boxes) {
     query = cleanQuery(query)
     const term = takeFilterTokens(query)
+    if (boxes) restoreBoxes(boxes)
+    saveBoxes()
     input.value = term
     await performSearch(term, query)
   }
@@ -836,7 +861,8 @@
   // Handle initial page load
   const params = new URLSearchParams(window.location.search)
   const initialQuery = params.get('query')
-  if (initialQuery) await searchFor(initialQuery)
+  if (initialQuery) await searchFor(initialQuery, history.state?.boxes)
+  else saveBoxes()
 
   form.addEventListener('submit', async e => {
     const url = new URL(window.location)
@@ -865,6 +891,7 @@
       else showSitePages(term)
       return
     }
+    saveBoxes()
     if (query || getFilters().count) await performSearch(query)
     else clearResults()
   })
@@ -873,7 +900,9 @@
   window.addEventListener('popstate', async () => {
     const params = new URLSearchParams(window.location.search)
     const query = params.get('query')
-    if (query) return searchFor(query)
+    const boxes = history.state?.boxes
+    if (query) return searchFor(query, boxes)
+    if (boxes) restoreBoxes(boxes)
     input.value = ''
     if (getFilters().count) await performSearch('')
     else clearResults()
