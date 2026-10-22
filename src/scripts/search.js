@@ -227,7 +227,7 @@
     countEl.hidden = false
     showMoreBtn.hidden = true
     const { filters, count } = getFilters()
-    const forQuery = query ? ` for <b>${query}</b>` : ''
+    const forQuery = query ? ` for <b>${escape(query)}</b>` : ''
     const withFilters = count
       ? ` with ${count} filter${count !== 1 ? 's' : ''}`
       : ''
