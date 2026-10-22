@@ -2,7 +2,7 @@ site: '_site'
 force_language: 'en' # https://pagefind.app/docs/multilingual/#opting-out-of-multilingual-search
 exclude_selectors:
   - 'button[popovertarget]'
-  - 'article[popover]'
+  - 'article[popover]' # notes, variants, info and parallels; notes get their own bundle (searchExtras.js)
   - '.inline-comment'
   - '.reference'
   #  from SC:

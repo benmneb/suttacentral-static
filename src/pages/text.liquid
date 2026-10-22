@@ -711,14 +711,14 @@ eleventyComputed:
           </span>
           {% endcapture %}
           {{ html | replace: "{}", replacement }}
-          {%- if comment -%}
+          {%- unless comment == blank -%}
             {% capture comments %}
             {{ comments }}
             <article id="comment-{{ key }}" popover style="position-anchor: --comment{{ forloop.index }}">
               Variant: {{ comment | replace: 'https://suttacentral.net', '' }}
             </article>
             {% endcapture %}
-          {%- endif -%}
+          {%- endunless -%}
         {% endif %}
       {% endif %}
     {% endfor %}
@@ -908,22 +908,22 @@ eleventyComputed:
           </span>
           {% endcapture %}
           {{ html | replace: "{}", replacement }}
-          {%- if comment -%}
+          {%- unless comment == blank -%}
             {% capture comments %}
             {{ comments }}
             <article id="comment-{{ key }}" popover style="position-anchor: --comment{{ forloop.index }}">
               {{ comment | replace: 'https://suttacentral.net', '' }}
             </article>
             {% endcapture %}
-          {%- endif -%}
-          {%- if variant -%}
+          {%- endunless -%}
+          {%- unless variant == blank -%}
             {% capture comments %}
             {{ comments }}
             <article id="variant-{{ key }}" popover style="position-anchor: --variant{{ forloop.index }}">
               Variant: {{ variant | replace: 'https://suttacentral.net', '' }}
             </article>
             {% endcapture %}
-          {%- endif -%}
+          {%- endunless -%}
         {% endif %}
       {% endif %}
     {% endfor %}

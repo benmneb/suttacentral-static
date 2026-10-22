@@ -5,6 +5,7 @@
  * already in `_site`:
  *
  *   _site/pagefind-titles/   each text's titles, for .net's `title: term`
+ *   _site/pagefind-notes/    each translator's note, one record per note
  *
  * Run by `pnpm build:search`, after the main index.
  *
@@ -30,6 +31,8 @@ const ENTITIES = {
 }
 const decode = text =>
   text.replace(/&(amp|quot|#39|apos|lt|gt);/g, (_, name) => ENTITIES[name])
+
+const urlOf = file => `/${file.split(path.sep).slice(0, -1).join('/')}/`
 
 /** Every `uid/lang/author/index.html` in the site, which the text pages are among */
 async function candidatePages() {
@@ -61,7 +64,7 @@ function textPage(file, html) {
   const header = html.slice(0, html.indexOf('<main'))
   const parts = file.split(path.sep)
   return {
-    url: `/${parts.slice(0, -1).join('/')}/`,
+    url: urlOf(file),
     uid: parts[0],
     meta: {
       acronym: attribute('acronym'),
@@ -82,12 +85,54 @@ function textPage(file, html) {
   }
 }
 
-/** Each bundle's index, and how it takes in a text page */
+// Every text page's url, from `candidatePages()`
+let pageUrls
+
+/** An English translation's notes, each linked to its segment */
+function notes(page, html) {
+  if (page.meta.lang !== 'en') return []
+  let repeated
+  return [
+    ...html.matchAll(/<article id="comment-([^"]*)"[^>]*>(.*?)<\/article>/gs),
+  ]
+    .map(([, segment, note]) => {
+      const [uid, number] = segment.split(':')
+      // A range's notes are on its page and each of its texts' too, so they're kept for the segment's own
+      if (uid !== page.uid && pageUrls.has(page.url.replace(page.uid, uid)))
+        return null
+      // A page of several texts, ie dhp290-305, repeats their numbers, so those take the segment's own id
+      const anchor =
+        uid !== page.uid && (repeated ??= repeatedNumbers(html)).has(number)
+          ? segment
+          : number
+      return {
+        url: `${page.url}#${anchor}`,
+        content: decode(note.replace(/<[^>]*>/g, '')).trim(),
+        language: 'en',
+        meta: { ...page.meta, segment: anchor },
+        filters: page.filters,
+      }
+    })
+    .filter(record => record?.content)
+}
+
+/** The segment numbers a page has more than once */
+function repeatedNumbers(html) {
+  const seen = new Set()
+  const repeated = new Set()
+  for (const [, number] of html.matchAll(/class="reference" id="([^"]*)"/g)) {
+    if (seen.has(number)) repeated.add(number)
+    seen.add(number)
+  }
+  return repeated
+}
+
+/** Each bundle's output, and the records it takes from a text page */
 const bundles = {
   titles: {
     outputPath: path.join(SITE_DIR, 'pagefind-titles'),
-    add: (index, page) =>
-      index.addCustomRecord({
+    records: page => [
+      {
         url: page.url,
         content: [
           page.meta.acronym,
@@ -99,7 +144,12 @@ const bundles = {
         language: 'en',
         meta: page.meta,
         filters: page.filters,
-      }),
+      },
+    ],
+  },
+  notes: {
+    outputPath: path.join(SITE_DIR, 'pagefind-notes'),
+    records: notes,
   },
 }
 
@@ -112,6 +162,7 @@ for (const name of Object.keys(bundles)) {
 }
 
 const files = await candidatePages()
+pageUrls = new Set(files.map(urlOf))
 const counts = Object.fromEntries(Object.keys(bundles).map(name => [name, 0]))
 for (let i = 0; i < files.length; i += READ_CONCURRENCY) {
   await Promise.all(
@@ -122,10 +173,12 @@ for (let i = 0; i < files.length; i += READ_CONCURRENCY) {
       const page = html && textPage(file, html)
       if (!page) return
       for (const [name, bundle] of Object.entries(bundles)) {
-        const { errors } = await bundle.add(indexes[name], page)
-        if (errors.length)
-          console.warn(`${name} ${page.url}:`, errors.join(', '))
-        else counts[name]++
+        for (const record of bundle.records(page, html)) {
+          const { errors } = await indexes[name].addCustomRecord(record)
+          if (errors.length)
+            console.warn(`${name} ${record.url}:`, errors.join(', '))
+          else counts[name]++
+        }
       }
     })
   )

@@ -15,8 +15,7 @@
   'use strict'
 
   const pageSize = 5
-  const pagefind = await import('/pagefind/pagefind.js')
-  await pagefind.options({
+  const options = {
     pageSize,
     ranking: {
       // https://pagefind.app/docs/ranking/
@@ -24,7 +23,9 @@
       termSimilarity: 10.0,
       pageLength: 0.5,
     },
-  })
+  }
+  const pagefind = await import('/pagefind/pagefind.js')
+  await pagefind.options(options)
 
   const input = document.getElementById('search-input')
   const form = document.getElementById('search-form')
@@ -42,6 +43,7 @@
   ]
   // Remembered by id, as they're not filters of the results, and kept out of the URL as filters are
   const answerToggles = [dictionaryToggle, sitePagesToggle]
+  const notesToggle = document.getElementById('search-notes')
   for (const toggle of answerToggles) {
     try {
       if (localStorage.getItem(toggle.id) === 'off') toggle.checked = false
@@ -203,18 +205,21 @@
     return { any: wanted.split(/\s+OR\s+/), not }
   }
 
-  // .net's searches of only titles, references or volume and page
-  const MODE = /^(title|ref|volpage):\s*/i
+  // .net's searches of only titles, references or volume and page, plus one of only notes
+  const MODE = /^(title|note|ref|volpage):\s*/i
+  const IN_MODE = { title: ' in titles', note: ' in notes' }
 
-  let titles = null
+  const bundles = {}
 
-  // The index of only the texts' titles, fetched only on a search for `title:{term}`
-  function loadTitles() {
-    titles ??= import('/pagefind-titles/pagefind.js').then(async bundle => {
-      await bundle.options({ pageSize })
-      return bundle
-    })
-    return titles
+  /** One of the extra indexes searchExtras.js writes, fetched only when a search needs it */
+  function loadBundle(name) {
+    bundles[name] ??= import(`/pagefind-${name}/pagefind.js`).then(
+      async bundle => {
+        await bundle.options(options)
+        return bundle
+      }
+    )
+    return bundles[name]
   }
 
   /** A bundle's results for a query, with one search per term of .net's operators, best first */
@@ -405,7 +410,7 @@
     const mode = query.match(MODE)?.[1].toLowerCase()
     const term = query.replace(MODE, '')
     const forQuery = term
-      ? ` for <b>${escape(term)}</b>${mode === 'title' ? ' in titles' : ''}`
+      ? ` for <b>${escape(term)}</b>${IN_MODE[mode] ?? ''}`
       : ''
     const withFilters = count
       ? ` with ${count} filter${count !== 1 ? 's' : ''}`
@@ -417,11 +422,19 @@
 
     if (/^list authors$/i.test(query)) return listAuthors()
 
-    const results = await find(
-      term,
-      filters,
-      mode === 'title' ? await loadTitles() : pagefind
+    const only = { title: 'titles', note: 'notes' }[mode]
+    const sources = only
+      ? [loadBundle(only)]
+      : [pagefind, term && notesToggle.checked && loadBundle('notes')]
+    const results = (
+      await Promise.all(
+        sources
+          .filter(Boolean)
+          .map(async bundle => find(term, filters, await bundle))
+      )
     )
+      .flat()
+      .sort((a, b) => b.score - a.score)
     // A newer search (ie from ticking another filter) has started since
     if (searchId !== latestSearch) return
 
@@ -464,24 +477,26 @@
           data.meta.rootLang,
           data.meta.lang === 'en'
         )
-        const acronym = data.meta.acronym
+        const acronym =
+          equalise(data.meta.acronym) === equalisedQuery
+            ? `<mark>${data.meta.acronym}</mark>`
+            : data.meta.acronym
+        const language = `<dt class="sr-only">Language</dt><dd>${readableLang}</dd>`
+        const details = data.meta.segment
+          ? `<dt class="sr-only">Note</dt>
+						 <dd class="with-icon"><i class="icon i-chatBubbleBottomCenterText"></i><span>${data.meta.segment.includes(':') ? data.meta.segment : `${acronym}:${data.meta.segment}`} note by ${data.meta.author}</span></dd>
+						 ${language}`
+          : `<dt class="sr-only">Acronym</dt>
+						 <dd>${acronym}</dd>
+						 ${language}
+						 <dt class="sr-only">Author</dt>
+						 <dd>${data.meta.author}</dd>`
 
         const listItem = document.createElement('li')
         listItem.innerHTML = `
 				 <article>
 					 <h2>${title}</h2>
-					 <dl>
-						 <dt class="sr-only">Acronym</dt>
-						 <dd>${
-               equalise(acronym) === equalisedQuery
-                 ? `<mark>${acronym}</mark>`
-                 : acronym
-             }</dd>
-						 <dt class="sr-only">Language</dt>
-						 <dd>${readableLang}</dd>
-						 <dt class="sr-only">Author</dt>
-						 <dd>${data.meta.author}</dd>
-					 </dl>
+					 <dl>${details}</dl>
 					 ${mode === 'title' ? '' : `<p lang="${data.meta.lang}">…${data.excerpt}…</p>`}
 				 </article>
 			 `

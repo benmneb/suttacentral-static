@@ -144,6 +144,11 @@ function factsFor(url, html) {
     ),
     searchable: html.includes('data-pagefind-body'),
     segments: html.split('class="segment"').length - 1,
+    notes: [
+      ...html.matchAll(
+        /<article id="comment-([^"]*)"[^>]*>(?!\s*<\/article>)/g
+      ),
+    ].map(match => copyOf(match[1])),
     mainTextLength: textOf(
       main.replace(/<article[^>]*popover[\s\S]*?<\/article>/g, '')
     ).length,

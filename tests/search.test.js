@@ -60,4 +60,22 @@ describe('Search index', async () => {
       `The titles bundle has ${titles} texts, the main index ${indexed}`
     )
   })
+
+  it("has every English translation's notes in the notes bundle once", async () => {
+    const notes = pageCount(await readEntry('pagefind-notes'))
+    // A range's notes are on its page and each of its texts' too
+    const written = new Set(
+      [...pages.values()]
+        .filter(page => page.searchable && page.url.split('/')[2] === 'en')
+        .flatMap(page => {
+          const translation = page.url.split('/').slice(2, 4).join('/')
+          return page.notes.map(segment => `${translation}/${segment}`)
+        })
+    ).size
+    assert.equal(
+      notes,
+      written,
+      `The notes bundle has ${notes} notes, the English translations ${written}`
+    )
+  })
 })
