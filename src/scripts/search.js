@@ -956,13 +956,17 @@
           return
         }
         const readableLang = languageName(data.meta.lang) // 'en' to 'English' etc
-        const englishTitle = data.meta.translatorsTitle || data.meta.title // usually falls back to Sujato's
+        // A root's translatorsTitle is its own heading, ie （三八六） 無有關鍵 (SA 386)
+        const englishTitle =
+          data.meta.lang === 'en'
+            ? data.meta.translatorsTitle || data.meta.title
+            : data.meta.title
         const title = titleHTML(
           data.meta.originalTitle,
           englishTitle,
           data.url,
           data.meta.rootLang,
-          data.meta.lang === 'en'
+          true
         )
         const acronym =
           equalise(data.meta.acronym) === equalisedQuery
