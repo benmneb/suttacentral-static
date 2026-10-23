@@ -148,6 +148,16 @@
   background-color: var(--primary-color);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 /* Text in a span, as * + * skips bare text and flex drops spaces */
 .with-icon {
   display: inline-flex;
