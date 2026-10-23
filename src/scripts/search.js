@@ -186,8 +186,9 @@
 
   /*
    * Ticks the filters for each of .net's by:, author:, in: and lang: in a query (ie ?query=by:sujato, as
-   * the language pages link), and for its list <language>, sets what to include for its title: and
-   * in:article (and SCX's own note: and site:), and returns the rest of the query to search for.
+   * the language pages link), in place of what that filter had, and for its list <language>, sets what
+   * to include for its title: and in:article (and SCX's own note: and site:), and returns the rest of the query
+   * to search for.
    * One with nothing here (ie by:sabbamitta, who translates into German) is dropped, so the rest is still found
    */
   function takeFilterTokens(query) {
@@ -195,6 +196,7 @@
     if (list && filterBoxes('lang', list[1].toLowerCase()).length) {
       query = `lang:${list[1]}`
     }
+    const cleared = new Set()
     return query
       .replace(
         /(^|\s)(by|author|in|lang):(\S+)/gi,
@@ -204,6 +206,13 @@
             return space
           }
           const boxes = filterBoxes(name.toLowerCase(), value.toLowerCase())
+          const filter = boxes[0]?.closest('[id^="search-filters-"]')
+          if (filter && !cleared.has(filter)) {
+            for (const box of filter.querySelectorAll('input')) {
+              box.checked = false
+            }
+            cleared.add(filter)
+          }
           boxes.forEach(tick)
           if (boxes.length) filtersEl.open = true
           return space
