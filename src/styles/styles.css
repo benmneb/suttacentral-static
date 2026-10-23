@@ -3573,7 +3573,7 @@ details#search-filters {
     li {
       list-style-type: none;
       display: grid;
-      grid-template-columns: auto 1fr;
+      grid-template-columns: auto minmax(0, 1fr);
       align-items: baseline;
       column-gap: 0.25rem;
 
@@ -3586,7 +3586,7 @@ details#search-filters {
 
   ul ul {
     grid-column: 1 / -1;
-    padding-left: 1.5rem;
+    padding-inline-start: 1rem;
   }
 
   .root-lang,
@@ -3607,12 +3607,17 @@ details#search-filters {
 
   /* Lists of authors and languages read down as many columns as fit */
   ul.columns {
-    columns: 13rem;
+    display: block;
+    column-width: 13rem;
     column-gap: 1.5rem;
 
     li {
       break-inside: avoid;
       margin-bottom: 0.15rem;
+    }
+
+    .languages {
+      column-width: 6rem;
     }
   }
 }
