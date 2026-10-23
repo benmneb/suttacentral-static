@@ -3497,6 +3497,10 @@ details#search-info {
     text-underline-offset: 0.1rem;
   }
 
+  kbd::selection {
+    background-color: var(--blue-dim);
+  }
+
   dl {
     display: grid;
     grid-template-columns: max-content 1fr;
