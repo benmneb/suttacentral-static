@@ -6,7 +6,12 @@
   {% assign id = path | append: "-" | append: node.uid %}
   <li>
     <input type="checkbox" name="in" value="{{ node.uid }}" id="in{{ id }}">
-    <label for="in{{ id }}">{{ node.name }}</label>
+    <label for="in{{ id }}">
+      {{- node.name -}}
+      {% if node.lang %}
+        <span class="root-lang">(from {{ node.lang }})</span>
+      {%- endif -%}
+    </label>
     {% if node.children.size > 0 %}
       <ul>
         {% include "searchFilterTree.liquid", nodes: node.children, path: id %}

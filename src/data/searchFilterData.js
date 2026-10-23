@@ -15,9 +15,10 @@ function hasTexts(node) {
 /*
  * Keeps only the branches, down to the last one before the texts (the "chapters"),
  * with the same stopping rule as `chapterData.js`, and drops any without a text in them.
- * Names drop a prefix the tree already makes plain, eg "Basket of".
+ * Names drop a prefix the tree already makes plain, eg "Basket of". `lang` is the root language
+ * where it's first set or changes, unless the name already says it.
  */
-function buildTree(nodes) {
+function buildTree(nodes, parentLang) {
   return nodes.flatMap(node => {
     // SC's /menu API returns some empty nodes with a null uid
     if (!node.uid || node.node_type === 'leaf' || !hasTexts(node)) return []
@@ -26,13 +27,17 @@ function buildTree(nodes) {
       !node.children?.some(c => c.node_type === 'branch') ||
       node.uid.endsWith('-pm')
 
+    const name = (node.translated_name || node.root_name || node.uid)
+      .trim()
+      .replace(SHARED_PREFIX, '')
+    const lang = node.root_lang_name || parentLang
+
     return [
       {
         uid: node.uid,
-        name: (node.translated_name || node.root_name || node.uid)
-          .trim()
-          .replace(SHARED_PREFIX, ''),
-        children: isLastBranch ? [] : buildTree(node.children || []),
+        name,
+        lang: lang !== parentLang && !name.includes(lang) ? lang : undefined,
+        children: isLastBranch ? [] : buildTree(node.children || [], lang),
       },
     ]
   })
@@ -64,7 +69,7 @@ function collectTranslations(nodes, authors, languages) {
  *
  * @returns
  * {
- *  tree: [{ uid: 'sutta', name: 'Discourses', children: [...] }, ...],
+ *  tree: [{ uid: 'sutta', name: 'Discourses', children: [{ uid: 'dn', name: 'Long Discourses Collection', lang: 'Pāli', ... }] }, ...],
  *  authorGroups: [
  *    { name: 'Translators', authors: [{ uid: 'sujato', name: 'Bhikkhu Sujato' }, ...] },
  *    { name: 'Root editions', authors: [{ uid: 'ms', name: 'Mahāsaṅgīti Tipiṭaka Buddhavasse 2500' }, ...] },
