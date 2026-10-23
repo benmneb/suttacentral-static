@@ -3571,8 +3571,15 @@ details#search-filters {
     padding-left: 1.5rem;
   }
 
-  .root-lang {
+  .root-lang,
+  .collection-reference {
     color: var(--text-color-secondary);
+    font-size: small;
+    white-space: nowrap;
+  }
+
+  .collection-reference {
+    margin-inline-start: 0.2em;
   }
 
   /* Each branch's children only show once it's checked */

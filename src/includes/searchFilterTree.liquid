@@ -11,6 +11,9 @@
       {% if node.lang %}
         <span class="root-lang">(from {{ node.lang }})</span>
       {%- endif -%}
+      {% if node.reference %}
+        <span class="collection-reference">{{ node.reference }}</span>
+      {%- endif -%}
     </label>
     {% if node.children.size > 0 %}
       <ul>

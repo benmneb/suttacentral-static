@@ -43,12 +43,18 @@ function buildTree(nodes, parentLang, parentUid) {
       : preName
     const lang = node.root_lang_name || parentLang
 
+    const reference = node.uid.match(/^(dn|mn|sn|an)(\d+)$/i)
     return [
       {
         uid: node.uid,
         name,
         lang: lang !== parentLang && !name.includes(lang) ? lang : undefined,
-        children: isLastBranch ? [] : buildTree(node.children || [], lang),
+        reference: reference
+          ? `${reference[1].toUpperCase()} ${reference[2]}`
+          : undefined,
+        children: isLastBranch
+          ? []
+          : buildTree(node.children || [], lang, node.uid),
       },
     ]
   })
