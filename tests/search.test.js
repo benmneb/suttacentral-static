@@ -117,6 +117,30 @@ describe('Search index', async () => {
     )
   })
 
+  it("has the notes' and site pages' filter values, for /search to show", async () => {
+    const values = async bundle =>
+      JSON.parse(
+        await fs.readFile(
+          path.join(SITE_DIR, bundle, 'filter-values.json'),
+          'utf8'
+        )
+      )
+    const notes = await values('pagefind-notes')
+    assert.deepEqual(Object.keys(notes).sort(), ['author', 'in', 'lang'])
+    // Every note is of an English translation, so English narrows nothing
+    assert.deepEqual(notes.lang, [])
+    const translators = new Set(
+      [...pages.values()]
+        .filter(page => page.searchable && page.notes.length)
+        .map(page => page.url.split('/'))
+        .filter(([, , lang]) => lang === 'en')
+        .map(([, , , author]) => author)
+    )
+    assert.deepEqual(new Set(notes.author), translators)
+    const site = await values('pagefind-site')
+    assert.deepEqual(Object.keys(site), ['author'])
+  })
+
   it('has only text pages, and their titles, in the reference shards', async () => {
     const shards = async dir => {
       const files = await fs.readdir(path.join(SITE_DIR, 'search', dir))

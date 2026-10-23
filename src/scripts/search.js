@@ -100,20 +100,22 @@
 
   /*
    * The deepest checked branches, as checking a child narrows its parent down to it.
-   * Anything checked under an unchecked (so hidden) branch doesn't count.
+   * Anything checked under an unchecked (so hidden) branch doesn't count, nor one the included bundles lack.
    * A group with no name of its own comes back as one branch holding all its values.
    */
   function checkedBranches(list) {
     return [...list.children].flatMap(li => {
       const box = li.querySelector(':scope > input')
-      if (!box.checked) return []
+      if (!box.checked || li.hidden) return []
       const children = li.querySelector(':scope > ul')
       const deeper = children ? checkedBranches(children) : []
       if (deeper.length) return deeper
       // A group with no name of its own (ie Translators) means everyone in it
       if (!box.name) {
         return [
-          [...children.querySelectorAll('input')].map(child => child.value),
+          [
+            ...children.querySelectorAll(':scope > li:not([hidden]) > input'),
+          ].map(child => child.value),
         ]
       }
       return [box.value]
@@ -129,9 +131,7 @@
     const applied = Object.entries({
       in: branches('search-filters-collection'),
       author: branches('search-filters-author'),
-      lang: [...filtersEl.querySelectorAll('input[name="lang"]:checked')].map(
-        box => box.value
-      ),
+      lang: branches('search-filters-lang'),
     }).filter(([, values]) => values.length)
     return {
       filters: Object.fromEntries(
@@ -245,6 +245,65 @@
     ].filter(Boolean)
 
   const BUNDLE_NAMES = { site: 'site pages' }
+
+  // Each loaded bundle's filter values, as filter → Set, or null for the texts' and titles', which have every one
+  const bundleValues = new Map([
+    ['texts', null],
+    ['titles', null],
+  ])
+
+  /** Hides each filter box none of the included bundles has a value of, and each fieldset left with none */
+  async function showApplicableFilters() {
+    await Promise.all(
+      includedBundles()
+        .filter(name => !bundleValues.has(name))
+        .map(async name => {
+          const values = await fetchJSON(`/pagefind-${name}/filter-values.json`)
+          bundleValues.set(
+            name,
+            values &&
+              Object.fromEntries(
+                Object.entries(values).map(([key, list]) => [
+                  key,
+                  new Set(list),
+                ])
+              )
+          )
+        })
+    )
+    const included = includedBundles().map(name => bundleValues.get(name))
+    const has = (key, value) =>
+      included.some(values => !values || values[key]?.has(value))
+    // A branch stays while anything under it shows, as its box is the way to them
+    function showBoxes(list, key) {
+      let shown = false
+      for (const li of list.children) {
+        const box = li.querySelector(':scope > input')
+        const children = li.querySelector(':scope > ul')
+        const under = children ? showBoxes(children, key) : false
+        li.hidden = !under && !(box.name && has(key, box.value))
+        shown ||= !li.hidden
+      }
+      return shown
+    }
+    for (const [id, key] of [
+      ['search-filters-collection', 'in'],
+      ['search-filters-lang', 'lang'],
+      ['search-filters-author', 'author'],
+    ]) {
+      const list = document.getElementById(id)
+      list.closest('fieldset').hidden = !showBoxes(list, key)
+    }
+  }
+
+  /** Only the filters a bundle has, ie not Collection or Language for the site pages */
+  function bundleFilters(name, filters) {
+    const values = bundleValues.get(name)
+    if (!values) return filters
+    return Object.fromEntries(
+      Object.entries(filters).filter(([key]) => key in values)
+    )
+  }
 
   const bundles = {}
 
@@ -721,7 +780,7 @@
       await Promise.all(
         included.map(async name => {
           const bundle = name === 'texts' ? pagefind : await loadBundle(name)
-          const found = await find(term, filters, bundle)
+          const found = await find(term, bundleFilters(name, filters), bundle)
           for (const result of found) result.bundle = name
           return found
         })
@@ -847,6 +906,7 @@
     query = cleanQuery(query)
     const term = takeFilterTokens(query)
     if (boxes) restoreBoxes(boxes)
+    await showApplicableFilters()
     saveBoxes()
     input.value = term
     await performSearch(term, query)
@@ -866,7 +926,10 @@
   const params = new URLSearchParams(window.location.search)
   const initialQuery = params.get('query')
   if (initialQuery) await searchFor(initialQuery, history.state?.boxes)
-  else saveBoxes()
+  else {
+    await showApplicableFilters()
+    saveBoxes()
+  }
 
   form.addEventListener('submit', async e => {
     const url = new URL(window.location)
@@ -895,6 +958,9 @@
       else showSitePages(term)
       return
     }
+    if ([textsBox, titlesBox, notesBox, siteBox].includes(e.target)) {
+      await showApplicableFilters()
+    }
     saveBoxes()
     if (query || getFilters().count) await performSearch(query)
     else clearResults()
@@ -907,6 +973,7 @@
     const boxes = history.state?.boxes
     if (query) return searchFor(query, boxes)
     if (boxes) restoreBoxes(boxes)
+    await showApplicableFilters()
     input.value = ''
     if (getFilters().count) await performSearch('')
     else clearResults()

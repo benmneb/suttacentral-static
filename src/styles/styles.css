@@ -3486,6 +3486,11 @@ details#search-filters {
       grid-template-columns: auto 1fr;
       align-items: baseline;
       column-gap: 0.25rem;
+
+      /* As display: grid beats [hidden] */
+      &[hidden] {
+        display: none;
+      }
     }
   }
 

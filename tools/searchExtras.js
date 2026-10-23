@@ -10,6 +10,8 @@
  *   _site/search/refs/       the pages each reference is on, ie sya13.544, for .net's `ref:`, in shards
  *   _site/search/texts/      the acronym and titles of the texts those are on
  *
+ * The notes' and site pages' bundles each get a filter-values.json, of the filter values they have.
+ *
  * Run by `pnpm build:search`, after the main index.
  *
  * @module searchExtras
@@ -273,7 +275,7 @@ const attribute = value =>
 
 /**
  * A site page as `addHTMLFile` takes it, with its icon, kind, author and edition as meta, its tab's title
- * when its heading is another page's too, and its author as a filter when they have texts
+ * when its heading is another page's too, and its author as a filter when they have texts (also in `filters`)
  */
 function sitePage(file, html, sharedTitle) {
   const url = urlOf(file).slice(0, -1)
@@ -312,6 +314,7 @@ function sitePage(file, html, sharedTitle) {
   ]
   return {
     url,
+    filters: uid ? { author: [uid] } : {},
     content: html
       .replace('<main', `<main ${attributes.filter(Boolean).join(' ')}`)
       // Pagefind runs these into the next cell or term, ie the similes' "Raft" into "eightfold"
@@ -345,14 +348,34 @@ const bundles = {
   notes: {
     outputPath: path.join(SITE_DIR, 'pagefind-notes'),
     records: notes,
+    filterValues: true,
   },
   site: {
     outputPath: path.join(SITE_DIR, 'pagefind-site'),
+    filterValues: true,
     // Not pagefind.yml's exclusions, which would drop the site pages' sutta references (.ref). The guides'
     // contents only repeat their headings, and the map's labels are today's towns
     config: () => ({ rootSelector: 'main', excludeSelectors: ['nav', 'svg'] }),
     files: sitePageFiles,
   },
+}
+
+/**
+ * Writes the values a bundle has of each of its filters, for /search to show only those, as
+ * { author: ['sujato', ...], ... }. A value every record has would narrow nothing, so it's left out,
+ * but not its filter, which the bundle still takes (ie the notes' `lang`, which is only ever English)
+ */
+async function writeFilterValues(name, outputPath) {
+  const values = Object.entries(filterCounts[name]).map(([key, counted]) => [
+    key,
+    [...counted]
+      .filter(([, count]) => count < counts[name])
+      .map(([value]) => value),
+  ])
+  await fs.writeFile(
+    path.join(outputPath, 'filter-values.json'),
+    JSON.stringify(Object.fromEntries(values))
+  )
 }
 
 const start = Date.now()
@@ -370,6 +393,18 @@ for (const [name, bundle] of Object.entries(bundles)) {
 const files = await candidatePages()
 pageUrls = new Set(files.map(urlOf))
 const counts = Object.fromEntries(Object.keys(bundles).map(name => [name, 0]))
+// How many of each bundle's records have each filter value, by filter
+const filterCounts = Object.fromEntries(
+  Object.keys(bundles).map(name => [name, {}])
+)
+function countFilters(name, filters = {}) {
+  for (const [key, values] of Object.entries(filters)) {
+    const counted = (filterCounts[name][key] ??= new Map())
+    for (const value of new Set(values.filter(Boolean))) {
+      counted.set(value, (counted.get(value) ?? 0) + 1)
+    }
+  }
+}
 for (let i = 0; i < files.length; i += READ_CONCURRENCY) {
   await Promise.all(
     files.slice(i, i + READ_CONCURRENCY).map(async file => {
@@ -382,9 +417,12 @@ for (let i = 0; i < files.length; i += READ_CONCURRENCY) {
       for (const [name, bundle] of Object.entries(bundles)) {
         for (const record of bundle.records?.(page, html) ?? []) {
           const { errors } = await indexes[name].addCustomRecord(record)
-          if (errors.length)
+          if (errors.length) {
             console.warn(`${name} ${record.url}:`, errors.join(', '))
-          else counts[name]++
+          } else {
+            counts[name]++
+            countFilters(name, record.filters)
+          }
         }
       }
     })
@@ -404,18 +442,22 @@ for (const [name, bundle] of Object.entries(bundles)) {
   for (const [i, [file, html]] of pages.entries()) {
     const shared =
       headings.filter(heading => heading === headings[i]).length > 1
-    const { errors } = await indexes[name].addHTMLFile(
-      sitePage(file, html, shared)
-    )
-    if (errors.length) console.warn(`${name} ${file}:`, errors.join(', '))
-    else counts[name]++
+    const { filters, ...page } = sitePage(file, html, shared)
+    const { errors } = await indexes[name].addHTMLFile(page)
+    if (errors.length) {
+      console.warn(`${name} ${file}:`, errors.join(', '))
+    } else {
+      counts[name]++
+      countFilters(name, filters)
+    }
   }
 }
 
-for (const [name, { outputPath }] of Object.entries(bundles)) {
+for (const [name, { outputPath, filterValues }] of Object.entries(bundles)) {
   const { errors } = await indexes[name].writeFiles({ outputPath })
   if (errors.length) throw new Error(`${name}: ${errors.join(', ')}`)
   console.log(`🔎 Wrote ${counts[name]} records to ${outputPath}`)
+  if (filterValues) await writeFilterValues(name, outputPath)
 }
 await pagefind.close()
 await writeReferences()
