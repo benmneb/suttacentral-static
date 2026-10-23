@@ -18,7 +18,7 @@ function hasTexts(node) {
  * Names drop a prefix the tree already makes plain, eg "Basket of". `lang` is the root language
  * where it's first set or changes, unless the name already says it.
  */
-function buildTree(nodes, parentLang) {
+function buildTree(nodes, parentLang, parentUid) {
   return nodes.flatMap(node => {
     // SC's /menu API returns some empty nodes with a null uid
     if (!node.uid || node.node_type === 'leaf' || !hasTexts(node)) return []
@@ -27,9 +27,20 @@ function buildTree(nodes, parentLang) {
       !node.children?.some(c => c.node_type === 'branch') ||
       node.uid.endsWith('-pm')
 
-    const name = (node.translated_name || node.root_name || node.uid)
+    const rawName = (node.translated_name || node.root_name || node.uid)
       .trim()
       .replace(SHARED_PREFIX, '')
+    // Questionably truncate long titles...
+    const preName = rawName
+      .replace(/^(?:The )?Group of Linked Discourses\s+/i, '...Group ')
+      .replace(
+        // For AN: "Numbered Discourses Collection" (questionably)
+        /^The Book of the\s+/i,
+        '...'
+      )
+    const name = parentUid?.startsWith('sn')
+      ? preName.replace(/^Linked Discourses\s+/i, '...')
+      : preName
     const lang = node.root_lang_name || parentLang
 
     return [
