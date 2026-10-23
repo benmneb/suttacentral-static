@@ -3499,13 +3499,16 @@ details#search-info {
   }
 
   h2 {
-    margin: 0 0 0.5rem;
     font-size: inherit;
     color: var(--text-color-secondary);
   }
 
   p {
-    margin: 0 0 0.5rem;
+    margin-top: 0;
+  }
+
+  a:has(kbd) {
+    text-underline-offset: 0.1rem;
   }
 
   dl {
