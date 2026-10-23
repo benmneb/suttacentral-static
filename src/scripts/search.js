@@ -384,7 +384,10 @@
   function loadBundle(name) {
     bundles[name] ??= import(`/pagefind-${name}/pagefind.js`).then(
       async bundle => {
-        await bundle.options(options)
+        await bundle.options(
+          // Its words are character pairs, so 30 of them would be 30 characters
+          name === 'chinese' ? { ...options, excerptLength: 60 } : options
+        )
         return bundle
       }
     )
@@ -405,11 +408,68 @@
     ]
   }
 
+  /**
+   * The Chinese texts' results for a term, with each run of Chinese in it as a phrase they must all have.
+   * Their bundle has them as character pairs, so 四念處 is the exact phrase "四念 念處", and 四 the
+   * character on its own
+   */
+  async function findChinese(term, filters) {
+    const chinese = await loadBundle('chinese')
+    const found = await Promise.all(
+      term.match(/\p{Script=Han}+/gu).map(async phrase => {
+        const chars = [...phrase]
+        const pairs = chars.slice(1).map((char, i) => chars[i] + char)
+        const { results } = await chinese.search(
+          `"${pairs.join(' ') || phrase}"`,
+          { filters }
+        )
+        return results
+      })
+    )
+    const [first, ...rest] = found
+    const scores = rest.map(
+      results => new Map(results.map(result => [result.id, result.score]))
+    )
+    return first
+      .filter(result => scores.every(score => score.has(result.id)))
+      .map(result => {
+        result.score += scores.reduce(
+          (sum, score) => sum + score.get(result.id),
+          0
+        )
+        result.bundle = 'chinese'
+        return result
+      })
+      .sort((a, b) => b.score - a.score)
+  }
+
+  /** A Chinese result's excerpt as the text again, from its pairs (ie 謂四 四念 念處 處 、) or characters */
+  function unpair(excerpt) {
+    const tokens = excerpt.trim().split(/ +/)
+    const isMarked = token => token?.startsWith('<mark>')
+    const textOf = token => token?.replace(/<\/?mark>/g, '') ?? ''
+    return tokens
+      .map((token, i) => {
+        const text = textOf(token)
+        if (!/\p{Script=Han}/u.test(text)) return text
+        const char = [...text][0]
+        // A marked pair marks the character after it too
+        const marked =
+          isMarked(token) ||
+          (isMarked(tokens[i - 1]) && [...textOf(tokens[i - 1])].length === 2)
+        return marked ? `<mark>${char}</mark>` : char
+      })
+      .join('')
+      .replaceAll('</mark><mark>', '')
+  }
+
   /** A bundle's results for a query, with one search per term of .net's operators, best first */
   async function find(query, filters, bundle = pagefind) {
     // A null term lists every page the filters let through
     const search = async term =>
-      (await bundle.search(term || null, { filters })).results
+      bundle === pagefind && /\p{Script=Han}/u.test(term)
+        ? findChinese(term, filters)
+        : (await bundle.search(term || null, { filters })).results
     const parsed = parseOperators(query)
     const any = await withTraditional(parsed.any)
     const not = await withTraditional(parsed.not)
@@ -849,7 +909,7 @@
           const bundle = name === 'texts' ? pagefind : await loadBundle(name)
           const own = bundleFilters(name, filters)
           const found = own ? await find(term, own, bundle) : []
-          for (const result of found) result.bundle = name
+          for (const result of found) result.bundle ??= name
           return found
         })
       )
@@ -922,7 +982,7 @@
 				 <article>
 					 <h2>${title}</h2>
 					 <dl>${details}</dl>
-					 ${batch[i].bundle === 'titles' ? '' : `<p lang="${data.meta.lang}">…${data.excerpt}…</p>`}
+					 ${batch[i].bundle === 'titles' ? '' : `<p lang="${data.meta.lang}">…${batch[i].bundle === 'chinese' ? unpair(data.excerpt) : data.excerpt}…</p>`}
 				 </article>
 			 `
         resultsContainer.appendChild(listItem)

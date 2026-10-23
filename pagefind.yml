@@ -17,3 +17,4 @@ exclude_selectors:
   - '.expansion-instructions' # ie /sn19.1/en/sujato
   - '.pe' # ie. inline legacy vinaya notes
   - '.add' # ie. translator additions in suddhaso's translations
+  - 'main[data-lang="lzh"] article' # searchExtras.js indexes the Chinese texts by character pairs instead

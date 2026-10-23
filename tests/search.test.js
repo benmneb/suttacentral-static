@@ -106,6 +106,18 @@ describe('Search index', async () => {
     )
   })
 
+  it('has every Chinese text in the Chinese bundle', async () => {
+    const chinese = pageCount(await readEntry('pagefind-chinese'))
+    const written = [...pages.values()].filter(
+      page => page.textIndexed && page.url.split('/')[2] === 'lzh'
+    ).length
+    assert.equal(
+      chinese,
+      written,
+      `The Chinese bundle has ${chinese} texts, the site ${written}`
+    )
+  })
+
   it('has every site page but /define in the site bundle', async () => {
     const site = pageCount(await readEntry('pagefind-site'))
     const written = [...pages.values()].filter(

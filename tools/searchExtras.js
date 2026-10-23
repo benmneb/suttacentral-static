@@ -6,6 +6,7 @@
  *
  *   _site/pagefind-titles/   each text's titles, for .net's `title: term`
  *   _site/pagefind-notes/    each translator's note, one record per note
+ *   _site/pagefind-chinese/  the Chinese texts as character pairs, for /search to find a phrase anywhere
  *   _site/pagefind-site/     the site pages' text, ie the guides and the editions' introductions
  *   _site/search/refs/       the pages each reference is on, ie sya13.544, for .net's `ref:`, in shards
  *   _site/search/texts/      the acronym and titles of the texts those are on
@@ -141,6 +142,56 @@ function repeatedNumbers(html) {
     seen.add(number)
   }
   return repeated
+}
+
+/**
+ * A Chinese text as overlapping character pairs, with the punctuation between kept for excerpts, then each
+ * character on its own, ie 謂四念處、 as `謂四 四念 念處 處 、 謂 四 念 處 、`. Pagefind takes a run of
+ * Chinese as one word, so this lets /search find a phrase anywhere, as the exact phrase of its pairs
+ */
+function chinese(page, html) {
+  if (page.meta.lang !== 'lzh') return []
+  const main = html.slice(html.indexOf('<main'))
+  const text = decode(
+    main
+      .slice(
+        main.indexOf('<article'),
+        main.search(/<article[^>]*popover|<\/main>/)
+      )
+      .replace(
+        /<a class="ref\b.*?<\/a>|<span class="(reference|inline-comment)".*?<\/span>|<button.*?<\/button>/gs,
+        ''
+      )
+      .replace(
+        /<\/?(p|h\d|li|ul|header|article|blockquote|div|br|tr|td|th)\b[^>]*>/g,
+        '\0'
+      )
+      .replace(/<[^>]*>/g, '')
+      // The HTML wraps the Taishō's lines, which end mid-phrase
+      .replace(/[ \t\r\n]+/g, '')
+  )
+    // Only the Chinese and its punctuation, as the headers' Latin and numbers would be read as Chinese
+    .replace(/[^\p{Script=Han}\p{P}]+/gu, '\n')
+  const runs = text.split(/(\p{Script=Han}+)/u)
+  const pairs = runs.flatMap((run, i) => {
+    if (i % 2 === 0) return run.trim() ? [run.replace(/\s+/g, '')] : []
+    const chars = [...run]
+    return [
+      ...chars.slice(0, -1).map((char, j) => char + chars[j + 1]),
+      chars.at(-1),
+    ]
+  })
+  const singles = [...text.replace(/\s+/g, '')]
+  if (!singles.length) return []
+  return [
+    {
+      url: page.url,
+      content: [...pairs, ...singles].join(' '),
+      language: 'en',
+      meta: page.meta,
+      filters: page.filters,
+    },
+  ]
 }
 
 // Each reference's pages, ie "sya13.544" → mn91/pli/ms and mn91/en/sujato, by its id in lower case
@@ -400,6 +451,10 @@ const bundles = {
     outputPath: path.join(SITE_DIR, 'pagefind-notes'),
     records: notes,
     filterValues: true,
+  },
+  chinese: {
+    outputPath: path.join(SITE_DIR, 'pagefind-chinese'),
+    records: chinese,
   },
   site: {
     outputPath: path.join(SITE_DIR, 'pagefind-site'),
