@@ -274,6 +274,7 @@
     const included = includedBundles().map(name => bundleValues.get(name))
     const has = (key, value) =>
       included.some(values => !values || values[key]?.has(value))
+    const onlySite = includedBundles().join() === 'site'
     // A branch stays while anything under it shows, as its box is the way to them
     function showBoxes(list, key) {
       let shown = false
@@ -281,6 +282,16 @@
         const box = li.querySelector(':scope > input')
         const children = li.querySelector(':scope > ul')
         const under = children ? showBoxes(children, key) : false
+        // Site pages' Collection takes in those above and below, so there a lone last box adds nothing
+        const lone = children?.querySelectorAll(':scope > li:not([hidden])')
+        if (
+          onlySite &&
+          key === 'in' &&
+          lone?.length === 1 &&
+          !lone[0].querySelector(':scope > ul > li:not([hidden])')
+        ) {
+          lone[0].hidden = true
+        }
         li.hidden = !under && !(box.name && has(key, box.value))
         shown ||= !li.hidden
       }
