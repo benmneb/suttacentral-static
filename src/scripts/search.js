@@ -34,6 +34,7 @@
   const showMoreBtn = document.getElementById('show-more')
   const scRedirectLink = document.getElementById('sc-redirect')
   const filtersEl = document.getElementById('search-filters')
+  const resetFiltersBtn = document.getElementById('search-filters-reset')
   const infoEl = document.getElementById('search-info')
   const dictionaryEl = document.getElementById('search-dictionary')
   const dictionaryToggle = document.getElementById('search-dictionary-results')
@@ -1031,6 +1032,13 @@
       box => !answerToggles.includes(box)
     )
 
+  function updateResetFiltersButton() {
+    resetFiltersBtn.disabled =
+      textsBox.checked &&
+      searchBoxes().every(box => box === textsBox || !box.checked) &&
+      answerToggles.every(toggle => toggle.checked)
+  }
+
   // In history.state, as filters stay out of the URL, so going back shows the filters a search had
   const saveBoxes = () =>
     history.replaceState(
@@ -1056,6 +1064,7 @@
     if (boxes) restoreBoxes(boxes)
     await showApplicableFilters()
     saveBoxes()
+    updateResetFiltersButton()
     input.value = term
     // .net has no site:, only in:article
     await performSearch(
@@ -1081,6 +1090,7 @@
   else {
     await showApplicableFilters()
     saveBoxes()
+    updateResetFiltersButton()
   }
 
   form.addEventListener('submit', async e => {
@@ -1106,9 +1116,29 @@
     await searchFor(new URL(link.href).searchParams.get('query'))
   })
 
+  resetFiltersBtn.addEventListener('click', async () => {
+    for (const box of searchBoxes()) box.checked = false
+    textsBox.checked = true
+
+    for (const toggle of answerToggles) {
+      toggle.checked = true
+      try {
+        localStorage.removeItem(toggle.id)
+      } catch {}
+    }
+
+    await showApplicableFilters()
+    saveBoxes()
+    updateResetFiltersButton()
+    const query = cleanQuery(input.value)
+    if (query || getFilters().count) await performSearch(query)
+    else clearResults()
+  })
+
   // Re-run the search on each filter change. Filters stay out of the URL, to keep it in sync with
   // SuttaCentral.net
   filtersEl.addEventListener('change', async e => {
+    updateResetFiltersButton()
     const query = cleanQuery(input.value)
     if (answerToggles.includes(e.target)) {
       try {
@@ -1136,6 +1166,7 @@
     if (query) return searchFor(query, boxes)
     if (boxes) restoreBoxes(boxes)
     await showApplicableFilters()
+    updateResetFiltersButton()
     input.value = ''
     if (getFilters().count) await performSearch('')
     else clearResults()

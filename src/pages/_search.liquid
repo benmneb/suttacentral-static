@@ -31,29 +31,46 @@ eleventyComputed:
       <summary aria-label="Filters" title="Filters">
         {% icon "adjustmentsHorizontal" %}
       </summary>
-      <fieldset>
-        <legend>Include in search</legend>
-        <ul>
-          <li>
-            <input type="checkbox" id="search-texts" checked>
-            <label for="search-texts">Texts</label>
-            <ul>
-              <li>
-                <input type="checkbox" id="search-titles">
-                <label for="search-titles">Titles only</label>
-              </li>
-            </ul>
-          </li>
-          <li>
-            <input type="checkbox" id="search-notes">
-            <label for="search-notes">Translators' notes</label>
-          </li>
-          <li>
-            <input type="checkbox" id="search-site">
-            <label for="search-site">Site pages</label>
-          </li>
-        </ul>
-      </fieldset>
+      <div class="search-filter-options">
+        <fieldset>
+          <legend>Include in search</legend>
+          <ul>
+            <li>
+              <input type="checkbox" id="search-texts" checked>
+              <label for="search-texts">Texts</label>
+              <ul>
+                <li>
+                  <input type="checkbox" id="search-titles">
+                  <label for="search-titles">Titles only</label>
+                </li>
+              </ul>
+            </li>
+            <li>
+              <input type="checkbox" id="search-notes">
+              <label for="search-notes">Translators' notes</label>
+            </li>
+            <li>
+              <input type="checkbox" id="search-site">
+              <label for="search-site">Site pages</label>
+            </li>
+          </ul>
+        </fieldset>
+        <fieldset>
+          <legend>Show above results</legend>
+          <ul>
+            <li>
+              <input type="checkbox" id="search-dictionary-results" checked>
+              <label for="search-dictionary-results">Pāli definitions</label>
+            </li>
+            <li>
+              <input type="checkbox" id="search-site-pages-results" checked>
+              <label for="search-site-pages-results"
+                >Quick site page links</label
+              >
+            </li>
+          </ul>
+        </fieldset>
+      </div>
       <fieldset>
         <legend>Collection</legend>
         <ul id="search-filters-collection">
@@ -112,19 +129,16 @@ eleventyComputed:
             </li>
           {% endfor %}
         </ul>
-      </fieldset>
-      <fieldset>
-        <legend>Show above results</legend>
-        <ul>
-          <li>
-            <input type="checkbox" id="search-dictionary-results" checked>
-            <label for="search-dictionary-results">Pāli definitions</label>
-          </li>
-          <li>
-            <input type="checkbox" id="search-site-pages-results" checked>
-            <label for="search-site-pages-results">Quick site page links</label>
-          </li>
-        </ul>
+        <button
+          id="search-filters-reset"
+          class="button danger search-filter-reset"
+          type="button"
+          disabled
+          title="Reset filters to defaults"
+          aria-label="Reset filters to defaults"
+        >
+          {% icon "archiveBoxXMark" %} Reset
+        </button>
       </fieldset>
     </details>
   </search>
