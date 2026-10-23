@@ -22,9 +22,15 @@ eleventyComputed:
       role="status"
       hidden
     ></p>
-    {% comment %} Filtering needs search.js, which unhides it {% endcomment %}
-    <details id="search-filters" hidden>
-      <summary>Filter</summary>
+    {% comment %}
+      Both need search.js, which unhides them.
+      Sharing a name, only one can be open at a time
+    {% endcomment %}
+    {% include "searchInfo.liquid" %}
+    <details id="search-filters" name="search-panel" hidden>
+      <summary aria-label="Filters" title="Filters">
+        {% icon "adjustmentsHorizontal" %}
+      </summary>
       <fieldset>
         <legend>Include in search</legend>
         <ul>

@@ -34,6 +34,7 @@
   const showMoreBtn = document.getElementById('show-more')
   const scRedirectLink = document.getElementById('sc-redirect')
   const filtersEl = document.getElementById('search-filters')
+  const infoEl = document.getElementById('search-info')
   const dictionaryEl = document.getElementById('search-dictionary')
   const dictionaryToggle = document.getElementById('search-dictionary-results')
   const sitePagesEl = document.getElementById('search-site-pages')
@@ -65,6 +66,7 @@
 
   // Hidden until now, as filtering can't work without this script
   filtersEl.hidden = false
+  infoEl.hidden = false
 
   // By script, as romanised titles like Madhyamāgama are tagged lzh too
   const UPRIGHT_SCRIPTS =
@@ -982,6 +984,16 @@
     history.pushState({}, '', url)
 
     await searchFor(query)
+  })
+
+  // The info's examples run here, without reloading the page
+  infoEl.addEventListener('click', async e => {
+    const link = e.target.closest('a[href^="/search?"]')
+    if (!link || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+    e.preventDefault()
+    history.pushState({}, '', link.href)
+    infoEl.open = false
+    await searchFor(new URL(link.href).searchParams.get('query'))
   })
 
   // Re-run the search on each filter change. Filters stay out of the URL, to keep it in sync with

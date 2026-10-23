@@ -234,6 +234,10 @@ dfn.upright {
   --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M7.702 1.368a.75.75 0 0 1 .597 0c2.098.91 4.105 1.99 6.004 3.223a.75.75 0 0 1-.194 1.348A34.27 34.27 0 0 0 8.341 8.25a.75.75 0 0 1-.682 0c-.625-.32-1.262-.62-1.909-.901v-.542a36.878 36.878 0 0 1 2.568-1.33.75.75 0 0 0-.636-1.357 38.39 38.39 0 0 0-3.06 1.605.75.75 0 0 0-.372.648v.365c-.773-.294-1.56-.56-2.359-.8a.75.75 0 0 1-.194-1.347 40.901 40.901 0 0 1 6.005-3.223ZM4.25 8.348c-.53-.212-1.067-.411-1.611-.596a40.973 40.973 0 0 0-.418 2.97.75.75 0 0 0 .474.776c.175.068.35.138.524.21a5.544 5.544 0 0 1-.58.681.75.75 0 1 0 1.06 1.06c.35-.349.655-.726.915-1.124a29.282 29.282 0 0 0-1.395-.617A5.483 5.483 0 0 0 4.25 8.5v-.152Z'/%3E %3Cpath d='M7.603 13.96c-.96-.6-1.958-1.147-2.989-1.635a6.981 6.981 0 0 0 1.12-3.341c.419.192.834.393 1.244.602a2.25 2.25 0 0 0 2.045 0 32.787 32.787 0 0 1 4.338-1.834c.175.978.315 1.969.419 2.97a.75.75 0 0 1-.474.776 29.385 29.385 0 0 0-4.909 2.461.75.75 0 0 1-.794 0Z'/%3E%3C/svg%3E");
 }
 
+.i-adjustmentsHorizontal {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6.5 2.25a.75.75 0 0 0-1.5 0v3a.75.75 0 0 0 1.5 0V4.5h6.75a.75.75 0 0 0 0-1.5H6.5v-.75ZM11 6.5a.75.75 0 0 0-1.5 0v3a.75.75 0 0 0 1.5 0v-.75h2.25a.75.75 0 0 0 0-1.5H11V6.5ZM5.75 10a.75.75 0 0 1 .75.75v.75h6.75a.75.75 0 0 1 0 1.5H6.5v.75a.75.75 0 0 1-1.5 0v-3a.75.75 0 0 1 .75-.75ZM2.75 7.25H8.5v1.5H2.75a.75.75 0 0 1 0-1.5ZM4 3H2.75a.75.75 0 0 0 0 1.5H4V3ZM2.75 11.5H4V13H2.75a.75.75 0 0 1 0-1.5Z'/%3E%3C/svg%3E");
+}
+
 .i-arrowLeft {
   --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M14 8a.75.75 0 0 1-.75.75H4.56l3.22 3.22a.75.75 0 1 1-1.06 1.06l-4.5-4.5a.75.75 0 0 1 0-1.06l4.5-4.5a.75.75 0 0 1 1.06 1.06L4.56 7.25h8.69A.75.75 0 0 1 14 8Z' clip-rule='evenodd'/%3E%3C/svg%3E");
 }
@@ -3439,6 +3443,7 @@ form#search-form {
 }
 
 main > search {
+  --search-toggle-size: 2rem;
   display: grid;
   align-items: start;
   margin: 1rem 0;
@@ -3448,22 +3453,86 @@ main > search {
   }
 }
 
-details#search-filters {
+:is(details#search-filters, details#search-info) {
   > summary {
-    cursor: pointer;
-    width: fit-content;
+    /* Above the other details, whose box covers this one's for clicks */
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    inline-size: var(--search-toggle-size);
+    block-size: var(--search-toggle-size);
     margin-left: auto;
     margin-bottom: 1rem;
-    padding: 0.25rem 0.5rem;
     border-radius: var(--rounding);
     color: var(--text-color-secondary);
+    cursor: pointer;
+
+    /* Safari before 18.4 draws it even on a flex summary */
+    &::-webkit-details-marker {
+      display: none;
+    }
 
     &:hover,
     &:active {
       background-color: var(--details-summary-hover-background);
     }
+
+    .icon {
+      inline-size: 1.25em;
+      block-size: 1.25em;
+    }
   }
 
+  &[open] > summary {
+    color: var(--primary-color);
+  }
+}
+
+details#search-info {
+  > summary {
+    margin-right: calc(var(--search-toggle-size) + 0.25rem);
+  }
+
+  section {
+    margin-bottom: 1.5rem;
+  }
+
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: inherit;
+    color: var(--text-color-secondary);
+  }
+
+  p {
+    margin: 0 0 0.5rem;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    margin: 0;
+
+    @media only screen and (max-width: 600px) {
+      grid-template-columns: 1fr;
+      row-gap: 0;
+    }
+
+    dt {
+      width: 10rem;
+
+      @media only screen and (max-width: 600px) {
+        width: auto;
+      }
+    }
+
+    dd {
+      margin-left: 1rem;
+    }
+  }
+}
+
+details#search-filters {
   fieldset {
     border: none;
     margin: 0;
@@ -3522,8 +3591,8 @@ details#search-filters {
 
 p#search-count {
   color: var(--text-color-secondary);
-  /* In line with the summary's text, and clear of it (a margin, so it doesn't cover it for clicks) */
-  margin: 0 6rem 0 0;
+  /* In line with the summaries, and clear of them (a margin, so it doesn't cover them for clicks) */
+  margin: 0 calc(var(--search-toggle-size) * 2 + 0.75rem) 0 0;
   padding: 0.25rem 0;
   /* Above the details box it overlaps, so it can still be selected */
   position: relative;
