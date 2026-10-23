@@ -9,6 +9,8 @@
  *   _site/pagefind-site/     the site pages' text, ie the guides and the editions' introductions
  *   _site/search/refs/       the pages each reference is on, ie sya13.544, for .net's `ref:`, in shards
  *   _site/search/texts/      the acronym and titles of the texts those are on
+ *   _site/search/hant.json   each simplified Chinese character's traditional form, of those the texts
+ *                            have, so /search finds them by either
  *
  * The notes' and site pages' bundles each get a filter-values.json, of the filter values they have.
  *
@@ -19,6 +21,7 @@
 
 import fs from 'fs/promises'
 import path from 'path'
+import { Converter } from 'opencc-js'
 import * as pagefind from 'pagefind'
 import { recordStat } from '../src/helpers/buildStats.js'
 import { groupByPrefix } from '../src/helpers/lookupShards.js'
@@ -157,6 +160,39 @@ function collectReferences(page, html) {
       referenceTexts.set(page.uid, [acronym, originalTitle, title, rootLang])
     }
   }
+}
+
+// How often each Chinese character is in the Chinese texts
+const hanCounts = new Map()
+
+function countHan(page, html) {
+  if (page.meta.lang !== 'lzh') return
+  const main = html.slice(html.indexOf('<main'))
+  for (const [char] of main.matchAll(/\p{Script=Han}/gu)) {
+    hanCounts.set(char, (hanCounts.get(char) ?? 0) + 1)
+  }
+}
+
+/**
+ * Writes each simplified character's traditional form, the commonest in the texts where several
+ * share one, ie 发 → 發 over 髮
+ */
+async function writeTraditional() {
+  const simplify = Converter({ from: 't', to: 'cn' })
+  const traditional = {}
+  for (const [char] of [...hanCounts].sort((a, b) => b[1] - a[1])) {
+    const simplified = simplify(char)
+    if (simplified !== char && !(simplified in traditional)) {
+      traditional[simplified] = char
+    }
+  }
+  await fs.writeFile(
+    path.join(SITE_DIR, 'search', 'hant.json'),
+    JSON.stringify(traditional)
+  )
+  console.log(
+    `🔎 Wrote ${Object.keys(traditional).length} simplified characters to search/hant.json`
+  )
 }
 
 /** Whether a range's page is also there as one of its texts', ie an1.1-10/pli/ms as an1.1/pli/ms */
@@ -429,6 +465,7 @@ for (let i = 0; i < files.length; i += READ_CONCURRENCY) {
       const page = html && textPage(file, html)
       if (!page) return
       collectReferences(page, html)
+      countHan(page, html)
       for (const [name, bundle] of Object.entries(bundles)) {
         for (const record of bundle.records?.(page, html) ?? []) {
           const { errors } = await indexes[name].addCustomRecord(record)
@@ -476,6 +513,7 @@ for (const [name, { outputPath, filterValues }] of Object.entries(bundles)) {
 }
 await pagefind.close()
 await writeReferences()
+await writeTraditional()
 
 recordStat('searchExtras', {
   ...counts,

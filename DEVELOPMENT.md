@@ -205,7 +205,7 @@ Then, when a release passes the tests, or you publish a draft release or pre-rel
 - **Pages:** every page has a title, every text page has its text and a well-formed title, every navigation page has links, and no links have `undefined` or similar in them
 - **Golden pages:** a page for each shape of data (segmented, root, legacy, range, vinaya, abhidhamma, pātimokkha, navigation) matches the API data in `.cache` it was built from
 - **Links:** internal links go to pages that exist
-- **Search:** the search index has every text page, and hasn't shrunk since production, the extra indexes have every text's titles, every English note once and every site page, the reference files only list text pages with their titles, and `volpage:DN ii 72` finds DN 16
+- **Search:** the search index has every text page, and hasn't shrunk since production, the extra indexes have every text's titles, every English note once and every site page, the reference files only list text pages with their titles, `volpage:DN ii 72` finds DN 16, and simplified Chinese has its traditional forms
 - **Site pages:** every key the site pages use is in the strings fetched from .net (read from `.cache`, no build needed), and every page in the site pages menu is built with a heading and its text
 - **Dictionaries:** each dictionary in `.cache` has at least about 95% of the words it had (no build needed), the `/define` pages have their entries and `/map` links to them, and word lookup's files are all there and link and answer at least 97% of the sample texts' words
 

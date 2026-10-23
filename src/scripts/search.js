@@ -383,12 +383,28 @@
     return bundles[name]
   }
 
+  /** The terms, plus each one's traditional form where it has simplified Chinese, as the texts are traditional */
+  async function withTraditional(terms) {
+    if (!terms.some(term => /\p{Script=Han}/u.test(term))) return terms
+    const traditional = (await fetchJSON('/search/hant.json')) ?? {}
+    return [
+      ...new Set(
+        terms.flatMap(term => [
+          term,
+          term.replace(/\p{Script=Han}/gu, char => traditional[char] ?? char),
+        ])
+      ),
+    ]
+  }
+
   /** A bundle's results for a query, with one search per term of .net's operators, best first */
   async function find(query, filters, bundle = pagefind) {
     // A null term lists every page the filters let through
     const search = async term =>
       (await bundle.search(term || null, { filters })).results
-    const { any, not } = parseOperators(query)
+    const parsed = parseOperators(query)
+    const any = await withTraditional(parsed.any)
+    const not = await withTraditional(parsed.not)
     if (any.length === 1 && !not.length) return search(any[0])
 
     const [wanted, unwanted] = await Promise.all([

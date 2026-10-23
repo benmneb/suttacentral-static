@@ -190,4 +190,12 @@ describe('Search index', async () => {
       .map(([uid]) => uid)
     assert.deepEqual(onPage, ['dn16'])
   })
+
+  it('has the traditional forms of simplified Chinese, as 四念处 finds 四念處', async () => {
+    const traditional = JSON.parse(
+      await fs.readFile(path.join(SITE_DIR, 'search/hant.json'), 'utf8')
+    )
+    assert.equal(traditional['处'], '處')
+    assert.equal(traditional['发'], '發')
+  })
 })
