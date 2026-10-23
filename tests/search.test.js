@@ -7,6 +7,7 @@ import fs from 'fs/promises'
 import path from 'path'
 import { describe, it } from 'node:test'
 import { parseUidNumbers } from '../src/helpers/rangeSuttas.js'
+import { pitakaGuides } from '../src/helpers/sitePages.js'
 import { SKIP_BASELINE, productionPagefindEntry } from './lib/baseline.js'
 import { SITE_DIR, listSome, scanSite } from './lib/site.js'
 
@@ -138,7 +139,16 @@ describe('Search index', async () => {
     )
     assert.deepEqual(new Set(notes.author), translators)
     const site = await values('pagefind-site')
-    assert.deepEqual(Object.keys(site), ['author'])
+    assert.deepEqual(Object.keys(site).sort(), ['author', 'in'])
+    // The guides' and essays' collections, and the editions'
+    const collections = new Set([
+      ...Object.keys(pitakaGuides),
+      ...[...pages.values()]
+        .filter(page => page.kind === 'site')
+        .map(page => page.url.match(/^\/edition\/([^/]+)\//)?.[1])
+        .filter(Boolean),
+    ])
+    assert.deepEqual(new Set(site.in), collections)
   })
 
   it('has only text pages, and their titles, in the reference shards', async () => {

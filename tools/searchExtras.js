@@ -270,17 +270,26 @@ const pageKinds = new Map([
   ),
 ])
 
+// The collection each guide or essay is about, ie "dn" for /dn-guide-sujato
+const guideCollections = new Map(
+  Object.entries(pitakaGuides).flatMap(([uid, guides]) =>
+    guides.map(({ href }) => [href, uid])
+  )
+)
+
 const attribute = value =>
   value.replaceAll('&', '&amp;').replaceAll('"', '&quot;')
 
 /**
  * A site page as `addHTMLFile` takes it, with its icon, kind, author and edition as meta, its tab's title
- * when its heading is another page's too, and its author as a filter when they have texts (also in `filters`)
+ * when its heading is another page's too, and as filters (also in `filters`) its author when they have texts
+ * and the collection it's about
  */
 function sitePage(file, html, sharedTitle) {
   const url = urlOf(file).slice(0, -1)
-  const [, root, , , authorUid] = url.split('/')
+  const [, root, editionUid, , authorUid] = url.split('/')
   const isEdition = root === 'edition'
+  const collection = isEdition ? editionUid : guideCollections.get(`/${root}`)
   // ie "Preface—Middle Discourses" for /edition/mn/en/sujato/preface, or "Middle Discourses—Bhikkhu Sujato"
   // for /edition/mn/en/sujato itself
   const tabTitle =
@@ -306,15 +315,21 @@ function sitePage(file, html, sharedTitle) {
     : [...authors].find(([, name]) => name === byline.split(',')[0].trim())?.[0]
 
   const shown = Object.entries(meta).filter(([, value]) => value)
+  const filters = {
+    ...(uid && { author: [uid] }),
+    ...(collection && { in: [collection] }),
+  }
+  const filtered = Object.entries(filters)
   const attributes = [
     ...shown.map(([key, value]) => `data-${key}="${attribute(value)}"`),
     `data-pagefind-meta="${shown.map(([key]) => `${key}[data-${key}]`).join(', ')}"`,
-    uid &&
-      `data-authoruid="${uid}" data-pagefind-filter="author[data-authoruid]"`,
+    ...filtered.map(([key, [value]]) => `data-filter-${key}="${value}"`),
+    filtered.length &&
+      `data-pagefind-filter="${filtered.map(([key]) => `${key}[data-filter-${key}]`).join(', ')}"`,
   ]
   return {
     url,
-    filters: uid ? { author: [uid] } : {},
+    filters,
     content: html
       .replace('<main', `<main ${attributes.filter(Boolean).join(' ')}`)
       // Pagefind runs these into the next cell or term, ie the similes' "Raft" into "eightfold"

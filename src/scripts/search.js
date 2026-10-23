@@ -296,13 +296,41 @@
     }
   }
 
-  /** Only the filters a bundle has, ie not Collection or Language for the site pages */
+  /**
+   * Only the filters a bundle has, ie not Language for the site pages, or null when nothing in it can pass.
+   * Each site page has just the collection it's about, so there Collection takes in those above and below the
+   * ticked ones, ie the Discourses essay and the Long Discourses guide for Long Discourses
+   */
   function bundleFilters(name, filters) {
     const values = bundleValues.get(name)
     if (!values) return filters
-    return Object.fromEntries(
-      Object.entries(filters).filter(([key]) => key in values)
+    const own = Object.fromEntries(
+      Object.entries(filters)
+        .filter(([key]) => key in values)
+        .map(([key, filter]) =>
+          key === 'in' && name === 'site'
+            ? [key, { any: relatedCollections(filter.any, values.in) }]
+            : [key, filter]
+        )
     )
+    // Pagefind takes an empty `any` as no filter at all
+    return own.in?.any.length === 0 ? null : own
+  }
+
+  /** The collections in `uids`, above them and below them, of those in `has` */
+  function relatedCollections(uids, has) {
+    const related = new Set()
+    for (const box of filtersEl.querySelectorAll('input[name="in"]')) {
+      if (!uids.includes(box.value)) continue
+      let li = box.closest('li')
+      for (const below of li.querySelectorAll('input[name="in"]')) {
+        related.add(below.value)
+      }
+      while ((li = li.parentElement.closest('li'))) {
+        related.add(li.querySelector(':scope > input').value)
+      }
+    }
+    return [...related].filter(uid => has.has(uid))
   }
 
   const bundles = {}
@@ -780,7 +808,8 @@
       await Promise.all(
         included.map(async name => {
           const bundle = name === 'texts' ? pagefind : await loadBundle(name)
-          const found = await find(term, bundleFilters(name, filters), bundle)
+          const own = bundleFilters(name, filters)
+          const found = own ? await find(term, own, bundle) : []
           for (const result of found) result.bundle = name
           return found
         })
