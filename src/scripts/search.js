@@ -187,7 +187,7 @@
   /*
    * Ticks the filters for each of .net's by:, author:, in: and lang: in a query (ie ?query=by:sujato, as
    * the language pages link), and for its list <language>, sets what to include for its title: and
-   * in:article (and SCX's own note:), and returns the rest of the query to search for.
+   * in:article (and SCX's own note: and site:), and returns the rest of the query to search for.
    * One with nothing here (ie by:sabbamitta, who translates into German) is dropped, so the rest is still found
    */
   function takeFilterTokens(query) {
@@ -211,9 +211,11 @@
       )
       .replace(/\s+/g, ' ')
       .trim()
-      .replace(/^(title|note):\s*/i, (match, name) => {
-        if (name.toLowerCase() === 'title') includeOnly(textsBox, titlesBox)
-        else includeOnly(notesBox)
+      .replace(/^(title|note|site):\s*/i, (match, name) => {
+        name = name.toLowerCase()
+        if (name === 'title') includeOnly(textsBox, titlesBox)
+        else if (name === 'note') includeOnly(notesBox)
+        else includeOnly(siteBox)
         return ''
       })
   }
@@ -951,7 +953,11 @@
     await showApplicableFilters()
     saveBoxes()
     input.value = term
-    await performSearch(term, query)
+    // .net has no site:, only in:article
+    await performSearch(
+      term,
+      query.replace(/(^|\s)site:\s*/i, '$1in:article ').trim()
+    )
   }
 
   function clearResults() {
