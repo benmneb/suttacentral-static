@@ -233,9 +233,17 @@
    * { any: ['greed', 'desire'], not: ['anicca'] }. AND just goes, as Pagefind finds pages with every word anyway
    */
   function parseOperators(query) {
-    const [wanted, ...not] = query.replace(/\s+AND\s+/g, ' ').split(/\s+NOT\s+/)
+    const [wanted, ...not] = minusToNot(query)
+      .replace(/\s+AND\s+/g, ' ')
+      .split(/\s+NOT\s+/)
     return { any: wanted.split(/\s+OR\s+/), not }
   }
+
+  /** A minus sign before a word as NOT, as Pagefind would drop it and find the word, but not in quotes */
+  const minusToNot = query =>
+    query.replace(/"[^"]*"|\s+-(?=\S)/g, match =>
+      match.startsWith('"') ? match : ' NOT '
+    )
 
   // .net's searches of only references or volume and page
   const MODE = /^(ref|volpage):\s*/i
@@ -806,7 +814,7 @@
 
     // Update footer link
     const url = new URL(scRedirectLink.href)
-    url.searchParams.set('query', netQuery)
+    url.searchParams.set('query', minusToNot(netQuery))
     scRedirectLink.href = url.toString()
 
     const { filters, count } = getFilters()
