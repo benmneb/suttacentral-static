@@ -2573,6 +2573,7 @@ main {
           color: var(--fg-alt-4);
           font-size: 0.7rem;
           font-weight: initial;
+          box-shadow: none;
 
           &:hover {
             background-color: var(--bg-soft);
@@ -2949,6 +2950,7 @@ main {
    that shouldn't look clickable. :where() keeps the specificity of `a`. */
 a:where([href]) {
   color: var(--primary-color);
+  box-decoration-break: clone;
 
   &:visited {
     color: var(--primary-color-alt);
@@ -2959,6 +2961,10 @@ a:where([href]) {
     color: var(--background-color);
     background-color: var(--primary-color);
     text-decoration: none;
+    border-radius: var(--rounding);
+    box-shadow:
+      0.1rem 0 0 var(--primary-color),
+      -0.1rem 0 0 var(--primary-color);
   }
 
   &::selection {
