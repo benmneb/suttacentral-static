@@ -785,7 +785,7 @@
       grid-template-rows: repeat(3, auto);
       gap: 0.25rem 1.25rem;
 
-      @media (max-width: 600px) {
+      @media (max-width: 830px) {
         grid-auto-flow: row;
         grid-template-rows: none;
         grid-template-columns: repeat(2, auto);
@@ -794,8 +794,9 @@
 
     .map-view:not([hidden]) {
       display: grid;
-      grid-template-columns: repeat(4, auto) 1fr;
-      justify-content: start;
+      grid-template-columns: repeat(4, 1fr);
+      justify-content: center;
+      align-items: stretch;
     }
 
     .map-view dl {
@@ -804,6 +805,10 @@
       grid-column: 1 / -1;
       margin: 0.25rem 0 0;
       color: var(--text-color-secondary);
+
+      @media (max-width: 830px) {
+        text-align: center;
+      }
 
       dt {
         display: inline;
@@ -837,7 +842,7 @@
     }
 
     .button {
-      min-width: 2rem;
+      white-space: nowrap;
       padding-inline: 0.5rem;
     }
   }
