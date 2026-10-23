@@ -24,11 +24,13 @@
       <a href="/search?query=in%3Amn+in%3Adn+bliss"
         ><kbd>in:mn in:dn bliss</kbd></a
       >
-      searches both. Each also ticks its box under Filters.
+      searches both. Each also ticks its box under Filters, in place of any
+      others in that filter.
     </p>
     <p>
-      Use only one of <kbd>title:</kbd>, <kbd>note:</kbd> or <kbd>site:</kbd>,
-      before the words. References and lists work on their own.
+      Use only one of <kbd>text:</kbd>, <kbd>title:</kbd>, <kbd>note:</kbd> or
+      <kbd>site:</kbd>, before the words. References and lists work on their
+      own.
     </p>
   </section>
   <section aria-labelledby="search-info-words">
@@ -138,18 +140,32 @@
     </dl>
   </section>
   <section aria-labelledby="search-info-include">
-    <h2 id="search-info-include">Titles, notes and site pages</h2>
+    <h2 id="search-info-include">Texts, titles, notes and site pages</h2>
     <dl>
+      <dt>
+        <a href="/search?query=text%3Ameditation"><kbd>text:meditation</kbd></a>
+      </dt>
+      <dd>Only the texts. The default</dd>
       <dt>
         <a href="/search?query=title%3Aintention"><kbd>title:intention</kbd></a>
       </dt>
-      <dd>Only the texts' titles</dd>
+      <dd>
+        Only the texts' titles. Same as
+        <a href="/search?query=in%3Atitle+intention"
+          ><kbd>in:title intention</kbd></a
+        >
+      </dd>
       <dt>
         <a href="/search?query=note%3Amindfulness"
           ><kbd>note:mindfulness</kbd></a
         >
       </dt>
-      <dd>Only the translators' notes</dd>
+      <dd>
+        Only the translators' notes. Same as
+        <a href="/search?query=in%3Anote+mindfulness"
+          ><kbd>in:note mindfulness</kbd></a
+        >
+      </dd>
       <dt>
         <a href="/search?query=site%3Aaggregates"><kbd>site:aggregates</kbd></a>
       </dt>

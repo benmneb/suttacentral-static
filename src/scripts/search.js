@@ -187,8 +187,8 @@
   /*
    * Ticks the filters for each of .net's by:, author:, in: and lang: in a query (ie ?query=by:sujato, as
    * the language pages link), in place of what that filter had, and for its list <language>, sets what
-   * to include for its title: and in:article (and SCX's own note: and site:), and returns the rest of the query
-   * to search for.
+   * to include for its title: and in:article (and SCX's own text:, note:, site:, in:note and in:title), and
+   * returns the rest of the query to search for.
    * One with nothing here (ie by:sabbamitta, who translates into German) is dropped, so the rest is still found
    */
   function takeFilterTokens(query) {
@@ -201,8 +201,9 @@
       .replace(
         /(^|\s)(by|author|in|lang):(\S+)/gi,
         (match, space, name, value) => {
-          if (/^in:article$/i.test(match.trim())) {
-            includeOnly(siteBox)
+          const include = match.trim().match(/^in:(article|note|title)$/i)
+          if (include) {
+            includeFor(include[1])
             return space
           }
           const boxes = filterBoxes(name.toLowerCase(), value.toLowerCase())
@@ -220,13 +221,19 @@
       )
       .replace(/\s+/g, ' ')
       .trim()
-      .replace(/^(title|note|site):\s*/i, (match, name) => {
-        name = name.toLowerCase()
-        if (name === 'title') includeOnly(textsBox, titlesBox)
-        else if (name === 'note') includeOnly(notesBox)
-        else includeOnly(siteBox)
+      .replace(/^(text|title|note|site):\s*/i, (match, name) => {
+        includeFor(name)
         return ''
       })
+  }
+
+  /** Ticks what to include for text:, title:, note: or site:, or in:title, in:note or in:article */
+  function includeFor(name) {
+    name = name.toLowerCase()
+    if (name === 'text') includeOnly(textsBox)
+    else if (name === 'title') includeOnly(textsBox, titlesBox)
+    else if (name === 'note') includeOnly(notesBox)
+    else includeOnly(siteBox)
   }
 
   /** Ticks only these boxes of "Include in search" */
