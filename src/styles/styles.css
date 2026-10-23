@@ -3479,12 +3479,18 @@ details#search-filters {
     margin: 0;
     padding: 0;
 
+    /* A long name wraps under itself, not under its checkbox */
     li {
       list-style-type: none;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: baseline;
+      column-gap: 0.25rem;
     }
   }
 
   ul ul {
+    grid-column: 1 / -1;
     padding-left: 1.5rem;
   }
 
@@ -3502,11 +3508,7 @@ details#search-filters {
     columns: 13rem;
     column-gap: 1.5rem;
 
-    /* A long name wraps under itself, not under its checkbox */
     li {
-      display: flex;
-      align-items: baseline;
-      gap: 0.25rem;
       break-inside: avoid;
       margin-bottom: 0.15rem;
     }
