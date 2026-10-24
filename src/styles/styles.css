@@ -3618,7 +3618,7 @@ details#search-filters {
       margin-bottom: 0.15rem;
     }
 
-    .languages {
+    &.languages {
       column-width: 6rem;
     }
   }
