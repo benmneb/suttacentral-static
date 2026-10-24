@@ -224,13 +224,14 @@
   }
 }
 
-.site-page:has(.horizontal.first) {
-  li:has(h1) {
-    list-style: none;
+.site-page.tipitaka {
+  h1 > span {
+    /* Like home screen */
+    font-size: 0.8em;
   }
 
   h1,
-  li a {
+  .tipitaka-tree a {
     display: inline-flex;
     flex-direction: column;
     text-decoration: none;
@@ -241,33 +242,56 @@
     font-size: larger;
   }
 
-  dfn + span {
+  .tipitaka-label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+  }
+
+  dfn + span,
+  .tipitaka-label > a + span {
     color: var(--text-color-secondary);
   }
 
-  a:hover dfn + span {
+  a:hover dfn + span,
+  .tipitaka-label > a:hover + span {
     color: unset;
   }
 
-  .horizontal .second {
-    padding-left: 0;
-    list-style: unset;
+  .tipitaka-tree {
+    margin: 0;
+    padding-inline-start: 1.25rem;
+    list-style: none;
 
-    > li > a:first-of-type {
+    ul {
+      margin: 0;
+      padding-inline-start: 1.1rem;
+      list-style: none;
+    }
+
+    li {
+      margin: 0;
+      list-style: none;
+    }
+
+    li:has(> .tipitaka-label) {
+      margin-top: 0.5rem;
+      margin-inline-start: 1rem;
+      list-style: disc;
+    }
+
+    li:has(> .tipitaka-label)::marker {
+      color: var(--text-color-secondary);
+    }
+
+    summary {
+      list-style-position: outside;
+    }
+
+    > li > details > summary {
+      margin-block: 0.5rem;
       font-size: larger;
-      margin: 1rem 0;
-    }
-  }
-
-  @media (max-width: 600px) {
-    .first {
-      padding-left: 0;
-    }
-
-    .third,
-    .fourth,
-    .fifth {
-      padding-left: 1.25rem;
     }
   }
 }

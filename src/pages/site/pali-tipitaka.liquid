@@ -1,1371 +1,1882 @@
 ---
 layout: sitePage.liquid
 permalink: /pali-tipitaka/index.html
+mainClass: tipitaka
 eleventyComputed:
   title: '{{ "palitipitaka:palitipitaka" | t | strip_html }}'
 ---
 <article>
-  <ul class="horizontal first">
+  <h1>
+    <dfn lang="pli">Pāḷi Tipiṭaka</dfn>
+    <span>{{ "palitipitaka:palitipitaka" | t }}</span>
+  </h1>
+  <ul class="tipitaka-tree" role="list">
     <li>
-      <h1>
-        <dfn lang="pli">Pāḷi Tipiṭaka</dfn>
-        <span>{{ "palitipitaka:palitipitaka" | t }}</span>
-      </h1>
-      <ul class="horizontal second">
-        <li>
-          <a href="/pli-tv-vi">
-            <dfn lang="pli">Vinayapiṭaka</dfn>
+      <details>
+        <summary>
+          <span class="tipitaka-label">
+            <a href="/pli-tv-vi">
+              <dfn lang="pli">Vinayapiṭaka</dfn>
+            </a>
             <span>{{ "palitipitaka:vinayapitaka" | t }}</span>
-          </a>
-          <ul class="horizontal third">
-            <li>
-              <a href="/pli-tv-vi">
-                <dfn lang="pli">Suttavibhaṅga</dfn>
-                <span>{{ "vinayapitaka:suttavibhanga" | t }}</span>
-              </a>
-              <ul class="vertical fourth">
-                <li>
-                  <a href="/pli-tv-bu-vb">
-                    <dfn lang="pli">Bhikkhuvibhaṅga</dfn>
-                    <span>{{ "suttavibhanga:bhikkhuvibhanga" | t }}</span>
+          </span>
+        </summary>
+        <ul role="list">
+          <li>
+            <details>
+              <summary>
+                <span class="tipitaka-label">
+                  <a href="/pli-tv-vi">
+                    <dfn lang="pli">Suttavibhaṅga</dfn>
                   </a>
-                  <ul class="vertical fifth">
-                    <li>
-                      <a href="/pli-tv-bu-vb-pj">
-                        <dfn lang="pli">Pārājika</dfn>
-                        <span>{{ "bhikkhuvibhanga:parajika" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-bu-vb-ss">
-                        <dfn lang="pli">Saṅghādisesa</dfn>
-                        <span>{{ "bhikkhuvibhanga:sanghadisesa" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-bu-vb-ay">
-                        <dfn lang="pli">Aniyata</dfn>
-                        <span>{{ "bhikkhuvibhanga:aniyata" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-bu-vb-np">
-                        <dfn lang="pli">Nissaggiya Pācittiya</dfn>
-                        <span>
-                          {{- "bhikkhuvibhanga:nissaggiyaPacittiya" | t -}}
+                  <span>{{ "vinayapitaka:suttavibhanga" | t }}</span>
+                </span>
+              </summary>
+              <ul role="list">
+                <li>
+                  <details>
+                    <summary>
+                      <span class="tipitaka-label">
+                        <a href="/pli-tv-bu-vb">
+                          <dfn lang="pli">Bhikkhuvibhaṅga</dfn>
+                        </a>
+                        <span>{{ "suttavibhanga:bhikkhuvibhanga" | t }}</span>
+                      </span>
+                    </summary>
+                    <ul role="list">
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-bu-vb-pj">
+                            <dfn lang="pli">Pārājika</dfn>
+                          </a>
+                          <span>{{ "bhikkhuvibhanga:parajika" | t }}</span>
                         </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-bu-vb-pc">
-                        <dfn lang="pli">Pācittiya</dfn>
-                        <span>{{ "bhikkhuvibhanga:pacittiya" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-bu-vb-pd">
-                        <dfn lang="pli">Pāṭidesanīya</dfn>
-                        <span>{{ "bhikkhuvibhanga:patidesaniya" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-bu-vb-sk">
-                        <dfn lang="pli">Sekhiya</dfn>
-                        <span>{{ "bhikkhuvibhanga:sekhiya" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-bu-vb-as">
-                        <dfn lang="pli">Adhikaraṇasamatha</dfn>
-                        <span>
-                          {{- "bhikkhuvibhanga:adhikaranasamatha" | t -}}
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-bu-vb-ss">
+                            <dfn lang="pli">Saṅghādisesa</dfn>
+                          </a>
+                          <span>{{ "bhikkhuvibhanga:sanghadisesa" | t }}</span>
                         </span>
-                      </a>
-                    </li>
-                  </ul>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-bu-vb-ay">
+                            <dfn lang="pli">Aniyata</dfn>
+                          </a>
+                          <span>{{ "bhikkhuvibhanga:aniyata" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-bu-vb-np">
+                            <dfn lang="pli">Nissaggiya Pācittiya</dfn>
+                          </a>
+                          <span>
+                            {{- "bhikkhuvibhanga:nissaggiyaPacittiya" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-bu-vb-pc">
+                            <dfn lang="pli">Pācittiya</dfn>
+                          </a>
+                          <span>{{ "bhikkhuvibhanga:pacittiya" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-bu-vb-pd">
+                            <dfn lang="pli">Pāṭidesanīya</dfn>
+                          </a>
+                          <span>{{ "bhikkhuvibhanga:patidesaniya" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-bu-vb-sk">
+                            <dfn lang="pli">Sekhiya</dfn>
+                          </a>
+                          <span>{{ "bhikkhuvibhanga:sekhiya" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-bu-vb-as">
+                            <dfn lang="pli">Adhikaraṇasamatha</dfn>
+                          </a>
+                          <span>
+                            {{- "bhikkhuvibhanga:adhikaranasamatha" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                    </ul>
+                  </details>
                 </li>
                 <li>
-                  <a href="/pli-tv-bi-vb">
-                    <dfn lang="pli">Bhikkhunīvibhaṅga</dfn>
-                    <span>{{ "suttavibhanga:bhikkhunivibhanga" | t }}</span>
-                  </a>
-                  <ul class="vertical fifth">
-                    <li>
-                      <a href="/pli-tv-bi-vb-pj">
-                        <dfn lang="pli">Pārājika</dfn>
-                        <span>{{ "bhikkhunivibhanga:parajika" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-bi-vb-ss">
-                        <dfn lang="pli">Saṅghādisesa</dfn>
-                        <span>{{ "bhikkhunivibhanga:sanghadisesa" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-bi-vb-np">
-                        <dfn lang="pli">Nissaggiya Pācittiya</dfn>
-                        <span>
-                          {{- "bhikkhunivibhanga:nissaggiyaPacittiya" | t -}}
+                  <details>
+                    <summary>
+                      <span class="tipitaka-label">
+                        <a href="/pli-tv-bi-vb">
+                          <dfn lang="pli">Bhikkhunīvibhaṅga</dfn>
+                        </a>
+                        <span>{{ "suttavibhanga:bhikkhunivibhanga" | t }}</span>
+                      </span>
+                    </summary>
+                    <ul role="list">
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-bi-vb-pj">
+                            <dfn lang="pli">Pārājika</dfn>
+                          </a>
+                          <span>{{ "bhikkhunivibhanga:parajika" | t }}</span>
                         </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-bi-vb-pc">
-                        <dfn lang="pli">Pācittiya</dfn>
-                        <span>{{ "bhikkhunivibhanga:pacittiya" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-bi-vb-pd">
-                        <dfn lang="pli">Pāṭidesanīya</dfn>
-                        <span>{{ "bhikkhunivibhanga:patidesaniya" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-bi-vb-sk">
-                        <dfn lang="pli">Sekhiya</dfn>
-                        <span>{{ "bhikkhunivibhanga:sekhiya" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-bi-vb-as">
-                        <dfn lang="pli">Adhikaraṇasamatha</dfn>
-                        <span>
-                          {{- "bhikkhunivibhanga:adhikaranasamatha" | t -}}
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-bi-vb-ss">
+                            <dfn lang="pli">Saṅghādisesa</dfn>
+                          </a>
+                          <span>
+                            {{- "bhikkhunivibhanga:sanghadisesa" | t -}}
+                          </span>
                         </span>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-              </ul>
-            </li>
-            <li>
-              <a href="/pli-tv-kd">
-                <dfn lang="pli">Khandhaka</dfn>
-                <span>{{ "vinayapitaka:khandhaka" | t }}</span>
-              </a>
-              <ul class="vertical fourth">
-                <li>
-                  <a href="/">
-                    <dfn lang="pli">Mahāvagga</dfn>
-                    <span>{{ "vinayapitaka:mahavagga" | t }}</span>
-                  </a>
-                  <ul class="vertical fifth">
-                    <li>
-                      <a href="/pli-tv-kd1">
-                        <dfn lang="pli">Mahākhandhaka</dfn>
-                        <span>{{ "mahavagga:mahakhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd2">
-                        <dfn lang="pli">Uposathak­khandhaka</dfn>
-                        <span>{{ "mahavagga:uposathakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd3">
-                        <dfn lang="pli">Vassūpanāyikak­khandhaka</dfn>
-                        <span>
-                          {{- "mahavagga:vassupanayikakkhandhaka" | t -}}
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-bi-vb-np">
+                            <dfn lang="pli">Nissaggiya Pācittiya</dfn>
+                          </a>
+                          <span>
+                            {{- "bhikkhunivibhanga:nissaggiyaPacittiya" | t -}}
+                          </span>
                         </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd4">
-                        <dfn lang="pli">Pavāraṇāk­khandhaka</dfn>
-                        <span>{{ "mahavagga:pavaranakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd5">
-                        <dfn lang="pli">Cammak­khandhaka</dfn>
-                        <span>{{ "mahavagga:cammakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd6">
-                        <dfn lang="pli">Bhesajjak­khandhaka</dfn>
-                        <span>{{ "mahavagga:bhesajjakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd7">
-                        <dfn lang="pli">Kathinak­khandhaka</dfn>
-                        <span>{{ "mahavagga:kathinakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd8">
-                        <dfn lang="pli">Cīvarak­khandhaka</dfn>
-                        <span>{{ "mahavagga:civarakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd9">
-                        <dfn lang="pli">Campeyyak­khandhaka</dfn>
-                        <span>{{ "mahavagga:campeyyakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd10">
-                        <dfn lang="pli">Kosambakak­khandhaka</dfn>
-                        <span>{{ "mahavagga:kosambakakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  <a href="/">
-                    <dfn lang="pli">Cūḷavagga</dfn>
-                    <span>{{ "vinayapitaka:culavagga" | t }}</span>
-                  </a>
-                  <ul class="vertical fifth">
-                    <li>
-                      <a href="/pli-tv-kd11">
-                        <dfn lang="pli">Kammak­khandhaka</dfn>
-                        <span>{{ "culavagga:kammakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd12">
-                        <dfn lang="pli">Pārivāsikak­khandhaka</dfn>
-                        <span>{{ "culavagga:parivasikakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd13">
-                        <dfn lang="pli">Samuccayak­khandhaka</dfn>
-                        <span>{{ "culavagga:samuccayakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd14">
-                        <dfn lang="pli">Samathak­khandhaka</dfn>
-                        <span>{{ "culavagga:samathakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd15">
-                        <dfn lang="pli">Khuddakavatthuk­khandhaka</dfn>
-                        <span>
-                          {{- "culavagga:khuddakavatthukkhandhaka" | t -}}
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-bi-vb-pc">
+                            <dfn lang="pli">Pācittiya</dfn>
+                          </a>
+                          <span>{{ "bhikkhunivibhanga:pacittiya" | t }}</span>
                         </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd16">
-                        <dfn lang="pli">Senāsanak­khandhaka</dfn>
-                        <span>{{ "culavagga:senasanakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd17">
-                        <dfn lang="pli">Saṁghabhedakak­khandhaka</dfn>
-                        <span>
-                          {{- "culavagga:samghabhedakakkhandhaka" | t -}}
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-bi-vb-pd">
+                            <dfn lang="pli">Pāṭidesanīya</dfn>
+                          </a>
+                          <span>
+                            {{- "bhikkhunivibhanga:patidesaniya" | t -}}
+                          </span>
                         </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd18">
-                        <dfn lang="pli">Vattak­khandhaka</dfn>
-                        <span>{{ "culavagga:vattakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd19">
-                        <dfn lang="pli">Pātimokkhaṭṭhapanak­khandhaka</dfn>
-                        <span>
-                          {{- "culavagga:patimokkhatthapanakkhandhaka" | t -}}
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-bi-vb-sk">
+                            <dfn lang="pli">Sekhiya</dfn>
+                          </a>
+                          <span>{{ "bhikkhunivibhanga:sekhiya" | t }}</span>
                         </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd20">
-                        <dfn lang="pli">Bhikkhunik­khandhaka</dfn>
-                        <span>{{ "culavagga:bhikkhunikkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd21">
-                        <dfn lang="pli">Pañcasatikak­khandhaka</dfn>
-                        <span>{{ "culavagga:pancasatikakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/pli-tv-kd22">
-                        <dfn lang="pli">Sattasatikak­khandhaka</dfn>
-                        <span>{{ "culavagga:sattasatikakkhandhaka" | t }}</span>
-                      </a>
-                    </li>
-                  </ul>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-bi-vb-as">
+                            <dfn lang="pli">Adhikaraṇasamatha</dfn>
+                          </a>
+                          <span>
+                            {{- "bhikkhunivibhanga:adhikaranasamatha" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                    </ul>
+                  </details>
                 </li>
               </ul>
-            </li>
-            <li>
-              <a href="/pli-tv-pvr">
-                <dfn lang="pli">Parivāra</dfn>
-                <span>{{ "vinayapitaka:parivara" | t }}</span>
-              </a>
-              <ul class="vertical fourth">
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary>
+                <span class="tipitaka-label">
+                  <a href="/pli-tv-kd">
+                    <dfn lang="pli">Khandhaka</dfn>
+                  </a>
+                  <span>{{ "vinayapitaka:khandhaka" | t }}</span>
+                </span>
+              </summary>
+              <ul role="list">
                 <li>
-                  <a href="/pli-tv-pvr1.1">
-                    <dfn lang="pli">Katthapaññattivāra</dfn>
+                  <details>
+                    <summary>
+                      <span class="tipitaka-label">
+                        <a href="/">
+                          <dfn lang="pli">Mahāvagga</dfn>
+                        </a>
+                        <span>{{ "vinayapitaka:mahavagga" | t }}</span>
+                      </span>
+                    </summary>
+                    <ul role="list">
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd1">
+                            <dfn lang="pli">Mahākhandhaka</dfn>
+                          </a>
+                          <span>{{ "mahavagga:mahakhandhaka" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd2">
+                            <dfn lang="pli">Uposathak­khandhaka</dfn>
+                          </a>
+                          <span>{{ "mahavagga:uposathakkhandhaka" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd3">
+                            <dfn lang="pli">Vassūpanāyikak­khandhaka</dfn>
+                          </a>
+                          <span>
+                            {{- "mahavagga:vassupanayikakkhandhaka" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd4">
+                            <dfn lang="pli">Pavāraṇāk­khandhaka</dfn>
+                          </a>
+                          <span>{{ "mahavagga:pavaranakkhandhaka" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd5">
+                            <dfn lang="pli">Cammak­khandhaka</dfn>
+                          </a>
+                          <span>{{ "mahavagga:cammakkhandhaka" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd6">
+                            <dfn lang="pli">Bhesajjak­khandhaka</dfn>
+                          </a>
+                          <span>{{ "mahavagga:bhesajjakkhandhaka" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd7">
+                            <dfn lang="pli">Kathinak­khandhaka</dfn>
+                          </a>
+                          <span>{{ "mahavagga:kathinakkhandhaka" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd8">
+                            <dfn lang="pli">Cīvarak­khandhaka</dfn>
+                          </a>
+                          <span>{{ "mahavagga:civarakkhandhaka" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd9">
+                            <dfn lang="pli">Campeyyak­khandhaka</dfn>
+                          </a>
+                          <span>{{ "mahavagga:campeyyakkhandhaka" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd10">
+                            <dfn lang="pli">Kosambakak­khandhaka</dfn>
+                          </a>
+                          <span>{{ "mahavagga:kosambakakkhandhaka" | t }}</span>
+                        </span>
+                      </li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary>
+                      <span class="tipitaka-label">
+                        <a href="/">
+                          <dfn lang="pli">Cūḷavagga</dfn>
+                        </a>
+                        <span>{{ "vinayapitaka:culavagga" | t }}</span>
+                      </span>
+                    </summary>
+                    <ul role="list">
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd11">
+                            <dfn lang="pli">Kammak­khandhaka</dfn>
+                          </a>
+                          <span>{{ "culavagga:kammakkhandhaka" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd12">
+                            <dfn lang="pli">Pārivāsikak­khandhaka</dfn>
+                          </a>
+                          <span>
+                            {{- "culavagga:parivasikakkhandhaka" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd13">
+                            <dfn lang="pli">Samuccayak­khandhaka</dfn>
+                          </a>
+                          <span>{{ "culavagga:samuccayakkhandhaka" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd14">
+                            <dfn lang="pli">Samathak­khandhaka</dfn>
+                          </a>
+                          <span>{{ "culavagga:samathakkhandhaka" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd15">
+                            <dfn lang="pli">Khuddakavatthuk­khandhaka</dfn>
+                          </a>
+                          <span>
+                            {{- "culavagga:khuddakavatthukkhandhaka" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd16">
+                            <dfn lang="pli">Senāsanak­khandhaka</dfn>
+                          </a>
+                          <span>{{ "culavagga:senasanakkhandhaka" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd17">
+                            <dfn lang="pli">Saṁghabhedakak­khandhaka</dfn>
+                          </a>
+                          <span>
+                            {{- "culavagga:samghabhedakakkhandhaka" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd18">
+                            <dfn lang="pli">Vattak­khandhaka</dfn>
+                          </a>
+                          <span>{{ "culavagga:vattakkhandhaka" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd19">
+                            <dfn lang="pli">Pātimokkhaṭṭhapanak­khandhaka</dfn>
+                          </a>
+                          <span>
+                            {{- "culavagga:patimokkhatthapanakkhandhaka" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd20">
+                            <dfn lang="pli">Bhikkhunik­khandhaka</dfn>
+                          </a>
+                          <span>{{ "culavagga:bhikkhunikkhandhaka" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd21">
+                            <dfn lang="pli">Pañcasatikak­khandhaka</dfn>
+                          </a>
+                          <span>
+                            {{- "culavagga:pancasatikakkhandhaka" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/pli-tv-kd22">
+                            <dfn lang="pli">Sattasatikak­khandhaka</dfn>
+                          </a>
+                          <span>
+                            {{- "culavagga:sattasatikakkhandhaka" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                    </ul>
+                  </details>
+                </li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary>
+                <span class="tipitaka-label">
+                  <a href="/pli-tv-pvr">
+                    <dfn lang="pli">Parivāra</dfn>
+                  </a>
+                  <span>{{ "vinayapitaka:parivara" | t }}</span>
+                </span>
+              </summary>
+              <ul role="list">
+                <li>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr1.1">
+                      <dfn lang="pli">Katthapaññattivāra</dfn>
+                    </a>
                     <span>{{ "parivara:katthapannattivara1" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr2.1">
-                    <dfn lang="pli">Katthapaññattivāra</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr2.1">
+                      <dfn lang="pli">Katthapaññattivāra</dfn>
+                    </a>
                     <span>{{ "parivara:katthapannattivara2" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr3">
-                    <dfn lang="pli">Samuṭṭhānasīsasaṅkhepa</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr3">
+                      <dfn lang="pli">Samuṭṭhānasīsasaṅkhepa</dfn>
+                    </a>
                     <span>{{ "parivara:samutthanasisasankhepa" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr4">
-                    <dfn lang="pli">Antarapeyyāla</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr4">
+                      <dfn lang="pli">Antarapeyyāla</dfn>
+                    </a>
                     <span>{{ "parivara:antarapeyyala" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr5">
-                    <dfn lang="pli">Samathabheda</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr5">
+                      <dfn lang="pli">Samathabheda</dfn>
+                    </a>
                     <span>{{ "parivara:samathabheda" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr6">
-                    <dfn lang="pli">Khandhakapucchāvāra</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr6">
+                      <dfn lang="pli">Khandhakapucchāvāra</dfn>
+                    </a>
                     <span>{{ "parivara:khandhakapucchavara" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr7">
-                    <dfn lang="pli">Ekuttarikanaya</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr7">
+                      <dfn lang="pli">Ekuttarikanaya</dfn>
+                    </a>
                     <span>{{ "parivara:ekuttarikanaya" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr8">
-                    <dfn lang="pli">Uposathādipucchāvissajjanā</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr8">
+                      <dfn lang="pli">Uposathādipucchāvissajjanā</dfn>
+                    </a>
                     <span>{{ "parivara:uposathadipucchavissajjana" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr9">
-                    <dfn lang="pli">Atthavasapakaraṇa</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr9">
+                      <dfn lang="pli">Atthavasapakaraṇa</dfn>
+                    </a>
                     <span>{{ "parivara:atthavasapakarana" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr10">
-                    <dfn lang="pli">Gāthāsaṅgaṇika</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr10">
+                      <dfn lang="pli">Gāthāsaṅgaṇika</dfn>
+                    </a>
                     <span>{{ "parivara:gathasanganika" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr11">
-                    <dfn lang="pli">Adhikaraṇabheda</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr11">
+                      <dfn lang="pli">Adhikaraṇabheda</dfn>
+                    </a>
                     <span>{{ "parivara:adhikaranabheda" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr12">
-                    <dfn lang="pli">Codanādipucchāvissajjanā</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr12">
+                      <dfn lang="pli">Codanādipucchāvissajjanā</dfn>
+                    </a>
                     <span>{{ "parivara:codanadipucchavissajjana" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr13">
-                    <dfn lang="pli">Codanākaṇḍa</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr13">
+                      <dfn lang="pli">Codanākaṇḍa</dfn>
+                    </a>
                     <span>{{ "parivara:codanakanda" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr14">
-                    <dfn lang="pli">Anuvijjakassapaṭipatti</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr14">
+                      <dfn lang="pli">Anuvijjakassapaṭipatti</dfn>
+                    </a>
                     <span>{{ "parivara:anuvijjakassapatipatti" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr15">
-                    <dfn lang="pli">Mahāsaṅgāma</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr15">
+                      <dfn lang="pli">Mahāsaṅgāma</dfn>
+                    </a>
                     <span>{{ "parivara:mahasangama" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr16">
-                    <dfn lang="pli">Kathinabheda</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr16">
+                      <dfn lang="pli">Kathinabheda</dfn>
+                    </a>
                     <span>{{ "parivara:kathinabheda" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr17">
-                    <dfn lang="pli">Upālipañcaka</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr17">
+                      <dfn lang="pli">Upālipañcaka</dfn>
+                    </a>
                     <span>{{ "parivara:upalipajncaka" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr18">
-                    <dfn lang="pli">Atthāpattisamuṭṭhāna</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr18">
+                      <dfn lang="pli">Atthāpattisamuṭṭhāna</dfn>
+                    </a>
                     <span>{{ "parivara:atthapattisamutthana" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr19">
-                    <dfn lang="pli">Dutiyagāthāsaṅgaṇika</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr19">
+                      <dfn lang="pli">Dutiyagāthāsaṅgaṇika</dfn>
+                    </a>
                     <span>{{ "parivara:dutiyagathasanganik" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr20">
-                    <dfn lang="pli">Sedamocanagāthā</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr20">
+                      <dfn lang="pli">Sedamocanagāthā</dfn>
+                    </a>
                     <span>{{ "parivara:sedamocanagatha" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pli-tv-pvr21">
-                    <dfn lang="pli">Pañcavagga</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pli-tv-pvr21">
+                      <dfn lang="pli">Pañcavagga</dfn>
+                    </a>
                     <span>{{ "parivara:pajncavagga" | t }}</span>
-                  </a>
+                  </span>
                 </li>
               </ul>
-            </li>
-          </ul>
-        </li>
-        <li>
-          <a href="/sutta">
-            <dfn lang="pli">Suttapiṭaka</dfn>
+            </details>
+          </li>
+        </ul>
+      </details>
+    </li>
+    <li>
+      <details>
+        <summary>
+          <span class="tipitaka-label">
+            <a href="/sutta">
+              <dfn lang="pli">Suttapiṭaka</dfn>
+            </a>
             <span>{{ "palitipitaka:suttapitaka" | t }}</span>
-          </a>
-          <ul class="horizontal third">
-            <li>
-              <a href="/dn">
-                <dfn lang="pli">Dīghanikāya</dfn>
-                <span>{{ "suttapitaka:dighanikaya" | t }}</span>
-              </a>
-              <ul class="vertical fourth">
+          </span>
+        </summary>
+        <ul role="list">
+          <li>
+            <details>
+              <summary>
+                <span class="tipitaka-label">
+                  <a href="/dn">
+                    <dfn lang="pli">Dīghanikāya</dfn>
+                  </a>
+                  <span>{{ "suttapitaka:dighanikaya" | t }}</span>
+                </span>
+              </summary>
+              <ul role="list">
                 <li>
-                  <a href="/dn-silakkhandhavagga">
-                    <dfn lang="pli">Sīlakkhandhavagga</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/dn-silakkhandhavagga">
+                      <dfn lang="pli">Sīlakkhandhavagga</dfn>
+                    </a>
                     <span>{{ "dighanikaya:silakkhandhavagga" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/dn-mahavagga">
-                    <dfn lang="pli">Mahāvagga</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/dn-mahavagga">
+                      <dfn lang="pli">Mahāvagga</dfn>
+                    </a>
                     <span>{{ "dighanikaya:mahavagga" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/dn-pathikavagga">
-                    <dfn lang="pli">Pāthikavagga</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/dn-pathikavagga">
+                      <dfn lang="pli">Pāthikavagga</dfn>
+                    </a>
                     <span>{{ "dighanikaya:pathikavagga" | t }}</span>
-                  </a>
+                  </span>
                 </li>
               </ul>
-            </li>
-            <li>
-              <a href="/mn">
-                <dfn lang="pli">Majjhimanikāya</dfn>
-                <span>{{ "suttapitaka:majjhimanikaya" | t }}</span>
-              </a>
-              <ul class="vertical fourth">
-                <li>
-                  <a href="/mn-mulapannasa">
-                    <dfn lang="pli">Mūlapaṇṇāsa</dfn>
-                    <span>{{ "majjhimanikaya:mulapannasa" | t }}</span>
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary>
+                <span class="tipitaka-label">
+                  <a href="/mn">
+                    <dfn lang="pli">Majjhimanikāya</dfn>
                   </a>
-                  <ul class="vertical fifth">
-                    <li>
-                      <a href="/mn-mulapariyayavagga">
-                        <dfn lang="pli">Mūlapariyāyavagga</dfn>
-                        <span>{{ "mulapannasa:mulapariyayavagga" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/mn-sihanadavagga">
-                        <dfn lang="pli">Sīhanādavagga</dfn>
-                        <span>{{ "mulapannasa:sihanadavagga" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/mn-opammavagga">
-                        <dfn lang="pli">Opammavagga</dfn>
-                        <span>{{ "mulapannasa:opammavagga" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/mn-mahayamakavagga">
-                        <dfn lang="pli">Mahāyamakavagga</dfn>
-                        <span>{{ "mulapannasa:mahayamakavagg" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/mn-culayamakavagga">
-                        <dfn lang="pli">Cūḷayamakavagga</dfn>
-                        <span>{{ "mulapannasa:culayamakavagga" | t }}</span>
-                      </a>
-                    </li>
-                  </ul>
+                  <span>{{ "suttapitaka:majjhimanikaya" | t }}</span>
+                </span>
+              </summary>
+              <ul role="list">
+                <li>
+                  <details>
+                    <summary>
+                      <span class="tipitaka-label">
+                        <a href="/mn-mulapannasa">
+                          <dfn lang="pli">Mūlapaṇṇāsa</dfn>
+                        </a>
+                        <span>{{ "majjhimanikaya:mulapannasa" | t }}</span>
+                      </span>
+                    </summary>
+                    <ul role="list">
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/mn-mulapariyayavagga">
+                            <dfn lang="pli">Mūlapariyāyavagga</dfn>
+                          </a>
+                          <span>{{ "mulapannasa:mulapariyayavagga" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/mn-sihanadavagga">
+                            <dfn lang="pli">Sīhanādavagga</dfn>
+                          </a>
+                          <span>{{ "mulapannasa:sihanadavagga" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/mn-opammavagga">
+                            <dfn lang="pli">Opammavagga</dfn>
+                          </a>
+                          <span>{{ "mulapannasa:opammavagga" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/mn-mahayamakavagga">
+                            <dfn lang="pli">Mahāyamakavagga</dfn>
+                          </a>
+                          <span>{{ "mulapannasa:mahayamakavagg" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/mn-culayamakavagga">
+                            <dfn lang="pli">Cūḷayamakavagga</dfn>
+                          </a>
+                          <span>{{ "mulapannasa:culayamakavagga" | t }}</span>
+                        </span>
+                      </li>
+                    </ul>
+                  </details>
                 </li>
                 <li>
-                  <a href="/mn-majjhimapannasa">
-                    <dfn lang="pli">Majjhimapaṇṇāsa</dfn>
-                    <span>{{ "majjhimanikaya:majjhimapannasa" | t }}</span>
-                  </a>
-                  <ul class="vertical fifth">
-                    <li>
-                      <a href="/mn-gahapativagga">
-                        <dfn lang="pli">Gahapativagga</dfn>
-                        <span>{{ "majjhimapannasa:gahapativagga" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/mn-bhikkhuvagga">
-                        <dfn lang="pli">Bhikkhuvagga</dfn>
-                        <span>{{ "majjhimapannasa:bhikkhuvagga" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/mn-paribbajakavagga">
-                        <dfn lang="pli">Paribbājakavagga</dfn>
-                        <span>
-                          {{- "majjhimapannasa:paribbajakavagga" | t -}}
+                  <details>
+                    <summary>
+                      <span class="tipitaka-label">
+                        <a href="/mn-majjhimapannasa">
+                          <dfn lang="pli">Majjhimapaṇṇāsa</dfn>
+                        </a>
+                        <span>{{ "majjhimanikaya:majjhimapannasa" | t }}</span>
+                      </span>
+                    </summary>
+                    <ul role="list">
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/mn-gahapativagga">
+                            <dfn lang="pli">Gahapativagga</dfn>
+                          </a>
+                          <span>{{ "majjhimapannasa:gahapativagga" | t }}</span>
                         </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/mn-rajavagga">
-                        <dfn lang="pli">Rājavagga</dfn>
-                        <span>{{ "majjhimapannasa:rajavagga" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/mn-brahmanavagga">
-                        <dfn lang="pli">Brāhmaṇavagga</dfn>
-                        <span>{{ "majjhimapannasa:brahmanavagga" | t }}</span>
-                      </a>
-                    </li>
-                  </ul>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/mn-bhikkhuvagga">
+                            <dfn lang="pli">Bhikkhuvagga</dfn>
+                          </a>
+                          <span>{{ "majjhimapannasa:bhikkhuvagga" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/mn-paribbajakavagga">
+                            <dfn lang="pli">Paribbājakavagga</dfn>
+                          </a>
+                          <span>
+                            {{- "majjhimapannasa:paribbajakavagga" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/mn-rajavagga">
+                            <dfn lang="pli">Rājavagga</dfn>
+                          </a>
+                          <span>{{ "majjhimapannasa:rajavagga" | t }}</span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/mn-brahmanavagga">
+                            <dfn lang="pli">Brāhmaṇavagga</dfn>
+                          </a>
+                          <span>{{ "majjhimapannasa:brahmanavagga" | t }}</span>
+                        </span>
+                      </li>
+                    </ul>
+                  </details>
                 </li>
                 <li>
-                  <a href="/mn-uparipannasa">
-                    <dfn lang="pli">Uparipaṇṇāsa</dfn>
-                    <span>{{ "majjhimanikaya:uparipannasa" | t }}</span>
-                  </a>
-                  <ul class="vertical fifth">
-                    <li>
-                      <a href="/mn-devadahavagga">
-                        <dfn lang="pli">Devadahavagga</dfn>
-                        <span>{{ "uparipannasa:devadahavagga" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/mn-anupadavagga">
-                        <dfn lang="pli">Anupadavagga</dfn>
-                        <span>{{ "uparipannasa:anupadavagga" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/mn-sunnatavagga">
-                        <dfn lang="pli">Suññatavagga</dfn>
-                        <span>{{ "uparipannasa:sujnjnatavagga" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/mn-vibhangavagga">
-                        <dfn lang="pli">Vibhaṅgavagga</dfn>
-                        <span>{{ "uparipannasa:vibhangavagga" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/mn-salayatanavagga">
-                        <dfn lang="pli">Saḷāyatanavagga</dfn>
-                        <span>{{ "uparipannasa:salayatanavagga" | t }}</span>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-              </ul>
-            </li>
-            <li>
-              <a href="/pitaka/sutta/linked/sn">
-                <dfn lang="pli">Saṁyuttanikāya</dfn>
-                <span>{{ "suttapitaka:samyuttanikaya" | t }}</span>
-              </a>
-              <ul class="vertical fourth">
-                <li>
-                  <a href="/sn-sagathavaggasamyutta">
-                    <dfn lang="pli">Sagāthāvaggasaṁyutta</dfn>
-                    <span>{{ "samyuttanikaya:sagathavaggasamyutta" | t }}</span>
-                  </a>
-                  <ul class="vertical fifth samyutta">
-                    <li>
-                      <a href="/sn1">
-                        <dfn lang="pli">Devatāsaṁyutta</dfn>
-                        <span>
-                          {{- "sagathavaggasamyutta:devatasamyutta" | t -}}
+                  <details>
+                    <summary>
+                      <span class="tipitaka-label">
+                        <a href="/mn-uparipannasa">
+                          <dfn lang="pli">Uparipaṇṇāsa</dfn>
+                        </a>
+                        <span>{{ "majjhimanikaya:uparipannasa" | t }}</span>
+                      </span>
+                    </summary>
+                    <ul role="list">
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/mn-devadahavagga">
+                            <dfn lang="pli">Devadahavagga</dfn>
+                          </a>
+                          <span>{{ "uparipannasa:devadahavagga" | t }}</span>
                         </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn2">
-                        <dfn lang="pli">Devaputtasaṁyutta</dfn>
-                        <span>
-                          {{- "sagathavaggasamyutta:devaputtasamyutta" | t -}}
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/mn-anupadavagga">
+                            <dfn lang="pli">Anupadavagga</dfn>
+                          </a>
+                          <span>{{ "uparipannasa:anupadavagga" | t }}</span>
                         </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn3">
-                        <dfn lang="pli">Kosalasaṁyutta</dfn>
-                        <span>
-                          {{- "sagathavaggasamyutta:kosalasamyutta" | t -}}
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/mn-sunnatavagga">
+                            <dfn lang="pli">Suññatavagga</dfn>
+                          </a>
+                          <span>{{ "uparipannasa:sujnjnatavagga" | t }}</span>
                         </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn4">
-                        <dfn lang="pli">Mārasaṁyutta</dfn>
-                        <span>
-                          {{- "sagathavaggasamyutta:marasamyutta" | t -}}
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/mn-vibhangavagga">
+                            <dfn lang="pli">Vibhaṅgavagga</dfn>
+                          </a>
+                          <span>{{ "uparipannasa:vibhangavagga" | t }}</span>
                         </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn5">
-                        <dfn lang="pli">Bhikkhunīsaṁyutta</dfn>
-                        <span>
-                          {{- "sagathavaggasamyutta:bhikkhunisamyutta" | t -}}
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/mn-salayatanavagga">
+                            <dfn lang="pli">Saḷāyatanavagga</dfn>
+                          </a>
+                          <span>{{ "uparipannasa:salayatanavagga" | t }}</span>
                         </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn6">
-                        <dfn lang="pli">Brahmasaṁyutta</dfn>
-                        <span>
-                          {{- "sagathavaggasamyutta:brahmasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn7">
-                        <dfn lang="pli">Brāhmaṇasaṁyutta</dfn>
-                        <span>
-                          {{- "sagathavaggasamyutta:brahmanasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn8">
-                        <dfn lang="pli">Vaṅgīsasaṁyutta</dfn>
-                        <span>
-                          {{- "sagathavaggasamyutta:vangisasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn9">
-                        <dfn lang="pli">Vanasaṁyutta</dfn>
-                        <span>
-                          {{- "sagathavaggasamyutta:vanasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn10">
-                        <dfn lang="pli">Yakkhasaṁyutta</dfn>
-                        <span>
-                          {{- "sagathavaggasamyutta:yakkhasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn11">
-                        <dfn lang="pli">Sakkasaṁyutta</dfn>
-                        <span>
-                          {{- "sagathavaggasamyutta:sakkasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  <a href="/sn-nidanavaggasamyutta">
-                    <dfn lang="pli">Nidānavaggasaṁyutta</dfn>
-                    <span>{{ "samyuttanikaya:nidanavaggasamyutta" | t }}</span>
-                  </a>
-                  <ul class="vertical fifth samyutta">
-                    <li>
-                      <a href="/sn12">
-                        <dfn lang="pli">Nidānasaṁyutta</dfn>
-                        <span>
-                          {{- "nidanavaggasamyutta:nidanasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn13">
-                        <dfn lang="pli">Abhisamayasaṁyutta</dfn>
-                        <span>
-                          {{- "nidanavaggasamyutta:abhisamayasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn14">
-                        <dfn lang="pli">Dhātusaṁyutta</dfn>
-                        <span>
-                          {{- "nidanavaggasamyutta:dhatusamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn15">
-                        <dfn lang="pli">Anamataggasaṁyutta</dfn>
-                        <span>
-                          {{- "nidanavaggasamyutta:anamataggasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn16">
-                        <dfn lang="pli">Kassapasaṁyutta</dfn>
-                        <span>
-                          {{- "nidanavaggasamyutta:kassapasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn17">
-                        <dfn lang="pli">Lābhasakkārasaṁyutta</dfn>
-                        <span>
-                          {{- "nidanavaggasamyutta:labhasakkarasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn18">
-                        <dfn lang="pli">Rāhulasaṁyutta</dfn>
-                        <span>
-                          {{- "nidanavaggasamyutta:rahulasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn19">
-                        <dfn lang="pli">Lakkhaṇasaṁyutta</dfn>
-                        <span>
-                          {{- "nidanavaggasamyutta:lakkhanasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn20">
-                        <dfn lang="pli">Opammasaṁyutta</dfn>
-                        <span>
-                          {{- "nidanavaggasamyutta:opammasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn21">
-                        <dfn lang="pli">Bhikkhusaṁyutta</dfn>
-                        <span>
-                          {{- "nidanavaggasamyutta:bhikkhusamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  <a href="/sn-khandhavaggasamyutta">
-                    <dfn lang="pli">Khandhavaggasaṁyutta</dfn>
-                    <span>{{ "samyuttanikaya:khandhavaggasamyutta" | t }}</span>
-                  </a>
-                  <ul class="vertical fifth samyutta">
-                    <li>
-                      <a href="/sn22">
-                        <dfn lang="pli">Khandhasaṁyutta</dfn>
-                        <span>
-                          {{- "khandhavaggasamyutta:khandhasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn23">
-                        <dfn lang="pli">Rādhasaṁyutta</dfn>
-                        <span>
-                          {{- "khandhavaggasamyutta:radhasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn24">
-                        <dfn lang="pli">Diṭṭhisaṁyutta</dfn>
-                        <span>
-                          {{- "khandhavaggasamyutta:ditthisamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn25">
-                        <dfn lang="pli">Okkantasaṁyutta</dfn>
-                        <span>
-                          {{- "khandhavaggasamyutta:okkantasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn26">
-                        <dfn lang="pli">Uppādasaṁyutta</dfn>
-                        <span>
-                          {{- "khandhavaggasamyutta:uppadasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn27">
-                        <dfn lang="pli">Kilesasaṁyutta</dfn>
-                        <span>
-                          {{- "khandhavaggasamyutta:kilesasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn28">
-                        <dfn lang="pli">Sāriputtasaṁyutta</dfn>
-                        <span>
-                          {{- "khandhavaggasamyutta:sariputtasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn29">
-                        <dfn lang="pli">Nāgasaṁyutta</dfn>
-                        <span>
-                          {{- "khandhavaggasamyutta:nagasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn30">
-                        <dfn lang="pli">Supaṇṇasaṁyutta</dfn>
-                        <span>
-                          {{- "khandhavaggasamyutta:supannasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn31">
-                        <dfn lang="pli">Gandhabbakāyasaṁyutta</dfn>
-                        <span>
-                          {{-
-                            "khandhavaggasamyutta:gandhabbakayasamyutta"
-                            | t
-                          -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn32">
-                        <dfn lang="pli">Valāhakasaṁyutta</dfn>
-                        <span>
-                          {{- "khandhavaggasamyutta:valahakasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn33">
-                        <dfn lang="pli">Vacchagottasaṁyutta</dfn>
-                        <span>
-                          {{- "khandhavaggasamyutta:vacchagottasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn34">
-                        <dfn lang="pli">Jhānasaṁyutta</dfn>
-                        <span>
-                          {{- "khandhavaggasamyutta:jhanasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  <a
-                    href="/sn-salayatanavaggasamyutta"
-                    style="height:5.2rem"
-                  >
-                    <dfn lang="pli">Saḷāyatanavaggasaṁyutta</dfn>
-                    <span>
-                      {{- "samyuttanikaya:salayatanavaggasamyutta" | t -}}
-                    </span>
-                  </a>
-                  <ul class="vertical fifth samyutta">
-                    <li>
-                      <a href="/sn35">
-                        <dfn lang="pli">Saḷāyatanasaṁyutta</dfn>
-                        <span>
-                          {{-
-                            "salayatanavaggasamyutta:salayatanasamyutta"
-                            | t
-                          -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn36">
-                        <dfn lang="pli">Vedanāsaṁyutta</dfn>
-                        <span>
-                          {{- "salayatanavaggasamyutta:vedanasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn37">
-                        <dfn lang="pli">Mātugāmasaṁyutta</dfn>
-                        <span>
-                          {{- "salayatanavaggasamyutta:matugamasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn38">
-                        <dfn lang="pli">Jambukhādakasaṁyutta</dfn>
-                        <span>
-                          {{-
-                            "salayatanavaggasamyutta:jambukhadakasamyutta"
-                            | t
-                          -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn39">
-                        <dfn lang="pli">Sāmaṇḍakasaṁyutta</dfn>
-                        <span>
-                          {{-
-                            "salayatanavaggasamyutta:samandakasamyutta"
-                            | t
-                          -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn40">
-                        <dfn lang="pli">Moggallānasaṁyutta</dfn>
-                        <span>
-                          {{-
-                            "salayatanavaggasamyutta:moggallanasamyutta"
-                            | t
-                          -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn41">
-                        <dfn lang="pli">Cittasaṁyutta</dfn>
-                        <span>
-                          {{- "salayatanavaggasamyutta:cittasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn42">
-                        <dfn lang="pli">Gāmaṇisaṁyutta</dfn>
-                        <span>
-                          {{- "salayatanavaggasamyutta:gamanisamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn43">
-                        <dfn lang="pli">Asaṅkhatasaṁyutta</dfn>
-                        <span>
-                          {{-
-                            "salayatanavaggasamyutta:asankhatasamyutta"
-                            | t
-                          -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn44">
-                        <dfn lang="pli">Abyākatasaṁyutta</dfn>
-                        <span>
-                          {{- "salayatanavaggasamyutta:abyakatasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  <a href="/sn-mahavaggasamyutta">
-                    <dfn lang="pli">Mahāvaggasaṁyutta</dfn>
-                    <span>{{ "samyuttanikaya:mahavaggasamyutta" | t }}</span>
-                  </a>
-                  <ul class="vertical fifth samyutta">
-                    <li>
-                      <a href="/sn45">
-                        <dfn lang="pli">Maggasaṁyutta</dfn>
-                        <span>{{ "mahavaggasamyutta:maggasamyutta" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn46">
-                        <dfn lang="pli">Bojjhaṅgasaṁyutta</dfn>
-                        <span>
-                          {{- "mahavaggasamyutta:bojjhangasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn47">
-                        <dfn lang="pli">Satipaṭṭhānasaṁyutta</dfn>
-                        <span>
-                          {{- "mahavaggasamyutta:satipatthanasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn48">
-                        <dfn lang="pli">Indriyasaṁyutta</dfn>
-                        <span>
-                          {{- "mahavaggasamyutta:indriyasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn49">
-                        <dfn lang="pli">Sammappadhānasaṁyutta</dfn>
-                        <span>
-                          {{- "mahavaggasamyutta:sammappadhanasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn50">
-                        <dfn lang="pli">Balasaṁyutta</dfn>
-                        <span>{{ "mahavaggasamyutta:balasamyutta" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn51">
-                        <dfn lang="pli">Iddhipādasaṁyutta</dfn>
-                        <span>
-                          {{- "mahavaggasamyutta:iddhipadasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn52">
-                        <dfn lang="pli">Anuruddhasaṁyutta</dfn>
-                        <span>
-                          {{- "mahavaggasamyutta:anuruddhasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn53">
-                        <dfn lang="pli">Jhānasaṁyutta</dfn>
-                        <span>{{ "mahavaggasamyutta:jhanasamyutta" | t }}</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn54">
-                        <dfn lang="pli">Ānāpānasaṁyutta</dfn>
-                        <span>
-                          {{- "mahavaggasamyutta:anapanasamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn55">
-                        <dfn lang="pli">Sotāpattisaṁyutta</dfn>
-                        <span>
-                          {{- "mahavaggasamyutta:sotapattisamyutta" | t -}}
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/sn56">
-                        <dfn lang="pli">Saccasaṁyutta</dfn>
-                        <span>{{ "mahavaggasamyutta:saccasamyutta" | t }}</span>
-                      </a>
-                    </li>
-                  </ul>
+                      </li>
+                    </ul>
+                  </details>
                 </li>
               </ul>
-            </li>
-            <li>
-              <a href="/pitaka/sutta/numbered/an">
-                <dfn lang="pli">Aṅguttaranikāya</dfn>
-                <span>{{ "suttapitaka:anguttaranikaya" | t }}</span>
-              </a>
-              <ul class="vertical fourth">
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary>
+                <span class="tipitaka-label">
+                  <a href="/pitaka/sutta/linked/sn">
+                    <dfn lang="pli">Saṁyuttanikāya</dfn>
+                  </a>
+                  <span>{{ "suttapitaka:samyuttanikaya" | t }}</span>
+                </span>
+              </summary>
+              <ul role="list">
                 <li>
-                  <a href="/an1">
-                    <dfn lang="pli">Ekakanipāta</dfn>
+                  <details>
+                    <summary>
+                      <span class="tipitaka-label">
+                        <a href="/sn-sagathavaggasamyutta">
+                          <dfn lang="pli">Sagāthāvaggasaṁyutta</dfn>
+                        </a>
+                        <span>
+                          {{- "samyuttanikaya:sagathavaggasamyutta" | t -}}
+                        </span>
+                      </span>
+                    </summary>
+                    <ul role="list">
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn1">
+                            <dfn lang="pli">Devatāsaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "sagathavaggasamyutta:devatasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn2">
+                            <dfn lang="pli">Devaputtasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "sagathavaggasamyutta:devaputtasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn3">
+                            <dfn lang="pli">Kosalasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "sagathavaggasamyutta:kosalasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn4">
+                            <dfn lang="pli">Mārasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "sagathavaggasamyutta:marasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn5">
+                            <dfn lang="pli">Bhikkhunīsaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "sagathavaggasamyutta:bhikkhunisamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn6">
+                            <dfn lang="pli">Brahmasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "sagathavaggasamyutta:brahmasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn7">
+                            <dfn lang="pli">Brāhmaṇasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "sagathavaggasamyutta:brahmanasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn8">
+                            <dfn lang="pli">Vaṅgīsasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "sagathavaggasamyutta:vangisasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn9">
+                            <dfn lang="pli">Vanasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "sagathavaggasamyutta:vanasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn10">
+                            <dfn lang="pli">Yakkhasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "sagathavaggasamyutta:yakkhasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn11">
+                            <dfn lang="pli">Sakkasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "sagathavaggasamyutta:sakkasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary>
+                      <span class="tipitaka-label">
+                        <a href="/sn-nidanavaggasamyutta">
+                          <dfn lang="pli">Nidānavaggasaṁyutta</dfn>
+                        </a>
+                        <span>
+                          {{- "samyuttanikaya:nidanavaggasamyutta" | t -}}
+                        </span>
+                      </span>
+                    </summary>
+                    <ul role="list">
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn12">
+                            <dfn lang="pli">Nidānasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "nidanavaggasamyutta:nidanasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn13">
+                            <dfn lang="pli">Abhisamayasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "nidanavaggasamyutta:abhisamayasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn14">
+                            <dfn lang="pli">Dhātusaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "nidanavaggasamyutta:dhatusamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn15">
+                            <dfn lang="pli">Anamataggasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "nidanavaggasamyutta:anamataggasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn16">
+                            <dfn lang="pli">Kassapasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "nidanavaggasamyutta:kassapasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn17">
+                            <dfn lang="pli">Lābhasakkārasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{-
+                              "nidanavaggasamyutta:labhasakkarasamyutta"
+                              | t
+                            -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn18">
+                            <dfn lang="pli">Rāhulasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "nidanavaggasamyutta:rahulasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn19">
+                            <dfn lang="pli">Lakkhaṇasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "nidanavaggasamyutta:lakkhanasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn20">
+                            <dfn lang="pli">Opammasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "nidanavaggasamyutta:opammasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn21">
+                            <dfn lang="pli">Bhikkhusaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "nidanavaggasamyutta:bhikkhusamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary>
+                      <span class="tipitaka-label">
+                        <a href="/sn-khandhavaggasamyutta">
+                          <dfn lang="pli">Khandhavaggasaṁyutta</dfn>
+                        </a>
+                        <span>
+                          {{- "samyuttanikaya:khandhavaggasamyutta" | t -}}
+                        </span>
+                      </span>
+                    </summary>
+                    <ul role="list">
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn22">
+                            <dfn lang="pli">Khandhasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "khandhavaggasamyutta:khandhasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn23">
+                            <dfn lang="pli">Rādhasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "khandhavaggasamyutta:radhasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn24">
+                            <dfn lang="pli">Diṭṭhisaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "khandhavaggasamyutta:ditthisamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn25">
+                            <dfn lang="pli">Okkantasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "khandhavaggasamyutta:okkantasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn26">
+                            <dfn lang="pli">Uppādasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "khandhavaggasamyutta:uppadasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn27">
+                            <dfn lang="pli">Kilesasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "khandhavaggasamyutta:kilesasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn28">
+                            <dfn lang="pli">Sāriputtasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "khandhavaggasamyutta:sariputtasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn29">
+                            <dfn lang="pli">Nāgasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "khandhavaggasamyutta:nagasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn30">
+                            <dfn lang="pli">Supaṇṇasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "khandhavaggasamyutta:supannasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn31">
+                            <dfn lang="pli">Gandhabbakāyasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{-
+                              "khandhavaggasamyutta:gandhabbakayasamyutta"
+                              | t
+                            -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn32">
+                            <dfn lang="pli">Valāhakasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "khandhavaggasamyutta:valahakasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn33">
+                            <dfn lang="pli">Vacchagottasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{-
+                              "khandhavaggasamyutta:vacchagottasamyutta"
+                              | t
+                            -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn34">
+                            <dfn lang="pli">Jhānasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "khandhavaggasamyutta:jhanasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary>
+                      <span class="tipitaka-label">
+                        <a
+                          href="/sn-salayatanavaggasamyutta"
+                        >
+                          <dfn lang="pli">Saḷāyatanavaggasaṁyutta</dfn>
+                        </a>
+                        <span>
+                          {{- "samyuttanikaya:salayatanavaggasamyutta" | t -}}
+                        </span>
+                      </span>
+                    </summary>
+                    <ul role="list">
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn35">
+                            <dfn lang="pli">Saḷāyatanasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{-
+                              "salayatanavaggasamyutta:salayatanasamyutta"
+                              | t
+                            -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn36">
+                            <dfn lang="pli">Vedanāsaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "salayatanavaggasamyutta:vedanasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn37">
+                            <dfn lang="pli">Mātugāmasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{-
+                              "salayatanavaggasamyutta:matugamasamyutta"
+                              | t
+                            -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn38">
+                            <dfn lang="pli">Jambukhādakasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{-
+                              "salayatanavaggasamyutta:jambukhadakasamyutta"
+                              | t
+                            -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn39">
+                            <dfn lang="pli">Sāmaṇḍakasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{-
+                              "salayatanavaggasamyutta:samandakasamyutta"
+                              | t
+                            -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn40">
+                            <dfn lang="pli">Moggallānasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{-
+                              "salayatanavaggasamyutta:moggallanasamyutta"
+                              | t
+                            -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn41">
+                            <dfn lang="pli">Cittasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "salayatanavaggasamyutta:cittasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn42">
+                            <dfn lang="pli">Gāmaṇisaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "salayatanavaggasamyutta:gamanisamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn43">
+                            <dfn lang="pli">Asaṅkhatasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{-
+                              "salayatanavaggasamyutta:asankhatasamyutta"
+                              | t
+                            -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn44">
+                            <dfn lang="pli">Abyākatasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{-
+                              "salayatanavaggasamyutta:abyakatasamyutta"
+                              | t
+                            -}}
+                          </span>
+                        </span>
+                      </li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary>
+                      <span class="tipitaka-label">
+                        <a href="/sn-mahavaggasamyutta">
+                          <dfn lang="pli">Mahāvaggasaṁyutta</dfn>
+                        </a>
+                        <span>
+                          {{- "samyuttanikaya:mahavaggasamyutta" | t -}}
+                        </span>
+                      </span>
+                    </summary>
+                    <ul role="list">
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn45">
+                            <dfn lang="pli">Maggasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "mahavaggasamyutta:maggasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn46">
+                            <dfn lang="pli">Bojjhaṅgasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "mahavaggasamyutta:bojjhangasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn47">
+                            <dfn lang="pli">Satipaṭṭhānasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "mahavaggasamyutta:satipatthanasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn48">
+                            <dfn lang="pli">Indriyasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "mahavaggasamyutta:indriyasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn49">
+                            <dfn lang="pli">Sammappadhānasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{-
+                              "mahavaggasamyutta:sammappadhanasamyutta"
+                              | t
+                            -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn50">
+                            <dfn lang="pli">Balasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "mahavaggasamyutta:balasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn51">
+                            <dfn lang="pli">Iddhipādasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "mahavaggasamyutta:iddhipadasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn52">
+                            <dfn lang="pli">Anuruddhasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "mahavaggasamyutta:anuruddhasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn53">
+                            <dfn lang="pli">Jhānasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "mahavaggasamyutta:jhanasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn54">
+                            <dfn lang="pli">Ānāpānasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "mahavaggasamyutta:anapanasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn55">
+                            <dfn lang="pli">Sotāpattisaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "mahavaggasamyutta:sotapattisamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                      <li>
+                        <span class="tipitaka-label">
+                          <a href="/sn56">
+                            <dfn lang="pli">Saccasaṁyutta</dfn>
+                          </a>
+                          <span>
+                            {{- "mahavaggasamyutta:saccasamyutta" | t -}}
+                          </span>
+                        </span>
+                      </li>
+                    </ul>
+                  </details>
+                </li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary>
+                <span class="tipitaka-label">
+                  <a href="/pitaka/sutta/numbered/an">
+                    <dfn lang="pli">Aṅguttaranikāya</dfn>
+                  </a>
+                  <span>{{ "suttapitaka:anguttaranikaya" | t }}</span>
+                </span>
+              </summary>
+              <ul role="list">
+                <li>
+                  <span class="tipitaka-label">
+                    <a href="/an1">
+                      <dfn lang="pli">Ekakanipāta</dfn>
+                    </a>
                     <span>{{ "anguttaranikaya:ekakanipata" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/an2">
-                    <dfn lang="pli">Dukanipāta</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/an2">
+                      <dfn lang="pli">Dukanipāta</dfn>
+                    </a>
                     <span>{{ "anguttaranikaya:dukanipata" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/an3">
-                    <dfn lang="pli">Tikanipāta</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/an3">
+                      <dfn lang="pli">Tikanipāta</dfn>
+                    </a>
                     <span>{{ "anguttaranikaya:tikanipata" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/an4">
-                    <dfn lang="pli">Catukkanipāta</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/an4">
+                      <dfn lang="pli">Catukkanipāta</dfn>
+                    </a>
                     <span>{{ "anguttaranikaya:catukkanipata" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/an5">
-                    <dfn lang="pli">Pañcakanipāta</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/an5">
+                      <dfn lang="pli">Pañcakanipāta</dfn>
+                    </a>
                     <span>{{ "anguttaranikaya:pajncakanipata" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/an6">
-                    <dfn lang="pli">Chakkanipāta</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/an6">
+                      <dfn lang="pli">Chakkanipāta</dfn>
+                    </a>
                     <span>{{ "anguttaranikaya:chakkanipata" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/an7">
-                    <dfn lang="pli">Sattakanipāta</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/an7">
+                      <dfn lang="pli">Sattakanipāta</dfn>
+                    </a>
                     <span>{{ "anguttaranikaya:sattakanipata" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/an8">
-                    <dfn lang="pli">Aṭṭhakanipāta</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/an8">
+                      <dfn lang="pli">Aṭṭhakanipāta</dfn>
+                    </a>
                     <span>{{ "anguttaranikaya:atthakanipata" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/an9">
-                    <dfn lang="pli">Navakanipāta</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/an9">
+                      <dfn lang="pli">Navakanipāta</dfn>
+                    </a>
                     <span>{{ "anguttaranikaya:navakanipata" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/an10">
-                    <dfn lang="pli">Dasakanipāta</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/an10">
+                      <dfn lang="pli">Dasakanipāta</dfn>
+                    </a>
                     <span>{{ "anguttaranikaya:dasakanipata" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/an11">
-                    <dfn lang="pli">Ekādasakanipāta</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/an11">
+                      <dfn lang="pli">Ekādasakanipāta</dfn>
+                    </a>
                     <span>{{ "anguttaranikaya:ekadasakanipata" | t }}</span>
-                  </a>
+                  </span>
                 </li>
               </ul>
-            </li>
-            <li>
-              <a href="/kn">
-                <dfn lang="pli">Khuddakanikāya</dfn>
-                <span>{{ "suttapitaka:khuddakanikaya" | t }}</span>
-              </a>
-              <ul class="vertical fourth">
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary>
+                <span class="tipitaka-label">
+                  <a href="/kn">
+                    <dfn lang="pli">Khuddakanikāya</dfn>
+                  </a>
+                  <span>{{ "suttapitaka:khuddakanikaya" | t }}</span>
+                </span>
+              </summary>
+              <ul role="list">
                 <li>
-                  <a href="/kp">
-                    <dfn lang="pli">Khuddakapāṭha</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/kp">
+                      <dfn lang="pli">Khuddakapāṭha</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:khuddakapatha" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/dhp">
-                    <dfn lang="pli">Dhammapada</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/dhp">
+                      <dfn lang="pli">Dhammapada</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:dhammapada" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/ud">
-                    <dfn lang="pli">Udāna</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/ud">
+                      <dfn lang="pli">Udāna</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:udana" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/iti">
-                    <dfn lang="pli">Itivuttaka</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/iti">
+                      <dfn lang="pli">Itivuttaka</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:itivuttaka" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/snp">
-                    <dfn lang="pli">Suttanipāta</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/snp">
+                      <dfn lang="pli">Suttanipāta</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:suttanipata" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/vv">
-                    <dfn lang="pli">Vimānavatthu</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/vv">
+                      <dfn lang="pli">Vimānavatthu</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:vimanavatthu" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pv">
-                    <dfn lang="pli">Petavatthu</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pv">
+                      <dfn lang="pli">Petavatthu</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:petavatthu" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/thag">
-                    <dfn lang="pli">Theragāthā</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/thag">
+                      <dfn lang="pli">Theragāthā</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:theragatha" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/thig">
-                    <dfn lang="pli">Therīgāthā</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/thig">
+                      <dfn lang="pli">Therīgāthā</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:therigatha" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/tha-ap">
-                    <dfn lang="pli">Therāpadāna</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/tha-ap">
+                      <dfn lang="pli">Therāpadāna</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:therapadana" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/thi-ap">
-                    <dfn lang="pli">Therīapadāna</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/thi-ap">
+                      <dfn lang="pli">Therīapadāna</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:theriapadana" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/bv">
-                    <dfn lang="pli">Buddhavaṁsa</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/bv">
+                      <dfn lang="pli">Buddhavaṁsa</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:buddhavamsa" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/cp">
-                    <dfn lang="pli">Cariyāpiṭaka</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/cp">
+                      <dfn lang="pli">Cariyāpiṭaka</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:cariyapitaka" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/ja">
-                    <dfn lang="pli">Jātaka</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/ja">
+                      <dfn lang="pli">Jātaka</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:jataka" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/mnd">
-                    <dfn lang="pli">Mahāniddesa</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/mnd">
+                      <dfn lang="pli">Mahāniddesa</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:mahaniddesa" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/cnd">
-                    <dfn lang="pli">Cūḷaniddesa</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/cnd">
+                      <dfn lang="pli">Cūḷaniddesa</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:culaniddesa" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/ps">
-                    <dfn lang="pli">Paṭisambhidāmagga</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/ps">
+                      <dfn lang="pli">Paṭisambhidāmagga</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:patisambhidamagga" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/ne">
-                    <dfn lang="pli">Netti</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/ne">
+                      <dfn lang="pli">Netti</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:netti" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/pe">
-                    <dfn lang="pli">Peṭakopadesa</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/pe">
+                      <dfn lang="pli">Peṭakopadesa</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:petakopadesa" | t }}</span>
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="/mil">
-                    <dfn lang="pli">Milindapañha</dfn>
+                  <span class="tipitaka-label">
+                    <a href="/mil">
+                      <dfn lang="pli">Milindapañha</dfn>
+                    </a>
                     <span>{{ "khuddakanikaya:milindapajnha" | t }}</span>
-                  </a>
+                  </span>
                 </li>
               </ul>
-            </li>
-          </ul>
-        </li>
-        <li>
-          <a href="/pli-tv-ab">
-            <dfn lang="pli">Abhidhammapiṭaka</dfn>
+            </details>
+          </li>
+        </ul>
+      </details>
+    </li>
+    <li>
+      <details>
+        <summary>
+          <span class="tipitaka-label">
+            <a href="/pli-tv-ab">
+              <dfn lang="pli">Abhidhammapiṭaka</dfn>
+            </a>
             <span>{{ "palitipitaka:abhidhammaPitaka" | t }}</span>
-          </a>
-          <ul class="horizontal third">
-            <li>
-              <ul class="vertical fourth abhidhamma">
-                <li>
-                  <a href="/ds">
-                    <dfn lang="pli">Dhammasaṅgaṇī</dfn>
-                    <span>{{ "abhidhammaPitaka:dhammasangani" | t }}</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/vb">
-                    <dfn lang="pli">Vibhaṅga</dfn>
-                    <span>{{ "abhidhammaPitaka:vibhanga" | t }}</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/dt">
-                    <dfn lang="pli">Dhātukathā</dfn>
-                    <span>{{ "abhidhammaPitaka:dhatukatha" | t }}</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/pp">
-                    <dfn lang="pli">Puggalapaññatti</dfn>
-                    <span>{{ "abhidhammaPitaka:puggalapajnjnatti" | t }}</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/kv">
-                    <dfn lang="pli">Kathāvatthu</dfn>
-                    <span>{{ "abhidhammaPitaka:kathavatthu" | t }}</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/ya">
-                    <dfn lang="pli">Yamaka</dfn>
-                    <span>{{ "abhidhammaPitaka:yamaka" | t }}</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/patthana">
-                    <dfn lang="pli">Paṭṭhāna</dfn>
-                    <span>{{ "abhidhammaPitaka:patthana" | t }}</span>
-                  </a>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-      </ul>
+          </span>
+        </summary>
+        <ul role="list">
+          <li>
+            <span class="tipitaka-label">
+              <a href="/ds">
+                <dfn lang="pli">Dhammasaṅgaṇī</dfn>
+              </a>
+              <span>{{ "abhidhammaPitaka:dhammasangani" | t }}</span>
+            </span>
+          </li>
+          <li>
+            <span class="tipitaka-label">
+              <a href="/vb">
+                <dfn lang="pli">Vibhaṅga</dfn>
+              </a>
+              <span>{{ "abhidhammaPitaka:vibhanga" | t }}</span>
+            </span>
+          </li>
+          <li>
+            <span class="tipitaka-label">
+              <a href="/dt">
+                <dfn lang="pli">Dhātukathā</dfn>
+              </a>
+              <span>{{ "abhidhammaPitaka:dhatukatha" | t }}</span>
+            </span>
+          </li>
+          <li>
+            <span class="tipitaka-label">
+              <a href="/pp">
+                <dfn lang="pli">Puggalapaññatti</dfn>
+              </a>
+              <span>{{ "abhidhammaPitaka:puggalapajnjnatti" | t }}</span>
+            </span>
+          </li>
+          <li>
+            <span class="tipitaka-label">
+              <a href="/kv">
+                <dfn lang="pli">Kathāvatthu</dfn>
+              </a>
+              <span>{{ "abhidhammaPitaka:kathavatthu" | t }}</span>
+            </span>
+          </li>
+          <li>
+            <span class="tipitaka-label">
+              <a href="/ya">
+                <dfn lang="pli">Yamaka</dfn>
+              </a>
+              <span>{{ "abhidhammaPitaka:yamaka" | t }}</span>
+            </span>
+          </li>
+          <li>
+            <span class="tipitaka-label">
+              <a href="/patthana">
+                <dfn lang="pli">Paṭṭhāna</dfn>
+              </a>
+              <span>{{ "abhidhammaPitaka:patthana" | t }}</span>
+            </span>
+          </li>
+        </ul>
+      </details>
     </li>
   </ul>
 </article>
