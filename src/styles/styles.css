@@ -829,6 +829,12 @@ body {
     letter-spacing: 0.05em;
   }
 
+  /* The label is inside the <p class="rule"> itself, so unlike the others
+     there is no following heading/paragraph margin to separate it from the text */
+  .rule:not(.patimokkha *):has(.segment)::before {
+    margin-bottom: 1rem;
+  }
+
   :is(.nidana, .padabhajaniya, .cakka, .anapatti) > :is(h2, h3, h4):first-child,
   .vinaya-vinita > .uddana:first-child > .uddana-intro:first-child {
     color: color-mix(in srgb, var(--mark-color) 75%, var(--headings-color));
