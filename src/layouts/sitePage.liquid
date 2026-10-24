@@ -4,22 +4,28 @@ styles:
   - site-pages.css
 ---
 <header>
-  {% capture breadcrumbsList %}
-    {% for crumb in crumbs %}
+  {% if crumbs or parentCrumb %}
+    {% capture breadcrumbsList %}
+      {% if crumbs %}
+        {% for crumb in crumbs %}
+          <li>
+            <a href="{{ crumb.href }}">{{ crumb.name }}</a>
+          </li>
+        {% endfor %}
+      {% endif %}
+      {% if parentCrumb %}
+        <li>
+          <a href="{{ parentHref }}">{{ parentCrumb }}</a>
+        </li>
+      {% endif %}
       <li>
-        <a href="{{ crumb.href }}">{{ crumb.name }}</a>
+        <span aria-current="page">{{ crumb | default: title }}</span>
       </li>
-    {% endfor %}
-    {% if parentCrumb %}
-      <li>
-        <a href="{{ parentHref }}">{{ parentCrumb }}</a>
-      </li>
-    {% endif %}
-    <li>
-      <span aria-current="page">{{ crumb | default: title }}</span>
-    </li>
-  {% endcapture %}
-  {% include "headerNav.liquid", breadcrumbsList: breadcrumbsList %}
+    {% endcapture %}
+    {% include "headerNav.liquid", breadcrumbsList: breadcrumbsList %}
+  {% else %}
+    {% include "headerNav.liquid" %}
+  {% endif %}
 </header>
 
 <main class="site-page{% if mainClass %} {{ mainClass }}{% endif %}">
