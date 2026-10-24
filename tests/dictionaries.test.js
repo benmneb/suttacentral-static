@@ -11,6 +11,12 @@ import path from 'node:path'
 import { describe, it } from 'node:test'
 import vm from 'node:vm'
 import {
+  generateDefineJsonLd,
+  generateDefineOGTags,
+  generateDefineSearchJsonLd,
+  generateDefineSearchOGTags,
+} from '../src/helpers/definePageMetadata.js'
+import {
   DICTIONARY_FILES,
   entriesOf,
   fetchDictionary,
@@ -134,6 +140,69 @@ describe('Dictionaries', async () => {
 })
 
 describe('The /define pages', () => {
+  it('generates absolute metadata for a word page', () => {
+    const term = {
+      word: 'dhamma',
+      href: '/define/dhamma',
+      entries: [
+        {
+          title: 'PTS Pali English Dictionary',
+          definitions: ['nature; character'],
+        },
+        { title: 'Digital Pāḷi Dictionary' },
+      ],
+    }
+    const og = JSON.parse(generateDefineOGTags(term))
+    const jsonLd = JSON.parse(generateDefineJsonLd(term))
+
+    assert.equal(og['og:url'], 'https://suttacentral.express/define/dhamma')
+    assert.equal(og['og:description'], 'Pāli dictionary results for “dhamma”.')
+    assert.equal(jsonLd['@type'], 'DefinedTerm')
+    assert.equal(jsonLd['@id'], og['og:url'])
+    assert.equal(jsonLd.description, 'Pāli dictionary results for “dhamma”.')
+    assert.equal(jsonLd.sameAs, 'https://suttacentral.net/define/dhamma')
+    assert.deepEqual(
+      jsonLd.breadcrumb.itemListElement.map(({ name }) => name),
+      ['Home', 'Definitions', 'dhamma']
+    )
+    assert.equal(jsonLd.hasPart.length, 1)
+    assert.equal(jsonLd.hasPart[0]['@type'], 'DefinedTerm')
+    assert.equal(jsonLd.hasPart[0].name, 'dhamma (PTS Pali English Dictionary)')
+    assert.equal(jsonLd.hasPart[0].description, 'nature; character')
+    assert.equal(
+      jsonLd.inDefinedTermSet.url,
+      'https://suttacentral.express/define'
+    )
+
+    const dppnTerm = {
+      word: 'buddha',
+      href: '/define/buddha',
+      entries: [
+        {
+          name: 'dppn',
+          title: 'Dictionary of Pali Proper Names',
+          html: '<dl><dt><dfn>Buddha</dfn></dt><dt>Bhagavā</dt><dt>Gotama</dt><dd>Awakened One</dd></dl>',
+        },
+      ],
+    }
+    const dppnJsonLd = JSON.parse(generateDefineJsonLd(dppnTerm))
+    assert.deepEqual(dppnJsonLd.hasPart[0].alternateName, ['Bhagavā', 'Gotama'])
+  })
+
+  it('generates metadata for the dictionary search page', () => {
+    const og = JSON.parse(generateDefineSearchOGTags())
+    const jsonLd = JSON.parse(generateDefineSearchJsonLd())
+
+    assert.equal(og['og:url'], 'https://suttacentral.express/define')
+    assert.equal(jsonLd['@type'], 'CollectionPage')
+    assert.equal(jsonLd.url, og['og:url'])
+    assert.equal(jsonLd.sameAs, 'https://suttacentral.net/define')
+    assert.deepEqual(
+      jsonLd.breadcrumb.itemListElement.map(({ name }) => name),
+      ['Home', 'Definitions']
+    )
+  })
+
   it('include /define, with its search', async () => {
     const html = await readPage('/define/')
     assert.match(html, /<h1>/)

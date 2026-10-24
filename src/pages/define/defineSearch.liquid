@@ -13,7 +13,9 @@ pagination:
 
 permalink: /define/index.html
 eleventyComputed:
-  title: Define
+  title: Pāli dictionary and definitions
+  og_tags: '{{ built.scx_og_tags }}'
+  json_ld: '{{ built.scx_json_ld }}'
 ---
 <h1>Definitions</h1>
 {% include "defineForm.liquid" %}

@@ -1,12 +1,13 @@
 import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
+import { loadDictionaries } from '../helpers/dictionaries.js'
 import { mapData } from '../helpers/mapPlaces.js'
+import { buildSitePageMetadata } from '../helpers/sitePageMetadata.js'
 import {
   editionCollections,
   pageIcons,
   pitakaGuides,
   siteMap,
 } from '../helpers/sitePages.js'
-import { loadDictionaries } from '../helpers/dictionaries.js'
 import { loadStrings } from '../helpers/siteStrings.js'
 import masterData, { fetchOptions, menuUrl } from './_masterData.js'
 
@@ -342,6 +343,11 @@ export default async function () {
     languages: languagesData,
     languagePages: languagesData.pages,
     editions: editionsData,
+    pageMetadata: await buildSitePageMetadata({
+      languagePages: languagesData.pages,
+      editions: editionsData,
+      abbreviations: abbreviationsData,
+    }),
     // The editions as menus and cards link them, by collection
     editionLinks,
     searchCards: await searchCards(editionLinks),

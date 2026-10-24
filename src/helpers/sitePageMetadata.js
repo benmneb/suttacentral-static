@@ -1,0 +1,562 @@
+import siteMetaData from '../data/_siteMetaData.js'
+import { localImage } from './images.js'
+import { siteMap } from './sitePages.js'
+import { t } from './siteStrings.js'
+
+const STATIC_PAGES = {
+  '/abbreviations/': {
+    titleKey: 'abbreviations:1',
+    description:
+      'Look up abbreviations used for Buddhist texts, editions, and schools in SuttaCentral.',
+    schemaType: 'CollectionPage',
+    mainEntity: {
+      '@type': 'ItemList',
+      name: 'Buddhist Text Abbreviations',
+      description:
+        'Comprehensive list of abbreviations for suttas, Vinaya rules, editions, and schools',
+    },
+    mainContentOfPage: {
+      '@type': 'Table',
+      about: 'Sutta abbreviations',
+    },
+  },
+  '/abhidhamma-guide-sujato/': {
+    titleKey: 'interface:abhidhamma',
+    description:
+      'A guide to the Abhidhamma texts, their structure, and their place in the Buddhist canon.',
+  },
+  '/about/': {
+    titleKey: 'interface:aboutTitle',
+    description:
+      'Learn about SuttaCentral, its collection of early Buddhist texts, translations, parallels, and community.',
+    schemaType: 'AboutPage',
+  },
+  '/acknowledgments/': {
+    titleKey: 'interface:acknowledgmentsTitle',
+    description:
+      'Recognize the translators, editors, donors, and contributors whose work supports SuttaCentral.',
+  },
+  '/an-guide-sujato/': {
+    titleKey: 'interface:anGuideSujato',
+    description:
+      'A guide to the Aṅguttara Nikāya and its numbered collection of Buddhist discourses.',
+  },
+  '/an-introduction-bodhi/': {
+    titleKey: 'an-introduction-bodhi:1',
+    description:
+      'An introduction to the Aṅguttara Nikāya by Bhikkhu Bodhi, with context for reading its discourses.',
+  },
+  '/discourses-guide-sujato/': {
+    titleKey: 'interface:discourses',
+    description:
+      'An overview of the early Buddhist discourses and how they are organized in the collections.',
+  },
+  '/dn-guide-sujato/': {
+    titleKey: 'interface:dnGuideSujato',
+    description:
+      'A guide to the Dīgha Nikāya, the collection of long Buddhist discourses.',
+  },
+  '/editions/': {
+    titleKey: 'publication:editionsToolbarTitle',
+    description:
+      'Browse SuttaCentral editions of selected translations, available to read or download in book formats.',
+    schemaType: 'CollectionPage',
+  },
+  '/general-guide-sujato/': {
+    titleKey: 'general-guide-sujato:1',
+    description:
+      'A general guide to the early Buddhist texts and the collections preserved on SuttaCentral.',
+  },
+  '/introduction/': {
+    titleKey: 'introduction:1',
+    description:
+      'An introduction to SuttaCentral and its resources for studying early Buddhist texts.',
+  },
+  '/languages/': {
+    titleKey: 'interface:languages',
+    description:
+      'Explore the languages represented in SuttaCentral and the texts and translations available in each.',
+    schemaType: 'CollectionPage',
+  },
+  '/licensing/': {
+    titleKey: 'interface:licensingTitle',
+    description:
+      'Read the licensing terms for SuttaCentral texts, translations, data, and other materials.',
+  },
+  '/map/': {
+    titleKey: 'map:1',
+    description:
+      'Explore places mentioned in early Buddhist texts on a map, with references to related passages.',
+  },
+  '/methodology/': {
+    titleKey: 'methodology:1',
+    description:
+      'Learn how SuttaCentral identifies, compares, and presents parallels between Buddhist texts.',
+  },
+  '/mn-guide-sujato/': {
+    titleKey: 'interface:mnGuideSujato',
+    description:
+      'A guide to the Majjhima Nikāya, the collection of middle-length Buddhist discourses.',
+  },
+  '/names/': {
+    titleKey: 'names:1',
+    description:
+      'Browse names of people and places found in the early Buddhist texts and their translations.',
+  },
+  '/numbering/': {
+    titleKey: 'numbering:1',
+    description:
+      'Understand the numbering systems used to identify Buddhist texts across collections and editions.',
+  },
+  '/offline/': {
+    titleKey: 'interface:offlineTitle',
+    description:
+      'Learn how to use SuttaCentral offline and access texts without an internet connection.',
+  },
+  '/pali-tipitaka/': {
+    titleKey: 'palitipitaka:palitipitaka',
+    description:
+      'An overview of the Pāli Tipiṭaka and its Vinaya, Sutta, and Abhidhamma collections.',
+  },
+  '/pirivena-project/': {
+    titleKey: 'pirivenaPage:title',
+    description:
+      'Learn about the Pirivena Project and its work with Buddhist texts and education.',
+  },
+  '/similes/': {
+    titleKey: 'similes:1',
+    description:
+      'Find similes in the early Buddhist texts and follow them to their source passages.',
+  },
+  '/sn-guide-sujato/': {
+    titleKey: 'interface:snGuideSujato',
+    description:
+      'A guide to the Saṁyutta Nikāya and its connected collections of Buddhist discourses.',
+  },
+  '/start/': {
+    titleKey: 'start:1',
+    description:
+      'Get started reading Buddhist discourses with an introduction to SuttaCentral’s text collections.',
+  },
+  '/subjects/': {
+    titleKey: 'subjects:1',
+    description:
+      'Browse early Buddhist texts by subject and follow topics to their related discourses.',
+  },
+  '/terminology/': {
+    titleKey: 'terminology:1',
+    description:
+      'Explore terminology used in Buddhist texts, translations, and SuttaCentral resources.',
+  },
+  '/vinaya-guide-brahmali/': {
+    titleKey: 'interface:vinaya',
+    description:
+      'A guide to the Vinaya and its collection of monastic discipline texts.',
+  },
+}
+
+const SCHOLARLY_PAGES = {
+  '/abhidhamma-guide-sujato/': {
+    bylineKeys: ['abhidhamma:2'],
+    about: ['Abhidhamma', 'Buddhist philosophy'],
+    keywords: [
+      'Abhidhamma',
+      'Systematic Treatise',
+      'Buddhist philosophy',
+      'Pāli Canon',
+    ],
+  },
+  '/an-guide-sujato/': {
+    bylineKeys: ['an-guide-sujato:2'],
+    about: ['Aṅguttara Nikāya', 'Buddhist discourses'],
+    keywords: [
+      'Aṅguttara Nikāya',
+      'Numbered Discourses',
+      'Buddhist discourses',
+      'Pāli Canon',
+    ],
+  },
+  '/an-introduction-bodhi/': {
+    bylineKeys: ['an-introduction-bodhi:2'],
+    about: ['Aṅguttara Nikāya', 'Buddhist discourses'],
+    keywords: [
+      'Aṅguttara Nikāya',
+      'Numberical Discourses',
+      'Buddhist discourses',
+      'Pāli Canon',
+    ],
+  },
+  '/discourses-guide-sujato/': {
+    bylineKeys: ['discourses:2'],
+    about: ['Early Buddhist texts', 'Buddhist discourses'],
+    keywords: [
+      'Early Buddhist texts',
+      'Suttas',
+      'Buddhist discourses',
+      'Pāli Canon',
+    ],
+  },
+  '/dn-guide-sujato/': {
+    bylineKeys: ['dn-guide-sujato:2'],
+    about: ['Dīgha Nikāya', 'Buddhist discourses'],
+    keywords: [
+      'Dīgha Nikāya',
+      'Long Discourses',
+      'Buddhist discourses',
+      'Pāli Canon',
+    ],
+  },
+  '/general-guide-sujato/': {
+    bylineKeys: ['general-guide-sujato:2'],
+    about: ['Early Buddhist texts', 'Pāli Canon'],
+    keywords: ['Early Buddhist texts', 'Buddhist texts', 'Pāli Canon'],
+  },
+  '/mn-guide-sujato/': {
+    bylineKeys: ['mn-guide-sujato:2'],
+    about: ['Majjhima Nikāya', 'Buddhist discourses'],
+    keywords: [
+      'Majjhima Nikāya',
+      'Middle Discourses',
+      'Buddhist discourses',
+      'Pāli Canon',
+    ],
+  },
+  '/methodology/': {
+    bylineKeys: ['methodology:16', 'methodology:33'],
+    about: ['Textual studies', 'Early Buddhist texts'],
+    keywords: ['Textual studies', 'Textual parallels', 'Early Buddhist texts'],
+  },
+  '/sn-guide-sujato/': {
+    bylineKeys: ['sn-guide-sujato:2'],
+    about: ['Saṁyutta Nikāya', 'Buddhist discourses'],
+    keywords: [
+      'Saṁyutta Nikāya',
+      'Linked Discourses',
+      'Buddhist discourses',
+      'Pāli Canon',
+    ],
+  },
+  '/vinaya-guide-brahmali/': {
+    bylineKeys: ['vinaya:2'],
+    about: ['Vinaya', 'Buddhist monastic discipline'],
+    keywords: ['Vinaya', 'Buddhist monastic discipline', 'Pāli Canon'],
+  },
+}
+
+function routePath(url) {
+  return `/${String(url ?? '').replace(/^\/+|\/+$/g, '')}`
+}
+
+function routeKey(url) {
+  const path = routePath(url)
+  return path === '/' ? path : `${path}/`
+}
+
+const COLLECTION_ROUTES = new Set([
+  ...siteMap
+    .filter(({ heading }) => heading === 'Indexes')
+    .flatMap(({ pages }) => pages.map(({ href }) => href))
+    .filter(href => href.startsWith('/'))
+    .map(routeKey),
+  '/abbreviations/',
+  '/editions/',
+  '/languages/',
+])
+
+function absoluteUrl(origin, url) {
+  return `${origin}${routePath(url)}`
+}
+
+function textFromHtml(html) {
+  return String(html ?? '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function excerpt(text) {
+  if (text.length <= 160) return text
+  const shortened = text.slice(0, 157)
+  const boundary = shortened.lastIndexOf(' ')
+  return `${shortened.slice(0, boundary > 0 ? boundary : shortened.length)}…`
+}
+
+function withBreadcrumbs(page, ancestors = []) {
+  return {
+    ...page,
+    breadcrumbs: [
+      { name: 'Home', url: '/' },
+      ...ancestors,
+      { name: page.breadcrumbTitle ?? page.title, url: page.url },
+    ],
+  }
+}
+
+function scholarlyData(url, titleFor) {
+  const article = SCHOLARLY_PAGES[routeKey(url)]
+  if (!article) return {}
+
+  const bylines = article.bylineKeys.map(key => textFromHtml(titleFor(key)))
+  const authors = new Set()
+  let datePublished
+  for (const byline of bylines) {
+    const year = byline.match(/\b(?:18|19|20)\d{2}\b/)?.[0]
+    datePublished ??= year
+    const names = byline
+      .replace(/,\s*(?:18|19|20)\d{2}\b/g, '')
+      .replace(/,\s*updated by\s+/gi, ';')
+      .split(/\s*;\s*/)
+      .map(name => name.trim())
+      .filter(Boolean)
+    for (const name of names) authors.add(name)
+  }
+
+  return {
+    schemaType: 'ScholarlyArticle',
+    author: [...authors].map(name => ({ '@type': 'Person', name })),
+    ...(datePublished && { datePublished }),
+    about: article.about.map(name => ({ '@type': 'Thing', name })),
+    keywords: article.keywords,
+    inLanguage: 'en',
+    publisher: {
+      '@type': 'Organization',
+      name: 'SuttaCentral',
+      url: 'https://suttacentral.net',
+    },
+  }
+}
+
+export function generateSitePageOGTags({ title, description, url }) {
+  const metadata = siteMetaData()
+  const canonicalUrl = absoluteUrl(metadata.origin, url)
+  return JSON.stringify({
+    'og:title': title,
+    'og:description': description,
+    'og:url': canonicalUrl,
+    'og:type': 'website',
+    'og:locale': 'en',
+    'og:site_name': metadata.title,
+    'og:image': `${metadata.origin}/images/og-image2.jpg`,
+    'og:image:alt': 'SuttaCentral Express',
+  })
+}
+
+export function generateSitePageJsonLd({
+  title,
+  name,
+  description,
+  url,
+  schemaType = 'WebPage',
+  breadcrumbs,
+  author,
+  datePublished,
+  dateModified,
+  about,
+  keywords,
+  inLanguage,
+  publisher,
+  mainEntity,
+  mainContentOfPage,
+  translator,
+  image,
+  potentialAction,
+  isbn,
+  isBasedOn,
+}) {
+  const metadata = siteMetaData()
+  const canonicalUrl = absoluteUrl(metadata.origin, url)
+  return JSON.stringify(
+    {
+      '@context': 'https://schema.org',
+      '@type': schemaType,
+      '@id': canonicalUrl,
+      ...(schemaType === 'ScholarlyArticle'
+        ? { headline: title }
+        : { name: name ?? title }),
+      description,
+      url: canonicalUrl,
+      sameAs: `https://suttacentral.net${routePath(url)}`,
+      ...(author && { author }),
+      ...(datePublished && { datePublished }),
+      ...(dateModified && { dateModified }),
+      ...(about && { about }),
+      ...(keywords && { keywords }),
+      ...(inLanguage && { inLanguage }),
+      ...(publisher && { publisher }),
+      ...(mainEntity && { mainEntity }),
+      ...(mainContentOfPage && { mainContentOfPage }),
+      ...(translator && { translator }),
+      ...(image && { image }),
+      ...(potentialAction && { potentialAction }),
+      ...(isbn && { isbn }),
+      ...(isBasedOn && { isBasedOn }),
+      ...(breadcrumbs?.length && {
+        breadcrumb: {
+          '@type': 'BreadcrumbList',
+          itemListElement: breadcrumbs.map((crumb, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            name: crumb.name,
+            item: absoluteUrl(metadata.origin, crumb.url),
+          })),
+        },
+      }),
+      isPartOf: {
+        '@type': 'WebSite',
+        '@id': `${metadata.origin}/#website`,
+        name: metadata.title,
+      },
+    },
+    null,
+    2
+  )
+}
+
+function pageMetadata(page) {
+  return {
+    scx_og_tags: generateSitePageOGTags(page),
+    scx_json_ld: generateSitePageJsonLd(page),
+  }
+}
+
+export async function buildSitePageMetadata({
+  languagePages,
+  editions,
+  abbreviations = {},
+  titleFor = t,
+  imageFor = localImage,
+}) {
+  const pages = Object.fromEntries(
+    Object.entries(STATIC_PAGES).map(([url, page]) => {
+      const article = scholarlyData(url, titleFor)
+      const abbreviationCount = Object.values(abbreviations).reduce(
+        (count, entries) =>
+          count + (Array.isArray(entries) ? entries.length : 0),
+        0
+      )
+      const data = withBreadcrumbs({
+        ...page,
+        ...article,
+        ...(COLLECTION_ROUTES.has(routeKey(url)) && {
+          schemaType: 'CollectionPage',
+        }),
+        ...(url === '/abbreviations/' && {
+          mainEntity: {
+            ...page.mainEntity,
+            numberOfItems: abbreviationCount,
+          },
+        }),
+        url,
+        title: textFromHtml(titleFor(page.titleKey)),
+      })
+      return [routeKey(url), pageMetadata(data)]
+    })
+  )
+
+  const languagesTitle = textFromHtml(titleFor('interface:languages'))
+  const editionsTitle = textFromHtml(
+    titleFor('publication:editionsToolbarTitle')
+  )
+
+  for (const language of languagePages) {
+    const url = `/${language.scx_path}/`
+    const title = language.name
+    const data = withBreadcrumbs(
+      {
+        url,
+        title,
+        description: `Read Buddhist texts and translations in ${title}, grouped by collection and language.`,
+      },
+      [{ name: languagesTitle, url: '/languages' }]
+    )
+    pages[routeKey(url)] = pageMetadata(data)
+  }
+
+  for (const edition of editions) {
+    const url = `/${edition.scx_path}/`
+    const publication = edition.publication
+    const author = { '@type': 'Person', name: publication.creator_name }
+    const isbn = (edition.volumes ?? [])
+      .map(volume => volume.isbn)
+      .filter(Boolean)
+    const name = [edition.title, publication.translation_subtitle]
+      .filter(Boolean)
+      .join('—')
+    const title = `${edition.title}—${publication.creator_name}`
+    const coverSource = `https://suttacentral.net/img/publication-pages/${edition.uid}-book.jpg`
+    const cover = await imageFor(coverSource, {
+      dir: 'site-pages',
+      height: 600,
+    })
+    const image = new URL(cover.src, `${siteMetaData().origin}/`).href
+    const data = withBreadcrumbs(
+      {
+        url,
+        title,
+        name,
+        breadcrumbTitle: edition.title,
+        description:
+          textFromHtml(publication.text_description) ||
+          `Read or download the SuttaCentral edition of ${edition.title}, translated by ${publication.creator_name}.`,
+        schemaType: ['WebPage', 'Book'],
+        author,
+        translator:
+          publication.translation_lang_iso !== 'pli' ? author : undefined,
+        ...(publication.publication_date && {
+          datePublished: publication.publication_date,
+        }),
+        ...(edition.files?.updated && {
+          dateModified: edition.files.updated,
+        }),
+        inLanguage: publication.translation_lang_iso || 'en',
+        publisher: {
+          '@type': 'Organization',
+          name: 'SuttaCentral',
+          url: 'https://suttacentral.net',
+        },
+        image,
+        potentialAction: {
+          '@type': 'ReadAction',
+          url: absoluteUrl(siteMetaData().origin, edition.readHref),
+        },
+        ...(isbn.length && { isbn: isbn.length === 1 ? isbn[0] : isbn }),
+        isBasedOn: {
+          '@type': 'Book',
+          name:
+            edition.menu?.original_title ||
+            edition.menu?.root_name ||
+            publication.text_uid,
+          inLanguage: 'pli',
+          description: 'Original Pāli Buddhist text',
+        },
+      },
+      [{ name: editionsTitle, url: '/editions' }]
+    )
+    pages[routeKey(url)] = pageMetadata(data)
+
+    for (const matter of edition.matter) {
+      const matterUrl = `/${matter.scx_path}/`
+      const matterData = withBreadcrumbs(
+        {
+          url: matterUrl,
+          title: `${matter.label}—${edition.title}`,
+          breadcrumbTitle: matter.label,
+          description: excerpt(textFromHtml(matter.html)),
+        },
+        [
+          { name: editionsTitle, url: '/editions' },
+          { name: edition.title, url },
+        ]
+      )
+      pages[routeKey(matterUrl)] = pageMetadata(matterData)
+    }
+  }
+
+  return pages
+}

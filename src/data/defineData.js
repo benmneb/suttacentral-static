@@ -1,6 +1,12 @@
 import { AssetCache } from '@11ty/eleventy-fetch'
 import { createHash } from 'node:crypto'
 import {
+  generateDefineJsonLd,
+  generateDefineOGTags,
+  generateDefineSearchJsonLd,
+  generateDefineSearchOGTags,
+} from '../helpers/definePageMetadata.js'
+import {
   defineHref,
   linkedWord,
   loadDefineWords,
@@ -282,15 +288,22 @@ export default async function () {
   const similar = similarWords(sorted, complex, built)
 
   return {
-    pages: built.map(item => ({
-      word: item.word,
-      href: defineHref(item.word),
-      entries: entriesOf(item.word, words.get(item.word), words),
-      adjacent: adjacentWords(item, complex, complexIndex).map(
-        ({ word }) => word
-      ),
-      similar: similar.get(item.word),
-    })),
+    pages: built.map(item => {
+      const term = {
+        word: item.word,
+        href: defineHref(item.word),
+        entries: entriesOf(item.word, words.get(item.word), words),
+        adjacent: adjacentWords(item, complex, complexIndex).map(
+          ({ word }) => word
+        ),
+        similar: similar.get(item.word),
+      }
+      return {
+        ...term,
+        scx_og_tags: generateDefineOGTags(term),
+        scx_json_ld: generateDefineJsonLd(term),
+      }
+    }),
     wordLists: [...Map.groupBy(sorted, ({ ascii }) => listKey(ascii))].map(
       ([letter, items]) => ({
         letter,
@@ -303,6 +316,11 @@ export default async function () {
       count: [...words.values()].filter(entries => entries[name].length).length,
     })),
     // The /define page, paginated over this so it isn't built without its words
-    index: [true],
+    index: [
+      {
+        scx_og_tags: generateDefineSearchOGTags(),
+        scx_json_ld: generateDefineSearchJsonLd(),
+      },
+    ],
   }
 }

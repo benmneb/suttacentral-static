@@ -2,6 +2,9 @@
 layout: base.liquid
 styles:
   - site-pages.css
+eleventyComputed:
+  og_tags: '{{ sitePagesData.pageMetadata[page.url].scx_og_tags }}'
+  json_ld: '{{ sitePagesData.pageMetadata[page.url].scx_json_ld }}'
 ---
 <header>
   {% if crumbs or parentCrumb %}
