@@ -4,6 +4,14 @@
  * Formatting for titles and references, used as filters and shortcodes in `.eleventy.js`.
  */
 
+/**
+ * The site's spelling of a language name, as .net's API gives "Pali" for `pli` in a text's publication info
+ * @param {string} name - ie "Pali"
+ */
+export function languageName(name) {
+  return name === 'Pali' ? 'Pāli' : name
+}
+
 /** Lets a long Pāli compound title wrap before its suffix, ie "Mahādukkhakkhandha-" over "sutta" */
 export function softHyphenateTitle(title) {
   return String(title ?? '').replace(

@@ -14,7 +14,7 @@ function generatePitakaOGTags(entry) {
   return JSON.stringify({
     'og:title': `${entry.original_title || entry.root_name}—${entry.translated_title || entry.translated_name}`,
     'og:description':
-      entry.blurb || 'Collection of Buddhist texts from the Pali Canon',
+      entry.blurb || 'Collection of Buddhist texts from the Pāli Canon',
     'og:url': `${metadata.origin}/pitaka/${entry.scx_path}`,
     'og:type': 'website',
     'og:site_name': metadata.title,

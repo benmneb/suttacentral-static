@@ -21,6 +21,7 @@ import { missingKeys, t } from './src/helpers/siteStrings.js'
 import {
   formatVolpages,
   isHeadingHTML,
+  languageName,
   rootTitle,
   softHyphenateTitle,
 } from './src/helpers/strings.js'
@@ -130,6 +131,7 @@ export default function (eleventyConfig) {
   })
 
   eleventyConfig.addFilter('softHyphenateTitle', softHyphenateTitle)
+  eleventyConfig.addFilter('languageName', languageName)
   eleventyConfig.addFilter('isHeading', isHeadingHTML)
   eleventyConfig.addFilter('formatVolpages', formatVolpages)
   eleventyConfig.addFilter('formatNumber', function (number) {

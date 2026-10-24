@@ -84,7 +84,7 @@ function generateTextMetaJsonLd(entry) {
         about: {
           '@type': 'Thing',
           name: 'Buddhist Teaching',
-          description: 'Ancient Buddhist discourse or text from the Pali Canon',
+          description: 'Ancient Buddhist discourse or text from the Pāli Canon',
         },
       },
       isPartOf: {

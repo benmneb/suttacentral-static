@@ -48,12 +48,12 @@
         {% if entry._publication_info.translation_lang_name %}
           <dt>Translation language</dt>
           <dd property="dc:language" aria-label="Language of translation">
-            {{ entry._publication_info.translation_lang_name }}
+            {{ entry._publication_info.translation_lang_name | languageName }}
           </dd>
         {% endif %}
         <dt>Root language</dt>
         <dd aria-label="Original language of the text">
-          {{ entry._publication_info.root_lang_name }}
+          {{ entry._publication_info.root_lang_name | languageName }}
         </dd>
       </dl>
     </section>

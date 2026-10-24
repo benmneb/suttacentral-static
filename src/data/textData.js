@@ -28,7 +28,7 @@ function generateTextOGTags(entry) {
   return JSON.stringify({
     'og:title': `${entry.acronym}: ${entry.original_title}—${entry.author}`,
     'og:description':
-      entry.blurb || 'Buddhist text from the Pali Canon with translation',
+      entry.blurb || 'Buddhist text from the Pāli Canon with translation',
     'og:url': `${metadata.origin}/${entry.scx_path}`,
     'og:type': 'article',
     'og:locale': entry.lang || 'en',
@@ -40,7 +40,7 @@ function generateTextOGTags(entry) {
     }),
     'article:section': 'Buddhist Texts',
     'article:tag':
-      'Buddhism, Buddhist Texts, Pali Canon, Tipitaka, Early Buddhism, Theravada, Suttas',
+      'Buddhism, Buddhist Texts, Pāli Canon, Tipitaka, Early Buddhism, Theravada, Suttas',
   })
 }
 
@@ -73,7 +73,7 @@ function generateTextJsonLd(entry) {
       name: entry.original_title,
       alternateName: [entry.acronym, entry.translated_title].filter(Boolean),
       description:
-        entry.blurb || 'Buddhist text from the Pali Canon with translation',
+        entry.blurb || 'Buddhist text from the Pāli Canon with translation',
       url: `${siteMetaData().origin}/${entry.scx_path}`,
       sameAs: `https://suttacentral.net/${entry.scx_path}`,
       identifier: entry.uid,

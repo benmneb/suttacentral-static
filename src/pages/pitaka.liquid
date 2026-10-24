@@ -79,7 +79,7 @@ eleventyComputed:
                   <span class="range">{{ child.child_range }}</span>
                 {% endif %}
                 {% if child.root_lang_name %}
-                  <span>{{ child.root_lang_name }}</span>
+                  <span>{{ child.root_lang_name | languageName }}</span>
                 {% endif %}
                 {% if child.yellow_brick_road %}
                   {% if child.root_lang_name %}

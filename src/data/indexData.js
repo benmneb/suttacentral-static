@@ -55,7 +55,7 @@ function generateIndexJsonLd(data) {
       keywords: [
         'Buddhism',
         'Buddhist texts',
-        'Pali Canon',
+        'Pāli Canon',
         'Tipitaka',
         'suttas',
         'dharma',
