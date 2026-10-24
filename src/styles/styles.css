@@ -1372,22 +1372,16 @@ main:has(.segment) > :first-child {
   }
 
   li {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
     list-style: none;
     padding: 0.125rem 0;
     overflow-wrap: anywhere;
-  }
 
-  /* Flex drops the markup's spaces, so the underline stops at the words */
-  a,
-  [aria-current='page'] {
-    display: inline-flex;
-    align-items: center;
-  }
-
-  :is(a, [aria-current='page']) > .icon:first-child {
-    align-self: flex-start;
-    margin-top: calc((1lh - 1em) / 2);
-    margin-inline-end: 0.375rem;
+    .icon {
+      color: var(--text-color-secondary);
+    }
   }
 
   [aria-current='page'] {

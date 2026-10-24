@@ -7,14 +7,11 @@
         {% for link in group.pages %}
           {% assign pageIcon = sitePagesData.pageIcons[link.href] %}
           <li>
+            <i class="icon i-{{ pageIcon }}"></i>
             {% if link.href == current %}
-              <span aria-current="page"
-                ><i class="icon i-{{ pageIcon }}"></i>{{ link.label -}}
-              </span>
+              <span aria-current="page">{{ link.label }}</span>
             {% else %}
-              <a href="{{ link.href }}"
-                ><i class="icon i-{{ pageIcon }}"></i>{{ link.label -}}
-              </a>
+              <a href="{{ link.href }}">{{ link.label }}</a>
             {% endif %}
           </li>
         {% endfor %}
