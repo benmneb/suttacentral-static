@@ -19,7 +19,7 @@ import {
   STRING_FILES,
   templateKeys,
 } from '../src/helpers/siteStrings.js'
-import { listSome, scanSite } from './lib/site.js'
+import { listSome, readPage, scanSite } from './lib/site.js'
 
 // Characters of text a site page's <main> has at least
 const MIN_TEXT_LENGTH = 20
@@ -277,5 +277,19 @@ describe('Every site page', async () => {
       /^\/edition\/[^/]+\/[^/]+\/[^/]+\/$/.test(page.url)
     )
     assert.ok(editions.length > 0, 'No /edition/<uid>/<lang>/<author> pages')
+  })
+
+  it("lists no journey's route line in the map's index of places", async () => {
+    const html = await readPage('/map/')
+    const index = html.slice(html.indexOf('id="places-index-heading"'))
+    const routes = [...index.matchAll(/<li>([^<]* journey)<\/li>/g)].map(
+      ([, name]) => name
+    )
+    assert.deepEqual(
+      routes,
+      [],
+      `The index lists routes:\n${routes.join('\n')}`
+    )
+    assert.match(index, /<summary>Mahāparinibbāna journey<\/summary>/)
   })
 })

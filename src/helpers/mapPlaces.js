@@ -113,6 +113,8 @@ async function makeMapData() {
     layers.get(properties.layer).push({
       name: properties.name,
       define: properties.define,
+      // A journey's own route line is named after its layer, and isn't one of the places it lists
+      route: properties.name === properties.layer,
       icon,
       // Off the map, as .net puts them at spots far from the subcontinent (Sagga at Perth)
       shape:

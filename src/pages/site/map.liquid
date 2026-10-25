@@ -246,6 +246,7 @@ eleventyComputed:
         </summary>
         <ul>
           {% for place in layer.places %}
+            {% if place.route %}{% continue %}{% endif %}
             <li>
               {% if place.define %}
                 <svg class="marker" aria-hidden="true">
