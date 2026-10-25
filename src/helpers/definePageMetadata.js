@@ -35,15 +35,41 @@ function aliasesOf(entry, word) {
     })
 }
 
+/** What a dictionary says of the word, as plain text, its definitions and any senses it lists */
+function descriptionsOf(entry) {
+  return [
+    ...(entry.definitions ?? []),
+    entry.html,
+    ...(entry.xrs ?? []).map(({ text }) => text),
+  ]
+    .map(definitionText)
+    .filter(Boolean)
+}
+
+/**
+ * A definition without the headword DPD repeats before it, as "dhamma 1.01: masc. nature; character"
+ * is "masc. nature; character". Only DPD writes them so: the other dictionaries' text is prose
+ */
+function withoutHeadword(entry, definition) {
+  if (entry.name !== 'dpd') return definition
+  const [, rest] = definition.match(/^[^:]+:\s*(.+)$/s) ?? []
+  return rest ?? definition
+}
+
+/**
+ * The first definition any dictionary gives the word, which describes the word itself rather than the
+ * page, or nothing if they give none
+ */
+function firstDefinition(term) {
+  for (const entry of term.entries) {
+    const [definition] = descriptionsOf(entry)
+    if (definition) return excerpt(withoutHeadword(entry, definition))
+  }
+}
+
 function dictionaryTerms(term) {
   return term.entries.flatMap(entry => {
-    const descriptions = [
-      ...(entry.definitions ?? []),
-      entry.html,
-      ...(entry.xrs ?? []).map(({ text }) => text),
-    ]
-      .map(definitionText)
-      .filter(Boolean)
+    const descriptions = descriptionsOf(entry)
     if (!descriptions.length) return []
 
     const aliases = aliasesOf(entry, term.word)
@@ -95,6 +121,8 @@ export function generateDefineJsonLd(term) {
   const metadata = siteMetaData()
   const url = `${metadata.origin}${term.href}`
   const description = defineDescription(term)
+  // The word's own first definition, falling back to the page's description where no dictionary has one
+  const termDescription = firstDefinition(term) ?? description
   // The page, whose breadcrumb only `WebPage` can take, and the word itself, as its main entity
   return JSON.stringify(
     {
@@ -113,7 +141,7 @@ export function generateDefineJsonLd(term) {
         '@type': 'DefinedTerm',
         '@id': `${url}#term`,
         name: term.word,
-        description,
+        description: termDescription,
         url,
         sameAs: `https://suttacentral.net${term.href}`,
         inLanguage: 'pli',

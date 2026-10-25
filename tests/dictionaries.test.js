@@ -175,6 +175,8 @@ describe('The /define pages', () => {
       'https://suttacentral.express/define/dhamma#term'
     )
     assert.equal(jsonLd.mainEntity.name, 'dhamma')
+    // The word is described by what a dictionary says of it, not by the page's own description
+    assert.equal(jsonLd.mainEntity.description, 'nature; character')
     assert.equal(jsonLd.mainEntity.inLanguage, 'pli')
     assert.equal(jsonLd.mainEntity.inDefinedTermSet['@type'], 'DefinedTermSet')
     assert.equal(
@@ -201,6 +203,37 @@ describe('The /define pages', () => {
     }
     const dppnJsonLd = JSON.parse(generateDefineJsonLd(dppnTerm))
     assert.deepEqual(dppnJsonLd.about[0].alternateName, ['Bhagavā', 'Gotama'])
+    // DPPN's text stands in for a definition where it has none
+    assert.match(dppnJsonLd.mainEntity.description, /^Buddha Bhagavā Gotama/)
+
+    // DPD repeats the headword and sense number before its definition, which a description drops
+    const dpdTerm = {
+      word: 'dhamma',
+      href: '/define/dhamma',
+      entries: [
+        {
+          name: 'dpd',
+          title: 'Digital Pāḷi Dictionary',
+          numbered: true,
+          definitions: ['dhamma 1.01: masc. nature; character [√dhar + ma]'],
+        },
+      ],
+    }
+    assert.equal(
+      JSON.parse(generateDefineJsonLd(dpdTerm)).mainEntity.description,
+      'masc. nature; character [√dhar + ma]'
+    )
+
+    // A word none of the dictionaries defines falls back to the page's description
+    const undefinedTerm = {
+      word: 'akkhara',
+      href: '/define/akkhara',
+      entries: [{ title: 'Digital Pāḷi Dictionary' }],
+    }
+    assert.equal(
+      JSON.parse(generateDefineJsonLd(undefinedTerm)).mainEntity.description,
+      'Pāli dictionary results for “akkhara”.'
+    )
   })
 
   it('generates metadata for the dictionary search page', () => {
