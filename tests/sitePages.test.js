@@ -64,6 +64,14 @@ describe('Site page metadata', () => {
           'interface:aboutTitle': 'About SuttaCentral',
           'interface:languages': 'Languages on SuttaCentral',
           'interface:mnGuideSujato': 'The Middle Discourses',
+          'map:1': 'The Buddha’s India',
+          'map:2': 'Poster map',
+          'map:3':
+            'Jambudīpa: India in the time of the Buddha. Hand-drawn by Jonas for SuttaCentral, CC0.',
+          'map:4': 'Interactive map',
+          'map:5': 'Capital cities',
+          'map:6': 'Towns & villages',
+          'map:11': 'Mahāparinibbāna journey',
           'methodology:16': 'Rod Bucknell, updated by Sujato',
           'methodology:33': 'Bhikkhu Sujato',
           'publication:editionsToolbarTitle': 'SuttaCentral Editions',
@@ -78,12 +86,68 @@ describe('Site page metadata', () => {
         schools: [{ acronym: 'Mū', name: 'Mūlasarvāstivāda' }],
       },
       imageFor: async (url, options) => {
+        if (url.endsWith('/static-pages/jambudipa_map.jpg')) {
+          assert.deepEqual(options, { dir: 'site-pages', height: 2068 })
+          return {
+            src: '/images/site-pages/jambudipa_map-test.avif',
+            width: 1400,
+            height: 1900,
+          }
+        }
         assert.equal(
           url,
           'https://suttacentral.net/img/publication-pages/mn-book.jpg'
         )
         assert.deepEqual(options, { dir: 'site-pages', height: 600 })
         return { src: '/images/site-pages/mn-book-test.avif' }
+      },
+      map: {
+        layers: [
+          {
+            name: 'Capital cities',
+            labelKey: 'map:5',
+            places: [
+              {
+                id: 'place-1-1',
+                name: 'Rājagaha',
+                define: 'rājagaha',
+                shape: { type: 'point', x: 1, y: 2 },
+              },
+            ],
+          },
+          {
+            name: 'Towns & villages',
+            labelKey: 'map:6',
+            places: [
+              {
+                id: 'place-2-1',
+                name: 'A nameless village',
+                define: undefined,
+                shape: { type: 'point', x: 3, y: 4 },
+              },
+            ],
+          },
+          {
+            name: 'Mahāparinibbāna journey',
+            labelKey: 'map:11',
+            // Its stops are numbered, so `mapPlaces.js` counts it a sequence
+            ordered: true,
+            places: [
+              {
+                id: 'place-3-1',
+                name: '1) Rājagaha',
+                define: 'rājagaha',
+                shape: { type: 'point', x: 5, y: 6 },
+              },
+              {
+                id: 'place-3-2',
+                name: 'Mahāparinibbāna journey',
+                route: true,
+                shape: { type: 'line', x: 7, y: 8 },
+              },
+            ],
+          },
+        ],
       },
       editions: [
         {
@@ -214,6 +278,75 @@ describe('Site page metadata', () => {
       matter.breadcrumb.itemListElement.map(({ name }) => name),
       ['Home', 'SuttaCentral Editions', 'Middle Discourses', 'Introduction']
     )
+
+    const mapPage = JSON.parse(pages['/map/'].scx_json_ld)
+    const [poster, interactiveMap, index] = mapPage.hasPart
+    assert.equal(mapPage['@type'], 'WebPage')
+    assert.equal(mapPage.name, 'The Buddha’s India')
+    assert.deepEqual(
+      mapPage.hasPart.map(part => part['@type']),
+      ['ImageObject', 'InteractiveResource', 'Table']
+    )
+    assert.equal(
+      poster.url,
+      'https://suttacentral.express/images/site-pages/jambudipa_map-test.avif'
+    )
+    assert.equal(poster.encodingFormat, 'image/avif')
+    assert.equal(poster.width, 1400)
+    assert.equal(poster.height, 1900)
+    assert.equal(poster.name, 'Poster map')
+    assert.match(poster.description, /^Jambudīpa: India in the time/)
+    assert.equal(interactiveMap.url, 'https://suttacentral.express/map')
+    assert.equal(interactiveMap.encodingFormat, 'image/svg+xml')
+    assert.equal(index.name, 'Index of Places')
+    // A list of lists, as `hasPart` only takes CreativeWorks, and gives no position
+    assert.equal(index.hasPart, undefined)
+    assert.equal(index.mainEntity['@type'], 'ItemList')
+    // The journey's route line isn't one of the places it lists
+    assert.equal(index.mainEntity.numberOfItems, 3)
+    const categories = index.mainEntity.itemListElement
+    assert.deepEqual(
+      categories.map(({ name }) => name),
+      ['Capital cities', 'Towns & villages', 'Mahāparinibbāna journey']
+    )
+    // Sorted by name, so the places stand on their own, with no position
+    assert.equal(categories[0]['@type'], 'ItemList')
+    assert.equal(categories[0].numberOfItems, 1)
+    assert.equal(categories[0].itemListOrder, undefined)
+    assert.deepEqual(categories[0].itemListElement, [
+      {
+        '@type': 'Place',
+        name: 'Rājagaha',
+        url: 'https://suttacentral.express/define/rājagaha',
+        sameAs: 'https://suttacentral.express/map#place-1-1',
+      },
+    ])
+    // A place with no /define page is still listed, without a url
+    assert.equal(categories[1].itemListElement[0].url, undefined)
+    assert.equal(categories[1].itemListElement[0].name, 'A nameless village')
+    // A journey's stops are in sequence, so each is a positioned ListItem, minus its number
+    assert.equal(categories[2].itemListOrder, 'ItemListOrderAscending')
+    assert.equal(categories[2].numberOfItems, 1)
+    assert.deepEqual(categories[2].itemListElement, [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        item: {
+          '@type': 'Place',
+          name: 'Rājagaha',
+          url: 'https://suttacentral.express/define/rājagaha',
+          sameAs: 'https://suttacentral.express/map#place-3-1',
+        },
+      },
+    ])
+    assert.equal(mapPage.spatialCoverage['@type'], 'Place')
+    assert.equal(mapPage.spatialCoverage.name, 'India')
+    assert.equal(mapPage.temporalCoverage, '6th–5th century BCE')
+    assert.deepEqual(
+      mapPage.about.map(({ name }) => name),
+      ['Buddhism in Ancient India', 'Mahajanapadas']
+    )
+    assert.equal(mapPage.isPartOf.name, 'SuttaCentral Express')
     assert.equal(
       JSON.parse(
         generateSitePageOGTags({
@@ -291,5 +424,39 @@ describe('Every site page', async () => {
       `The index lists routes:\n${routes.join('\n')}`
     )
     assert.match(index, /<summary>Mahāparinibbāna journey<\/summary>/)
+  })
+
+  it('gives the journeys their stops in sequence, and no other layer a position', async () => {
+    const html = await readPage('/map/')
+    const jsonLd = JSON.parse(
+      html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]
+    )
+    const index = jsonLd.hasPart.find(part => part['@type'] === 'Table')
+    const [journeys, alphabetical] = [
+      index.mainEntity.itemListElement.filter(
+        layer => layer.itemListOrder === 'ItemListOrderAscending'
+      ),
+      index.mainEntity.itemListElement.filter(
+        layer => layer.itemListOrder === undefined
+      ),
+    ]
+    const names = journeys.map(layer => layer.name)
+    assert.deepEqual(names, [
+      'Mahāparinibbāna journey',
+      'Pārāyanavagga journey',
+    ])
+    for (const journey of journeys) {
+      assert.deepEqual(
+        journey.itemListElement.map(({ position }) => position),
+        journey.itemListElement.map((place, i) => i + 1)
+      )
+      assert.equal(journey.itemListElement[0].item['@type'], 'Place')
+    }
+    for (const layer of alphabetical) {
+      assert.ok(
+        layer.itemListElement.every(place => place['@type'] === 'Place'),
+        `${layer.name} has a positioned ListItem`
+      )
+    }
   })
 })

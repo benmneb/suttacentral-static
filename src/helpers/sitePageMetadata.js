@@ -298,6 +298,112 @@ function withBreadcrumbs(page, ancestors = []) {
   }
 }
 
+// The poster map /map shows, at the same size it does, and the interactive one it draws
+const MAP_POSTER = 'https://suttacentral.net/img/static-pages/jambudipa_map.jpg'
+const MAP_POSTER_HEIGHT = 2068
+
+/** The MIME type of an image, from its file extension */
+function imageFormat(src) {
+  const extension = src.split(/[?#]/)[0].split('.').pop().toLowerCase()
+  if (extension === 'avif') return 'image/avif'
+  if (extension === 'png') return 'image/png'
+  if (extension === 'svg') return 'image/svg+xml'
+  if (extension === 'webp') return 'image/webp'
+  return 'image/jpeg'
+}
+
+/**
+ * What /map is made of, for its JSON-LD: its poster and interactive maps, and its index of every place, in the
+ * layers the page groups them by, each by its /define page if it has one, and the place on the map
+ */
+async function mapParts(map, titleFor, imageFor) {
+  const { origin } = siteMetaData()
+  const poster = await imageFor(MAP_POSTER, {
+    dir: 'site-pages',
+    height: MAP_POSTER_HEIGHT,
+  })
+  const posterUrl = new URL(poster.src, `${origin}/`).href
+  const layers = map.layers.map(layer => ({
+    layer,
+    ordered: layer.ordered,
+    places: layer.places
+      // A journey's own route line isn't one of the places its index lists
+      .filter(place => !place.route)
+      .map(place => ({
+        '@type': 'Place',
+        // A journey numbers its stops, as "1) Rājagaha", which isn't part of the place's name
+        name: place.name?.trim().replace(/^\d+\)\s*/, ''),
+        ...(place.define && {
+          url: absoluteUrl(origin, `/define/${place.define}`),
+        }),
+        sameAs: absoluteUrl(origin, `/map#${place.id}`),
+      })),
+  }))
+  const placeCount = layers.reduce(
+    (count, { places }) => count + places.length,
+    0
+  )
+  return {
+    hasPart: [
+      {
+        '@type': 'ImageObject',
+        name: textFromHtml(titleFor('map:2')),
+        description: textFromHtml(titleFor('map:3')),
+        url: posterUrl,
+        encodingFormat: imageFormat(poster.src),
+        ...(poster.width && { width: poster.width, height: poster.height }),
+      },
+      {
+        '@type': 'InteractiveResource',
+        name: textFromHtml(titleFor('map:4')),
+        description:
+          'The places of the early Buddhist texts on an interactive SVG map, with references to related passages.',
+        url: absoluteUrl(origin, '/map'),
+        encodingFormat: 'image/svg+xml',
+      },
+      {
+        '@type': 'Table',
+        name: 'Index of Places',
+        description: 'Categorized index of locations featured on the map',
+        // Its places as lists, as `hasPart` only takes the parts of a CreativeWork, and the
+        // places are Things. A journey's stops need a position, which only a `ListItem` can give,
+        // while a list sorted by name needs none, and there a `Place` can stand alone
+        mainEntity: {
+          '@type': 'ItemList',
+          numberOfItems: placeCount,
+          itemListElement: layers.map(({ layer, ordered, places }) => ({
+            '@type': 'ItemList',
+            name: layer.labelKey
+              ? textFromHtml(titleFor(layer.labelKey))
+              : layer.name,
+            numberOfItems: places.length,
+            ...(ordered && { itemListOrder: 'ItemListOrderAscending' }),
+            itemListElement: places.map((place, index) =>
+              ordered
+                ? {
+                    '@type': 'ListItem',
+                    position: index + 1,
+                    item: place,
+                  }
+                : place
+            ),
+          })),
+        },
+      },
+    ],
+    spatialCoverage: {
+      '@type': 'Place',
+      name: 'India',
+      description: 'India during the time of the Buddha',
+    },
+    temporalCoverage: '6th–5th century BCE',
+    about: [
+      { '@type': 'Thing', name: 'Buddhism in Ancient India' },
+      { '@type': 'Thing', name: 'Mahajanapadas' },
+    ],
+  }
+}
+
 function scholarlyData(url, titleFor) {
   const article = SCHOLARLY_PAGES[routeKey(url)]
   if (!article) return {}
@@ -363,11 +469,14 @@ export function generateSitePageJsonLd({
   publisher,
   mainEntity,
   mainContentOfPage,
+  hasPart,
   translator,
   image,
   potentialAction,
   isbn,
   isBasedOn,
+  spatialCoverage,
+  temporalCoverage,
 }) {
   const metadata = siteMetaData()
   const canonicalUrl = absoluteUrl(metadata.origin, url)
@@ -391,11 +500,14 @@ export function generateSitePageJsonLd({
       ...(publisher && { publisher }),
       ...(mainEntity && { mainEntity }),
       ...(mainContentOfPage && { mainContentOfPage }),
+      ...(hasPart && { hasPart }),
       ...(translator && { translator }),
       ...(image && { image }),
       ...(potentialAction && { potentialAction }),
       ...(isbn && { isbn }),
       ...(isBasedOn && { isBasedOn }),
+      ...(spatialCoverage && { spatialCoverage }),
+      ...(temporalCoverage && { temporalCoverage }),
       ...(breadcrumbs?.length && {
         breadcrumb: {
           '@type': 'BreadcrumbList',
@@ -429,9 +541,12 @@ export async function buildSitePageMetadata({
   languagePages,
   editions,
   abbreviations = {},
+  map,
   titleFor = t,
   imageFor = localImage,
 }) {
+  // Awaited here, as only /map has a part to make with an image, and the rest of the pages need no await
+  const mapStructuredData = map ? await mapParts(map, titleFor, imageFor) : null
   const pages = Object.fromEntries(
     Object.entries(STATIC_PAGES).map(([url, page]) => {
       const article = scholarlyData(url, titleFor)
@@ -452,6 +567,7 @@ export async function buildSitePageMetadata({
             numberOfItems: abbreviationCount,
           },
         }),
+        ...(url === '/map/' && mapStructuredData),
         url,
         title: textFromHtml(titleFor(page.titleKey)),
       })

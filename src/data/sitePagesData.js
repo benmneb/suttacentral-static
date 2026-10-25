@@ -347,6 +347,7 @@ export default async function () {
       languagePages: languagesData.pages,
       editions: editionsData,
       abbreviations: abbreviationsData,
+      map,
     }),
     // The editions as menus and cards link them, by collection
     editionLinks,

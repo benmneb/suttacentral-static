@@ -18,6 +18,9 @@ const MAP_DATA = 'https://suttacentral.net/api/map_data'
 // Numeric, so the journeys' 10) comes after 9), not 1)
 const byName = new Intl.Collator('en', { numeric: true })
 
+// The number a journey puts before each of its stops, as "1) Rājagaha", which no place's name starts with
+const STOP_NUMBER = /^\d+\)/
+
 // .net's marker fills, by the name of the variable each is drawn with, as dark mode needs lighter ones
 const MARKER_COLOURS = {
   '#ffc107': 'amber',
@@ -93,7 +96,7 @@ function mapShape(geometry, style = {}) {
 }
 
 /**
- * The map's places, in its layers, as `{ name, labelKey, places: [{ id, name, define, icon, shape }] }`,
+ * The map's places, in its layers, as `{ name, labelKey, ordered, places: [{ id, name, define, icon, shape }] }`,
  * each one's popover id, icon and shape by its `define` for the mini maps, and its base and marker symbols
  * for the SVG map
  */
@@ -123,14 +126,26 @@ async function makeMapData() {
         mapShape(geometry, properties.style),
     })
   }
-  const sortedLayers = [...layers].map(([name, places], i) => ({
-    name,
-    labelKey: mapLayerKeys[name],
-    onMap: places.some(place => place.shape),
-    places: places
+  const sortedLayers = [...layers].map(([name, places], i) => {
+    const stops = places
       .sort((a, b) => byName.compare(a.name ?? '', b.name ?? ''))
-      .map((place, j) => ({ ...place, id: `place-${i + 1}-${j + 1}` })),
-  }))
+      // A journey's own route line isn't one of the places its index lists
+      .filter(place => !place.route)
+    return {
+      name,
+      labelKey: mapLayerKeys[name],
+      onMap: places.some(place => place.shape),
+      // A journey numbers its stops, so they're a sequence, which JSON-LD has to say as positions. The
+      // other layers are sorted by name, and the order of an alphabetical list means nothing
+      ordered:
+        stops.length > 1 &&
+        stops.every(({ name }) => STOP_NUMBER.test(name ?? '')),
+      places: places.map((place, j) => ({
+        ...place,
+        id: `place-${i + 1}-${j + 1}`,
+      })),
+    }
+  })
   // Each place on the map, by the word of its /define page, for those pages' and /search's mini maps of it
   const places = {}
   for (const { places: layerPlaces } of sortedLayers) {
