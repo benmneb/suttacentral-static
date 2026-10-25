@@ -148,6 +148,12 @@ export default function (eleventyConfig) {
   eleventyConfig.addFilter('t', t)
   eleventyConfig.addFilter('defineHref', defineHref)
 
+  // A built page's route as the browser has it, with no trailing slash: page.url's /about/ is /about
+  eleventyConfig.addFilter('route', function (url) {
+    const path = String(url ?? '')
+    return path === '/' ? path : path.replace(/\/+$/, '')
+  })
+
   // Each word of a Pāli root text as a link to its /define page, for word lookup
   eleventyConfig.addFilter('lookupLinks', async function (html, lang) {
     if (lang !== 'pli') return html

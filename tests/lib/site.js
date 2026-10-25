@@ -31,6 +31,15 @@ export function urlForFile(file) {
 }
 
 /**
+ * A page's URL as the route the browser uses, which has no trailing slash, ie
+ * `mn1/en/sujato/index.html`'s `/mn1/en/sujato/` is `/mn1/en/sujato`
+ * @param {string} url
+ */
+export function pageRoute(url) {
+  return url === '/' ? url : url.replace(/\/$/, '')
+}
+
+/**
  * What sort of page a URL is, from its shape:
  * - `text`: a translation or root text, ie `/mn1/en/sujato/`
  * - `pitaka`: the tree of collections, ie `/pitaka/sutta/`

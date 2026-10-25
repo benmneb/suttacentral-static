@@ -12,6 +12,7 @@
  */
 
 import siteMetaData from '../../src/data/_siteMetaData.js'
+import { pageRoute } from './site.js'
 
 export const SKIP_BASELINE = Boolean(process.env.SKIP_BASELINE)
 
@@ -31,12 +32,12 @@ async function get(url) {
 }
 
 /**
- * Paths in a sitemap's `<loc>`s, without the origin, ie `/mn1/en/sujato/`
+ * Paths in a sitemap's `<loc>`s, without the origin, as routes, ie `/mn1/en/sujato`
  * @param {string} xml
  */
 export function sitemapPaths(xml) {
   return [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map(match =>
-    decodeURIComponent(new URL(match[1].trim()).pathname)
+    pageRoute(decodeURIComponent(new URL(match[1].trim()).pathname))
   )
 }
 

@@ -16,6 +16,7 @@ import {
   UNLISTED_PAGES,
   collectionOf,
   listSome,
+  pageRoute,
   scanSite,
 } from './lib/site.js'
 
@@ -32,14 +33,16 @@ const percent = share => `${(share * 100).toFixed(1)}%`
 
 describe('Page inventory', async () => {
   const { pages } = await scanSite()
+  // Pages are keyed as they're built, ie `/mn1/en/sujato/`, while a sitemap lists their routes
+  const routes = new Set([...pages.keys()].map(pageRoute))
 
   it('has a sitemap listing every built page', async () => {
     const xml = await fs.readFile(path.join(SITE_DIR, 'sitemap.xml'), 'utf8')
     const listed = new Set(sitemapPaths(xml))
     const built = [...pages.keys()].filter(url => !UNLISTED_PAGES.includes(url))
 
-    const unlisted = built.filter(url => !listed.has(url))
-    const unbuilt = [...listed].filter(url => !pages.has(url))
+    const unlisted = built.filter(url => !listed.has(pageRoute(url)))
+    const unbuilt = [...listed].filter(route => !routes.has(route))
     assert.deepEqual(
       { unlisted: unlisted.length, unbuilt: unbuilt.length },
       { unlisted: 0, unbuilt: 0 },
@@ -71,7 +74,7 @@ describe('Page inventory', async () => {
 
   describe('compared with production', { skip: SKIP_BASELINE }, async () => {
     const production = SKIP_BASELINE ? [] : await productionPages()
-    const missing = production.filter(url => !pages.has(url))
+    const missing = production.filter(route => !routes.has(route))
 
     it(`is missing at most ${percent(MAX_MISSING_SHARE)} of its pages`, () => {
       const share = missing.length / production.length
