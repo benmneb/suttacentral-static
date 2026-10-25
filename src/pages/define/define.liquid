@@ -22,12 +22,10 @@ eleventyComputed:
       href: /define
 ---
 <hgroup>
-  <h1>Definitions</h1>
-  <p>
-    {{ term.entries.size | formatNumber }}
-    results for
-    <b lang="pli" translate="no">{{ term.word }}</b>
-  </p>
+  <h1>
+    Definitions for <span lang="pli" translate="no">{{ term.word }}</span>
+  </h1>
+  <p>Found in {{ term.entries.size | formatNumber }} dictionaries</p>
 </hgroup>
 <section>
   <article>

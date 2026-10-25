@@ -345,6 +345,14 @@
 .site-page.define {
   max-width: calc(var(--content-max-width) + 30ch);
 
+  h1 {
+    color: var(--text-color);
+
+    span {
+      color: var(--headings-color);
+    }
+  }
+
   > section {
     display: grid;
     /* Not auto, which widens the search as its results come in */
