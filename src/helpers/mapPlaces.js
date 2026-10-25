@@ -8,12 +8,10 @@
  */
 
 import Fetch from '@11ty/eleventy-fetch'
-import { fetchOptions } from '../data/_masterData.js'
 import { geometryPath, labelPoint, mapBase, onMap, project } from './mapBase.js'
 import { mapMarkers } from './mapMarkers.js'
+import { fetchOptions, mapDataUrl } from './scApi.js'
 import { mapLayerKeys } from './sitePages.js'
-
-const MAP_DATA = 'https://suttacentral.net/api/map_data'
 
 // Numeric, so the journeys' 10) comes after 9), not 1)
 const byName = new Intl.Collator('en', { numeric: true })
@@ -101,9 +99,10 @@ function mapShape(geometry, style = {}) {
  * for the SVG map
  */
 async function makeMapData() {
+  const url = mapDataUrl()
   const [data, base] = await Promise.all([
-    Fetch(MAP_DATA, fetchOptions(MAP_DATA)).catch(error => {
-      console.warn(`Couldn't fetch ${MAP_DATA} for the map:`, error.message)
+    Fetch(url, fetchOptions(url)).catch(error => {
+      console.warn(`Couldn't fetch ${url} for the map:`, error.message)
       return []
     }),
     mapBase(),

@@ -17,7 +17,7 @@ import {
   parallelsUrl,
   segmentedTranslationUrl,
   suttasUrl,
-} from '../src/data/_masterData.js'
+} from '../src/helpers/scApi.js'
 import { decodeEntities, readPage, scanSite, textOf } from './lib/site.js'
 
 /**

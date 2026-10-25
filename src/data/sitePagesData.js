@@ -1,6 +1,19 @@
 import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
 import { loadDictionaries } from '../helpers/dictionaries.js'
 import { mapData } from '../helpers/mapPlaces.js'
+import {
+  abbreviationUrl,
+  creatorBioUrl,
+  editionBlurbsUrl,
+  fetchOptions,
+  githubDirectoryUrl,
+  mapDataUrl,
+  menuUrl,
+  publicationEditionFilesUrl,
+  publicationEditionUrl,
+  publicationEditionsUrl,
+  translationCountUrl,
+} from '../helpers/scApi.js'
 import { buildSitePageMetadata } from '../helpers/sitePageMetadata.js'
 import {
   editionCollections,
@@ -9,9 +22,8 @@ import {
   siteMap,
 } from '../helpers/sitePages.js'
 import { loadStrings } from '../helpers/siteStrings.js'
-import masterData, { fetchOptions, menuUrl } from './_masterData.js'
+import masterData from './_masterData.js'
 
-const API = 'https://suttacentral.net/api'
 const EDITIONS_REPO = 'https://github.com/suttacentral/editions'
 
 // Named by the hash alone where the URL's query would make too long a file name
@@ -47,7 +59,7 @@ async function tryFetchJson(url, fallback) {
 async function abbreviations() {
   const [texts, editions, schools] = await Promise.all(
     ['texts', 'editions', 'schools'].map(kind =>
-      tryFetchJson(`${API}/abbreviation_${kind}`, [])
+      tryFetchJson(abbreviationUrl(kind), [])
     )
   )
   return { texts, editions, schools }
@@ -58,7 +70,7 @@ async function abbreviations() {
  * by root language
  */
 async function languages() {
-  const counts = await tryFetchJson(`${API}/translation_count`, {
+  const counts = await tryFetchJson(translationCountUrl(), {
     ancient: [],
     modern: [],
   })
@@ -66,7 +78,7 @@ async function languages() {
   const all = [...counts.ancient, ...modern]
   const pages = await Promise.all(
     all.map(async ({ iso_code, name, percent }) => {
-      const data = await tryFetchJson(`${API}/translation_count/${iso_code}`, {
+      const data = await tryFetchJson(translationCountUrl(iso_code), {
         division: [],
         author: [],
       })
@@ -101,10 +113,8 @@ async function languages() {
 // The downloads of an edition, from the editions repo through .net's proxy of GitHub's API
 async function editionFiles(lang, author, uid) {
   const list = async kind => {
-    const path = encodeURIComponent(`${lang}/${author}/${uid}/${kind}`)
-    const repo = encodeURIComponent(EDITIONS_REPO)
     const data = await tryFetchJson(
-      `${API}/github-directory?repo_url=${repo}&path=${path}&branch=main`,
+      githubDirectoryUrl(EDITIONS_REPO, `${lang}/${author}/${uid}/${kind}`),
       {}
     )
     return data.contents ?? []
@@ -145,10 +155,10 @@ function matterName(file) {
  * of its front matter show
  */
 async function editions() {
-  const all = await tryFetchJson(`${API}/publication/editions`, [])
+  const all = await tryFetchJson(publicationEditionsUrl(), [])
   const [blurbs, bios] = await Promise.all([
-    tryFetchJson(`${API}/publication/edition/blurbs/en`, []),
-    tryFetchJson(`${API}/creator_bio`, []),
+    tryFetchJson(editionBlurbsUrl('en'), []),
+    tryFetchJson(creatorBioUrl(), []),
   ])
 
   const found = await Promise.all(
@@ -162,13 +172,10 @@ async function editions() {
       if (!web) return null
       const paperback = edition('-paperback_')
       const [data, paperbackData, files, menu] = await Promise.all([
-        tryFetchJson(`${API}/publication/edition/${web.edition_id}`, {}),
+        tryFetchJson(publicationEditionUrl(web.edition_id), {}),
         paperback &&
-          tryFetchJson(
-            `${API}/publication/edition/${paperback.edition_id}`,
-            {}
-          ),
-        tryFetchJson(`${API}/publication/edition/${web.edition_id}/files`, {}),
+          tryFetchJson(publicationEditionUrl(paperback.edition_id), {}),
+        tryFetchJson(publicationEditionFilesUrl(web.edition_id), {}),
         tryFetchJson(menuUrl(uid), []),
       ])
       const { publication } = data
@@ -356,10 +363,10 @@ export default async function () {
     // For the footer, by the `fetchedFrom` a page names, or the strings for the rest
     fetchedAt: {
       strings: stringsFetchedAt,
-      abbreviations: fetchedAt(`${API}/abbreviation_texts`),
-      map: fetchedAt(`${API}/map_data`),
-      languages: fetchedAt(`${API}/translation_count`),
-      editions: fetchedAt(`${API}/publication/editions`),
+      abbreviations: fetchedAt(abbreviationUrl('texts')),
+      map: fetchedAt(mapDataUrl()),
+      languages: fetchedAt(translationCountUrl()),
+      editions: fetchedAt(publicationEditionsUrl()),
       dictionaries: Object.values(dictionaries)
         .filter(Boolean)
         .map(({ fetchedAt }) => fetchedAt)

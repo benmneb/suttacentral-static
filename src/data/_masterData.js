@@ -4,11 +4,19 @@ import { recordStat } from '../helpers/buildStats.js'
 import { fixCommentLinks } from '../helpers/commentLinks.js'
 import { fixPaginationLinks } from '../helpers/paginationLinks.js'
 import { parseUidNumbers } from '../helpers/rangeSuttas.js'
+import {
+  fetchOptions,
+  leafUrl,
+  menuUrl,
+  parallelsUrl,
+  publicationInfoUrl,
+  segmentedTranslationUrl,
+  suttasUrl,
+} from '../helpers/scApi.js'
 import { fixMovedLegacyLinks } from '../helpers/siteLinks.js'
 import { createLinkResolver } from '../helpers/textLinks.js'
 import shortcutsData from './_shortcuts.json' with { type: 'json' }
 
-const CACHE_DURATION = process.env.REFETCH ? '0s' : '*' // https://www.11ty.dev/docs/plugins/fetch/#change-the-cache-duration
 const DEV_MODE = process.env.NODE_ENV !== 'prod'
 const MAX_CONCURRENT_REQUESTS = 50
 
@@ -25,25 +33,6 @@ let fetchErrors = 0
 let pubInfoErrors = 0
 let cacheTimeErrors = 0
 
-export function menuUrl(path = '') {
-  return `https://suttacentral.net/api/menu/${path}?language=en`
-}
-export function leafUrl(uid) {
-  return `https://suttacentral.net/api/suttaplex/${uid}?language=en`
-}
-export function segmentedTranslationUrl(uid, author, lang) {
-  return `https://suttacentral.net/api/bilarasuttas/${uid}/${author}?lang=${lang}`
-}
-export function suttasUrl(uid, author, lang) {
-  return `https://suttacentral.net/api/suttas/${uid}/${author}?lang=${lang}&siteLanguage=en`
-}
-export function parallelsUrl(uid) {
-  return `https://suttacentral.net/api/parallels/${uid}`
-}
-export function publicationInfoUrl(suttaUid, lang, translatorUid) {
-  return `https://suttacentral.net/api/publication_info/${suttaUid}/${lang}/${translatorUid}`
-}
-
 // The API returns parallels in no particular order (ie sn1.20#20.1 before sn1.20#2.1), so they're sorted
 // as numbers: the whole sutta, then #2.1, #20.1, #21.1...
 const parallelsCollator = new Intl.Collator('en', { numeric: true })
@@ -54,21 +43,6 @@ function sortParallels(parallels) {
       parallelsCollator.compare(a, b)
     )
   )
-}
-
-/**
- * Eleventy Fetch options for a SuttaCentral API URL, so the tests read back the same cache files
- * @param {string} url
- * @param {string} [duration] - How long a cached response is good for
- */
-export function fetchOptions(url, duration = CACHE_DURATION) {
-  return {
-    duration,
-    type: 'json',
-    filenameFormat: (cacheKey, hash) => {
-      return `${url.split('/api/')[1]}-${cacheKey}-${hash}`
-    },
-  }
 }
 
 /**
