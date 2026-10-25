@@ -169,7 +169,13 @@ describe('Site page metadata', () => {
             {
               label: 'Introduction',
               scx_path: 'edition/mn/en/sujato/introduction',
-              html: '<p>How this translation was prepared.</p>',
+              html: `<article class='introduction'>
+<h1>Middle Discourses: a translation</h1>
+<p class='byline'>Bhikkhu Sujato, 2024</p>
+<nav class='contents'><ol><li><a href='#intro-item1'>About this translation</a></li></ol></nav>
+<p>How this translation was prepared.</p>
+<p>And what it leaves out.</p>
+</article>`,
             },
           ],
         },
@@ -278,6 +284,24 @@ describe('Site page metadata', () => {
       matter.breadcrumb.itemListElement.map(({ name }) => name),
       ['Home', 'SuttaCentral Editions', 'Middle Discourses', 'Introduction']
     )
+    assert.equal(matter.description, 'How this translation was prepared.')
+    const book = {
+      '@type': 'Book',
+      '@id': 'https://suttacentral.express/edition/mn/en/sujato',
+      name: 'Middle Discourses',
+    }
+    assert.deepEqual(matter.isPartOf, book)
+    // The chapter is a CreativeWork with an identity of its own, and the book it belongs to
+    assert.deepEqual(matter.hasPart, {
+      '@type': 'Chapter',
+      '@id':
+        'https://suttacentral.express/edition/mn/en/sujato/introduction#chapter',
+      name: 'Introduction',
+      url: 'https://suttacentral.express/edition/mn/en/sujato/introduction',
+      isPartOf: book,
+      inLanguage: 'en',
+    })
+    assert.equal(edition.isPartOf.name, 'SuttaCentral Express')
 
     const mapPage = JSON.parse(pages['/map/'].scx_json_ld)
     const [poster, interactiveMap, index] = mapPage.hasPart

@@ -287,6 +287,21 @@ function excerpt(text) {
   return `${shortened.slice(0, boundary > 0 ? boundary : shortened.length)}…`
 }
 
+/**
+ * A page's first paragraph of prose, for a description: the text itself, not the title, byline or contents
+ * menu an edition's front matter starts with
+ */
+function firstParagraph(html) {
+  const body = String(html ?? '')
+    .replace(/<nav\b[\s\S]*?<\/nav>/gi, ' ')
+    .replace(
+      /<p\b[^>]*\bclass=['"][^'"]*\bbyline\b[^'"]*['"][^>]*>[\s\S]*?<\/p>/gi,
+      ' '
+    )
+  const paragraph = body.match(/<p\b[^>]*>([\s\S]*?)<\/p>/i)?.[1]
+  return excerpt(textFromHtml(paragraph ?? body))
+}
+
 function withBreadcrumbs(page, ancestors = []) {
   return {
     ...page,
@@ -477,6 +492,7 @@ export function generateSitePageJsonLd({
   isBasedOn,
   spatialCoverage,
   temporalCoverage,
+  isPartOf,
 }) {
   const metadata = siteMetaData()
   const canonicalUrl = absoluteUrl(metadata.origin, url)
@@ -519,7 +535,7 @@ export function generateSitePageJsonLd({
           })),
         },
       }),
-      isPartOf: {
+      isPartOf: isPartOf ?? {
         '@type': 'WebSite',
         '@id': `${metadata.origin}/#website`,
         name: metadata.title,
@@ -656,14 +672,33 @@ export async function buildSitePageMetadata({
     )
     pages[routeKey(url)] = pageMetadata(data)
 
+    // The book the edition's page is, which its front matter is part of too
+    const book = {
+      '@type': 'Book',
+      '@id': absoluteUrl(siteMetaData().origin, url),
+      name: edition.title,
+    }
     for (const matter of edition.matter) {
       const matterUrl = `/${matter.scx_path}/`
+      const matterAbsoluteUrl = absoluteUrl(siteMetaData().origin, matterUrl)
       const matterData = withBreadcrumbs(
         {
           url: matterUrl,
           title: `${matter.label}—${edition.title}`,
           breadcrumbTitle: matter.label,
-          description: excerpt(textFromHtml(matter.html)),
+          description: firstParagraph(matter.html),
+          // A sample of the book it's front matter of
+          isPartOf: book,
+          // The chapter the page is, as a part of the book rather than a page of its own: a
+          // chapter usually has a name, and the book it's in says what else it belongs with
+          hasPart: {
+            '@type': 'Chapter',
+            '@id': `${matterAbsoluteUrl}#chapter`,
+            name: matter.label,
+            url: matterAbsoluteUrl,
+            isPartOf: book,
+            inLanguage: publication.translation_lang_iso || 'en',
+          },
         },
         [
           { name: editionsTitle, url: '/editions' },
