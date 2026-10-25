@@ -95,32 +95,38 @@ export function generateDefineJsonLd(term) {
   const metadata = siteMetaData()
   const url = `${metadata.origin}${term.href}`
   const description = defineDescription(term)
+  // The page, whose breadcrumb only `WebPage` can take, and the word itself, as its main entity
   return JSON.stringify(
     {
       '@context': 'https://schema.org',
-      '@type': 'DefinedTerm',
+      '@type': 'WebPage',
       '@id': url,
-      name: term.word,
+      name: `Definitions for ${term.word}`,
       description,
       url,
       sameAs: `https://suttacentral.net${term.href}`,
-      inLanguage: 'pli',
-      inDefinedTermSet: {
-        '@type': 'DefinedTermSet',
-        name: 'SuttaCentral Pāli dictionaries',
-        url: `${metadata.origin}/define`,
-        sameAs: 'https://suttacentral.net/define',
-      },
       breadcrumb: {
         '@type': 'BreadcrumbList',
         itemListElement: breadcrumbs(term),
       },
-      hasPart: dictionaryTerms(term),
-      isPartOf: {
-        '@type': 'WebSite',
-        '@id': `${metadata.origin}/#website`,
-        name: metadata.title,
+      mainEntity: {
+        '@type': 'DefinedTerm',
+        '@id': `${url}#term`,
+        name: term.word,
+        description,
+        url,
+        sameAs: `https://suttacentral.net${term.href}`,
+        inLanguage: 'pli',
+        inDefinedTermSet: {
+          '@type': 'DefinedTermSet',
+          name: 'SuttaCentral Pāli dictionaries',
+          url: `${metadata.origin}/define`,
+          sameAs: 'https://suttacentral.net/define',
+        },
       },
+      // Each dictionary's entry for the word, as `about`, which takes any Thing: `hasPart` only
+      // takes the parts of a CreativeWork, and a DefinedTerm isn't one
+      about: dictionaryTerms(term),
     },
     null,
     2

@@ -157,22 +157,36 @@ describe('The /define pages', () => {
 
     assert.equal(og['og:url'], 'https://suttacentral.express/define/dhamma')
     assert.equal(og['og:description'], 'Pāli dictionary results for “dhamma”.')
-    assert.equal(jsonLd['@type'], 'DefinedTerm')
+    // The page, as breadcrumb's domain is WebPage, with the word as its main entity
+    assert.equal(jsonLd['@type'], 'WebPage')
     assert.equal(jsonLd['@id'], og['og:url'])
+    assert.equal(jsonLd.name, 'Definitions for dhamma')
     assert.equal(jsonLd.description, 'Pāli dictionary results for “dhamma”.')
     assert.equal(jsonLd.sameAs, 'https://suttacentral.net/define/dhamma')
+    // isPartOf's domain is CreativeWork, which a DefinedTerm isn't: inDefinedTermSet says it instead
+    assert.equal(jsonLd.isPartOf, undefined)
     assert.deepEqual(
       jsonLd.breadcrumb.itemListElement.map(({ name }) => name),
       ['Home', 'Definitions', 'dhamma']
     )
-    assert.equal(jsonLd.hasPart.length, 1)
-    assert.equal(jsonLd.hasPart[0]['@type'], 'DefinedTerm')
-    assert.equal(jsonLd.hasPart[0].name, 'dhamma (PTS Pali English Dictionary)')
-    assert.equal(jsonLd.hasPart[0].description, 'nature; character')
+    assert.equal(jsonLd.mainEntity['@type'], 'DefinedTerm')
     assert.equal(
-      jsonLd.inDefinedTermSet.url,
+      jsonLd.mainEntity['@id'],
+      'https://suttacentral.express/define/dhamma#term'
+    )
+    assert.equal(jsonLd.mainEntity.name, 'dhamma')
+    assert.equal(jsonLd.mainEntity.inLanguage, 'pli')
+    assert.equal(jsonLd.mainEntity.inDefinedTermSet['@type'], 'DefinedTermSet')
+    assert.equal(
+      jsonLd.mainEntity.inDefinedTermSet.url,
       'https://suttacentral.express/define'
     )
+    // Its dictionary entries are Things, which `about` takes and `hasPart` doesn't
+    assert.equal(jsonLd.hasPart, undefined)
+    assert.equal(jsonLd.about.length, 1)
+    assert.equal(jsonLd.about[0]['@type'], 'DefinedTerm')
+    assert.equal(jsonLd.about[0].name, 'dhamma (PTS Pali English Dictionary)')
+    assert.equal(jsonLd.about[0].description, 'nature; character')
 
     const dppnTerm = {
       word: 'buddha',
@@ -186,7 +200,7 @@ describe('The /define pages', () => {
       ],
     }
     const dppnJsonLd = JSON.parse(generateDefineJsonLd(dppnTerm))
-    assert.deepEqual(dppnJsonLd.hasPart[0].alternateName, ['Bhagavā', 'Gotama'])
+    assert.deepEqual(dppnJsonLd.about[0].alternateName, ['Bhagavā', 'Gotama'])
   })
 
   it('generates metadata for the dictionary search page', () => {
@@ -197,6 +211,7 @@ describe('The /define pages', () => {
     assert.equal(jsonLd['@type'], 'CollectionPage')
     assert.equal(jsonLd.url, og['og:url'])
     assert.equal(jsonLd.sameAs, 'https://suttacentral.net/define')
+    assert.equal(jsonLd.isPartOf.name, 'SuttaCentral Express')
     assert.deepEqual(
       jsonLd.breadcrumb.itemListElement.map(({ name }) => name),
       ['Home', 'Definitions']
