@@ -18,7 +18,11 @@
     lang="pli"
     required
   >
-  <input type="hidden" name="sites" value="{{ _siteMetaData.host }}/define">
+  <input
+    type="hidden"
+    name="sites"
+    value="{{ _siteMetaData.origin | hostname }}/define"
+  >
   <button aria-label="Define" type="submit">
     {% icon "magnifyingGlass", "mini" %}
   </button>

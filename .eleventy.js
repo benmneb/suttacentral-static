@@ -155,6 +155,10 @@ export default function (eleventyConfig) {
     return path === '/' ? path : path.replace(/\/+$/, '')
   })
 
+  eleventyConfig.addFilter('hostname', function (url) {
+    return new URL(url).hostname
+  })
+
   // Each word of a Pāli root text as a link to its /define page, for word lookup
   eleventyConfig.addFilter('lookupLinks', async function (html, lang) {
     if (lang !== 'pli') return html
