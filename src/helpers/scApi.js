@@ -30,11 +30,11 @@ export function fetchOptions(url, duration = CACHE_DURATION) {
 }
 
 /**
- * The menu under `uid`, or the whole site's for ''
- * The root's route takes no trailing slash, unless you like 404's
+ * The menu under `uid`, which is required.
+ * Without the `/uid` it returns an unusable data structure that no one should ever fetch recursively...
  */
-export function menuUrl(uid = '') {
-  return `${API}/menu${uid ? `/${uid}` : ''}?language=en`
+export function menuUrl(uid) {
+  return `${API}/menu/${uid}?language=en`
 }
 
 /** One text's details, as the leaf of the menu tree */
