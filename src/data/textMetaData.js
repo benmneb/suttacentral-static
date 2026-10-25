@@ -1,6 +1,7 @@
 import masterData from './_masterData.js'
 import { breadcrumbTrail } from '../helpers/breadcrumbs.js'
 import { onlySample } from '../helpers/samplePages.js'
+import { SC_ORIGIN } from '../helpers/scApi.js'
 import siteMetaData from './_siteMetaData.js'
 import {
   parseUidNumbers,
@@ -38,7 +39,7 @@ function generateTextMetaJsonLd(entry) {
         entry.blurb ||
         'Information about available translations and editions of this Buddhist text',
       url: `${siteMetaData().origin}/${entry.scx_path}`,
-      sameAs: `https://suttacentral.net/${entry.scx_path}`,
+      sameAs: `${SC_ORIGIN}/${entry.scx_path}`,
       identifier: entry.uid,
       inLanguage: 'en',
       about: {
@@ -62,7 +63,7 @@ function generateTextMetaJsonLd(entry) {
               alternateName: translation.lang,
             },
             url: `${siteMetaData().origin}/${entry.uid}/${translation.lang}/${translation.author_uid}`,
-            sameAs: `https://suttacentral.net/${entry.uid}/${translation.lang}/${translation.author_uid}`,
+            sameAs: `${SC_ORIGIN}/${entry.uid}/${translation.lang}/${translation.author_uid}`,
             genre: translation.is_root ? 'Root Text' : 'Translation',
             ...(translation.author && {
               [translation.is_root ? 'editor' : 'translator']: {
@@ -117,7 +118,7 @@ function generateTextMetaJsonLd(entry) {
         '@id': '/#organization',
         name: 'SuttaCentral',
         url: '/',
-        sameAs: 'https://suttacentral.net',
+        sameAs: SC_ORIGIN,
         description: 'Early Buddhist texts, translations, and parallels',
       },
       mainEntityOfPage: {

@@ -1,6 +1,7 @@
 import masterData from './_masterData.js'
 import { breadcrumbTrail } from '../helpers/breadcrumbs.js'
 import { onlySample } from '../helpers/samplePages.js'
+import { SC_ORIGIN } from '../helpers/scApi.js'
 import siteMetaData from './_siteMetaData.js'
 import { isChapterNode } from '../helpers/pageUids.js'
 
@@ -32,7 +33,7 @@ function generateChapterJsonLd(entry) {
       description:
         entry.blurb || 'Collection of Buddhist texts and translations',
       url: `${siteMetaData().origin}/${entry.scx_path}`,
-      sameAs: `https://suttacentral.net/${entry.scx_path}`,
+      sameAs: `${SC_ORIGIN}/${entry.scx_path}`,
       identifier: entry.uid,
       inLanguage: [
         {
@@ -67,7 +68,7 @@ function generateChapterJsonLd(entry) {
           name: `${child.original_title || child.root_name}${child.translated_title || child.translated_name ? `—${child.translated_title || child.translated_name}` : ''}`,
           description: child.blurb,
           identifier: child.uid,
-          sameAs: `https://suttacentral.net/${child.uid}`,
+          sameAs: `${SC_ORIGIN}/${child.uid}`,
           ...(child.acronym && {
             alternateName: child.acronym,
           }),
@@ -89,7 +90,7 @@ function generateChapterJsonLd(entry) {
                 datePublished: translation.publication_date,
               }),
               url: `${siteMetaData().origin}/${child.uid}/${translation.lang}/${translation.author_uid}`,
-              sameAs: `https://suttacentral.net/${child.uid}/${translation.lang}/${translation.author_uid}`,
+              sameAs: `${SC_ORIGIN}/${child.uid}/${translation.lang}/${translation.author_uid}`,
             })),
           }),
           isPartOf: {
@@ -122,7 +123,7 @@ function generateChapterJsonLd(entry) {
         '@id': '/#organization',
         name: 'SuttaCentral',
         url: '/',
-        sameAs: 'https://suttacentral.net',
+        sameAs: SC_ORIGIN,
         description: 'Early Buddhist texts, translations, and parallels',
       },
       mainEntityOfPage: {

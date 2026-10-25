@@ -1,6 +1,7 @@
 import masterData from './_masterData.js'
 import { breadcrumbTrail } from '../helpers/breadcrumbs.js'
 import { onlySample } from '../helpers/samplePages.js'
+import { SC_ORIGIN } from '../helpers/scApi.js'
 import siteMetaData from './_siteMetaData.js'
 import { hasPitakaPage } from '../helpers/pageUids.js'
 
@@ -31,7 +32,7 @@ function generatePitakaJsonLd(entry) {
       name: `${entry.original_title || entry.root_name}—${entry.translated_title || entry.translated_name}`,
       description: entry.blurb,
       url: `${siteMetaData().origin}/pitaka/${entry.scx_path}`,
-      sameAs: `https://suttacentral.net/pitaka/${entry.scx_path}`,
+      sameAs: `${SC_ORIGIN}/pitaka/${entry.scx_path}`,
       identifier: entry.uid,
       inLanguage: [
         {
@@ -76,8 +77,8 @@ function generatePitakaJsonLd(entry) {
               ? `/${child.uid}/`
               : `/pitaka/${entry.scx_path}/${child.uid}/`,
             sameAs: hasLeafGrandchild
-              ? `https://suttacentral.net/${child.uid}/`
-              : `https://suttacentral.net/pitaka/${entry.scx_path}/${child.uid}/`,
+              ? `${SC_ORIGIN}/${child.uid}/`
+              : `${SC_ORIGIN}/pitaka/${entry.scx_path}/${child.uid}/`,
             identifier: child.uid,
             isPartOf: {
               '@id': `/pitaka/${entry.scx_path}`,
@@ -110,7 +111,7 @@ function generatePitakaJsonLd(entry) {
         '@id': '/#organization',
         name: 'SuttaCentral',
         url: '/',
-        sameAs: 'https://suttacentral.net',
+        sameAs: SC_ORIGIN,
         description: 'Early Buddhist texts, translations, and parallels',
       },
       mainEntityOfPage: {

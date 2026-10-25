@@ -11,10 +11,11 @@
 
 import { defineHref, linkedWord } from './defineWords.js'
 import { collectPageUids, collectPitakaPaths } from './pageUids.js'
+import { SC_ORIGIN } from './scApi.js'
 import { sitePageRoots } from './sitePages.js'
 import { createLinkResolver } from './textLinks.js'
 
-const NET = 'https://suttacentral.net'
+const SC_HOST = new URL(SC_ORIGIN).hostname
 
 // Paths .net moved, which old links still use
 const MOVED = {
@@ -131,19 +132,19 @@ export function createSiteLinkFixer(tree, defineWords) {
     } catch {
       return href
     }
-    if (url.hostname !== 'suttacentral.net' || href.startsWith('#')) {
+    if (url.hostname !== SC_HOST || href.startsWith('#')) {
       return href
     }
     const path = localPath(movedPath(decodeURIComponent(url.pathname)))
     const rest = `${url.search}${url.hash}`
-    return path ? `${path}${rest}` : `${NET}${url.pathname}${rest}`
+    return path ? `${path}${rest}` : `${SC_ORIGIN}${url.pathname}${rest}`
   }
 
   return function fixLinks(html, pageUrl) {
     const start = html.indexOf('<main')
     const end = html.lastIndexOf('</main>')
     if (start === -1 || end === -1) return html
-    const base = `${NET}${pageUrl.replace(/(.)\/$/, '$1')}`
+    const base = `${SC_ORIGIN}${pageUrl.replace(/(.)\/$/, '$1')}`
     const main = html.slice(start, end).replace(LINK, tag =>
       // The licence's attribution, and links marked to stay on .net, ie its app on /offline
       /rel=["'][^"']*\b(dct:publisher|external)\b/.test(tag)

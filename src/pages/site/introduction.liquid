@@ -12,7 +12,7 @@ eleventyComputed:
   <p>{{ "introduction:5" | t }}</p>
   <figure>
     {% assign alt = "introduction:6" | t %}
-    {% assign imageUrl = "https://suttacentral.net/img/static-pages/Life_of_Buddha_Burmese_Manuscript_22_Volume_1_Wellcom.jpg" %}
+    {% capture imageUrl %}{{ scOrigin }}/img/static-pages/Life_of_Buddha_Burmese_Manuscript_22_Volume_1_Wellcom.jpg{% endcapture %}
     {% siteImage imageUrl, alt %}
     <figcaption>{{ "introduction:7" | t | escape }}</figcaption>
   </figure>
@@ -23,7 +23,7 @@ eleventyComputed:
   <h2>{{ "introduction:12" | t }}</h2>
   <figure>
     {% assign alt = "introduction:13" | t %}
-    {% assign imageUrl = "https://suttacentral.net/img/static-pages/birchbark_w400.jpg" %}
+    {% capture imageUrl %}{{ scOrigin }}/img/static-pages/birchbark_w400.jpg{% endcapture %}
     {% siteImage imageUrl, alt %}
     <figcaption>{{ "introduction:14" | t | escape }}</figcaption>
   </figure>
@@ -59,7 +59,7 @@ eleventyComputed:
   <h2>{{ "introduction:34" | t }}</h2>
   <figure>
     {% assign alt = "introduction:35" | t %}
-    {% assign imageUrl = "https://suttacentral.net/img/static-pages/dn20.jpg" %}
+    {% capture imageUrl %}{{ scOrigin }}/img/static-pages/dn20.jpg{% endcapture %}
     {% siteImage imageUrl, alt %}
     <figcaption>{{ "introduction:36" | t | escape }}</figcaption>
   </figure>

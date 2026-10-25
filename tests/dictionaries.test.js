@@ -22,6 +22,7 @@ import {
   fetchDictionary,
 } from '../src/helpers/dictionaries.js'
 import { cleanPaliWord } from '../src/helpers/lookupAnswers.js'
+import { SC_ORIGIN } from '../src/helpers/scApi.js'
 import { mainOf, readPage, SITE_DIR, textOf } from './lib/site.js'
 
 // About 95% of the words each had in October 2026
@@ -162,7 +163,7 @@ describe('The /define pages', () => {
     assert.equal(jsonLd['@id'], og['og:url'])
     assert.equal(jsonLd.name, 'Definitions for dhamma')
     assert.equal(jsonLd.description, 'Pāli dictionary results for “dhamma”.')
-    assert.equal(jsonLd.sameAs, 'https://suttacentral.net/define/dhamma')
+    assert.equal(jsonLd.sameAs, `${SC_ORIGIN}/define/dhamma`)
     // isPartOf's domain is CreativeWork, which a DefinedTerm isn't: inDefinedTermSet says it instead
     assert.equal(jsonLd.isPartOf, undefined)
     assert.deepEqual(
@@ -243,7 +244,7 @@ describe('The /define pages', () => {
     assert.equal(og['og:url'], 'https://suttacentral.express/define')
     assert.equal(jsonLd['@type'], 'CollectionPage')
     assert.equal(jsonLd.url, og['og:url'])
-    assert.equal(jsonLd.sameAs, 'https://suttacentral.net/define')
+    assert.equal(jsonLd.sameAs, `${SC_ORIGIN}/define`)
     assert.equal(jsonLd.isPartOf.name, 'SuttaCentral Express')
     assert.deepEqual(
       jsonLd.breadcrumb.itemListElement.map(({ name }) => name),
@@ -273,7 +274,7 @@ describe('The /define pages', () => {
     const remote = []
     for (const url of urls) {
       const main = mainOf(await readPage(url))
-      if (main.includes('https://suttacentral.net/define/')) remote.push(url)
+      if (main.includes(`${SC_ORIGIN}/define/`)) remote.push(url)
     }
     assert.equal(remote.length, 0, `Linked to .net:\n${remote.join('\n')}`)
     assert.match(

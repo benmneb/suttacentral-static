@@ -8,6 +8,7 @@
 
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
+import { SC_ORIGIN } from '../src/helpers/scApi.js'
 import {
   buildSitePageMetadata,
   generateSitePageJsonLd,
@@ -43,7 +44,7 @@ describe('Site page metadata', () => {
     assert.equal(og['og:description'], page.description)
     assert.equal(jsonLd['@type'], 'AboutPage')
     assert.equal(jsonLd['@id'], og['og:url'])
-    assert.equal(jsonLd.sameAs, 'https://suttacentral.net/about')
+    assert.equal(jsonLd.sameAs, `${SC_ORIGIN}/about`)
     assert.equal(jsonLd.isPartOf.name, 'SuttaCentral Express')
     assert.deepEqual(
       jsonLd.breadcrumb.itemListElement.map(({ name }) => name),
@@ -94,10 +95,7 @@ describe('Site page metadata', () => {
             height: 1900,
           }
         }
-        assert.equal(
-          url,
-          'https://suttacentral.net/img/publication-pages/mn-book.jpg'
-        )
+        assert.equal(url, `${SC_ORIGIN}/img/publication-pages/mn-book.jpg`)
         assert.deepEqual(options, { dir: 'site-pages', height: 600 })
         return { src: '/images/site-pages/mn-book-test.avif' }
       },
@@ -271,7 +269,7 @@ describe('Site page metadata', () => {
       JSON.parse(pages['/discourses-guide-sujato/'].scx_json_ld).datePublished,
       undefined
     )
-    assert.equal(about.sameAs, 'https://suttacentral.net/about')
+    assert.equal(about.sameAs, `${SC_ORIGIN}/about`)
     assert.deepEqual(
       language.breadcrumb.itemListElement.map(({ name }) => name),
       ['Home', 'Languages on SuttaCentral', 'Pali']

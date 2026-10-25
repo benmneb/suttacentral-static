@@ -8,6 +8,11 @@
  * Lives here, not in `data/`, as every file in there becomes global data.
  */
 
+import { SC_ORIGIN } from './scApi.js'
+
+// For the comfort of donors, the donations has no page here, so it goes to the official one
+const DONATIONS_HREF = `${SC_ORIGIN}/donations`
+
 /**
  * The site pages menu in the header, as `{ heading, pages }`, each page `{ href, label }` */
 export const siteMap = [
@@ -16,7 +21,7 @@ export const siteMap = [
     pages: [
       { href: '/introduction', label: 'Introduction' },
       { href: '/start', label: 'Getting Started' },
-      { href: 'https://suttacentral.net/donations', label: 'Donations' },
+      { href: DONATIONS_HREF, label: 'Donations' },
       { href: '/map', label: 'Map' },
       { href: '/offline', label: 'Use Offline' },
       { href: '/editions', label: 'Editions' },
@@ -137,7 +142,7 @@ export const pitakaGuides = {
 export const pageIcons = {
   '/introduction': 'lightBulb',
   '/start': 'flag',
-  'https://suttacentral.net/donations': 'heart',
+  [DONATIONS_HREF]: 'heart',
   '/map': 'map',
   '/offline': 'bolt',
   '/editions': 'bookOpen',

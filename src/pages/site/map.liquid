@@ -15,7 +15,7 @@ eleventyComputed:
   <section aria-labelledby="static-map-heading">
     <h2 id="static-map-heading">{{ "map:2" | t }}</h2>
     <figure>
-      {% assign imageUrl = "https://suttacentral.net/img/static-pages/jambudipa_map.jpg" %}
+      {% capture imageUrl %}{{ scOrigin }}/img/static-pages/jambudipa_map.jpg{% endcapture %}
       {% assign imageAlt = "Hand-drawn map of Jambudipa" %}
       {% siteImage imageUrl, imageAlt, 2068 %}
       <figcaption>{{ "map:3" | t }}</figcaption>

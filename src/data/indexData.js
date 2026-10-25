@@ -1,4 +1,5 @@
 import masterData from './_masterData.js'
+import { SC_ORIGIN } from '../helpers/scApi.js'
 import siteMetaData from './_siteMetaData.js'
 
 function generateIndexOGTags() {
@@ -50,7 +51,7 @@ function generateIndexJsonLd(data) {
       alternateName: 'SCX',
       description: `${siteMetaData.description} - Early Buddhist texts, translations, and parallels. The largest collection of Buddhist suttas available in translation.`,
       url: '/',
-      sameAs: 'https://suttacentral.net',
+      sameAs: SC_ORIGIN,
       inLanguage: 'en',
       keywords: [
         'Buddhism',
@@ -79,7 +80,7 @@ function generateIndexJsonLd(data) {
           name: `${item.root_name}—${item.translated_name}`,
           description: item.blurb,
           url: `${siteMetaData().origin}/pitaka/${item.uid}`,
-          sameAs: `https://suttacentral.net/pitaka/${item.uid}`,
+          sameAs: `${SC_ORIGIN}/pitaka/${item.uid}`,
           identifier: item.uid,
           isPartOf: {
             '@id': '/#website',
@@ -93,7 +94,7 @@ function generateIndexJsonLd(data) {
         url: '/',
         description: 'Early Buddhist texts, translations, and parallels',
         foundingDate: '2012',
-        sameAs: ['https://suttacentral.net', 'https://github.com/suttacentral'],
+        sameAs: [SC_ORIGIN, 'https://github.com/suttacentral'],
       },
       breadcrumb: {
         '@type': 'BreadcrumbList',

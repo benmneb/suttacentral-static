@@ -14,6 +14,7 @@ import { referenceGroupsOf } from '../helpers/referenceEditions.js'
 import { highlightsOf } from '../helpers/highlights.js'
 import { parallelRunsOf } from '../helpers/parallelRuns.js'
 import { localImage } from '../helpers/images.js'
+import { SC_ORIGIN } from '../helpers/scApi.js'
 import siteMetaData from './_siteMetaData.js'
 
 let usedPaths = []
@@ -75,7 +76,7 @@ function generateTextJsonLd(entry) {
       description:
         entry.blurb || 'Buddhist text from the Pāli Canon with translation',
       url: `${siteMetaData().origin}/${entry.scx_path}`,
-      sameAs: `https://suttacentral.net/${entry.scx_path}`,
+      sameAs: `${SC_ORIGIN}/${entry.scx_path}`,
       identifier: entry.uid,
       inLanguage: {
         '@type': 'Language',
@@ -157,7 +158,7 @@ function generateTextJsonLd(entry) {
         '@id': '/#organization',
         name: 'SuttaCentral',
         url: '/',
-        sameAs: 'https://suttacentral.net',
+        sameAs: SC_ORIGIN,
         description: 'Early Buddhist texts, translations, and parallels',
       },
       mainEntityOfPage: {
@@ -169,7 +170,7 @@ function generateTextJsonLd(entry) {
           '@type': 'CreativeWork',
           name: pagerLink(entry, 'previous').name,
           url: pagerLink(entry, 'previous').path,
-          sameAs: `https://suttacentral.net${pagerLink(entry, 'previous').path}`,
+          sameAs: `${SC_ORIGIN}${pagerLink(entry, 'previous').path}`,
         },
       }),
       ...(pagerLink(entry, 'next') && {
@@ -177,7 +178,7 @@ function generateTextJsonLd(entry) {
           '@type': 'CreativeWork',
           name: pagerLink(entry, 'next').name,
           url: pagerLink(entry, 'next').path,
-          sameAs: `https://suttacentral.net${pagerLink(entry, 'next').path}`,
+          sameAs: `${SC_ORIGIN}${pagerLink(entry, 'next').path}`,
         },
       }),
       license: {
@@ -246,7 +247,7 @@ function illustrationsOf(entry, keys) {
     if (!keys?.includes(segment)) continue
     byKey[segment] ??= []
     byKey[segment].push({
-      src: `https://suttacentral.net/img/optimized-illustrations/${filename}.avif`,
+      src: `${SC_ORIGIN}/img/optimized-illustrations/${filename}.avif`,
       alt: alt ?? '',
       credit: [creator, creation_date].filter(Boolean).join(', '),
     })

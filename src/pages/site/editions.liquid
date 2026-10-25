@@ -39,7 +39,7 @@ eleventyComputed:
         <p>{{ "publication:about4" | t }}</p>
       </aside>
     </section>
-    {% assign imageUrl = "https://suttacentral.net/img/publication-pages/editions-kn-wet.jpg" %}
+    {% capture imageUrl %}{{ scOrigin }}/img/publication-pages/editions-kn-wet.jpg{% endcapture %}
     {% assign imageAlt = "Stack of SuttaCentral edition books" %}
     {% siteImage imageUrl, imageAlt %}
   </header>
@@ -56,7 +56,7 @@ eleventyComputed:
           <a class="button" href="{{ edition.href }}">Get this book</a>
         </header>
         <figure>
-          {% capture cover %}https://suttacentral.net/img/publication-pages/{{ edition.uid }}-book.jpg{% endcapture %}
+          {% capture cover %}{{ scOrigin }}/img/publication-pages/{{ edition.uid }}-book.jpg{% endcapture %}
           {% capture alt %}Cover art for {{ edition.title }}{% endcapture %}
           {% siteImage cover, alt, 600 %}
           {% if edition.blurb %}

@@ -1,5 +1,6 @@
 import siteMetaData from '../data/_siteMetaData.js'
 import { localImage } from './images.js'
+import { SC_ORIGIN } from './scApi.js'
 import { siteMap } from './sitePages.js'
 import { t } from './siteStrings.js'
 
@@ -314,7 +315,7 @@ function withBreadcrumbs(page, ancestors = []) {
 }
 
 // The poster map /map shows, at the same size it does, and the interactive one it draws
-const MAP_POSTER = 'https://suttacentral.net/img/static-pages/jambudipa_map.jpg'
+const MAP_POSTER = `${SC_ORIGIN}/img/static-pages/jambudipa_map.jpg`
 const MAP_POSTER_HEIGHT = 2068
 
 /** The MIME type of an image, from its file extension */
@@ -448,7 +449,7 @@ function scholarlyData(url, titleFor) {
     publisher: {
       '@type': 'Organization',
       name: 'SuttaCentral',
-      url: 'https://suttacentral.net',
+      url: SC_ORIGIN,
     },
   }
 }
@@ -506,7 +507,7 @@ export function generateSitePageJsonLd({
         : { name: name ?? title }),
       description,
       url: canonicalUrl,
-      sameAs: `https://suttacentral.net${routePath(url)}`,
+      sameAs: `${SC_ORIGIN}${routePath(url)}`,
       ...(author && { author }),
       ...(datePublished && { datePublished }),
       ...(dateModified && { dateModified }),
@@ -621,7 +622,7 @@ export async function buildSitePageMetadata({
       .filter(Boolean)
       .join('—')
     const title = `${edition.title}—${publication.creator_name}`
-    const coverSource = `https://suttacentral.net/img/publication-pages/${edition.uid}-book.jpg`
+    const coverSource = `${SC_ORIGIN}/img/publication-pages/${edition.uid}-book.jpg`
     const cover = await imageFor(coverSource, {
       dir: 'site-pages',
       height: 600,
@@ -650,7 +651,7 @@ export async function buildSitePageMetadata({
         publisher: {
           '@type': 'Organization',
           name: 'SuttaCentral',
-          url: 'https://suttacentral.net',
+          url: SC_ORIGIN,
         },
         image,
         potentialAction: {

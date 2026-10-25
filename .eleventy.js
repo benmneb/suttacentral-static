@@ -16,6 +16,7 @@ import {
   referenceGroup,
 } from './src/helpers/referenceEditions.js'
 import { sampleUids } from './src/helpers/samplePages.js'
+import { SC_ORIGIN } from './src/helpers/scApi.js'
 import { createSiteLinkFixer } from './src/helpers/siteLinks.js'
 import { missingKeys, t } from './src/helpers/siteStrings.js'
 import {
@@ -159,6 +160,9 @@ export default function (eleventyConfig) {
     if (lang !== 'pli') return html
     return (await loadLookup()).linkWords(html)
   })
+
+  // SuttaCentral.net itself, for the links and images the pages point at
+  eleventyConfig.addGlobalData('scOrigin', SC_ORIGIN)
 
   // Which root languages have word lookup, as its dictionaries were fetched
   eleventyConfig.addGlobalData('lookup', async () => {

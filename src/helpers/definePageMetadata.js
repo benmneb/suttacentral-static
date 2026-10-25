@@ -1,4 +1,5 @@
 import siteMetaData from '../data/_siteMetaData.js'
+import { SC_ORIGIN } from './scApi.js'
 
 function definitionText(value) {
   return String(value ?? '')
@@ -132,7 +133,7 @@ export function generateDefineJsonLd(term) {
       name: `Definitions for ${term.word}`,
       description,
       url,
-      sameAs: `https://suttacentral.net${term.href}`,
+      sameAs: `${SC_ORIGIN}${term.href}`,
       breadcrumb: {
         '@type': 'BreadcrumbList',
         itemListElement: breadcrumbs(term),
@@ -143,13 +144,13 @@ export function generateDefineJsonLd(term) {
         name: term.word,
         description: termDescription,
         url,
-        sameAs: `https://suttacentral.net${term.href}`,
+        sameAs: `${SC_ORIGIN}${term.href}`,
         inLanguage: 'pli',
         inDefinedTermSet: {
           '@type': 'DefinedTermSet',
           name: 'SuttaCentral Pāli dictionaries',
           url: `${metadata.origin}/define`,
-          sameAs: 'https://suttacentral.net/define',
+          sameAs: `${SC_ORIGIN}/define`,
         },
       },
       // Each dictionary's entry for the word, as `about`, which takes any Thing: `hasPart` only
@@ -187,7 +188,7 @@ export function generateDefineSearchJsonLd() {
       description:
         'Search Pāli definitions across dictionaries and explore related terms.',
       url: `${metadata.origin}/define`,
-      sameAs: 'https://suttacentral.net/define',
+      sameAs: `${SC_ORIGIN}/define`,
       breadcrumb: {
         '@type': 'BreadcrumbList',
         itemListElement: [

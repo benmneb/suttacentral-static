@@ -707,7 +707,7 @@ eleventyComputed:
               {% unless comment == blank %}
                 <button class="variant-btn" popovertarget="comment-{{ key }}" style="anchor-name: --comment{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
                 <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">
-                  Variant: {{ comment | replace: 'https://suttacentral.net', '' }}
+                  Variant: {{ comment | replace: scOrigin, '' }}
                 </span>
               {% endunless %}
             </span>
@@ -722,7 +722,7 @@ eleventyComputed:
             {% capture comments %}
             {{ comments }}
             <article id="comment-{{ key }}" popover style="position-anchor: --comment{{ forloop.index }}">
-              Variant: {{ comment | replace: 'https://suttacentral.net', '' }}
+              Variant: {{ comment | replace: scOrigin, '' }}
             </article>
             {% endcapture %}
           {%- endunless -%}
@@ -883,7 +883,7 @@ eleventyComputed:
               {% unless comment == blank %}
                 <button popovertarget="comment-{{ key }}" style="anchor-name: --comment{{ forloop.index }}" aria-label="Show {{ entry.author }}'s footnote for segment {{ key }}">*</button>
                 <span class="inline-comment" aria-label="{{ entry.author }}'s footnote for segment {{ key }}">
-                  {{ comment | replace: 'https://suttacentral.net', '' }}
+                  {{ comment | replace: scOrigin, '' }}
                 </span>
               {% endunless %}
             </span>
@@ -904,7 +904,7 @@ eleventyComputed:
                 {% unless variant == blank %}
                   <button class="variant-btn" popovertarget="variant-{{ key }}" style="anchor-name: --variant{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
                   <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">
-                    Variant: {{ variant | replace: 'https://suttacentral.net', '' }}
+                    Variant: {{ variant | replace: scOrigin, '' }}
                   </span>
                 {% endunless %}
               </span>
@@ -919,7 +919,7 @@ eleventyComputed:
             {% capture comments %}
             {{ comments }}
             <article id="comment-{{ key }}" popover style="position-anchor: --comment{{ forloop.index }}">
-              {{ comment | replace: 'https://suttacentral.net', '' }}
+              {{ comment | replace: scOrigin, '' }}
             </article>
             {% endcapture %}
           {%- endunless -%}
@@ -927,7 +927,7 @@ eleventyComputed:
             {% capture comments %}
             {{ comments }}
             <article id="variant-{{ key }}" popover style="position-anchor: --variant{{ forloop.index }}">
-              Variant: {{ variant | replace: 'https://suttacentral.net', '' }}
+              Variant: {{ variant | replace: scOrigin, '' }}
             </article>
             {% endcapture %}
           {%- endunless -%}

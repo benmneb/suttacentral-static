@@ -45,7 +45,7 @@ eleventyComputed:
       {% endif %}
     </header>
     <figure>
-      {% capture cover %}https://suttacentral.net/img/publication-pages/{{ entry.uid }}-book.jpg{% endcapture %}
+      {% capture cover %}{{ scOrigin }}/img/publication-pages/{{ entry.uid }}-book.jpg{% endcapture %}
       {% capture alt %}Cover art for {{ entry.title }}{% endcapture %}
       {% siteImage cover, alt, 600 %}
       <figcaption>Paperback edition of {{ entry.title }}</figcaption>
@@ -147,7 +147,7 @@ eleventyComputed:
     <section>
       <h2>The Author</h2>
       <figure>
-        {% capture photo %}https://suttacentral.net/img/publication-pages/{{ publication.creator_uid }}.jpg{% endcapture %}
+        {% capture photo %}{{ scOrigin }}/img/publication-pages/{{ publication.creator_uid }}.jpg{% endcapture %}
         {% capture alt %}Photo of {{ publication.creator_name }}{% endcapture %}
         {% siteImage photo, alt, 300 %}
         <figcaption>
@@ -179,7 +179,7 @@ eleventyComputed:
       <dd>
         <p>{{ publication.license_statement }}</p>
         <div>
-          {% assign imageUrl = "https://suttacentral.net/img/publication-pages/cc-zero.svg" %}
+          {% capture imageUrl %}{{ scOrigin }}/img/publication-pages/cc-zero.svg{% endcapture %}
           {% siteImage imageUrl, "", 62 %}
           <p>
             <a rel="license" href="{{ publication.license_url }}">

@@ -8,7 +8,7 @@ eleventyComputed:
   <h1>{{ "pirivenaPage:title" | t | escape }}</h1>
   <figure>
     {% assign alt = "pirivenaPage:imageAlt" | t %}
-    {% assign imageUrl = "https://suttacentral.net/img/static-pages/pirivena-monks-walking.jpg" %}
+    {% capture imageUrl %}{{ scOrigin }}/img/static-pages/pirivena-monks-walking.jpg{% endcapture %}
     {% siteImage imageUrl, alt %}
     <figcaption>{{ "pirivenaPage:photoCaption" | t | escape }}</figcaption>
   </figure>
