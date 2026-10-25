@@ -7,7 +7,9 @@
  * Lives here, not in `data/`, as every file in there becomes global data.
  */
 
-const API = 'https://suttacentral.net/api'
+/** SuttaCentral.net, which serves the API and the localization strings */
+export const SC_ORIGIN = 'https://suttacentral.net'
+const API = `${SC_ORIGIN}/api`
 
 // How long a cached response is good for: https://www.11ty.dev/docs/plugins/fetch/#change-the-cache-duration
 const CACHE_DURATION = process.env.REFETCH ? '0s' : '*'

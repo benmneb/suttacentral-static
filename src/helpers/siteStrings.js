@@ -12,6 +12,7 @@ import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { SC_ORIGIN } from './scApi.js'
 import { configKeys } from './sitePages.js'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
@@ -56,7 +57,7 @@ const strings = {}
 const missing = new Set()
 
 function stringsUrl(name) {
-  return `https://suttacentral.net/localization/elements/${name}_en.json`
+  return `${SC_ORIGIN}/localization/elements/${name}_en.json`
 }
 
 function fetchOptions(name, duration) {
