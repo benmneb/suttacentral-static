@@ -6,7 +6,12 @@
   {% assign id = path | append: "-" | append: node.uid %}
   <li>
     <input type="checkbox" name="in" value="{{ node.uid }}" id="in{{ id }}">
-    <label for="in{{ id }}">
+    <label
+      for="in{{ id }}"
+      {% if node.fullName %}
+        title="{{ node.fullName }}"
+      {% endif %}
+    >
       {{- node.name -}}
       {% if node.lang %}
         <span class="root-lang">(from {{ node.lang }})</span>

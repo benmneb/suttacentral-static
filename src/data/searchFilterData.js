@@ -5,6 +5,12 @@ const collator = new Intl.Collator('en')
 const SHARED_PREFIX =
   /^(Basket of|Collections of|Monastic Law of the|Systematic Treatises of the) /
 
+const PARENT_PREFIX = /^((The )?Group of Linked Discourses|The Book of the) /i
+const PARENT_ONLY_PREFIXES = [
+  [/^sn/, /^Linked Discourses /i],
+  [/-ap$/, /^Chapter Beginning /i],
+]
+
 /*
  * Whether this node, or anything under it, has a text to find.
  */
@@ -15,7 +21,8 @@ function hasTexts(node) {
 /*
  * Keeps only the branches, down to the last one before the texts (the "chapters"),
  * with the same stopping rule as `chapterData.js`, and drops any without a text in them.
- * Names drop a prefix the tree already makes plain, eg "Basket of". `lang` is the root language
+ * Names drop a prefix the tree already makes plain, eg "Basket of", and for a shorter one, ie "Ones" for
+ * "The Book of the Ones", keep the whole name as `fullName`. `lang` is the root language
  * where it's first set or changes, unless the name already says it.
  */
 function buildTree(nodes, parentLang, parentUid) {
@@ -27,20 +34,14 @@ function buildTree(nodes, parentLang, parentUid) {
       !node.children?.some(c => c.node_type === 'branch') ||
       node.uid.endsWith('-pm')
 
-    const rawName = (node.translated_name || node.root_name || node.uid)
+    const fullName = (node.translated_name || node.root_name || node.uid)
       .trim()
       .replace(SHARED_PREFIX, '')
-    // Questionably truncate long titles...
-    const preName = rawName
-      .replace(/^(?:The )?Group of Linked Discourses\s+/i, '...Group ')
-      .replace(
-        // For AN: "Numbered Discourses Collection" (questionably)
-        /^The Book of the\s+/i,
-        '...'
-      )
-    const name = parentUid?.startsWith('sn')
-      ? preName.replace(/^Linked Discourses\s+/i, '...')
-      : preName
+    let name = fullName.replace(PARENT_PREFIX, '')
+    for (const [parent, prefix] of PARENT_ONLY_PREFIXES) {
+      if (parent.test(parentUid ?? '')) name = name.replace(prefix, '')
+    }
+    if (name !== fullName) name = name[0].toUpperCase() + name.slice(1)
     const lang = node.root_lang_name || parentLang
 
     const reference = node.uid.match(/^(dn|mn|sn|an)(\d+)$/i)
@@ -48,6 +49,7 @@ function buildTree(nodes, parentLang, parentUid) {
       {
         uid: node.uid,
         name,
+        fullName: name !== fullName ? fullName : undefined,
         lang: lang !== parentLang && !name.includes(lang) ? lang : undefined,
         reference: reference
           ? `${reference[1].toUpperCase()} ${reference[2]}`
