@@ -191,6 +191,10 @@ dfn.upright {
   }
 }
 
+.parallel-translations {
+  color: var(--text-color-secondary);
+}
+
 /*
  * Heroicons v2.2.0 (MIT), https://heroicons.com - micro (16px solid) by
  * default, and mini (20px solid) with .mini, ie {% icon "play", "mini" %}
