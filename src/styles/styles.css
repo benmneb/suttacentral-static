@@ -185,9 +185,9 @@ dfn.upright {
     white-space: nowrap;
   }
 
-  /* Smaller rather than fainter, which would drop it under 4.5:1 */
-  .volpages {
-    font-size: small;
+  .volpages .icon {
+    margin-inline: 0 0.25em;
+    color: var(--text-color-secondary);
   }
 }
 
@@ -2519,7 +2519,7 @@ main {
             color: var(--text-color-secondary);
           }
 
-          &:hover .icon {
+          &:hover .icon.i-informationCircle {
             color: var(--text-color);
           }
         }
