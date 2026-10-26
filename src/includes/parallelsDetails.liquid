@@ -24,7 +24,7 @@
             | first
           %}
           {% assign base_path = segment[0] | parallelPath: entry.uid %}
-          <a href="/{{ base_path }}/{{ root_trans.lang }}/{{ root_trans.author_uid }}{% if segment[0] contains '#' %}#{{ segment[0] | split: '#' | last }}{% endif %}">
+          <a href="/{{ base_path }}/{{ root_trans.lang }}/{{ root_trans.author_uid }}{{ segment[0] | parallelAnchor }}">
             {{- segment[0] | parallelLabel: entry -}}
           </a>
           <ul>

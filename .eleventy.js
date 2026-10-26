@@ -10,7 +10,7 @@ import { writeLookupShards } from './src/helpers/lookupShards.js'
 import { mapData } from './src/helpers/mapPlaces.js'
 import { writeMiniMap } from './src/helpers/miniMap.js'
 import { minifyCss, minifyJs } from './src/helpers/minifyAssets.js'
-import { parallelKeyLabel } from './src/helpers/parallelRuns.js'
+import { parallelAnchor, parallelKeyLabel } from './src/helpers/parallelRuns.js'
 import { isMultiTextSpan } from './src/helpers/rangeSuttas.js'
 import {
   referenceEditionName,
@@ -118,6 +118,7 @@ export default function (eleventyConfig) {
   })
 
   eleventyConfig.addFilter('parallelLabel', parallelKeyLabel)
+  eleventyConfig.addFilter('parallelAnchor', parallelAnchor)
 
   // The printed edition a reference id is from, for its tooltip, ie bj10.20 -> "Buddhajayantītripiṭaka, 1957–1989"
   eleventyConfig.addFilter('referenceEdition', function (id) {

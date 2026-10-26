@@ -33,20 +33,39 @@ function acronymOf(base, entry) {
   return base === entry.uid ? entry.acronym : rangeUidToAcronym(base)
 }
 
+/** A passage id without its edition's letters, ie "wal1.1" -> "1.1", "t0831a07" -> "0831a07" */
+function passageRef(part) {
+  const ref = part.replace(/^[a-z]+/, '')
+  return /^\d/.test(ref) ? ref : part
+}
+
 /**
  * A key of /api/parallels as .net shows it, ie "mn10#10.1" -> "MN 10:10.1"
  * @param {string} key
  * @param {Object} entry - The text the key is from
  */
 export function parallelKeyLabel(key, entry) {
-  const { base, start, end } = parseParallelKey(key)
-  const acronym = acronymOf(base, entry) || base
-  if (!start) return acronym
-  return `${acronym}:${start === end ? start : `${start}–${end}`}`
+  const { base } = parseParallelKey(key)
+  return `${acronymOf(base, entry) || base}${passageLabel(key)}`
+}
+
+/** Where a key or parallel's passage starts on its page, ie "dn16#3.1.1-#4.23.1" -> "#3.1.1" */
+export function parallelAnchor(key) {
+  const { start } = parseParallelKey(key.replace(/^~/, ''))
+  return start ? `#${start}` : ''
+}
+
+/** The part of the text a key or parallel names, ie "sf245#wal1.1" -> ":1.1", or "" for all of it */
+export function passageLabel(key) {
+  // A "~" marks a resembling parallel in sc-data
+  const { start, end } = parseParallelKey(key.replace(/^~/, ''))
+  if (!start) return ''
+  const [from, to] = [passageRef(start), passageRef(end)]
+  return `:${from === to ? from : `${from}–${to}`}`
 }
 
 /** Strongest first, which is the one a passage with several is shown as */
-const PARALLEL_TYPES = ['full', 'retelling', 'mention']
+const PARALLEL_TYPES = ['full', 'resembling', 'retelling', 'mention']
 
 const TYPE_TITLES = {
   full: 'Full parallel: different versions of the same text',
@@ -150,7 +169,7 @@ export function parallelRunsOf(entry, keys) {
       outer: false,
     }
     for (const parallel of parallels) {
-      const type = parallel.to?.type ?? ''
+      const type = parallel.to?.scx_type ?? parallel.to?.type ?? ''
       const group = run.groups.find(g => g.type === type)
       if (group) group.parallels.push(parallel)
       else

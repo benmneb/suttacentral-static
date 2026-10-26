@@ -6,15 +6,46 @@
  * built here have them, so each parallel gets its English ones as `scx_translations`, for a link
  * to each translator beside the link to its root text. A parallel to a passage only gets the
  * segmented ones, as a legacy text has no segment for its #anchor to land on.
+ *
+ * Each also gets what `parallelItems.liquid` shows of it, worked out once here rather than
+ * on every page it's on: its label with the passage, its language, and its volume and pages.
  */
+import { parallelAnchor, passageLabel } from './parallelRuns.js'
+import { formatVolpages } from './strings.js'
+
+const LANGUAGES = {
+  pli: 'Pāli',
+  lzh: 'Chinese',
+  san: 'Sanskrit',
+  xct: 'Tibetan',
+  pra: 'Prākrit',
+  pgd: 'Gāndhārī',
+  uig: 'Uighur',
+  xto: 'Tocharian A',
+  kho: 'Khotanese',
+}
+
+// More than this many references, ie SHT's lists of fragments, and the rest go in its notes
+const MAX_VOLPAGES = 3
+
+function volpagesOf(to) {
+  const volpages = formatVolpages(to.volpages)
+  const parts = volpages.split(',')
+  if (volpages.startsWith('PTS') || parts.length <= MAX_VOLPAGES)
+    return { volpages }
+  return {
+    volpages: `${parts.slice(0, MAX_VOLPAGES).join(',')} …`,
+    full: volpages,
+  }
+}
 
 /**
- * Gives every parallel the English translations built for it.
+ * Gives every parallel the English translations built for it, and what's shown of it.
  * Mutates `_parallels_data` in place, as it's shared by every page made from it.
  * @param {Object} resolve from `createLinkResolver`
- * @returns {number} how many parallels were given one
+ * @returns {number} how many parallels were given a translation
  */
-export function linkParallelTranslations(tree, resolve) {
+export function addParallelDetails(tree, resolve) {
   // Shared by every parallel to the same text, as there are hundreds of thousands
   const byUid = new Map()
   let linked = 0
@@ -33,13 +64,42 @@ export function linkParallelTranslations(tree, resolve) {
     return passage ? segmented : all
   }
 
+  function describe(parallel, rootLang) {
+    const { to } = parallel
+    to.scx_type = parallel.resembling ? 'resembling' : to.type
+    to.scx_anchor = parallelAnchor(to.to ?? '')
+    to.scx_label = `${to.acronym?.trim() ?? ''}${passageLabel(to.to ?? '')}`
+    if (to.root_lang && to.root_lang !== rootLang)
+      to.scx_lang_name = LANGUAGES[to.root_lang] ?? to.root_lang
+    const { volpages, full } = volpagesOf(to)
+    to.scx_volpages = volpages
+    if (full) to.scx_volpages_full = full
+    const altVolpages = formatVolpages(to.alt_volpages)
+    if (altVolpages && altVolpages !== volpages)
+      to.scx_alt_volpages = altVolpages
+    if (parallel.remark)
+      to.scx_remarks = parallel.remark.split(' | ').map(r => r.trim())
+    to.scx_has_notes = !!(to.scx_remarks || to.biblio || full)
+    const titled = to.original_title || to.translated_title
+    to.scx_details = [
+      titled && to.scx_label,
+      to.scx_lang_name,
+      to.scx_volpages,
+      to.scx_alt_volpages,
+    ].filter(Boolean)
+  }
+
   function walk(nodes) {
     for (const node of nodes ?? []) {
       if (!node) continue
+      const rootLang = node.root_lang ?? node.root_lang_iso
       for (const parallels of Object.values(node._parallels_data ?? {})) {
         if (!Array.isArray(parallels)) continue
-        for (const { to } of parallels) {
-          if (!to?.uid) continue
+        for (const parallel of parallels) {
+          const { to } = parallel
+          if (!to) continue
+          describe(parallel, rootLang)
+          if (!to.uid) continue
           let translations = translationsOf(to.uid, to.to?.includes('#'))
           // The one `parallelItems.liquid` links the title to
           const titleLink = to.translations?.find(

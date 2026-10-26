@@ -1,9 +1,10 @@
 {% comment %} With `typed`, each has a title saying its type, for a list not headed by it {% endcomment %}
 {% for parallel in parallels %}
+  {% assign type = parallel.to.scx_type | default: parallel.to.type %}
   <li
-    class="parallel-list-item-{{ parallel.to.type }}"
+    class="parallel-list-item-{{ type }}"
     {% if typed %}
-      title="{% if parallel.to.type == 'full' %}Full parallel: different versions of the same text{% elsif parallel.to.type == 'mention' %}Mention: one text is quoted or mentioned in another{% elsif parallel.to.type == 'retelling' %}Retelling: the events of one text are retold in another{% endif %}"
+      title="{% if type == 'full' %}Full parallel: different versions of the same text{% elsif type == 'resembling' %}Resembling parallel: texts are comparable{% elsif type == 'mention' %}Mention: one text is quoted or mentioned in another{% elsif type == 'retelling' %}Retelling: the events of one text are retold in another{% endif %}"
     {% endif %}
   >
     {% comment %} Only English and root texts are built, see `filterTranslations` in `_masterData.js` {% endcomment %}
@@ -14,10 +15,7 @@
         {% break %}
       {% endif %}
     {% endfor %}
-    {% assign anchor = "" %}
-    {% if parallel.to.to contains "#" %}
-      {% assign anchor = parallel.to.to | split: "#" | last | prepend: "#" %}
-    {% endif %}
+    {% assign anchor = parallel.to.scx_anchor %}
     {% assign href = "" %}
     {% if built_trans %}
       {% capture href -%}
@@ -28,28 +26,46 @@
       or parallel.to.translated_title != blank
     %}
       {% rootTitle parallel.to, href %}
-      {% assign acronym = parallel.to.acronym | strip %}
+    {% elsif href != blank %}
+      <a href="{{ href }}" hreflang="{{ built_trans.lang }}">
+        {{- parallel.to.scx_label -}}
+      </a>
     {% else %}
-      {% if href != blank %}
-        <a href="{{ href }}" hreflang="{{ built_trans.lang }}">
-          {{- parallel.to.acronym | strip -}}
-        </a>
-      {% else %}
-        <span>{{ parallel.to.acronym | strip }}</span>
-      {% endif %}
-      {% assign acronym = "" %}
+      <span>{{ parallel.to.scx_label }}</span>
     {% endif %}
-    {% assign pretty_volpages = parallel.to.volpages | formatVolpages %}
-    {% if acronym != blank or pretty_volpages != blank %}
+    {% capture details -%}
+      {%- for part in parallel.to.scx_details -%}
+        {{- part -}}
+        {%- unless forloop.last %}
+          <span aria-hidden="true">∙</span>
+        {% endunless -%}
+      {%- endfor -%}
+    {%- endcapture %}
+    {% if parallel.to.scx_has_notes %}
+      <details class="parallel-notes">
+        <summary title="Notes">
+          {{- details }}
+          {% icon "informationCircle" %}
+          {%- if details == blank -%}
+            <span class="sr-only">Notes</span>
+          {%- endif -%}
+        </summary>
+        {% for remark in parallel.to.scx_remarks %}
+          <p>{{ remark }}</p>
+        {% endfor %}
+        {% if parallel.to.scx_volpages_full %}
+          <p>{{ parallel.to.scx_volpages_full }}</p>
+        {% endif %}
+        {% if parallel.to.biblio %}
+          <p>{{ parallel.to.biblio }}</p>
+        {% endif %}
+      </details>
+    {% elsif details != blank %}
       <br>
-      {{- acronym -}}
-      {%- if acronym != blank and pretty_volpages != blank %}
-        <span aria-hidden="true">∙</span>
-      {% endif -%}
-      {{- pretty_volpages -}}
+      {{- details -}}
     {% endif %}
     {% if parallel.to.scx_translations.size > 0 %}
-      <br>
+      {% unless parallel.to.scx_has_notes %}<br>{% endunless %}
       English:
       {% for trans in parallel.to.scx_translations -%}
         <a
