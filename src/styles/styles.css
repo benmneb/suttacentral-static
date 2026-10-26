@@ -3444,26 +3444,20 @@ form#search-form {
 
 main > search {
   --search-toggle-size: 2rem;
-  display: grid;
-  align-items: start;
+  position: relative;
   margin: 1rem 0;
-
-  > * {
-    grid-area: 1 / 1;
-  }
 }
 
 :is(details#search-filters, details#search-info) {
   > summary {
-    /* Above the other details, whose box covers this one's for clicks */
-    position: relative;
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     inline-size: var(--search-toggle-size);
     block-size: var(--search-toggle-size);
-    margin-left: auto;
-    margin-bottom: 1rem;
     border-radius: var(--rounding);
     color: var(--text-color-secondary);
     cursor: pointer;
@@ -3491,7 +3485,7 @@ main > search {
 
 details#search-info {
   > summary {
-    margin-right: calc(var(--search-toggle-size) + 0.25rem);
+    inset-inline-end: calc(var(--search-toggle-size) + 0.25rem);
   }
 
   section {
@@ -3636,16 +3630,20 @@ details#search-filters {
 }
 
 p#search-count {
-  color: var(--text-color-secondary);
-  /* In line with the summaries, and clear of them (a margin, so it doesn't cover them for clicks) */
-  margin: 0 calc(var(--search-toggle-size) * 2 + 0.75rem) 0 0;
+  box-sizing: border-box;
+  min-block-size: var(--search-toggle-size);
+  margin: 0 calc(var(--search-toggle-size) * 2 + 0.75rem) 1rem 0;
   padding: 0.25rem 0;
-  /* Above the details box it overlaps, so it can still be selected */
-  position: relative;
+  color: var(--text-color-secondary);
+
+  /* Kept, as an open panel would go up under the summaries */
+  &[hidden] {
+    display: block;
+    visibility: hidden;
+  }
 }
 
 ul#search-applied {
-  grid-area: 2 / 1;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
