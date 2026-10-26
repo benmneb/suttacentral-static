@@ -1100,10 +1100,12 @@
     )
 
   function updateResetFiltersButton() {
-    resetFiltersBtn.disabled =
+    // Not disabled, which would drop the focus of whoever just pressed it
+    resetFiltersBtn.ariaDisabled = String(
       textsBox.checked &&
-      searchBoxes().every(box => box === textsBox || !box.checked) &&
-      answerToggles.every(toggle => toggle.checked)
+        searchBoxes().every(box => box === textsBox || !box.checked) &&
+        answerToggles.every(toggle => toggle.checked)
+    )
   }
 
   // In history.state, as filters stay out of the URL, so going back shows the filters a search had
@@ -1186,6 +1188,7 @@
   })
 
   resetFiltersBtn.addEventListener('click', async () => {
+    if (resetFiltersBtn.ariaDisabled === 'true') return
     for (const box of searchBoxes()) box.checked = false
     textsBox.checked = true
 

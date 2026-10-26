@@ -3873,16 +3873,16 @@ ul#search-results {
     color: var(--text-color);
   }
 
-  &:is(:hover, :focus):not(:disabled) {
+  &:is(:hover, :focus):not(:disabled, [aria-disabled='true']) {
     color: var(--background-color);
     background-color: var(--primary-color);
   }
 
-  &:active {
+  &:active:not([aria-disabled='true']) {
     background-color: var(--primary-color-alt);
   }
 
-  &:disabled {
+  &:is(:disabled, [aria-disabled='true']) {
     opacity: 0.5;
     cursor: not-allowed;
   }
@@ -3920,7 +3920,7 @@ ul#search-results {
 }
 
 .danger:is(.button, .icon-button) {
-  &:is(:hover, :focus, :active):not(:disabled) {
+  &:is(:hover, :focus, :active):not(:disabled, [aria-disabled='true']) {
     color: var(--bg-hard);
     background-color: var(--red);
 
@@ -3929,7 +3929,7 @@ ul#search-results {
     }
   }
 
-  &:disabled {
+  &:is(:disabled, [aria-disabled='true']) {
     color: var(--text-color-secondary);
     /*background-color: var(--bg-alt-1);*/
   }
