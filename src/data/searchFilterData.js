@@ -11,6 +11,8 @@ const PARENT_ONLY_PREFIXES = [
   [/-ap$/, /^Chapter Beginning /i],
 ]
 
+const squash = text => text.toLowerCase().replace(/[\s-]/g, '')
+
 /*
  * Whether this node, or anything under it, has a text to find.
  */
@@ -23,9 +25,10 @@ function hasTexts(node) {
  * with the same stopping rule as `chapterData.js`, and drops any without a text in them.
  * Names drop a prefix the tree already makes plain, eg "Basket of", and for a shorter one, ie "Ones" for
  * "The Book of the Ones", keep the whole name as `fullName`. `lang` is the root language
- * where it's first set or changes, unless the name already says it.
+ * where it's first set or changes, unless the name already says it. `reference` is how a book is cited,
+ * ie DN, Dhp or SN 12.
  */
-function buildTree(nodes, parentLang, parentUid) {
+function buildTree(nodes, parentLang, parentUid, basket, depth = 0) {
   return nodes.flatMap(node => {
     // SC's /menu API returns some empty nodes with a null uid
     if (!node.uid || node.node_type === 'leaf' || !hasTexts(node)) return []
@@ -44,19 +47,35 @@ function buildTree(nodes, parentLang, parentUid) {
     if (name !== fullName) name = name[0].toUpperCase() + name.slice(1)
     const lang = node.root_lang_name || parentLang
 
-    const reference = node.uid.match(/^(dn|mn|sn|an)(\d+)$/i)
+    const numbered = node.uid.match(/^(dn|mn|sn|an)(\d+)$/i)
+    // A book's acronym as its reference, but not the Vinaya's (ie Lzh Mg Bu Vb), a group's (ie Minor Lzh), or one that isn't the uid in: takes
+    const acronym = node.acronym?.trim()
+    const isBook =
+      acronym &&
+      depth >= 2 &&
+      basket !== 'vinaya' &&
+      !/^(Minor|Other) /.test(acronym) &&
+      squash(acronym) === squash(node.uid)
     return [
       {
         uid: node.uid,
         name,
         fullName: name !== fullName ? fullName : undefined,
         lang: lang !== parentLang && !name.includes(lang) ? lang : undefined,
-        reference: reference
-          ? `${reference[1].toUpperCase()} ${reference[2]}`
-          : undefined,
+        reference: numbered
+          ? `${numbered[1].toUpperCase()} ${numbered[2]}`
+          : isBook
+            ? acronym
+            : undefined,
         children: isLastBranch
           ? []
-          : buildTree(node.children || [], lang, node.uid),
+          : buildTree(
+              node.children || [],
+              lang,
+              node.uid,
+              basket ?? node.uid,
+              depth + 1
+            ),
       },
     ]
   })
