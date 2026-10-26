@@ -738,19 +738,22 @@
                 .getElementById(`author-${author}`)
                 ?.labels[0]?.textContent.trim() ?? author)
             : ''
-        const href = `/${page}#${anchor}`
-        return {
-          lang,
-          name,
-          href,
-          html: `<a href="${href}">${escape(name)}</a>${translator ? ` (${escape(translator)})` : ''}`,
-        }
+        return { lang, name, translator, href: `/${page}#${anchor}` }
       })
       .sort(
         (a, b) =>
           (b.lang === rootLang) - (a.lang === rootLang) ||
           a.name.localeCompare(b.name)
       )
+    let languagesHTML = ''
+    for (const [i, edition] of editions.entries()) {
+      const prev = editions[i - 1]
+      if (edition.lang === prev?.lang) languagesHTML += ', '
+      else if (prev) languagesHTML += ' <span aria-hidden="true">∙</span> '
+      if (edition.lang !== prev?.lang && edition.translator)
+        languagesHTML += `${escape(edition.name)}: `
+      languagesHTML += `<a href="${edition.href}">${escape(edition.translator || edition.name)}</a>`
+    }
     const where =
       mode === 'volpage'
         ? escape(volpages)
@@ -763,7 +766,7 @@
 					 <dt class="sr-only">${mode === 'volpage' ? 'Volume and page' : 'Reference'}</dt>
 					 <dd class="with-icon"><i class="icon i-hashtag"></i><span>${where}</span></dd>
 				 </dl>
-				 ${editions.length ? `<p>${editions.map(edition => edition.html).join(', ')}</p>` : ''}
+				 ${languagesHTML && `<p>${languagesHTML}</p>`}
 			 </article>
 		 `
   }
