@@ -31,115 +31,117 @@ eleventyComputed:
       <summary aria-label="Filters" title="Filters">
         {% icon "adjustmentsHorizontal" %}
       </summary>
-      <div class="search-filter-options">
+      <div class="search-panel">
+        <div class="search-filter-options">
+          <fieldset>
+            <legend>Include in search</legend>
+            <ul>
+              <li>
+                <input type="checkbox" id="search-texts" checked>
+                <label for="search-texts">Texts</label>
+                <ul>
+                  <li>
+                    <input type="checkbox" id="search-titles">
+                    <label for="search-titles">Titles only</label>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <input type="checkbox" id="search-notes">
+                <label for="search-notes">Translators' notes</label>
+              </li>
+              <li>
+                <input type="checkbox" id="search-site">
+                <label for="search-site">Site pages</label>
+              </li>
+            </ul>
+          </fieldset>
+          <fieldset>
+            <legend>Show above results</legend>
+            <ul>
+              <li>
+                <input type="checkbox" id="search-dictionary-results" checked>
+                <label for="search-dictionary-results">Pāli definitions</label>
+              </li>
+              <li>
+                <input type="checkbox" id="search-site-pages-results" checked>
+                <label for="search-site-pages-results"
+                  >Quick site page links</label
+                >
+              </li>
+            </ul>
+          </fieldset>
+        </div>
         <fieldset>
-          <legend>Include in search</legend>
-          <ul>
-            <li>
-              <input type="checkbox" id="search-texts" checked>
-              <label for="search-texts">Texts</label>
-              <ul>
-                <li>
-                  <input type="checkbox" id="search-titles">
-                  <label for="search-titles">Titles only</label>
-                </li>
-              </ul>
-            </li>
-            <li>
-              <input type="checkbox" id="search-notes">
-              <label for="search-notes">Translators' notes</label>
-            </li>
-            <li>
-              <input type="checkbox" id="search-site">
-              <label for="search-site">Site pages</label>
-            </li>
+          <legend>Collection</legend>
+          <ul id="search-filters-collection">
+            {% include "searchFilterTree.liquid",
+              nodes: searchFilterData.tree,
+              path: ""
+            %}
           </ul>
         </fieldset>
         <fieldset>
-          <legend>Show above results</legend>
-          <ul>
-            <li>
-              <input type="checkbox" id="search-dictionary-results" checked>
-              <label for="search-dictionary-results">Pāli definitions</label>
-            </li>
-            <li>
-              <input type="checkbox" id="search-site-pages-results" checked>
-              <label for="search-site-pages-results"
-                >Quick site page links</label
-              >
-            </li>
+          <legend>Language</legend>
+          <ul id="search-filters-lang" class="columns languages">
+            {% for language in searchFilterData.languages %}
+              <li>
+                <input
+                  type="checkbox"
+                  name="lang"
+                  value="{{ language.uid }}"
+                  id="lang-{{ language.uid }}"
+                >
+                <label for="lang-{{ language.uid }}">{{ language.name }}</label>
+              </li>
+            {% endfor %}
           </ul>
+        </fieldset>
+        <fieldset>
+          <legend>Author</legend>
+          <ul id="search-filters-author">
+            {% comment %}
+              The group has no name, so it's no filter of its own,
+              but checking it alone means everyone in it (see search.js)
+            {% endcomment %}
+            {% for group in searchFilterData.authorGroups %}
+              {% assign groupId = group.name
+                | slugify
+                | prepend: "author-group-"
+              %}
+              <li>
+                <input type="checkbox" id="{{ groupId }}">
+                <label for="{{ groupId }}">{{ group.name }}</label>
+                <ul class="columns">
+                  {% for author in group.authors %}
+                    <li>
+                      <input
+                        type="checkbox"
+                        name="author"
+                        value="{{ author.uid }}"
+                        id="author-{{ author.uid }}"
+                      >
+                      <label for="author-{{ author.uid }}">
+                        {{- author.name -}}
+                      </label>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </li>
+            {% endfor %}
+          </ul>
+          <button
+            id="search-filters-reset"
+            class="button danger search-filter-reset"
+            type="button"
+            disabled
+            title="Reset filters to defaults"
+            aria-label="Reset filters to defaults"
+          >
+            {% icon "archiveBoxXMark" %} Reset
+          </button>
         </fieldset>
       </div>
-      <fieldset>
-        <legend>Collection</legend>
-        <ul id="search-filters-collection">
-          {% include "searchFilterTree.liquid",
-            nodes: searchFilterData.tree,
-            path: ""
-          %}
-        </ul>
-      </fieldset>
-      <fieldset>
-        <legend>Language</legend>
-        <ul id="search-filters-lang" class="columns languages">
-          {% for language in searchFilterData.languages %}
-            <li>
-              <input
-                type="checkbox"
-                name="lang"
-                value="{{ language.uid }}"
-                id="lang-{{ language.uid }}"
-              >
-              <label for="lang-{{ language.uid }}">{{ language.name }}</label>
-            </li>
-          {% endfor %}
-        </ul>
-      </fieldset>
-      <fieldset>
-        <legend>Author</legend>
-        <ul id="search-filters-author">
-          {% comment %}
-            The group has no name, so it's no filter of its own,
-            but checking it alone means everyone in it (see search.js)
-          {% endcomment %}
-          {% for group in searchFilterData.authorGroups %}
-            {% assign groupId = group.name
-              | slugify
-              | prepend: "author-group-"
-            %}
-            <li>
-              <input type="checkbox" id="{{ groupId }}">
-              <label for="{{ groupId }}">{{ group.name }}</label>
-              <ul class="columns">
-                {% for author in group.authors %}
-                  <li>
-                    <input
-                      type="checkbox"
-                      name="author"
-                      value="{{ author.uid }}"
-                      id="author-{{ author.uid }}"
-                    >
-                    <label for="author-{{ author.uid }}">
-                      {{- author.name -}}
-                    </label>
-                  </li>
-                {% endfor %}
-              </ul>
-            </li>
-          {% endfor %}
-        </ul>
-        <button
-          id="search-filters-reset"
-          class="button danger search-filter-reset"
-          type="button"
-          disabled
-          title="Reset filters to defaults"
-          aria-label="Reset filters to defaults"
-        >
-          {% icon "archiveBoxXMark" %} Reset
-        </button>
-      </fieldset>
     </details>
     <ul id="search-applied" aria-label="Applied filters" hidden></ul>
   </search>

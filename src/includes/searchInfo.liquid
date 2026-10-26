@@ -2,216 +2,230 @@
   <summary aria-label="Search info" title="Search info">
     {% icon "informationCircle" %}
   </summary>
-  <section aria-labelledby="search-info-intro">
-    <h2 id="search-info-intro">Search info</h2>
-    <p>
-      Results are ranked by where search terms are found: a text's acronym, like
-      <kbd>MN 19</kbd>, or its title first, then its headings, then the rest of
-      its text. A whole word ranks above longer words that start with it, and a
-      text that uses a word often ranks above one that only mentions it.
-    </p>
-    <p>
-      A search for one word shows its Pāli definitions, with a map for a place,
-      and quick links to site pages, above the results. Either can be toggled
-      under Filters, in “Show above results”.
-    </p>
-    <p>
-      Words, operators and <kbd>by:</kbd>, <kbd>in:</kbd> and
-      <kbd>lang:</kbd> can all be combined, in any order, eg
-      <a href="/search?query=in%3Amn+by%3Asujato+%22four+noble+truths%22+OR+%22eightfold+path%22"
-        ><kbd>in:mn by:sujato "four noble truths" OR "eightfold path"</kbd></a
-      >. Two of one kind find either, so
-      <a href="/search?query=in%3Amn+in%3Adn+bliss"
-        ><kbd>in:mn in:dn bliss</kbd></a
-      >
-      searches both. Each also ticks its box under Filters, in place of any
-      others in that filter.
-    </p>
-    <p>
-      Use only one of <kbd>text:</kbd>, <kbd>title:</kbd>, <kbd>note:</kbd> or
-      <kbd>site:</kbd>, before the words. References and lists work on their
-      own.
-    </p>
-  </section>
-  <section aria-labelledby="search-info-words">
-    <h2 id="search-info-words">Words</h2>
-    <dl>
-      <dt>
-        <a href="/search?query=four+noble+truths"
-          ><kbd>four noble truths</kbd></a
+  <div class="search-panel">
+    <section aria-labelledby="search-info-intro">
+      <h2 id="search-info-intro">Search info</h2>
+      <p>
+        Results are ranked by where search terms are found: a text's acronym,
+        like
+        <kbd>MN 19</kbd>, or its title first, then its headings, then the rest
+        of its text. A whole word ranks above longer words that start with it,
+        and a text that uses a word often ranks above one that only mentions it.
+      </p>
+      <p>
+        A search for one word shows its Pāli definitions, with a map for a
+        place, and quick links to site pages, above the results. Either can be
+        toggled under Filters, in “Show above results”.
+      </p>
+      <p>
+        Words, operators and <kbd>by:</kbd>, <kbd>in:</kbd> and
+        <kbd>lang:</kbd> can all be combined, in any order, eg
+        <a href="/search?query=in%3Amn+by%3Asujato+%22four+noble+truths%22+OR+%22eightfold+path%22"
+          ><kbd>in:mn by:sujato "four noble truths" OR "eightfold path"</kbd></a
+        >. Two of one kind find either, so
+        <a href="/search?query=in%3Amn+in%3Adn+bliss"
+          ><kbd>in:mn in:dn bliss</kbd></a
         >
-      </dt>
-      <dd>Texts with every word, anywhere, in any order</dd>
-      <dt>
-        <a href="/search?query=%22four+noble+truths%22"
-          ><kbd>"four noble truths"</kbd></a
-        >
-      </dt>
-      <dd>Finds all words together, in that order</dd>
-      <dt>
-        <a href="/search?query=monast"><kbd>monast</kbd></a>
-      </dt>
-      <dd>
-        Matches the start of a word, and other forms of an English word, so
-        <a href="/search?query=monks"><kbd>monks</kbd></a> finds “monk”
-      </dd>
-      <dt>
-        <a href="/search?query=savatthi"><kbd>savatthi</kbd></a>
-      </dt>
-      <dd>Capitals and diacritics don't matter</dd>
-    </dl>
-  </section>
-  <section aria-labelledby="search-info-operators">
-    <h2 id="search-info-operators">Operators</h2>
-    <dl>
-      <dt>
-        <a href="/search?query=greed+OR+desire"><kbd>greed OR desire</kbd></a>
-      </dt>
-      <dd>Finds either word</dd>
-      <dt>
-        <a href="/search?query=suffering+NOT+anicca"
-          ><kbd>suffering NOT anicca</kbd></a
-        >
-      </dt>
-      <dd>
-        Finds the first word, but not the second. A minus sign works too:
-        <a href="/search?query=suffering+-anicca"
-          ><kbd>suffering -anicca</kbd></a
-        >
-      </dd>
-      <dt>
-        <a href="/search?query=fire+AND+nymph"><kbd>fire AND nymph</kbd></a>
-      </dt>
-      <dd>Works the same as a space...</dd>
-    </dl>
-  </section>
-  <section aria-labelledby="search-info-chinese">
-    <h2 id="search-info-chinese">Chinese</h2>
-    <dl>
-      <dt>
-        <a href="/search?query=%E5%AD%A4%E7%8D%A8%E5%9C%92"
-          ><kbd>孤獨園</kbd></a
-        >
-      </dt>
-      <dd>
-        Finds the characters together, even inside a longer phrase like
-        <kbd>給孤獨園</kbd>, so quotes aren't needed. Spaces separate phrases,
-        as they do words
-      </dd>
-      <dt>
-        <a href="/search?query=%E8%A7%82%E5%BF%83%E7%94%9F%E7%81%AD"
-          ><kbd>观心生灭</kbd></a
-        >
-      </dt>
-      <dd>Simplified characters find the traditional ones the texts are in</dd>
-    </dl>
-  </section>
-  <section aria-labelledby="search-info-tcl">
-    <h2 id="search-info-tcl">Translator, collection and language</h2>
-    <dl>
-      <dt>
-        <a href="/search?query=by%3Asujato+mendicant"
-          ><kbd>by:sujato mendicant</kbd></a
-        >
-      </dt>
-      <dd>By translator or author</dd>
-      <dt>
-        <a href="/search?query=in%3Asn+choices"><kbd>in:sn choices</kbd></a>
-      </dt>
-      <dd>In a collection, by its SuttaCentral ID</dd>
-      <dt>
-        <a href="/search?query=in%3Aebt+rebirth"><kbd>in:ebt rebirth</kbd></a>
-      </dt>
-      <dd>In the “Early Buddhist Texts”</dd>
-      <dt>
-        <a href="/search?query=in%3Aebs+ethics"><kbd>in:ebs ethics</kbd></a>
-      </dt>
-      <dd>In the “Early Buddhist Suttas”</dd>
-      <dt>
-        <a href="/search?query=in%3Aebct+%E5%9B%9B%E5%BF%B5%E5%A4%84"
-          ><kbd>in:ebct 四念处</kbd></a
-        >
-      </dt>
-      <dd>In the “Early Buddhist Chinese Texts”</dd>
-      <dt>
-        <a href="/search?query=lang%3Apli+sati"><kbd>lang:pli sati</kbd></a>
-      </dt>
-      <dd>In one language, by its code</dd>
-    </dl>
-  </section>
-  <section aria-labelledby="search-info-include">
-    <h2 id="search-info-include">Texts, titles, notes and site pages</h2>
-    <dl>
-      <dt>
-        <a href="/search?query=text%3Ameditation"><kbd>text:meditation</kbd></a>
-      </dt>
-      <dd>Only the texts. The default</dd>
-      <dt>
-        <a href="/search?query=title%3Aintention"><kbd>title:intention</kbd></a>
-      </dt>
-      <dd>
-        Only the texts' titles. Same as
-        <a href="/search?query=in%3Atitle+intention"
-          ><kbd>in:title intention</kbd></a
-        >
-      </dd>
-      <dt>
-        <a href="/search?query=note%3Amindfulness"
-          ><kbd>note:mindfulness</kbd></a
-        >
-      </dt>
-      <dd>
-        Only the translators' notes. Same as
-        <a href="/search?query=in%3Anote+mindfulness"
-          ><kbd>in:note mindfulness</kbd></a
-        >
-      </dd>
-      <dt>
-        <a href="/search?query=site%3Aaggregates"><kbd>site:aggregates</kbd></a>
-      </dt>
-      <dd>
-        Only the site pages, like guides and essays. Same as
-        <a href="/search?query=in%3Aarticle+aggregates"
-          ><kbd>in:article aggregates</kbd></a
-        >
-      </dd>
-    </dl>
-  </section>
-  <section aria-labelledby="search-info-references">
-    <h2 id="search-info-references">References</h2>
-    <p>
-      Find the text that a citation points to, by its place in a printed
-      edition, like the Pali Text Society's or the Taishō.
-    </p>
-    <dl>
-      <dt>
-        <a href="/search?query=ref%3APTS+1.1"><kbd>ref:PTS 1.1</kbd></a>
-      </dt>
-      <dd>
-        Finds a number from any included reference, eg
-        <a href="/search?query=ref%3Asya13.544"><kbd>ref:sya13.544</kbd></a> or
-        <a href="/search?query=ref%3At0052c18"><kbd>ref:t0052c18</kbd></a>
-      </dd>
-      <dt>
-        <a href="/search?query=volpage%3ASN+ii+4"><kbd>volpage:SN ii 4</kbd></a>
-      </dt>
-      <dd>
-        Texts on a PTS volume and page, or a whole volume, ie
-        <a href="/search?query=volpage%3AM+II"><kbd>volpage:M II</kbd></a>
-      </dd>
-    </dl>
-  </section>
-  <section aria-labelledby="search-info-lists">
-    <h2 id="search-info-lists">Lists</h2>
-    <dl>
-      <dt>
-        <a href="/search?query=list+authors"><kbd>list authors</kbd></a>
-      </dt>
-      <dd>Every translator and author</dd>
-      <dt>
-        <a href="/search?query=list+san"><kbd>list san</kbd></a>
-      </dt>
-      <dd>Every text in one language, by its code</dd>
-    </dl>
-  </section>
+        searches both. Each also ticks its box under Filters, in place of any
+        others in that filter.
+      </p>
+      <p>
+        Use only one of <kbd>text:</kbd>, <kbd>title:</kbd>, <kbd>note:</kbd> or
+        <kbd>site:</kbd>, before the words. References and lists work on their
+        own.
+      </p>
+    </section>
+    <section aria-labelledby="search-info-words">
+      <h2 id="search-info-words">Words</h2>
+      <dl>
+        <dt>
+          <a href="/search?query=four+noble+truths"
+            ><kbd>four noble truths</kbd></a
+          >
+        </dt>
+        <dd>Texts with every word, anywhere, in any order</dd>
+        <dt>
+          <a href="/search?query=%22four+noble+truths%22"
+            ><kbd>"four noble truths"</kbd></a
+          >
+        </dt>
+        <dd>Finds all words together, in that order</dd>
+        <dt>
+          <a href="/search?query=monast"><kbd>monast</kbd></a>
+        </dt>
+        <dd>
+          Matches the start of a word, and other forms of an English word, so
+          <a href="/search?query=monks"><kbd>monks</kbd></a> finds “monk”
+        </dd>
+        <dt>
+          <a href="/search?query=savatthi"><kbd>savatthi</kbd></a>
+        </dt>
+        <dd>Capitals and diacritics don't matter</dd>
+      </dl>
+    </section>
+    <section aria-labelledby="search-info-operators">
+      <h2 id="search-info-operators">Operators</h2>
+      <dl>
+        <dt>
+          <a href="/search?query=greed+OR+desire"><kbd>greed OR desire</kbd></a>
+        </dt>
+        <dd>Finds either word</dd>
+        <dt>
+          <a href="/search?query=suffering+NOT+anicca"
+            ><kbd>suffering NOT anicca</kbd></a
+          >
+        </dt>
+        <dd>
+          Finds the first word, but not the second. A minus sign works too:
+          <a href="/search?query=suffering+-anicca"
+            ><kbd>suffering -anicca</kbd></a
+          >
+        </dd>
+        <dt>
+          <a href="/search?query=fire+AND+nymph"><kbd>fire AND nymph</kbd></a>
+        </dt>
+        <dd>Works the same as a space...</dd>
+      </dl>
+    </section>
+    <section aria-labelledby="search-info-chinese">
+      <h2 id="search-info-chinese">Chinese</h2>
+      <dl>
+        <dt>
+          <a href="/search?query=%E5%AD%A4%E7%8D%A8%E5%9C%92"
+            ><kbd>孤獨園</kbd></a
+          >
+        </dt>
+        <dd>
+          Finds the characters together, even inside a longer phrase like
+          <kbd>給孤獨園</kbd>, so quotes aren't needed. Spaces separate phrases,
+          as they do words
+        </dd>
+        <dt>
+          <a href="/search?query=%E8%A7%82%E5%BF%83%E7%94%9F%E7%81%AD"
+            ><kbd>观心生灭</kbd></a
+          >
+        </dt>
+        <dd>
+          Simplified characters find the traditional ones the texts are in
+        </dd>
+      </dl>
+    </section>
+    <section aria-labelledby="search-info-tcl">
+      <h2 id="search-info-tcl">Translator, collection and language</h2>
+      <dl>
+        <dt>
+          <a href="/search?query=by%3Asujato+mendicant"
+            ><kbd>by:sujato mendicant</kbd></a
+          >
+        </dt>
+        <dd>By translator or author</dd>
+        <dt>
+          <a href="/search?query=in%3Asn+choices"><kbd>in:sn choices</kbd></a>
+        </dt>
+        <dd>In a collection, by its SuttaCentral ID</dd>
+        <dt>
+          <a href="/search?query=in%3Aebt+rebirth"><kbd>in:ebt rebirth</kbd></a>
+        </dt>
+        <dd>In the “Early Buddhist Texts”</dd>
+        <dt>
+          <a href="/search?query=in%3Aebs+ethics"><kbd>in:ebs ethics</kbd></a>
+        </dt>
+        <dd>In the “Early Buddhist Suttas”</dd>
+        <dt>
+          <a href="/search?query=in%3Aebct+%E5%9B%9B%E5%BF%B5%E5%A4%84"
+            ><kbd>in:ebct 四念处</kbd></a
+          >
+        </dt>
+        <dd>In the “Early Buddhist Chinese Texts”</dd>
+        <dt>
+          <a href="/search?query=lang%3Apli+sati"><kbd>lang:pli sati</kbd></a>
+        </dt>
+        <dd>In one language, by its code</dd>
+      </dl>
+    </section>
+    <section aria-labelledby="search-info-include">
+      <h2 id="search-info-include">Texts, titles, notes and site pages</h2>
+      <dl>
+        <dt>
+          <a href="/search?query=text%3Ameditation"
+            ><kbd>text:meditation</kbd></a
+          >
+        </dt>
+        <dd>Only the texts. The default</dd>
+        <dt>
+          <a href="/search?query=title%3Aintention"
+            ><kbd>title:intention</kbd></a
+          >
+        </dt>
+        <dd>
+          Only the texts' titles. Same as
+          <a href="/search?query=in%3Atitle+intention"
+            ><kbd>in:title intention</kbd></a
+          >
+        </dd>
+        <dt>
+          <a href="/search?query=note%3Amindfulness"
+            ><kbd>note:mindfulness</kbd></a
+          >
+        </dt>
+        <dd>
+          Only the translators' notes. Same as
+          <a href="/search?query=in%3Anote+mindfulness"
+            ><kbd>in:note mindfulness</kbd></a
+          >
+        </dd>
+        <dt>
+          <a href="/search?query=site%3Aaggregates"
+            ><kbd>site:aggregates</kbd></a
+          >
+        </dt>
+        <dd>
+          Only the site pages, like guides and essays. Same as
+          <a href="/search?query=in%3Aarticle+aggregates"
+            ><kbd>in:article aggregates</kbd></a
+          >
+        </dd>
+      </dl>
+    </section>
+    <section aria-labelledby="search-info-references">
+      <h2 id="search-info-references">References</h2>
+      <p>
+        Find the text that a citation points to, by its place in a printed
+        edition, like the Pali Text Society's or the Taishō.
+      </p>
+      <dl>
+        <dt>
+          <a href="/search?query=ref%3APTS+1.1"><kbd>ref:PTS 1.1</kbd></a>
+        </dt>
+        <dd>
+          Finds a number from any included reference, eg
+          <a href="/search?query=ref%3Asya13.544"><kbd>ref:sya13.544</kbd></a>
+          or
+          <a href="/search?query=ref%3At0052c18"><kbd>ref:t0052c18</kbd></a>
+        </dd>
+        <dt>
+          <a href="/search?query=volpage%3ASN+ii+4"
+            ><kbd>volpage:SN ii 4</kbd></a
+          >
+        </dt>
+        <dd>
+          Texts on a PTS volume and page, or a whole volume, ie
+          <a href="/search?query=volpage%3AM+II"><kbd>volpage:M II</kbd></a>
+        </dd>
+      </dl>
+    </section>
+    <section aria-labelledby="search-info-lists">
+      <h2 id="search-info-lists">Lists</h2>
+      <dl>
+        <dt>
+          <a href="/search?query=list+authors"><kbd>list authors</kbd></a>
+        </dt>
+        <dd>Every translator and author</dd>
+        <dt>
+          <a href="/search?query=list+san"><kbd>list san</kbd></a>
+        </dt>
+        <dd>Every text in one language, by its code</dd>
+      </dl>
+    </section>
+  </div>
 </details>

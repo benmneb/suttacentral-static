@@ -3496,11 +3496,19 @@ details#search-info {
 
   section {
     margin-bottom: 1.5rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 
   h2 {
     font-size: inherit;
     color: var(--text-color-secondary);
+
+    &:first-of-type {
+      margin-top: 0;
+    }
   }
 
   p {
@@ -3535,6 +3543,7 @@ details#search-info {
 
     dd {
       margin-left: 1rem;
+      margin-bottom: 0;
     }
   }
 }
@@ -3558,6 +3567,10 @@ details#search-filters {
     border: none;
     margin: 0;
     padding: 0.5rem 0;
+
+    &:last-of-type {
+      padding-bottom: 0;
+    }
   }
 
   legend {
@@ -3664,10 +3677,17 @@ aside#search-site-pages > .further-reading {
   margin: 0 0 2rem;
 }
 
-aside#search-dictionary {
+:is(aside#search-dictionary, div.search-panel) {
   border: 1px solid var(--bg-alt-3);
   border-radius: var(--rounding);
   padding: 1rem;
+}
+
+div.search-panel {
+  margin-bottom: 1rem;
+}
+
+aside#search-dictionary {
   margin-bottom: 2rem;
 
   > h2 {
