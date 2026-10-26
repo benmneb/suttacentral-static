@@ -25,7 +25,7 @@
           %}
           {% assign base_path = segment[0] | parallelPath: entry.uid %}
           <a href="/{{ base_path }}/{{ root_trans.lang }}/{{ root_trans.author_uid }}{% if segment[0] contains '#' %}#{{ segment[0] | split: '#' | last }}{% endif %}">
-            {{- segment[0] -}}
+            {{- segment[0] | parallelLabel: entry -}}
           </a>
           <ul>
             {% include "parallelItems.liquid",

@@ -28,6 +28,23 @@ export function parseParallelKey(key) {
   return { base, start, end }
 }
 
+// Not `rangeUidToAcronym` for the text itself, which would make its "Snp" "SNP"
+function acronymOf(base, entry) {
+  return base === entry.uid ? entry.acronym : rangeUidToAcronym(base)
+}
+
+/**
+ * A key of /api/parallels as .net shows it, ie "mn10#10.1" -> "MN 10:10.1"
+ * @param {string} key
+ * @param {Object} entry - The text the key is from
+ */
+export function parallelKeyLabel(key, entry) {
+  const { base, start, end } = parseParallelKey(key)
+  const acronym = acronymOf(base, entry) || base
+  if (!start) return acronym
+  return `${acronym}:${start === end ? start : `${start}–${end}`}`
+}
+
 /** Strongest first, which is the one a passage with several is shown as */
 const PARALLEL_TYPES = ['full', 'retelling', 'mention']
 
@@ -108,7 +125,7 @@ export function parallelRunsOf(entry, keys) {
 
   function spanLabel(key, start, end) {
     const { base, start: from } = parseParallelKey(key)
-    const acronym = base === entry.uid ? entry.acronym : rangeUidToAcronym(base)
+    const acronym = acronymOf(base, entry)
     if (!from) return acronym
     const ref = i => keys[i].split(':')[1]
     const refs = start === end ? ref(start) : `${ref(start)}–${ref(end)}`

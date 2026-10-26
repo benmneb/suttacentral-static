@@ -3,6 +3,7 @@ import ora from 'ora'
 import { recordStat } from '../helpers/buildStats.js'
 import { fixCommentLinks } from '../helpers/commentLinks.js'
 import { fixPaginationLinks } from '../helpers/paginationLinks.js'
+import { linkParallelTranslations } from '../helpers/parallelLinks.js'
 import { parseUidNumbers } from '../helpers/rangeSuttas.js'
 import {
   fetchOptions,
@@ -335,6 +336,10 @@ export default async function () {
     )
     const movedLinks = fixMovedLegacyLinks(tree)
     spinner.info(`Pointed links in ${movedLinks} texts at paths .net moved`)
+    const linkedParallels = linkParallelTranslations(tree, resolveLink)
+    spinner.info(
+      `Gave ${linkedParallels} parallels a link to their translation`
+    )
     cachedMasterData = tree
     return tree
   } catch (e) {

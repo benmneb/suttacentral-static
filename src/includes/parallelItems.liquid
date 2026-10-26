@@ -14,52 +14,54 @@
         {% break %}
       {% endif %}
     {% endfor %}
+    {% assign anchor = "" %}
+    {% if parallel.to.to contains "#" %}
+      {% assign anchor = parallel.to.to | split: "#" | last | prepend: "#" %}
+    {% endif %}
+    {% assign href = "" %}
     {% if built_trans %}
-      <a
-        href="/{{ parallel.to.uid }}/{{ built_trans.lang }}/{{ built_trans.author_uid }}{% if parallel.to.to contains '#' %}#{{ parallel.to.to | split: '#' | last }}{% endif %}"
-        hreflang="{{ built_trans.lang }}"
-      >
-        {{
-          parallel.to.translated_title
-          | default: parallel.to.original_title
-          | default: parallel.to.acronym
-          | strip
-        }}
-      </a>
+      {% capture href -%}
+        /{{ parallel.to.uid }}/{{ built_trans.lang }}/{{ built_trans.author_uid }}{{ anchor }}
+      {%- endcapture %}
+    {% endif %}
+    {% if parallel.to.original_title != blank
+      or parallel.to.translated_title != blank
+    %}
+      {% rootTitle parallel.to, href %}
+      {% assign acronym = parallel.to.acronym | strip %}
     {% else %}
-      <span>
-        {{
-          parallel.to.translated_title
-          | default: parallel.to.original_title
-          | default: parallel.to.acronym
-          | strip
-        }}
-      </span>
+      {% if href != blank %}
+        <a href="{{ href }}" hreflang="{{ built_trans.lang }}">
+          {{- parallel.to.acronym | strip -}}
+        </a>
+      {% else %}
+        <span>{{ parallel.to.acronym | strip }}</span>
+      {% endif %}
+      {% assign acronym = "" %}
     {% endif %}
     {% assign pretty_volpages = parallel.to.volpages | formatVolpages %}
-    <br>
-    {% if parallel.to.translated_title != blank
-      and parallel.to.original_title != blank
-    %}
-      {{ parallel.to.original_title | strip }}
-      {% if parallel.to.acronym != blank %}
+    {% if acronym != blank or pretty_volpages != blank %}
+      <br>
+      {{- acronym -}}
+      {%- if acronym != blank and pretty_volpages != blank %}
         <span aria-hidden="true">∙</span>
-        {{ parallel.to.acronym | strip -}}
-      {%- endif %}
-      {% if pretty_volpages != blank %}
-        <span aria-hidden="true">∙</span> {{ pretty_volpages -}}
-      {%- endif %}
-    {% elsif parallel.to.original_title != blank %}
-      {% if parallel.to.acronym != blank %}
-        {{- parallel.to.acronym | strip -}}
-      {%- endif %}
-      {% if pretty_volpages != blank %}
-        <span aria-hidden="true">∙</span> {{ pretty_volpages -}}
-      {%- endif %}
-    {% elsif parallel.to.acronym != blank %}
-      {% if pretty_volpages != blank %}
-        {{ pretty_volpages -}}
-      {%- endif %}
+      {% endif -%}
+      {{- pretty_volpages -}}
+    {% endif %}
+    {% if parallel.to.scx_translations.size > 0 %}
+      <br>
+      English:
+      {% for trans in parallel.to.scx_translations -%}
+        <a
+          href="/{{ parallel.to.uid }}/{{ trans.lang }}/{{ trans.author_uid }}{{ anchor }}"
+          hreflang="{{ trans.lang }}"
+        >
+          {{- trans.author | strip -}}
+        </a>
+        {%- unless forloop.last %}
+          <span aria-hidden="true">∙</span>
+        {% endunless -%}
+      {%- endfor %}
     {% endif %}
   </li>
 {% endfor %}
