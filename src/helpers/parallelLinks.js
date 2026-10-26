@@ -80,13 +80,6 @@ export function addParallelDetails(tree, resolve) {
     if (parallel.remark)
       to.scx_remarks = parallel.remark.split(' | ').map(r => r.trim())
     to.scx_has_notes = !!(to.scx_remarks || to.biblio || full)
-    const titled = to.original_title || to.translated_title
-    to.scx_details = [
-      titled && to.scx_label,
-      to.scx_lang_name,
-      to.scx_volpages,
-      to.scx_alt_volpages,
-    ].filter(Boolean)
   }
 
   function walk(nodes) {

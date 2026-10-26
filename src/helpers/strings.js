@@ -55,6 +55,31 @@ export function formatVolpages(volpages) {
   return `${prefix} ${firstNum}–${lastNum}`
 }
 
+/**
+ * A text's acronym and references on one line, ie "MA 1 ∙ T 26.1 ∙ T i 421a12", each a span.
+ * No space before a ∙, so a line only wraps after one
+ */
+export function textRefs(acronym, altAcronym, language, volpages, altVolpages) {
+  const parts = [
+    [acronym?.trim()],
+    [
+      altAcronym?.trim(),
+      altAcronym?.startsWith('T ') ? 'Taishō number' : 'Alternate number',
+      'alt-acronym',
+    ],
+    [language],
+    [volpages, 'Volume and page', 'volpages'],
+    [altVolpages !== volpages && altVolpages, 'Volume and page', 'volpages'],
+  ].filter(([text]) => text)
+  return parts
+    .map(([text, title, className], i) => {
+      const dot = i ? '<span aria-hidden="true">∙</span> ' : ''
+      const value = title ? `<span title="${title}">${text}</span>` : text
+      return `<span${className ? ` class="${className}"` : ''}>${dot}${value}</span>`
+    })
+    .join('')
+}
+
 // By script, as romanised titles like Madhyamāgama are tagged lzh too
 const UPRIGHT_SCRIPTS =
   /[\p{Script=Han}\p{Script=Hangul}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Tibetan}]/u

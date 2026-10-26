@@ -26,6 +26,7 @@ import {
   languageName,
   rootTitle,
   softHyphenateTitle,
+  textRefs,
 } from './src/helpers/strings.js'
 import { writeVolpages } from './src/helpers/volpages.js'
 
@@ -144,6 +145,7 @@ export default function (eleventyConfig) {
   })
 
   eleventyConfig.addShortcode('rootTitle', rootTitle)
+  eleventyConfig.addShortcode('textRefs', textRefs)
 
   eleventyConfig.addShortcode('icon', function (name, size) {
     if (!iconNames.has(name)) throw new Error(`No icon called "${name}"`)

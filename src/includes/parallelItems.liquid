@@ -22,9 +22,13 @@
         /{{ parallel.to.uid }}/{{ built_trans.lang }}/{{ built_trans.author_uid }}{{ anchor }}
       {%- endcapture %}
     {% endif %}
+    {% assign titled = false %}
     {% if parallel.to.original_title != blank
       or parallel.to.translated_title != blank
     %}
+      {% assign titled = true %}
+    {% endif %}
+    {% if titled %}
       {% rootTitle parallel.to, href %}
     {% elsif href != blank %}
       <a href="{{ href }}" hreflang="{{ built_trans.lang }}">
@@ -33,20 +37,19 @@
     {% else %}
       <span>{{ parallel.to.scx_label }}</span>
     {% endif %}
-    {% capture details -%}
-      {%- for part in parallel.to.scx_details -%}
-        {{- part -}}
-        {%- unless forloop.last %}
-          <span aria-hidden="true">∙</span>
-        {% endunless -%}
-      {%- endfor -%}
+    {% assign label = "" %}
+    {% if titled %}
+      {% assign label = parallel.to.scx_label %}
+    {% endif %}
+    {% capture refs -%}
+      {%- textRefs label, parallel.to.alt_acronym, parallel.to.scx_lang_name, parallel.to.scx_volpages, parallel.to.scx_alt_volpages -%}
     {%- endcapture %}
     {% if parallel.to.scx_has_notes %}
       <details class="parallel-notes">
-        <summary title="Notes">
-          {{- details }}
+        <summary class="text-refs" title="Notes">
+          {{- refs }}
           {% icon "informationCircle" %}
-          {%- if details == blank -%}
+          {%- if refs == blank -%}
             <span class="sr-only">Notes</span>
           {%- endif -%}
         </summary>
@@ -60,24 +63,24 @@
           <p>{{ parallel.to.biblio }}</p>
         {% endif %}
       </details>
-    {% elsif details != blank %}
-      <br>
-      {{- details -}}
+    {% elsif refs != blank %}
+      <p class="text-refs">{{ refs }}</p>
     {% endif %}
     {% if parallel.to.scx_translations.size > 0 %}
-      {% unless parallel.to.scx_has_notes %}<br>{% endunless %}
-      English:
-      {% for trans in parallel.to.scx_translations -%}
-        <a
-          href="/{{ parallel.to.uid }}/{{ trans.lang }}/{{ trans.author_uid }}{{ anchor }}"
-          hreflang="{{ trans.lang }}"
-        >
-          {{- trans.author | strip -}}
-        </a>
-        {%- unless forloop.last %}
-          <span aria-hidden="true">∙</span>
-        {% endunless -%}
-      {%- endfor %}
+      <p class="parallel-translations">
+        English:
+        {% for trans in parallel.to.scx_translations -%}
+          <a
+            href="/{{ parallel.to.uid }}/{{ trans.lang }}/{{ trans.author_uid }}{{ anchor }}"
+            hreflang="{{ trans.lang }}"
+          >
+            {{- trans.author | strip -}}
+          </a>
+          {%- unless forloop.last %}
+            <span aria-hidden="true">∙</span>
+          {% endunless -%}
+        {%- endfor %}
+      </p>
     {% endif %}
   </li>
 {% endfor %}

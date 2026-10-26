@@ -175,6 +175,22 @@ dfn.upright {
   font-style: normal;
 }
 
+.text-refs {
+  > span > [aria-hidden] {
+    margin-inline: 0.5em 0.25em;
+    opacity: 0.7;
+  }
+
+  [title] {
+    white-space: nowrap;
+  }
+
+  /* Smaller rather than fainter, which would drop it under 4.5:1 */
+  .volpages {
+    font-size: small;
+  }
+}
+
 /*
  * Heroicons v2.2.0 (MIT), https://heroicons.com - micro (16px solid) by
  * default, and mini (20px solid) with .mini, ie {% icon "play", "mini" %}
@@ -2400,21 +2416,6 @@ main {
         margin-inline: 0.5em;
       }
     }
-
-    /* Smaller rather than fainter, which would drop it under 4.5:1 */
-    .volpages {
-      font-size: small;
-
-      > span:first-child {
-        margin-inline: 0.25em;
-        margin-inline-start: 0.5em;
-        opacity: 0.7;
-      }
-
-      > span[title] {
-        white-space: nowrap;
-      }
-    }
   }
 
   details.patimokkha-details {
@@ -2490,6 +2491,10 @@ main {
 
       .root-title > span {
         font-size: inherit;
+      }
+
+      > p {
+        margin: 0;
       }
 
       .parallel-notes {

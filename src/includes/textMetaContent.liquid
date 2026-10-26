@@ -9,28 +9,18 @@
       {%- endif -%}
     </h1>
     {%- if entry.acronym %}
-      {% assign volpages = entry.volpages | formatVolpages %}
-      {% assign alt_volpages = entry.alt_volpages | formatVolpages %}
-      {% comment %}
-        Not on a sutta within a range, as the pages are the whole range's.
-        No space before the ∙, so a line only wraps after it
-      {% endcomment %}
-      <p data-pagefind-weight="10">
-        {{- entry.acronym | strip -}}
-        {%- unless entry.scx_range_sutta_individual -%}
-          {%- if volpages != blank -%}
-            <span class="volpages"
-              ><span aria-hidden="true">∙</span>
-              <span title="Volume and page">{{ volpages }}</span></span
-            >
-          {%- endif -%}
-          {%- if alt_volpages != blank and alt_volpages != volpages -%}
-            <span class="volpages"
-              ><span aria-hidden="true">∙</span>
-              <span title="Volume and page">{{ alt_volpages }}</span></span
-            >
-          {%- endif -%}
-        {%- endunless -%}
+      {% comment %} Not on a sutta within a range, as these are the whole range's {% endcomment %}
+      {% if entry.scx_range_sutta_individual %}
+        {% assign alt_acronym = "" %}
+        {% assign volpages = "" %}
+        {% assign alt_volpages = "" %}
+      {% else %}
+        {% assign alt_acronym = entry.alt_acronym %}
+        {% assign volpages = entry.volpages | formatVolpages %}
+        {% assign alt_volpages = entry.alt_volpages | formatVolpages %}
+      {% endif %}
+      <p class="text-refs" data-pagefind-weight="10">
+        {%- textRefs entry.acronym, alt_acronym, "", volpages, alt_volpages -%}
       </p>
     {% endif -%}
   </hgroup>
