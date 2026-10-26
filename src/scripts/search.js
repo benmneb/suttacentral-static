@@ -66,6 +66,41 @@
   const listFormat = new Intl.ListFormat('en')
   let latestSearch = 0
 
+  // Long enough that a quick search doesn't flash through Searching… and Loading…
+  const PENDING_DELAY = 300
+  let pendingTimer = null
+  let pendingHTML = ''
+  let pendingShown = false
+
+  /** A count for while a search runs, shown once it's taken a while, which then clears the last one's results */
+  function showPending(html) {
+    pendingHTML = html
+    if (pendingShown) countEl.innerHTML = html
+    else {
+      pendingTimer ??= setTimeout(() => {
+        pendingTimer = null
+        pendingShown = true
+        countEl.hidden = false
+        countEl.innerHTML = pendingHTML
+        resultsContainer.innerHTML = ''
+      }, PENDING_DELAY)
+    }
+  }
+
+  /** A search's final count, in place of the last one's results if they still show */
+  function showCount(html) {
+    if (pendingTimer !== null) resultsContainer.innerHTML = ''
+    stopPending()
+    countEl.hidden = false
+    countEl.innerHTML = html
+  }
+
+  function stopPending() {
+    clearTimeout(pendingTimer)
+    pendingTimer = null
+    pendingShown = false
+  }
+
   // Hidden until now, as filtering can't work without this script
   filtersEl.hidden = false
   infoEl.hidden = false
@@ -542,7 +577,7 @@
   function listAuthors() {
     const groups = [...document.querySelectorAll('#search-filters-author > li')]
     let total = 0
-    resultsContainer.innerHTML = groups
+    const html = groups
       .map(group => {
         const rows = [...group.querySelectorAll('input[name="author"]')].map(
           box =>
@@ -553,7 +588,8 @@
         return `<li><table><caption>${escape(name)}</caption><thead><tr><th>Name</th><th>ID</th></tr></thead><tbody>${rows.join('')}</tbody></table></li>`
       })
       .join('')
-    countEl.textContent = `${total.toLocaleString('en')} authors`
+    showCount(`${total.toLocaleString('en')} authors`)
+    resultsContainer.innerHTML = html
   }
 
   const fetched = new Map()
@@ -741,7 +777,7 @@
       : findVolpage(term))
     if (searchId !== latestSearch) return
     const finalCountMsg = `${found.length.toLocaleString('en')} result${found.length !== 1 ? 's' : ''}${forQuery}${inData}`
-    countEl.innerHTML = finalCountMsg
+    showCount(finalCountMsg)
     let shown = 0
     async function showMore() {
       const batch = found.slice(shown, shown + REFERENCES_PAGE_SIZE)
@@ -917,7 +953,6 @@
   async function performSearch(query, netQuery = query) {
     const searchId = ++latestSearch
     document.title = `${query || 'Search'} @ SuttaCentral Express`
-    countEl.hidden = false
     showMoreBtn.hidden = true
 
     // Update footer link
@@ -940,8 +975,7 @@
       boxes.length && !mode
         ? ` with ${boxes.length} filter${boxes.length !== 1 ? 's' : ''}`
         : ''
-    countEl.innerHTML = `Searching${forQuery}${inBundles}${withFilters}…`
-    resultsContainer.innerHTML = ''
+    showPending(`Searching${forQuery}${inBundles}${withFilters}…`)
     showDefinition(mode ? '' : term, searchId)
     showSitePages(mode ? '' : term)
 
@@ -949,7 +983,7 @@
     if (mode) return showReferences(mode, term, searchId, forQuery, inBundles)
 
     if (!included.length) {
-      countEl.textContent = 'Tick something under “Include in search”'
+      showCount('Tick something under “Include in search”')
       filtersEl.open = true
       return
     }
@@ -975,12 +1009,11 @@
     }${forQuery}${inBundles}${withFilters}`
 
     if (results.length === 0) {
-      resultsContainer.innerHTML = ''
-      countEl.innerHTML = finalCountMsg
+      showCount(finalCountMsg)
       return
     }
 
-    countEl.innerHTML = `Loading ${finalCountMsg}…`
+    showPending(`Loading ${finalCountMsg}…`)
 
     let resultsLoaded = 0
     const equalise = t => t.toLowerCase().replace(/\s/g, '')
@@ -993,7 +1026,7 @@
       const allData = await Promise.all(dataPromises)
       if (searchId !== latestSearch) return
 
-      countEl.innerHTML = finalCountMsg
+      showCount(finalCountMsg)
 
       if (resultsLoaded === 0) {
         resultsContainer.innerHTML = ''
@@ -1110,6 +1143,7 @@
   function clearResults() {
     latestSearch++
     document.title = 'Search @ SuttaCentral Express'
+    stopPending()
     countEl.hidden = true
     showApplied([])
     if (dictionaryEl) dictionaryEl.hidden = true
