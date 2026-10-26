@@ -35,6 +35,7 @@
   const scRedirectLink = document.getElementById('sc-redirect')
   const filtersEl = document.getElementById('search-filters')
   const resetFiltersBtn = document.getElementById('search-filters-reset')
+  const appliedEl = document.getElementById('search-applied')
   const infoEl = document.getElementById('search-info')
   const dictionaryEl = document.getElementById('search-dictionary')
   const dictionaryToggle = document.getElementById('search-dictionary-results')
@@ -102,45 +103,77 @@
   }
 
   /*
-   * The deepest checked branches, as checking a child narrows its parent down to it.
-   * Anything checked under an unchecked (so hidden) branch doesn't count, nor one the included bundles lack.
-   * A group with no name of its own comes back as one branch holding all its values.
+   * The deepest checked boxes, as checking a child narrows its parent down to it.
+   * Anything checked under an unchecked (so hidden) branch doesn't count, nor one the included bundles lack
    */
-  function checkedBranches(list) {
+  function checkedBoxes(list) {
     return [...list.children].flatMap(li => {
       const box = li.querySelector(':scope > input')
       if (!box.checked || li.hidden) return []
       const children = li.querySelector(':scope > ul')
-      const deeper = children ? checkedBranches(children) : []
-      if (deeper.length) return deeper
-      // A group with no name of its own (ie Translators) means everyone in it
-      if (!box.name) {
-        return [
-          [
-            ...children.querySelectorAll(':scope > li:not([hidden]) > input'),
-          ].map(child => child.value),
-        ]
-      }
-      return [box.value]
+      const deeper = children ? checkedBoxes(children) : []
+      return deeper.length ? deeper : [box]
     })
   }
 
+  /** A checked box's values: its own, or for a group with no name of its own (ie Translators), everyone in it */
+  const boxValues = box =>
+    box.name
+      ? [box.value]
+      : [
+          ...box
+            .closest('li')
+            .querySelectorAll(':scope > ul > li:not([hidden]) > input'),
+        ].map(child => child.value)
+
   /*
    * As per `data-pagefind-filter` in text.liquid, ie { in: { any: ['dn', 'mn'] }, lang: { any: ['en'] } },
-   * with how many the user applied: one per checked branch, so Sutta → Middle is one
+   * with the boxes the user applied: one per checked branch, so Sutta → Middle is one
    */
   function getFilters() {
-    const branches = id => checkedBranches(document.getElementById(id))
     const applied = Object.entries({
-      in: branches('search-filters-collection'),
-      author: branches('search-filters-author'),
-      lang: branches('search-filters-lang'),
-    }).filter(([, values]) => values.length)
+      in: 'search-filters-collection',
+      author: 'search-filters-author',
+      lang: 'search-filters-lang',
+    })
+      .map(([key, id]) => [key, checkedBoxes(document.getElementById(id))])
+      .filter(([, boxes]) => boxes.length)
     return {
       filters: Object.fromEntries(
-        applied.map(([key, values]) => [key, { any: values.flat() }])
+        applied.map(([key, boxes]) => [key, { any: boxes.flatMap(boxValues) }])
       ),
-      count: applied.reduce((sum, [, values]) => sum + values.length, 0),
+      boxes: applied.flatMap(([, boxes]) => boxes),
+    }
+  }
+
+  /** A filter's name on its own: a collection's reference (ie SN 12), else its whole name */
+  function filterName(box) {
+    const label = box.labels[0]
+    return (
+      label.querySelector('.collection-reference')?.textContent ??
+      (label.title || label.firstChild.textContent.trim())
+    )
+  }
+
+  /** A box per applied filter, to untick it from above the results */
+  function showApplied(boxes) {
+    appliedEl.hidden = !boxes.length
+    appliedEl.innerHTML = boxes
+      .map(box => {
+        const id = `applied-${box.id}`
+        const label = filterName(box)
+        return `<li><input type="checkbox" id="${id}" checked><label for="${id}">${escape(label)}</label></li>`
+      })
+      .join('')
+  }
+
+  /** Unticks a filter's box, and each branch above it left with nothing ticked under it */
+  function untick(box) {
+    box.checked = false
+    let li = box.closest('li')
+    while ((li = li.parentElement.closest('li'))) {
+      if (checkedBoxes(li.querySelector(':scope > ul')).length) break
+      li.querySelector(':scope > input').checked = false
     }
   }
 
@@ -216,7 +249,6 @@
             cleared.add(filter)
           }
           boxes.forEach(tick)
-          if (boxes.length) filtersEl.open = true
           return space
         }
       )
@@ -242,7 +274,6 @@
     for (const box of [textsBox, titlesBox, notesBox, siteBox]) {
       box.checked = boxes.includes(box)
     }
-    filtersEl.open = true
   }
 
   /*
@@ -894,9 +925,10 @@
     url.searchParams.set('query', minusToNot(netQuery))
     scRedirectLink.href = url.toString()
 
-    const { filters, count } = getFilters()
+    const { filters, boxes } = getFilters()
     const term = query.replace(MODE, '')
     const mode = query.match(MODE)?.[1].toLowerCase()
+    showApplied(mode ? [] : boxes)
     const included = includedBundles()
     const forQuery = term ? ` for <b>${escape(term)}</b>` : ''
     const inBundles = mode
@@ -905,7 +937,9 @@
         ? ''
         : ` in ${listFormat.format(included.map(name => BUNDLE_NAMES[name] ?? name))}`
     const withFilters =
-      count && !mode ? ` with ${count} filter${count !== 1 ? 's' : ''}` : ''
+      boxes.length && !mode
+        ? ` with ${boxes.length} filter${boxes.length !== 1 ? 's' : ''}`
+        : ''
     countEl.innerHTML = `Searching${forQuery}${inBundles}${withFilters}…`
     resultsContainer.innerHTML = ''
     showDefinition(mode ? '' : term, searchId)
@@ -1077,6 +1111,7 @@
     latestSearch++
     document.title = 'Search @ SuttaCentral Express'
     countEl.hidden = true
+    showApplied([])
     if (dictionaryEl) dictionaryEl.hidden = true
     sitePagesEl.hidden = true
     showMoreBtn.hidden = true
@@ -1131,31 +1166,47 @@
     saveBoxes()
     updateResetFiltersButton()
     const query = cleanQuery(input.value)
-    if (query || getFilters().count) await performSearch(query)
+    if (query || getFilters().boxes.length) await performSearch(query)
     else clearResults()
   })
 
   // Re-run the search on each filter change. Filters stay out of the URL, to keep it in sync with
   // SuttaCentral.net
-  filtersEl.addEventListener('change', async e => {
+  async function filtersChanged(box) {
     updateResetFiltersButton()
     const query = cleanQuery(input.value)
-    if (answerToggles.includes(e.target)) {
+    if (answerToggles.includes(box)) {
       try {
-        if (e.target.checked) localStorage.removeItem(e.target.id)
-        else localStorage.setItem(e.target.id, 'off')
+        if (box.checked) localStorage.removeItem(box.id)
+        else localStorage.setItem(box.id, 'off')
       } catch {}
       const term = query.replace(MODE, '')
-      if (e.target === dictionaryToggle) showDefinition(term, latestSearch)
+      if (box === dictionaryToggle) showDefinition(term, latestSearch)
       else showSitePages(term)
       return
     }
-    if ([textsBox, titlesBox, notesBox, siteBox].includes(e.target)) {
+    if ([textsBox, titlesBox, notesBox, siteBox].includes(box)) {
       await showApplicableFilters()
     }
     saveBoxes()
-    if (query || getFilters().count) await performSearch(query)
+    if (query || getFilters().boxes.length) await performSearch(query)
     else clearResults()
+  }
+
+  filtersEl.addEventListener('change', e => filtersChanged(e.target))
+
+  // Focus moves on, as the search replaces the unticked box
+  appliedEl.addEventListener('change', async e => {
+    const chips = [...appliedEl.querySelectorAll('input')]
+    const index = chips.indexOf(e.target)
+    const box = document.getElementById(e.target.id.replace(/^applied-/, ''))
+    untick(box)
+    const changed = filtersChanged(box)
+    const left = appliedEl.querySelectorAll('input')
+    ;(
+      left[Math.min(index, left.length - 1)] ?? filtersEl.firstElementChild
+    ).focus()
+    await changed
   })
 
   // Handle back/forward navigation
@@ -1168,7 +1219,7 @@
     await showApplicableFilters()
     updateResetFiltersButton()
     input.value = ''
-    if (getFilters().count) await performSearch('')
+    if (getFilters().boxes.length) await performSearch('')
     else clearResults()
   })
 
