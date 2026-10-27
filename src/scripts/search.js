@@ -270,7 +270,7 @@
       .replace(
         /(^|\s)(by|author|in|lang):(\S+)/gi,
         (match, space, name, value) => {
-          const include = match.trim().match(/^in:(article|note|title)$/i)
+          const include = match.trim().match(/^in:(articles?|notes?|titles?)$/i)
           if (include) {
             includeFor(include[1])
             return space
@@ -289,7 +289,7 @@
       )
       .replace(/\s+/g, ' ')
       .trim()
-      .replace(/^(text|title|note|site):\s*/i, (match, name) => {
+      .replace(/^(texts?|titles?|notes?|site):\s*/i, (match, name) => {
         includeFor(name)
         return ''
       })
@@ -297,7 +297,7 @@
 
   /** Ticks what to include for text:, title:, note: or site:, or in:title, in:note or in:article */
   function includeFor(name) {
-    name = name.toLowerCase()
+    name = name.toLowerCase().replace(/s$/, '')
     if (name === 'text') includeOnly(textsBox)
     else if (name === 'title') includeOnly(textsBox, titlesBox)
     else if (name === 'note') includeOnly(notesBox)
