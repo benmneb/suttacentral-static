@@ -14,6 +14,8 @@
     n: ['commenter', 'commenter-inline', 'commenter-side'],
     v: ['rooter', 'rooter-side'],
     f: ['rooter-first'],
+    d: ['definer'],
+    c: ['simplifier'],
     i: ['illustrator'],
     o: ['highlighter'],
     p: ['paralleler'],
@@ -25,8 +27,6 @@
   const SUB_SETTINGS = {
     m: 'segmenter-main',
     t: 'segmenter-pts',
-    d: 'definer',
-    c: 'simplifier',
   }
 
   const LISTEN_CONTROLS = {
