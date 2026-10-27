@@ -47,8 +47,8 @@ export function cleanPaliWord(word) {
 }
 
 /** As DPD's i2h and deconstructor tables spell it, with ṃ */
-const dpdSpelling = word => word.replace(/ṁ/g, 'ṃ')
-const scSpelling = word => word.replace(/ṃ/g, 'ṁ')
+export const dpdSpelling = word => word.replace(/ṁ/g, 'ṃ')
+export const scSpelling = word => word.replace(/ṃ/g, 'ṁ')
 
 function reduceHtml(html) {
   return String(html).replace(/<[^>]*>/g, tag =>

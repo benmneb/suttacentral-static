@@ -537,6 +537,9 @@ eleventyComputed:
   </fieldset>
 </aside>
 
+{% unless entry.scx_unindexed %}
+  {% assign title_parts = entry.original_title | titleParts %}
+{% endunless %}
 <main
   {% comment %} Not when another page indexes this text, nor its titles, as Pagefind searches meta (and the h1 without one) {% endcomment %}
   {% unless entry.scx_unindexed %}
@@ -550,10 +553,13 @@ eleventyComputed:
   data-translatorstitle="{{ entry._suttas_data.translation.title | default: '' }}"
   data-originaltitle="{{ entry.original_title }}"
   data-rootlang="{{ entry.root_lang }}"
+  {% if title_parts != blank %}
+    data-titleparts="{{ title_parts }}"
+  {% endif %}
   {% if entry.scx_unindexed %}
     data-pagefind-meta="acronym[data-acronym], author[data-author], lang[data-lang], title[data-acronym], rootLang[data-rootlang]"
   {% else %}
-    data-pagefind-meta="acronym[data-acronym], author[data-author], lang[data-lang], title[data-title], translatorsTitle[data-translatorstitle], originalTitle[data-originaltitle], rootLang[data-rootlang]"
+    data-pagefind-meta="acronym[data-acronym], author[data-author], lang[data-lang], title[data-title], translatorsTitle[data-translatorstitle], originalTitle[data-originaltitle], rootLang[data-rootlang]{% if title_parts != blank %}, titleParts[data-titleparts]{% endif %}"
   {% endif %}
   data-pagefind-filter="author[data-authoruid], lang[data-lang]"
   {% if entry.scx_parallel_lanes > 0 %}

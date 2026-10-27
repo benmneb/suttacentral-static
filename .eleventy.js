@@ -28,6 +28,7 @@ import {
   softHyphenateTitle,
   textRefs,
 } from './src/helpers/strings.js'
+import { loadTitleParts } from './src/helpers/titleParts.js'
 import { writeVolpages } from './src/helpers/volpages.js'
 
 const inputDir = 'src/pages'
@@ -169,6 +170,11 @@ export default function (eleventyConfig) {
   eleventyConfig.addFilter('lookupLinks', async function (html, lang) {
     if (lang !== 'pli') return html
     return (await loadLookup()).linkWords(html)
+  })
+
+  // A root title's words, for search to find a compound title by any of them
+  eleventyConfig.addFilter('titleParts', async function (title) {
+    return (await loadTitleParts())(title)
   })
 
   // SuttaCentral.net itself, for the links and images the pages point at

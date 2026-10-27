@@ -30,6 +30,7 @@
       title: 0.5,
       originalTitle: 0.5,
       translatorsTitle: 0.5,
+      titleParts: 0.5,
       author: 0.2,
     },
   }

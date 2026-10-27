@@ -91,6 +91,7 @@ function textPage(file, html) {
       translatorsTitle: attribute('translatorstitle'),
       originalTitle: attribute('originaltitle'),
       rootLang: attribute('rootlang'),
+      titleParts: attribute('titleparts'),
     },
     filters: {
       in: [
@@ -440,6 +441,7 @@ const bundles = {
           page.meta.originalTitle,
           page.meta.title,
           page.meta.translatorsTitle,
+          page.meta.titleParts,
         ].join(' '),
         language: 'en',
         meta: page.meta,
