@@ -266,8 +266,8 @@
   /*
    * Ticks the filters for each of .net's by:, author:, in: and lang: in a query (ie ?query=by:sujato, as
    * the language pages link), in place of what that filter had, and for its list <language>, sets what
-   * to include for its title: and in:article (and SCX's own text:, note:, site:, in:note and in:title), and
-   * returns the rest of the query to search for.
+   * to include for its title: and in:article (and SCX's own text:, note:, site:, in:text, in:title, in:note
+   * and in:site), and returns the rest of the query to search for.
    * One with nothing here (ie by:sabbamitta, who translates into German) is dropped, so the rest is still found
    */
   function takeFilterTokens(query) {
@@ -280,7 +280,9 @@
       .replace(
         /(^|\s)(by|author|in|lang):(\S+)/gi,
         (match, space, name, value) => {
-          const include = match.trim().match(/^in:(articles?|notes?|titles?)$/i)
+          const include = match
+            .trim()
+            .match(/^in:(articles?|notes?|titles?|texts?|site)$/i)
           if (include) {
             includeFor(include[1])
             return space
@@ -305,7 +307,7 @@
       })
   }
 
-  /** Ticks what to include for text:, title:, note: or site:, or in:title, in:note or in:article */
+  /** Ticks what to include for text:, title:, note: or site:, or in:text, in:title, in:note, in:site or in:article */
   function includeFor(name) {
     name = name.toLowerCase().replace(/s$/, '')
     if (name === 'text') includeOnly(textsBox)
@@ -1155,10 +1157,14 @@
     saveBoxes()
     updateResetFiltersButton()
     input.value = term
-    // .net has no site:, only in:article
+    // .net has no site: or in:site, only in:article, and no in:text
     await performSearch(
       term,
-      query.replace(/(^|\s)site:\s*/i, '$1in:article ').trim()
+      query
+        .replace(/(^|\s)(site:\s*|in:site(\s+|$))/i, '$1in:article ')
+        .replace(/(^|\s)in:texts?(?=\s|$)/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim()
     )
   }
 
