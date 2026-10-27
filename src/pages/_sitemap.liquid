@@ -1,15 +1,16 @@
 ---
-permalink: /sitemap.xml
+pagination:
+  data: collections.all
+  size: 40000
+  alias: entries
+permalink: '/sitemap-{{ pagination.pageNumber | plus: 1 }}.xml'
 eleventyExcludeFromCollections: true
 ---
 <?xml version="1.0" encoding="utf-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  {% for page in collections.all %}
+  {% for entry in entries %}
   <url>
-    <loc>{{ _siteMetaData.origin }}{{ page.url | url | route | uri_escape }}</loc>
-    <lastmod>{{ page.date | date_to_xmlschema }}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>1.0</priority>
+    <loc>{{ _siteMetaData.origin }}{{ entry.url | url | route | uri_escape }}</loc>
   </url>
   {% endfor %}
 </urlset>

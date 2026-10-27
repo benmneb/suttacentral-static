@@ -10,7 +10,11 @@ import assert from 'node:assert/strict'
 import fs from 'fs/promises'
 import path from 'path'
 import { describe, it } from 'node:test'
-import { SKIP_BASELINE, productionPages, sitemapPaths } from './lib/baseline.js'
+import {
+  SKIP_BASELINE,
+  allSitemapPaths,
+  productionPages,
+} from './lib/baseline.js'
 import {
   SITE_DIR,
   UNLISTED_PAGES,
@@ -37,8 +41,11 @@ describe('Page inventory', async () => {
   const routes = new Set([...pages.keys()].map(pageRoute))
 
   it('has a sitemap listing every built page', async () => {
-    const xml = await fs.readFile(path.join(SITE_DIR, 'sitemap.xml'), 'utf8')
-    const listed = new Set(sitemapPaths(xml))
+    const read = file => fs.readFile(path.join(SITE_DIR, file), 'utf8')
+    const xml = await read('sitemap.xml')
+    const listed = new Set(
+      await allSitemapPaths(xml, url => read(new URL(url).pathname))
+    )
     const built = [...pages.keys()].filter(url => !UNLISTED_PAGES.includes(url))
 
     const unlisted = built.filter(url => !listed.has(pageRoute(url)))

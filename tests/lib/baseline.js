@@ -3,7 +3,7 @@
  *
  * What's live on the production site, for a new build to be compared with.
  * Production is the baseline so nothing has to be stored between builds:
- * the sitemap lists every page (see `src/pages/_sitemap.liquid`), and Pagefind's
+ * the sitemaps list every page (see `src/pages/_sitemap.liquid`), and Pagefind's
  * entry file says how many pages are searchable.
  *
  * `SKIP_BASELINE=1` skips the comparisons, ie for a local build without
@@ -41,11 +41,26 @@ export function sitemapPaths(xml) {
   )
 }
 
+/**
+ * Paths in a sitemap, or in every sitemap a sitemap index lists
+ * @param {string} xml
+ * @param {(url: string) => Promise<string>} read - Gets a listed sitemap's XML, by its URL
+ */
+export async function allSitemapPaths(xml, read) {
+  if (!xml.includes('<sitemapindex')) return sitemapPaths(xml)
+  const locs = [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map(match =>
+    match[1].trim()
+  )
+  const parts = await Promise.all(locs.map(read))
+  return parts.flatMap(sitemapPaths)
+}
+
 /** Every page path in production's sitemap */
 export function productionPages() {
-  sitemap ??= get(`${origin}/sitemap.xml`)
-    .then(response => response.text())
-    .then(sitemapPaths)
+  const read = url => get(url).then(response => response.text())
+  sitemap ??= read(`${origin}/sitemap.xml`).then(xml =>
+    allSitemapPaths(xml, read)
+  )
   return sitemap
 }
 
