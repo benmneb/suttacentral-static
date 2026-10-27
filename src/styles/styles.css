@@ -488,6 +488,10 @@ dfn.upright {
     center / contain no-repeat;
 }
 
+:is(main, aside, #site-pages) a[href^='http']:empty::after {
+  margin-inline-start: 0;
+}
+
 body {
   font-family: var(--serif-font);
   background: var(--background-color);
