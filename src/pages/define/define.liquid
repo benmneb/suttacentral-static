@@ -25,7 +25,10 @@ eleventyComputed:
   <h1>
     Definitions for <span lang="pli" translate="no">{{ term.word }}</span>
   </h1>
-  <p>Found in {{ term.entries.size | formatNumber }} dictionaries</p>
+  <p>
+    Found in {{ term.entries.size | formatNumber }}
+    {% if term.entries.size == 1 %}dictionary{% else %}dictionaries{% endif %}
+  </p>
 </hgroup>
 <section>
   <article>
