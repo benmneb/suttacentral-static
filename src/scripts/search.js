@@ -14,7 +14,7 @@
 ;(async function () {
   'use strict'
 
-  const pageSize = 5
+  const pageSize = 10
   const ranking = {
     // https://pagefind.app/docs/ranking/
     termFrequency: 0.5,
@@ -23,7 +23,7 @@
     // Low, so ie "bodhi" puts texts with the word before Bhikkhu Bodhi's translations
     metaWeights: { author: 0.2 },
   }
-  const options = { pageSize, ranking }
+  const options = { ranking }
   // A note's meta has its text's titles, which at 5x outrank the texts
   const bundleMetaWeights = {
     notes: {
