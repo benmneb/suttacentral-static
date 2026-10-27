@@ -80,8 +80,8 @@ export function formatVolpages(volpages) {
 }
 
 /**
- * A text's acronym and references on one line, ie "MA 1 ∙ T 26.1 ∙ Chinese", then each volpage after an
- * icon, each a span. No space before a ∙ or after an icon, so a line only wraps between parts
+ * A text's acronym and references on one line, ie "MA 1 ∙ T 26.1 ∙ Chinese ∙ T i 421a12", each a span, and
+ * each volpage after an icon. No space before a ∙ or after an icon, so a line only wraps after a ∙
  */
 export function textRefs(acronym, altAcronym, language, volpages, altVolpages) {
   const parts = [
@@ -99,11 +99,11 @@ export function textRefs(acronym, altAcronym, language, volpages, altVolpages) {
     .map(([text, title, className], i) => {
       const icon =
         className === 'volpages' ? '<i class="icon i-bookOpen"></i>' : ''
-      const gap = icon ? ' ' : i ? '<span aria-hidden="true">∙</span> ' : ''
+      const dot = i ? '<span aria-hidden="true">∙</span> ' : ''
       const value = title
         ? `<span title="${title}">${icon}${text}</span>`
         : text
-      return `<span${className ? ` class="${className}"` : ''}>${gap}${value}</span>`
+      return `<span${className ? ` class="${className}"` : ''}>${dot}${value}</span>`
     })
     .join('')
 }

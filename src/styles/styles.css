@@ -189,6 +189,10 @@ dfn.upright {
     margin-inline: 0 0.25em;
     color: var(--text-color-secondary);
   }
+
+  :is(.alt-acronym, .volpages):not(.texts-list .volpages) {
+    font-size: small;
+  }
 }
 
 .parallel-translations {
@@ -2522,7 +2526,7 @@ main {
             background-color: transparent;
           }
 
-          .icon {
+          .icon.i-informationCircle {
             margin-inline-start: 0.25em;
             color: var(--text-color-secondary);
           }
