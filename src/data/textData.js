@@ -16,6 +16,7 @@ import { parallelRunsOf } from '../helpers/parallelRuns.js'
 import { localImage } from '../helpers/images.js'
 import { SC_ORIGIN } from '../helpers/scApi.js'
 import siteMetaData from './_siteMetaData.js'
+import { searchId } from '../helpers/strings.js'
 
 let usedPaths = []
 
@@ -416,6 +417,15 @@ function tocOf(entry) {
   }
 }
 
+/** The ids `in:` finds the page of these texts by, ie pli-tv-bu-vb-pj1 and bupj1 */
+const textIdsOf = (...texts) => [
+  ...new Set(
+    texts.flatMap(({ uid, acronym }) =>
+      [uid, acronym?.trim()].filter(Boolean).map(searchId)
+    )
+  ),
+]
+
 function flatten(nodes, parent, parentPath) {
   return nodes.flatMap(node => {
     let currentPath = parentPath ? `${parentPath}/${node.uid}` : `${node.uid}`
@@ -564,18 +574,29 @@ function flatten(nodes, parent, parentPath) {
           keyPrefixes.every(prefix => firsts.has(prefix))
 
         results.push(
-          ...rangeEntries.map(entry => ({
-            ...entry,
-            scx_unindexed:
-              !rangeUnindexed ||
-              firsts.get(entry.scx_range_sutta_shown_uid) !== entry.uid,
-            scx_breadcrumb_trail: trailOf(entry),
-            scx_json_ld: generateTextJsonLd(entry),
-            scx_og_tags: generateTextOGTags(entry),
-            ...tocOf(entry),
-            ...referenceGroupsOf(entry),
-            ...viewOptionsOf(entry),
-          }))
+          ...rangeEntries.map(entry => {
+            const shown = entry.scx_range_sutta_shown_uid
+            const unindexed = !rangeUnindexed || firsts.get(shown) !== entry.uid
+            return {
+              ...entry,
+              scx_unindexed: unindexed,
+              scx_text_ids: unindexed
+                ? []
+                : textIdsOf(
+                    parent,
+                    { uid: shown },
+                    ...rangeEntries.filter(
+                      other => other.scx_range_sutta_shown_uid === shown
+                    )
+                  ),
+              scx_breadcrumb_trail: trailOf(entry),
+              scx_json_ld: generateTextJsonLd(entry),
+              scx_og_tags: generateTextOGTags(entry),
+              ...tocOf(entry),
+              ...referenceGroupsOf(entry),
+              ...viewOptionsOf(entry),
+            }
+          })
         )
       }
 
@@ -589,6 +610,13 @@ function flatten(nodes, parent, parentPath) {
       }
       results.push({
         ...entry,
+        // A range's page takes in its texts, ie dhp5 on dhp1-20's
+        scx_text_ids: rangeUnindexed
+          ? []
+          : textIdsOf(
+              entry,
+              ...(entry.scx_range_sutta_range_uids ?? []).map(uid => ({ uid }))
+            ),
         scx_breadcrumb_trail: trailOf(entry),
         scx_json_ld: generateTextJsonLd(entry),
         scx_og_tags: generateTextOGTags(entry),

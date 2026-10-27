@@ -154,6 +154,10 @@ function factsFor(url, html) {
     searchable: html.includes('data-pagefind-body'),
     // Its text in the main index, not just its breadcrumb
     textIndexed: /<main\b[^>]*\bdata-pagefind-body/.test(html),
+    // The ids in: finds it by, ie bupj1 for pli-tv-bu-vb-pj1
+    textIds: [...html.matchAll(/data-text-id="([^"]*)"/g)].map(match =>
+      copyOf(match[1])
+    ),
     segments: html.split('class="segment"').length - 1,
     notes: [
       ...html.matchAll(

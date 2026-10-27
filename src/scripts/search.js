@@ -251,11 +251,58 @@
     )
   }
 
+  const collectionList = document.getElementById('search-filters-collection')
+
+  // As the build's `searchId`, ie "AN 1.1–10" as an1.1-10
+  const searchId = text =>
+    text.toLowerCase().replace(/\s+/g, '').replaceAll('–', '-')
+
+  /** A text's box, at the top of Collection, for in: with a text's (or chapter's) id rather than a collection's */
+  function textBox(value) {
+    const id = `in-text-${value}`
+    const box = document.getElementById(id)
+    if (box) return box
+    const li = document.createElement('li')
+    li.innerHTML = `<input type="checkbox" name="in" id="${escape(id)}" data-text><label for="${escape(id)}">${escape(value)}</label>`
+    li.firstChild.value = value
+    const last = [
+      ...collectionList.querySelectorAll(':scope > li > [data-text]'),
+    ].at(-1)
+    if (last) last.parentElement.after(li)
+    else collectionList.prepend(li)
+    return li.firstChild
+  }
+
+  /** Labels each new text box with the text's title and acronym, where the texts' shards have it */
+  async function labelTexts() {
+    const boxes = collectionList.querySelectorAll(
+      '[data-text]:not([data-labelled])'
+    )
+    await Promise.all(
+      [...boxes].map(async box => {
+        box.dataset.labelled = ''
+        const [acronym, , title] = (await shardEntry('texts', box.value)) ?? []
+        if (!acronym) return
+        box.labels[0].innerHTML = `${title?.trim() ? `${escape(title.trim())} ` : ''}<span class="collection-reference">${escape(acronym)}</span>`
+      })
+    )
+  }
+
+  /** Drops the text boxes left unticked, as only an in: makes them */
+  function dropUntickedTexts() {
+    for (const box of collectionList.querySelectorAll(
+      '[data-text]:not(:checked)'
+    )) {
+      box.closest('li').remove()
+    }
+  }
+
   function filterBoxes(name, value) {
     if (name === 'in') {
-      return (COLLECTION_SETS[value]?.split(' ') ?? [value]).flatMap(
+      const boxes = (COLLECTION_SETS[value]?.split(' ') ?? [value]).flatMap(
         collectionBoxes
       )
+      return boxes.length ? boxes : [textBox(searchId(value))]
     }
     const box = document.getElementById(
       `${name === 'lang' ? 'lang' : 'author'}-${value}`
@@ -361,6 +408,7 @@
 
   /** Hides each filter box none of the included bundles has a value of, and each fieldset left with none */
   async function showApplicableFilters() {
+    await labelTexts()
     await Promise.all(
       includedBundles()
         .filter(name => !bundleValues.has(name))
@@ -399,7 +447,10 @@
         ) {
           lone[0].hidden = true
         }
-        li.hidden = !under && !(box.name && has(key, box.value))
+        // A text's box stays, though filter-values.json leaves texts out, so the site pages find none
+        li.hidden =
+          !under &&
+          !(box.name && ('text' in box.dataset || has(key, box.value)))
         shown ||= !li.hidden
       }
       return shown
@@ -1142,6 +1193,9 @@
     )
 
   function restoreBoxes(ids) {
+    for (const id of ids) {
+      if (id.startsWith('in-text-')) textBox(id.slice('in-text-'.length))
+    }
     for (const box of searchBoxes()) box.checked = ids.includes(box.id)
   }
 
@@ -1153,6 +1207,7 @@
     query = cleanQuery(query)
     const term = takeFilterTokens(query)
     if (boxes) restoreBoxes(boxes)
+    dropUntickedTexts()
     await showApplicableFilters()
     saveBoxes()
     updateResetFiltersButton()
@@ -1217,6 +1272,7 @@
     if (resetFiltersBtn.ariaDisabled === 'true') return
     for (const box of searchBoxes()) box.checked = false
     textsBox.checked = true
+    dropUntickedTexts()
 
     for (const toggle of answerToggles) {
       toggle.checked = true

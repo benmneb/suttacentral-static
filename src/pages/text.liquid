@@ -48,6 +48,16 @@ eleventyComputed:
     </li>
   {% endcapture %}
   {% include "headerNav.liquid", breadcrumbsList: breadcrumbsList %}
+  {% comment %} The ids `in:` finds this text by, ie bupj1 for pli-tv-bu-vb-pj1, or dhp5 for the page showing it {% endcomment %}
+  {% unless entry.scx_unindexed %}
+    {% for id in entry.scx_text_ids %}
+      <span
+        hidden
+        data-text-id="{{ id }}"
+        data-pagefind-filter="in[data-text-id]"
+      ></span>
+    {% endfor %}
+  {% endunless %}
 </header>
 
 <aside>

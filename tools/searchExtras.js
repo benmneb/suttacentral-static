@@ -80,9 +80,16 @@ function textPage(file, html) {
     decode(main.match(new RegExp(` data-${name}="([^"]*)"`))?.[1] ?? '').trim()
   const header = html.slice(0, html.indexOf('<main'))
   const parts = file.split(path.sep)
+  const collections = [
+    ...header.matchAll(/data-uid="([^"]*)" data-pagefind-filter="in/g),
+  ].map(match => match[1])
+  const textIds = [...header.matchAll(/data-text-id="([^"]*)"/g)]
+    .map(match => match[1])
+    .filter(id => !collections.includes(id))
   return {
     url: urlOf(file),
     uid: parts[0],
+    textIds,
     meta: {
       acronym: attribute('acronym'),
       author: attribute('author'),
@@ -94,9 +101,7 @@ function textPage(file, html) {
       titleParts: attribute('titleparts'),
     },
     filters: {
-      in: [
-        ...header.matchAll(/data-uid="([^"]*)" data-pagefind-filter="in/g),
-      ].map(match => match[1]),
+      in: [...collections, ...textIds],
       author: [attribute('authoruid')],
       lang: [attribute('lang')],
     },
@@ -505,10 +510,12 @@ const counts = Object.fromEntries(Object.keys(bundles).map(name => [name, 0]))
 const filterCounts = Object.fromEntries(
   Object.keys(bundles).map(name => [name, {}])
 )
-function countFilters(name, filters = {}) {
+// Not a text's own `in` ids, which have no box to show or hide
+function countFilters(name, filters = {}, textIds = []) {
   for (const [key, values] of Object.entries(filters)) {
     const counted = (filterCounts[name][key] ??= new Map())
     for (const value of new Set(values.filter(Boolean))) {
+      if (key === 'in' && textIds.includes(value)) continue
       counted.set(value, (counted.get(value) ?? 0) + 1)
     }
   }
@@ -530,7 +537,7 @@ for (let i = 0; i < files.length; i += READ_CONCURRENCY) {
             console.warn(`${name} ${record.url}:`, errors.join(', '))
           } else {
             counts[name]++
-            countFilters(name, record.filters)
+            countFilters(name, record.filters, page.textIds)
           }
         }
       }

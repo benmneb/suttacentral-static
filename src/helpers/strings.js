@@ -20,6 +20,11 @@ export function softHyphenateTitle(title) {
   )
 }
 
+/** A uid or acronym as `in:` takes it, ie "AN 1.1–10" as an1.1-10, keeping hyphens so it isn't an1.110 */
+export function searchId(text) {
+  return String(text).toLowerCase().replace(/\s+/g, '').replaceAll('–', '-')
+}
+
 /** Is a segment's bilara html a heading? ie "<h1 class='sutta-title'>{}</h1>" */
 export function isHeadingHTML(html) {
   return /<h[1-6][^>]*>\{\}/.test(html ?? '')

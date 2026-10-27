@@ -79,6 +79,27 @@ describe('Search index', async () => {
     )
   })
 
+  it('finds every text page with in: and its uid', () => {
+    // A range's texts are on the page of it the index has, ie dhp5 on dhp1-20's
+    const found = new Set(
+      [...pages.values()]
+        .filter(page => page.textIndexed)
+        .flatMap(page => {
+          const [, , lang, author] = page.url.split('/')
+          return page.textIds.map(id => `${id}/${lang}/${author}`)
+        })
+    )
+    const missing = [...pages.values()]
+      .filter(page => page.kind === 'text')
+      .map(page => page.url.slice(1, -1))
+      .filter(at => !found.has(at))
+    assert.equal(
+      missing.length,
+      0,
+      `Text pages in: can't find:\n${listSome(missing)}`
+    )
+  })
+
   it("has every text's titles in the titles bundle", async () => {
     const titles = pageCount(await readEntry('pagefind-titles'))
     assert.equal(
