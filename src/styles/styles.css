@@ -3046,6 +3046,10 @@ a:where([href]) {
   }
 }
 
+:is(#site-pages, body > footer) a:where([href]):visited:not(:hover, :active) {
+  color: var(--primary-color);
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
