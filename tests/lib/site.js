@@ -130,6 +130,40 @@ export function internalTarget(link, pageUrl) {
 // A copy, as a match is a slice of the page that would keep all its HTML in memory
 const copyOf = str => str && JSON.parse(JSON.stringify(str))
 
+/** What's wrong with a page's JSON-LD: an unparsable script, a relative URL, or missing data */
+function jsonLdProblems(html) {
+  const scripts = [
+    ...html.matchAll(
+      /<script type="?application\/ld\+json"?>([\s\S]*?)<\/script>/g
+    ),
+  ]
+  if (!scripts.length) return ['none']
+  const problems = []
+  const walk = (value, key) => {
+    if (Array.isArray(value)) return value.forEach(item => walk(item, key))
+    if (value && typeof value === 'object') {
+      for (const [k, v] of Object.entries(value)) walk(v, k)
+      return
+    }
+    if (typeof value !== 'string') return
+    if (['@id', 'url', 'item'].includes(key) && !/^https?:\/\//.test(value)) {
+      problems.push(`relative ${key}: ${value}`)
+    }
+    // A dictionary can define a word as "undefined"
+    if (key !== 'description' && /\b(undefined|NaN)\b|\[object /.test(value)) {
+      problems.push(`${key}: ${value}`)
+    }
+  }
+  for (const [, json] of scripts) {
+    try {
+      walk(JSON.parse(json))
+    } catch (error) {
+      problems.push(`unparsable: ${error.message}`)
+    }
+  }
+  return problems.slice(0, 3)
+}
+
 function factsFor(url, html) {
   const title = html.match(/<title>([^<]*)<\/title>/)?.[1] ?? ''
   const main = mainOf(html)
@@ -146,6 +180,15 @@ function factsFor(url, html) {
     url,
     kind: pageKind(url),
     title: copyOf(decodeEntities(title).trim()),
+    description: copyOf(
+      decodeEntities(
+        html.match(/<meta name="?description"? content="([^"]*)"/)?.[1] ?? ''
+      )
+    ),
+    canonicals: [
+      ...html.matchAll(/<link rel="?canonical"? href="?([^"\s>]*)"?/g),
+    ].map(match => copyOf(match[1])),
+    jsonLdProblems: jsonLdProblems(html).map(copyOf),
     h1: /<h1[\s>]/.test(main),
     // The piṭaka a page sits in, from the first step of its breadcrumbs
     pitaka: copyOf(

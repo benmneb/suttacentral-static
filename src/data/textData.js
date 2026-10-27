@@ -14,8 +14,21 @@ import { referenceGroupsOf } from '../helpers/referenceEditions.js'
 import { highlightsOf } from '../helpers/highlights.js'
 import { parallelRunsOf } from '../helpers/parallelRuns.js'
 import { localImage } from '../helpers/images.js'
+import {
+  absoluteUrl,
+  breadcrumbList,
+  jsonLd,
+  edition,
+  ogTags,
+  person,
+  SUTTACENTRAL,
+  textFromHtml,
+  textId,
+  website,
+  withTranslatedTitle,
+  workId,
+} from '../helpers/pageMetadata.js'
 import { SC_ORIGIN } from '../helpers/scApi.js'
-import siteMetaData from './_siteMetaData.js'
 import { searchId } from '../helpers/strings.js'
 
 let usedPaths = []
@@ -25,172 +38,147 @@ let tree = []
 
 const trailOf = entry => breadcrumbTrail(tree, entry.scx_breadcrumb)
 
-function generateTextOGTags(entry) {
-  const metadata = siteMetaData()
-  return JSON.stringify({
-    'og:title': `${entry.acronym}: ${entry.original_title}—${entry.author}`,
-    'og:description':
-      entry.blurb || 'Buddhist text from the Pāli Canon with translation',
-    'og:url': `${metadata.origin}/${entry.scx_path}`,
-    'og:type': 'article',
-    'og:locale': entry.lang || 'en',
-    'og:site_name': metadata.title,
-    'og:image': '/images/og-image2.jpg',
-    'article:author': entry.author?.trim(),
-    ...(entry.publication_date && {
-      'article:published_time': entry.publication_date,
-    }),
-    'article:section': 'Buddhist Texts',
-    'article:tag':
-      'Buddhism, Buddhist Texts, Pāli Canon, Tipitaka, Early Buddhism, Theravada, Suttas',
-  })
+/** The original title, and the translated one too for a translation */
+function titlesOf(entry) {
+  return entry.is_root
+    ? textFromHtml(entry.original_title)
+    : withTranslatedTitle(
+        entry.original_title,
+        entry.translated_title || entry.translated_name
+      )
+}
+
+/** The page's title, ie "MN 1: Mūlapariyāyasutta (The Root of All Things)—Bhikkhu Sujato", or "AN 1.1—Bhikkhu Sujato" for a sutta of a range */
+function titleOf(entry) {
+  const name = entry.scx_range_sutta_individual ? '' : `: ${titlesOf(entry)}`
+  return `${textFromHtml(entry.acronym)}${name}—${textFromHtml(entry.author)}`
+}
+
+/** The text's blurb, or else a sentence saying which text it is and whose edition or translation */
+function descriptionOf(entry) {
+  const blurb = textFromHtml(entry.blurb)
+  if (blurb) return blurb
+  const titles = titlesOf(entry)
+  const acronym = textFromHtml(entry.acronym)
+  const name = entry.scx_range_sutta_individual
+    ? `${acronym} from ${titles}`
+    : `${acronym} ${titles}`
+  const author = textFromHtml(entry.author)
+  const language = entry.lang_name || entry.lang
+  if (entry.is_root) {
+    return `${name}, the ${language} text${author ? ` from ${author}` : ''}.`
+  }
+  return `${name}, translated into ${language}${author ? ` by ${author}` : ''}.`
 }
 
 /**
- * The prev/next link at the foot of the page, as `text.liquid` renders it
- * @param {Object} entry - A text page entry
- * @param {'previous' | 'next'} direction - Which link
- * @returns {{ name: string, path: string } | null} The link, or null if there isn't one
+ * The licence the text's info popover gives: a publication's own, or else the one its legacy footer links to
+ * @returns {string | undefined} The licence's URL
  */
-function pagerLink(entry, direction) {
-  const link = entry._suttas_data?.translation?.[direction]
-  const range =
-    entry.scx_range_sutta_pagination?.[
-      direction === 'previous' ? 'prev' : 'next'
-    ]
-  const uid = range?.uid || link?.uid
-  if (!uid) return null
-  return {
-    name: range?.name || link?.name,
-    path: link?.lang ? `/${uid}/${link.lang}/${link.author_uid}` : `/${uid}`,
-  }
+function licenseOf(entry) {
+  const own = entry._publication_info?.license?.license_url
+  if (own) return own.trim()
+  const html = entry._suttas_data?.translation?.text
+  const footer = html?.match(/<footer[\s\S]*<\/footer>/i)?.[0]
+  if (!footer) return
+  const links = [...footer.matchAll(/<a\b[^>]*>/gi)].map(([tag]) => ({
+    href: tag.match(/\bhref=["']([^"']+)["']/i)?.[1],
+    rel: tag.match(/\brel=["']([^"']+)["']/i)?.[1],
+  }))
+  const license =
+    links.find(link => link.href && /\blicense\b/i.test(link.rel ?? '')) ??
+    links.find(link =>
+      /creativecommons\.org\/(?:licenses|publicdomain)\//i.test(link.href ?? '')
+    )
+  return license?.href
+}
+
+function generateTextOGTags(entry) {
+  return ogTags({
+    title: titleOf(entry),
+    description: descriptionOf(entry),
+    url: entry.scx_path,
+    type: 'article',
+    extra: {
+      ...(!entry.is_root && { 'article:author': textFromHtml(entry.author) }),
+      ...(entry.publication_date && {
+        'article:published_time': entry.publication_date,
+      }),
+      'article:section': 'Buddhist Texts',
+      'article:tag':
+        'Buddhism, Buddhist Texts, Pāli Canon, Tipitaka, Early Buddhism, Theravada, Suttas',
+    },
+  })
 }
 
 function generateTextJsonLd(entry) {
-  return JSON.stringify(
-    {
-      '@context': 'https://schema.org',
+  const url = absoluteUrl(entry.scx_path)
+  const author = textFromHtml(entry.author)
+  const translatedTitle = textFromHtml(
+    entry.translated_title || entry.translated_name
+  )
+  const license = licenseOf(entry)
+  // The work its suttaplex page is about, which a root text is an edition of
+  const work = {
+    '@type': 'CreativeWork',
+    '@id': workId(entry.uid),
+    // A sutta of a range has no name of its own, only the range's
+    name: textFromHtml(
+      entry.scx_range_sutta_individual
+        ? entry.acronym
+        : entry.root_name || entry.original_title
+    ),
+    url: absoluteUrl(entry.uid),
+    inLanguage: entry.root_lang,
+  }
+  // The page, whose breadcrumb only `WebPage` can take, and the text itself, as its main entity
+  return jsonLd({
+    '@type': 'WebPage',
+    '@id': url,
+    name: titleOf(entry),
+    description: descriptionOf(entry),
+    url,
+    sameAs: `${SC_ORIGIN}/${entry.scx_path}`,
+    inLanguage: entry.lang,
+    isPartOf: website(),
+    breadcrumb: breadcrumbList([
+      { name: 'Home', url: '/' },
+      // The last crumb is this page itself
+      ...trailOf(entry).map((crumb, index, trail) => ({
+        name: crumb.name,
+        url: index === trail.length - 1 ? entry.scx_path : crumb.href,
+      })),
+    ]),
+    mainEntity: {
       '@type': 'CreativeWork',
-      '@id': `/${entry.scx_path}`,
-      name: entry.original_title,
-      alternateName: [entry.acronym, entry.translated_title].filter(Boolean),
-      description:
-        entry.blurb || 'Buddhist text from the Pāli Canon with translation',
-      url: `${siteMetaData().origin}/${entry.scx_path}`,
+      '@id': textId(entry.scx_path),
+      name: entry.scx_range_sutta_individual
+        ? textFromHtml(entry.acronym)
+        : textFromHtml(entry.original_title),
+      ...(!entry.scx_range_sutta_individual && {
+        alternateName: [textFromHtml(entry.acronym), translatedTitle].filter(
+          Boolean
+        ),
+      }),
+      url,
       sameAs: `${SC_ORIGIN}/${entry.scx_path}`,
       identifier: entry.uid,
-      inLanguage: {
-        '@type': 'Language',
-        name: entry.lang_name || entry.lang,
-        alternateName: entry.lang,
-      },
-      genre: entry.is_root ? 'Root Text' : 'Translation',
-      ...(entry.author && {
-        [entry.is_root ? 'editor' : 'translator']: {
-          '@type': 'Person',
-          name: entry.author.replace(/&nbsp;|&#160;|\u00A0/g, ' ').trim(),
-          identifier: entry.author_uid,
-        },
-      }),
+      inLanguage: entry.lang,
+      ...(author &&
+        (entry.is_root
+          ? { isBasedOn: edition(author, entry.author_uid) }
+          : { translator: person(author, entry.author_uid) })),
       ...(entry.publication_date && {
         datePublished: entry.publication_date,
       }),
-      ...(!entry.is_root && {
-        translationOfWork: {
-          '@type': 'CreativeWork',
-          name: entry.root_name || entry.original_title,
-          inLanguage: entry.root_lang,
-          about: {
-            '@type': 'Thing',
-            name: 'Buddhist Teaching',
-            description: 'Ancient Buddhist discourse or text',
-          },
-        },
-      }),
-      about: [
-        {
-          '@type': 'Thing',
-          name: 'Buddhism',
-          description: 'Buddhist philosophy and teachings',
-        },
-        {
-          '@type': 'Thing',
-          name: 'Buddhist Literature',
-          description: 'Ancient Buddhist texts and modern translations',
-        },
-        ...(entry.segmented
-          ? [
-              {
-                '@type': 'Thing',
-                name: 'Segmented Text',
-                description:
-                  'Text divided into numbered segments for reference',
-              },
-            ]
-          : []),
-      ],
-      isPartOf: {
-        '@type': 'WebSite',
-        '@id': '/#website',
-        name: 'SuttaCentral',
-      },
-      breadcrumb: {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          {
-            '@type': 'ListItem',
-            position: 1,
-            name: 'Home',
-            item: '/',
-          },
-          // The last crumb is this page itself
-          ...trailOf(entry).map((crumb, index, trail) => ({
-            '@type': 'ListItem',
-            position: index + 2,
-            name: crumb.name,
-            ...(index === trail.length - 1
-              ? { item: `/${entry.scx_path}` }
-              : crumb.href && { item: crumb.href }),
-          })),
-        ],
-      },
-      publisher: {
-        '@type': 'Organization',
-        '@id': '/#organization',
-        name: 'SuttaCentral',
-        url: '/',
-        sameAs: SC_ORIGIN,
-        description: 'Early Buddhist texts, translations, and parallels',
-      },
-      mainEntityOfPage: {
-        '@type': 'WebPage',
-        '@id': `/${entry.scx_path}`,
-      },
-      ...(pagerLink(entry, 'previous') && {
-        hasPreviousItem: {
-          '@type': 'CreativeWork',
-          name: pagerLink(entry, 'previous').name,
-          url: pagerLink(entry, 'previous').path,
-          sameAs: `${SC_ORIGIN}${pagerLink(entry, 'previous').path}`,
-        },
-      }),
-      ...(pagerLink(entry, 'next') && {
-        hasNextItem: {
-          '@type': 'CreativeWork',
-          name: pagerLink(entry, 'next').name,
-          url: pagerLink(entry, 'next').path,
-          sameAs: `${SC_ORIGIN}${pagerLink(entry, 'next').path}`,
-        },
-      }),
-      license: {
-        '@type': 'CreativeWork',
-        name: 'Public Domain',
-        description: 'This work is in the public domain',
-      },
+      publisher: SUTTACENTRAL,
+      ...(license && { license }),
+      about: { '@type': 'Thing', name: 'Buddhism' },
+      ...(entry.is_root
+        ? { exampleOfWork: work }
+        : { translationOfWork: work }),
     },
-    null,
-    2
-  )
+  })
 }
 
 function tocLabel(text) {
@@ -590,6 +578,7 @@ function flatten(nodes, parent, parentPath) {
                     )
                   ),
               scx_breadcrumb_trail: trailOf(entry),
+              scx_title: titleOf(entry),
               scx_json_ld: generateTextJsonLd(entry),
               scx_og_tags: generateTextOGTags(entry),
               ...tocOf(entry),
@@ -618,6 +607,7 @@ function flatten(nodes, parent, parentPath) {
               ...(entry.scx_range_sutta_range_uids ?? []).map(uid => ({ uid }))
             ),
         scx_breadcrumb_trail: trailOf(entry),
+        scx_title: titleOf(entry),
         scx_json_ld: generateTextJsonLd(entry),
         scx_og_tags: generateTextOGTags(entry),
         ...tocOf(entry),

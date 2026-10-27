@@ -8,7 +8,8 @@
 
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { listSome, scanSite } from './lib/site.js'
+import siteMetaData from '../src/data/_siteMetaData.js'
+import { listSome, pageRoute, scanSite, UNLISTED_PAGES } from './lib/site.js'
 
 // Characters of text a text page's <main> has at least, besides its parallels
 // and popovers. The shortest real texts are a line or two of verse
@@ -62,6 +63,50 @@ describe('Every page', async () => {
       bad.length,
       0,
       `Titles with undefined/null/NaN in them:\n${listSome(bad)}`
+    )
+  })
+})
+
+describe('Every page’s metadata', async () => {
+  const { pages } = await scanSite()
+  const { origin, description } = siteMetaData()
+  const listed = new Map(
+    [...pages].filter(([url]) => !UNLISTED_PAGES.includes(url))
+  )
+
+  it('has one canonical link, to itself', () => {
+    const bad = failures(
+      new Map([...pages].filter(([url]) => url !== '/404.html')),
+      page =>
+        page.canonicals.length !== 1 ||
+        decodeURI(page.canonicals[0]) !== `${origin}${pageRoute(page.url)}`,
+      page => `${page.url}: ${page.canonicals.join(', ') || 'none'}`
+    )
+    assert.equal(
+      bad.length,
+      0,
+      `Pages with a wrong canonical:\n${listSome(bad)}`
+    )
+  })
+
+  it('has JSON-LD with absolute URLs and no missing data', () => {
+    const bad = failures(
+      listed,
+      page => page.jsonLdProblems.length > 0,
+      page => `${page.url}: ${page.jsonLdProblems.join('; ')}`
+    )
+    assert.equal(bad.length, 0, `Pages with bad JSON-LD:\n${listSome(bad)}`)
+  })
+
+  it('has a description of its own', () => {
+    const bad = failures(
+      listed,
+      page => !page.description || page.description === description
+    )
+    assert.equal(
+      bad.length,
+      0,
+      `Pages with only the site's description:\n${listSome(bad)}`
     )
   })
 })

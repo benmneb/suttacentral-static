@@ -3,23 +3,38 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% assign isNotFound = false %}
+    {% if page.url == "/404.html" %}
+      {% assign isNotFound = true %}
+    {% endif %}
+    {% assign ogJson = og_tags %}
+    {% unless ogJson or isNotFound %}
+      {% assign ogJson = title
+        | default: _siteMetaData.title
+        | ogTags: page.url
+      %}
+    {% endunless %}
+    {% if ogJson %}
+      {% assign parsedTags = ogJson | parseJSON %}
+    {% endif %}
     <meta
       name="description"
-      content="{{ _siteMetaData.description }}"
+      content="{{ parsedTags['og:description'] | default: _siteMetaData.description | escape }}"
     >
     {% assign pageTitle = _siteMetaData.title %}
     {% if title %}
       {% assign pageTitle = title | append: " @ " | append: pageTitle %}
     {% endif %}
     <title>{{ pageTitle }}</title>
-    {% if og_tags %}
-      {% assign parsedTags = og_tags | parseJSON %}
-      {% for tag in parsedTags %}
-        {% if tag[1] %}
-          <meta property="{{ tag[0] }}" content="{{ tag[1] }}">
-        {% endif %}
-      {% endfor %}
-    {% endif %}
+    {% unless isNotFound %}
+      <link rel="canonical" href="{{ _siteMetaData.origin }}{{ page.url | url | route | uri_escape }}">
+    {% endunless %}
+    {% for tag in parsedTags %}
+      {% if tag[1] %}
+        <meta property="{{ tag[0] }}" content="{{ tag[1] | escape }}">
+      {% endif %}
+    {% endfor %}
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="preload" href="/styles/styles.css" as="style">
     <link rel="stylesheet" href="/styles/styles.css">
     {% for sheet in styles %}

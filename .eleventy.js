@@ -1,6 +1,7 @@
 import fs from 'fs'
 import htmlmin from 'html-minifier-terser'
 import masterData from './src/data/_masterData.js'
+import siteMetaData from './src/data/_siteMetaData.js'
 import { recordStat } from './src/helpers/buildStats.js'
 import { defineHref, loadDefineWords } from './src/helpers/defineWords.js'
 import { loadDictionaries } from './src/helpers/dictionaries.js'
@@ -10,6 +11,7 @@ import { writeLookupShards } from './src/helpers/lookupShards.js'
 import { mapData } from './src/helpers/mapPlaces.js'
 import { writeMiniMap } from './src/helpers/miniMap.js'
 import { minifyCss, minifyJs } from './src/helpers/minifyAssets.js'
+import { ogTags } from './src/helpers/pageMetadata.js'
 import { parallelAnchor, parallelKeyLabel } from './src/helpers/parallelRuns.js'
 import { isMultiTextSpan } from './src/helpers/rangeSuttas.js'
 import {
@@ -46,6 +48,7 @@ const utilTemplates = [
   `${inputDir}/_404.liquid`,
   `${inputDir}/_robots.liquid`,
   `${inputDir}/_sitemap.liquid`,
+  `${inputDir}/_sitemapIndex.liquid`,
 ]
 const iconNames = new Set(
   ['styles.css', 'site-pages.css'].flatMap(file =>
@@ -204,6 +207,11 @@ export default function (eleventyConfig) {
       return `<img src="${image.src}" alt="${altText}"${size} loading="lazy">`
     }
   )
+
+  // The site's own Open Graph tags, for a page with none of its own
+  eleventyConfig.addFilter('ogTags', function (title, url) {
+    return ogTags({ title, description: siteMetaData().description, url })
+  })
 
   eleventyConfig.addFilter('parseJSON', function (value) {
     try {

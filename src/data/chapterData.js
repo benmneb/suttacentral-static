@@ -1,8 +1,19 @@
 import masterData from './_masterData.js'
 import { breadcrumbTrail } from '../helpers/breadcrumbs.js'
 import { onlySample } from '../helpers/samplePages.js'
+import {
+  absoluteUrl,
+  breadcrumbList,
+  jsonLd,
+  menuTitle,
+  ogTags,
+  SUTTACENTRAL,
+  textFromHtml,
+  website,
+  withTranslatedTitle,
+  workId,
+} from '../helpers/pageMetadata.js'
 import { SC_ORIGIN } from '../helpers/scApi.js'
-import siteMetaData from './_siteMetaData.js'
 import { isChapterNode } from '../helpers/pageUids.js'
 
 // The `masterData` tree, set before flattening, for each page's breadcrumbs (see `helpers/breadcrumbs.js`)
@@ -10,130 +21,60 @@ let tree = []
 
 const trailOf = entry => breadcrumbTrail(tree, entry.scx_breadcrumb)
 
+function descriptionOf(entry) {
+  const blurb = textFromHtml(entry.blurb)
+  if (blurb) return blurb
+  const name = withTranslatedTitle(
+    entry.original_title || entry.root_name,
+    entry.translated_title || entry.translated_name
+  )
+  return `Buddhist texts and translations in ${name}.`
+}
+
 function generateChapterOGTags(entry) {
-  const metadata = siteMetaData()
-  return JSON.stringify({
-    'og:title': `${entry.original_title || entry.root_name}${entry.translated_title || entry.translated_name ? `—${entry.translated_title || entry.translated_name}` : ''}`,
-    'og:description':
-      entry.blurb || 'Collection of Buddhist texts and translations',
-    'og:url': `${metadata.origin}/${entry.scx_path}`,
-    'og:type': 'website',
-    'og:site_name': metadata.title,
-    'og:image': '/images/og-image2.jpg',
+  return ogTags({
+    title: menuTitle(entry),
+    description: descriptionOf(entry),
+    url: entry.scx_path,
   })
 }
 
 function generateChapterJsonLd(entry) {
-  return JSON.stringify(
-    {
-      '@context': 'https://schema.org',
-      '@type': 'CollectionPage',
-      '@id': `/${entry.scx_path}`,
-      name: `${entry.original_title || entry.root_name}${entry.translated_title || entry.translated_name ? `—${entry.translated_title || entry.translated_name}` : ''}`,
-      description:
-        entry.blurb || 'Collection of Buddhist texts and translations',
-      url: `${siteMetaData().origin}/${entry.scx_path}`,
-      sameAs: `${SC_ORIGIN}/${entry.scx_path}`,
-      identifier: entry.uid,
-      inLanguage: [
-        {
-          '@type': 'Language',
-          name: 'English',
-          alternateName: 'en',
-        },
-        ...(entry.root_lang
-          ? [
-              {
-                '@type': 'Language',
-                name: entry.root_lang,
-                alternateName: entry.root_lang,
-              },
-            ]
-          : []),
-      ],
-      about: {
-        '@type': 'Thing',
-        name: 'Buddhist Literature',
-        description: 'Ancient Buddhist texts, suttas, and modern translations',
-      },
-      isPartOf: {
-        '@type': 'WebSite',
-        '@id': '/#website',
-        name: 'SuttaCentral',
-      },
-      ...(entry.children?.length && {
-        hasPart: entry.children.map(child => ({
-          '@type': 'CreativeWork',
-          '@id': `/${child.uid}`,
-          name: `${child.original_title || child.root_name}${child.translated_title || child.translated_name ? `—${child.translated_title || child.translated_name}` : ''}`,
-          description: child.blurb,
-          identifier: child.uid,
-          sameAs: `${SC_ORIGIN}/${child.uid}`,
-          ...(child.acronym && {
-            alternateName: child.acronym,
-          }),
-          about: {
-            '@type': 'Thing',
-            name: 'Buddhist Teaching',
-            description: 'Ancient Buddhist discourse or text',
-          },
-          ...(child.translations?.length && {
-            workTranslation: child.translations.map(translation => ({
-              '@type': 'CreativeWork',
-              name: `${child.original_title || child.root_name} - ${translation.author || translation.author_uid}`,
-              inLanguage: translation.lang,
-              translator: {
-                '@type': 'Person',
-                name: translation.author || translation.author_uid,
-              },
-              ...(translation.publication_date && {
-                datePublished: translation.publication_date,
-              }),
-              url: `${siteMetaData().origin}/${child.uid}/${translation.lang}/${translation.author_uid}`,
-              sameAs: `${SC_ORIGIN}/${child.uid}/${translation.lang}/${translation.author_uid}`,
-            })),
-          }),
-          isPartOf: {
-            '@id': `/${entry.scx_path}`,
-          },
-        })),
-      }),
-      breadcrumb: {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          {
-            '@type': 'ListItem',
-            position: 1,
-            name: 'Home',
-            item: '/',
-          },
-          // The last crumb is this page itself
-          ...trailOf(entry).map((crumb, index, trail) => ({
-            '@type': 'ListItem',
-            position: index + 2,
-            name: crumb.name,
-            ...(index === trail.length - 1
-              ? { item: `/${entry.scx_path}` }
-              : crumb.href && { item: crumb.href }),
-          })),
-        ],
-      },
-      publisher: {
-        '@type': 'Organization',
-        '@id': '/#organization',
-        name: 'SuttaCentral',
-        url: '/',
-        sameAs: SC_ORIGIN,
-        description: 'Early Buddhist texts, translations, and parallels',
-      },
-      mainEntityOfPage: {
-        '@type': 'WebPage',
-        '@id': `/${entry.scx_path}`,
-      },
-    },
-    null,
-    2
-  )
+  const url = absoluteUrl(entry.scx_path)
+  return jsonLd({
+    '@type': 'CollectionPage',
+    '@id': url,
+    name: menuTitle(entry),
+    description: descriptionOf(entry),
+    url,
+    sameAs: `${SC_ORIGIN}/${entry.scx_path}`,
+    identifier: entry.uid,
+    inLanguage: 'en',
+    isPartOf: website(),
+    publisher: SUTTACENTRAL,
+    about: { '@type': 'Thing', name: 'Buddhism' },
+    breadcrumb: breadcrumbList([
+      { name: 'Home', url: '/' },
+      // The last crumb is this page itself
+      ...trailOf(entry).map((crumb, index, trail) => ({
+        name: crumb.name,
+        url: index === trail.length - 1 ? entry.scx_path : crumb.href,
+      })),
+    ]),
+    // Each text by the work its own page describes in full
+    ...(entry.children?.length && {
+      hasPart: entry.children.map(child => ({
+        '@type': 'CreativeWork',
+        '@id':
+          child.node_type === 'leaf' || child.type === 'leaf'
+            ? workId(child.uid)
+            : absoluteUrl(child.uid),
+        name: menuTitle(child),
+        ...(child.acronym && { alternateName: textFromHtml(child.acronym) }),
+        url: absoluteUrl(child.uid),
+      })),
+    }),
+  })
 }
 
 /*

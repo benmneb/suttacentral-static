@@ -164,8 +164,9 @@ describe('The /define pages', () => {
     assert.equal(jsonLd.name, 'Definitions for dhamma')
     assert.equal(jsonLd.description, 'Pāli dictionary results for “dhamma”.')
     assert.equal(jsonLd.sameAs, `${SC_ORIGIN}/define/dhamma`)
+    assert.equal(jsonLd.isPartOf.name, 'SuttaCentral Express')
     // isPartOf's domain is CreativeWork, which a DefinedTerm isn't: inDefinedTermSet says it instead
-    assert.equal(jsonLd.isPartOf, undefined)
+    assert.equal(jsonLd.mainEntity.isPartOf, undefined)
     assert.deepEqual(
       jsonLd.breadcrumb.itemListElement.map(({ name }) => name),
       ['Home', 'Definitions', 'dhamma']

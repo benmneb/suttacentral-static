@@ -1,18 +1,23 @@
 import masterData from './_masterData.js'
+import {
+  absoluteUrl,
+  jsonLd,
+  menuTitle,
+  ogTags,
+  textFromHtml,
+  website,
+} from '../helpers/pageMetadata.js'
 import { SC_ORIGIN } from '../helpers/scApi.js'
 import siteMetaData from './_siteMetaData.js'
 
+const TITLE = 'Tipiṭaka—the Three Baskets of the Buddhist canon'
+
+function description() {
+  return `${siteMetaData().description}. Early Buddhist texts, translations, and parallels. The largest collection of Buddhist suttas available in translation.`
+}
+
 function generateIndexOGTags() {
-  const metadata = siteMetaData()
-  return JSON.stringify({
-    'og:title': 'Tipiṭaka—the Three Baskets of the Buddhist canon',
-    'og:description':
-      'A fast and minimal alternative frontend for SuttaCentral.net. Early Buddhist texts, translations, and parallels. The largest collection of Buddhist suttas available in translation.',
-    'og:url': `${metadata.origin}/`,
-    'og:type': 'website',
-    'og:site_name': metadata.title,
-    'og:image': '/images/og-image2.jpg',
-  })
+  return ogTags({ title: TITLE, description: description(), url: '/' })
 }
 
 /*
@@ -42,75 +47,60 @@ function flatten(nodes) {
 }
 
 function generateIndexJsonLd(data) {
-  return JSON.stringify(
-    {
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      '@id': '/#website',
-      name: 'SuttaCentral Express',
-      alternateName: 'SCX',
-      description: `${siteMetaData.description} - Early Buddhist texts, translations, and parallels. The largest collection of Buddhist suttas available in translation.`,
-      url: '/',
-      sameAs: SC_ORIGIN,
-      inLanguage: 'en',
-      keywords: [
-        'Buddhism',
-        'Buddhist texts',
-        'Pāli Canon',
-        'Tipitaka',
-        'suttas',
-        'dharma',
-        'ancient texts',
-        'translations',
-      ],
-      about: {
-        '@type': 'Thing',
-        name: 'Buddhist Canon',
-        description:
-          'The Tipiṭaka (Three Baskets) - the traditional term for the Buddhist canon',
+  const { maintainer, mirrors = [], source } = siteMetaData()
+  const repositories = [source, ...mirrors].filter(Boolean)
+  const home = absoluteUrl('/')
+  // The site, whose name and alternate names are what search engines show for it, and its home page
+  return jsonLd({
+    '@graph': [
+      {
+        ...website(),
+        alternateName: ['SCX', 'SuttaCentral.Express'],
+        ...(repositories.length && { sameAs: repositories }),
+        description: description(),
+        inLanguage: 'en',
+        isBasedOn: {
+          '@type': 'WebSite',
+          name: 'SuttaCentral',
+          url: SC_ORIGIN,
+        },
+        ...(maintainer && {
+          maintainer: { '@type': 'Person', ...maintainer },
+        }),
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${absoluteUrl('/search')}?query={search_term_string}`,
+          },
+          'query-input': 'required name=search_term_string',
+        },
       },
-      mainEntity: {
+      {
         '@type': 'CollectionPage',
-        name: 'Tipiṭaka—the Three Baskets of the Buddhist canon',
-        description:
-          'Collection of the three main divisions of the Buddhist canon: Vinaya Pitaka, Sutta Pitaka, and Abhidhamma Pitaka',
+        '@id': home,
+        name: TITLE,
+        description: description(),
+        url: home,
+        sameAs: SC_ORIGIN,
+        inLanguage: 'en',
+        isPartOf: { '@id': website()['@id'] },
+        about: {
+          '@type': 'Thing',
+          name: 'Tipiṭaka',
+          description: 'The three baskets of the Buddhist canon',
+        },
         hasPart: data.map(item => ({
           '@type': 'Collection',
-          '@id': `/pitaka/${item.uid}`,
-          name: `${item.root_name}—${item.translated_name}`,
-          description: item.blurb,
-          url: `${siteMetaData().origin}/pitaka/${item.uid}`,
+          '@id': absoluteUrl(`/pitaka/${item.uid}`),
+          name: menuTitle(item),
+          ...(item.blurb && { description: textFromHtml(item.blurb) }),
+          url: absoluteUrl(`/pitaka/${item.uid}`),
           sameAs: `${SC_ORIGIN}/pitaka/${item.uid}`,
-          identifier: item.uid,
-          isPartOf: {
-            '@id': '/#website',
-          },
         })),
       },
-      publisher: {
-        '@type': 'Organization',
-        '@id': '/#organization',
-        name: 'SuttaCentral',
-        url: '/',
-        description: 'Early Buddhist texts, translations, and parallels',
-        foundingDate: '2012',
-        sameAs: [SC_ORIGIN, 'https://github.com/suttacentral'],
-      },
-      breadcrumb: {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          {
-            '@type': 'ListItem',
-            position: 1,
-            name: 'Home',
-            item: '/',
-          },
-        ],
-      },
-    },
-    null,
-    2
-  )
+    ],
+  })
 }
 
 /*

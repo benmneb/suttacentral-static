@@ -1,5 +1,16 @@
 import siteMetaData from '../data/_siteMetaData.js'
 import { localImage } from './images.js'
+import {
+  absoluteUrl,
+  breadcrumbList,
+  excerpt,
+  jsonLd,
+  ogTags,
+  routePath,
+  SUTTACENTRAL,
+  textFromHtml,
+  website,
+} from './pageMetadata.js'
 import { SC_ORIGIN } from './scApi.js'
 import { siteMap } from './sitePages.js'
 import { t } from './siteStrings.js'
@@ -244,10 +255,6 @@ const SCHOLARLY_PAGES = {
   },
 }
 
-function routePath(url) {
-  return `/${String(url ?? '').replace(/^\/+|\/+$/g, '')}`
-}
-
 function routeKey(url) {
   const path = routePath(url)
   return path === '/' ? path : `${path}/`
@@ -263,30 +270,6 @@ const COLLECTION_ROUTES = new Set([
   '/editions/',
   '/languages/',
 ])
-
-function absoluteUrl(origin, url) {
-  return `${origin}${routePath(url)}`
-}
-
-function textFromHtml(html) {
-  return String(html ?? '')
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;|&#160;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;|&apos;/gi, "'")
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function excerpt(text) {
-  if (text.length <= 160) return text
-  const shortened = text.slice(0, 157)
-  const boundary = shortened.lastIndexOf(' ')
-  return `${shortened.slice(0, boundary > 0 ? boundary : shortened.length)}…`
-}
 
 /**
  * A page's first paragraph of prose, for a description: the text itself, not the title, byline or contents
@@ -350,9 +333,9 @@ async function mapParts(map, titleFor, imageFor) {
         // A journey numbers its stops, as "1) Rājagaha", which isn't part of the place's name
         name: place.name?.trim().replace(/^\d+\)\s*/, ''),
         ...(place.define && {
-          url: absoluteUrl(origin, `/define/${place.define}`),
+          url: absoluteUrl(`/define/${place.define}`),
         }),
-        sameAs: absoluteUrl(origin, `/map#${place.id}`),
+        sameAs: absoluteUrl(`/map#${place.id}`),
       })),
   }))
   const placeCount = layers.reduce(
@@ -374,7 +357,7 @@ async function mapParts(map, titleFor, imageFor) {
         name: textFromHtml(titleFor('map:4')),
         description:
           'The places of the early Buddhist texts on an interactive SVG map, with references to related passages.',
-        url: absoluteUrl(origin, '/map'),
+        url: absoluteUrl('/map'),
         encodingFormat: 'image/svg+xml',
       },
       {
@@ -446,27 +429,12 @@ function scholarlyData(url, titleFor) {
     about: article.about.map(name => ({ '@type': 'Thing', name })),
     keywords: article.keywords,
     inLanguage: 'en',
-    publisher: {
-      '@type': 'Organization',
-      name: 'SuttaCentral',
-      url: SC_ORIGIN,
-    },
+    publisher: SUTTACENTRAL,
   }
 }
 
 export function generateSitePageOGTags({ title, description, url }) {
-  const metadata = siteMetaData()
-  const canonicalUrl = absoluteUrl(metadata.origin, url)
-  return JSON.stringify({
-    'og:title': title,
-    'og:description': description,
-    'og:url': canonicalUrl,
-    'og:type': 'website',
-    'og:locale': 'en',
-    'og:site_name': metadata.title,
-    'og:image': `${metadata.origin}/images/og-image2.jpg`,
-    'og:image:alt': 'SuttaCentral Express',
-  })
+  return ogTags({ title, description, url })
 }
 
 export function generateSitePageJsonLd({
@@ -495,56 +463,36 @@ export function generateSitePageJsonLd({
   temporalCoverage,
   isPartOf,
 }) {
-  const metadata = siteMetaData()
-  const canonicalUrl = absoluteUrl(metadata.origin, url)
-  return JSON.stringify(
-    {
-      '@context': 'https://schema.org',
-      '@type': schemaType,
-      '@id': canonicalUrl,
-      ...(schemaType === 'ScholarlyArticle'
-        ? { headline: title }
-        : { name: name ?? title }),
-      description,
-      url: canonicalUrl,
-      sameAs: `${SC_ORIGIN}${routePath(url)}`,
-      ...(author && { author }),
-      ...(datePublished && { datePublished }),
-      ...(dateModified && { dateModified }),
-      ...(about && { about }),
-      ...(keywords && { keywords }),
-      ...(inLanguage && { inLanguage }),
-      ...(publisher && { publisher }),
-      ...(mainEntity && { mainEntity }),
-      ...(mainContentOfPage && { mainContentOfPage }),
-      ...(hasPart && { hasPart }),
-      ...(translator && { translator }),
-      ...(image && { image }),
-      ...(potentialAction && { potentialAction }),
-      ...(isbn && { isbn }),
-      ...(isBasedOn && { isBasedOn }),
-      ...(spatialCoverage && { spatialCoverage }),
-      ...(temporalCoverage && { temporalCoverage }),
-      ...(breadcrumbs?.length && {
-        breadcrumb: {
-          '@type': 'BreadcrumbList',
-          itemListElement: breadcrumbs.map((crumb, index) => ({
-            '@type': 'ListItem',
-            position: index + 1,
-            name: crumb.name,
-            item: absoluteUrl(metadata.origin, crumb.url),
-          })),
-        },
-      }),
-      isPartOf: isPartOf ?? {
-        '@type': 'WebSite',
-        '@id': `${metadata.origin}/#website`,
-        name: metadata.title,
-      },
-    },
-    null,
-    2
-  )
+  const canonicalUrl = absoluteUrl(url)
+  return jsonLd({
+    '@type': schemaType,
+    '@id': canonicalUrl,
+    ...(schemaType === 'ScholarlyArticle'
+      ? { headline: title }
+      : { name: name ?? title }),
+    description,
+    url: canonicalUrl,
+    sameAs: `${SC_ORIGIN}${routePath(url)}`,
+    ...(author && { author }),
+    ...(datePublished && { datePublished }),
+    ...(dateModified && { dateModified }),
+    ...(about && { about }),
+    ...(keywords && { keywords }),
+    ...(inLanguage && { inLanguage }),
+    ...(publisher && { publisher }),
+    ...(mainEntity && { mainEntity }),
+    ...(mainContentOfPage && { mainContentOfPage }),
+    ...(hasPart && { hasPart }),
+    ...(translator && { translator }),
+    ...(image && { image }),
+    ...(potentialAction && { potentialAction }),
+    ...(isbn && { isbn }),
+    ...(isBasedOn && { isBasedOn }),
+    ...(spatialCoverage && { spatialCoverage }),
+    ...(temporalCoverage && { temporalCoverage }),
+    ...(breadcrumbs?.length && { breadcrumb: breadcrumbList(breadcrumbs) }),
+    isPartOf: isPartOf ?? website(),
+  })
 }
 
 function pageMetadata(page) {
@@ -648,15 +596,11 @@ export async function buildSitePageMetadata({
           dateModified: edition.files.updated,
         }),
         inLanguage: publication.translation_lang_iso || 'en',
-        publisher: {
-          '@type': 'Organization',
-          name: 'SuttaCentral',
-          url: SC_ORIGIN,
-        },
+        publisher: SUTTACENTRAL,
         image,
         potentialAction: {
           '@type': 'ReadAction',
-          url: absoluteUrl(siteMetaData().origin, edition.readHref),
+          url: absoluteUrl(edition.readHref),
         },
         ...(isbn.length && { isbn: isbn.length === 1 ? isbn[0] : isbn }),
         isBasedOn: {
@@ -676,12 +620,12 @@ export async function buildSitePageMetadata({
     // The book the edition's page is, which its front matter is part of too
     const book = {
       '@type': 'Book',
-      '@id': absoluteUrl(siteMetaData().origin, url),
+      '@id': absoluteUrl(url),
       name: edition.title,
     }
     for (const matter of edition.matter) {
       const matterUrl = `/${matter.scx_path}/`
-      const matterAbsoluteUrl = absoluteUrl(siteMetaData().origin, matterUrl)
+      const matterAbsoluteUrl = absoluteUrl(matterUrl)
       const matterData = withBreadcrumbs(
         {
           url: matterUrl,

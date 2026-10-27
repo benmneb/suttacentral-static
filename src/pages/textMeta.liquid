@@ -9,7 +9,7 @@ pagination:
 
 permalink: '{{ entry.scx_path }}/index.html'
 eleventyComputed:
-  title: '{% if entry.scx_range_sutta_individual %}{{ entry.scx_range_sutta_title }}{% else %}{{ entry.original_title | default: entry.root_name }}{% if entry.translated_title or entry.translated_name %}—{{ entry.translated_title | default: entry.translated_name }}{% endif %}{% endif %}'
+  title: '{{ entry.scx_title | escape }}'
   json_ld: '{{ entry.scx_json_ld }}'
   og_tags: '{{ entry.scx_og_tags }}'
 ---
