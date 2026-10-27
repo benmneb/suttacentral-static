@@ -12,6 +12,8 @@
  *   _site/search/texts/      the acronym and titles of the texts those are on
  *   _site/search/hant.json   each simplified Chinese character's traditional form, of those the texts
  *                            have, so /search finds them by either
+ *   _site/hans.json          the simplified form of each traditional character the texts have, for
+ *                            the text pages' "Simplified" setting
  *
  * The notes' and site pages' bundles each get a filter-values.json, of the filter values they have.
  *
@@ -23,6 +25,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 import { Converter } from 'opencc-js'
+import TSPhrases from 'opencc-js/dict/TSPhrases'
 import * as pagefind from 'pagefind'
 import { recordStat } from '../src/helpers/buildStats.js'
 import { groupByPrefix } from '../src/helpers/lookupShards.js'
@@ -222,11 +225,44 @@ function collectReferences(page, html) {
 // How often each Chinese character is in the Chinese texts
 const hanCounts = new Map()
 
+// The phrases OpenCC simplifies other than character by character, of those in the texts
+const hansPhrases = new Map()
+const toSimplified = Converter({ from: 't', to: 'cn' })
+const PHRASES = TSPhrases.split('|').map(entry => entry.split(' '))
+
+const simplifiedChars = new Map()
+// Not one that changes length, so the pages' text offsets stay the same, ie 絺 as 𫄨
+function simplifiedChar(char) {
+  if (!simplifiedChars.has(char)) {
+    const simplified = toSimplified(char)
+    simplifiedChars.set(
+      char,
+      simplified.length === char.length ? simplified : char
+    )
+  }
+  return simplifiedChars.get(char)
+}
+
+const byChar = text => text.replace(/\p{Script=Han}/gu, simplifiedChar)
+
 function countHan(page, html) {
   if (page.meta.lang !== 'lzh') return
   const main = html.slice(html.indexOf('<main'))
-  for (const [char] of main.matchAll(/\p{Script=Han}/gu)) {
-    hanCounts.set(char, (hanCounts.get(char) ?? 0) + 1)
+  for (const [run] of main.matchAll(/\p{Script=Han}+/gu)) {
+    for (const [char] of run.matchAll(/./gu)) {
+      hanCounts.set(char, (hanCounts.get(char) ?? 0) + 1)
+    }
+    // Few runs simplify differently from their characters, so only those are searched
+    if (toSimplified(run) === byChar(run)) continue
+    for (const [phrase, simplified] of PHRASES) {
+      if (
+        run.includes(phrase) &&
+        simplified.length === phrase.length &&
+        simplified !== byChar(phrase)
+      ) {
+        hansPhrases.set(phrase, simplified)
+      }
+    }
   }
 }
 
@@ -249,6 +285,26 @@ async function writeTraditional() {
   )
   console.log(
     `🔎 Wrote ${Object.keys(traditional).length} simplified characters to search/hant.json`
+  )
+}
+
+/**
+ * Writes each traditional character's simplified form, and the phrases that differ from those, ie 尼乾子 keeps
+ * the 乾 that's 干 on its own
+ */
+async function writeSimplified() {
+  const chars = {}
+  for (const char of hanCounts.keys()) {
+    const simplified = simplifiedChar(char)
+    if (simplified !== char) chars[char] = simplified
+  }
+  const phrases = Object.fromEntries(hansPhrases)
+  await fs.writeFile(
+    path.join(SITE_DIR, 'hans.json'),
+    JSON.stringify({ chars, phrases })
+  )
+  console.log(
+    `🔎 Wrote ${Object.keys(chars).length} traditional characters and ${hansPhrases.size} phrases to hans.json`
   )
 }
 
@@ -578,6 +634,7 @@ for (const [name, { outputPath, filterValues }] of Object.entries(bundles)) {
 await pagefind.close()
 await writeReferences()
 await writeTraditional()
+await writeSimplified()
 
 recordStat('searchExtras', {
   ...counts,

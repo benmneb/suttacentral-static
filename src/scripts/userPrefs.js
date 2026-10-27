@@ -21,6 +21,7 @@
     'rooter-first',
     'rooter-side',
     'definer',
+    'simplifier',
     'segmenter',
     'segmenter-main',
     'segmenter-pts',

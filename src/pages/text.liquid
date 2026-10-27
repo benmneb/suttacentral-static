@@ -202,6 +202,18 @@ eleventyComputed:
               <input type="checkbox" id="definer" data-dict="{{ lookupDict }}">
             </li>
           {% endif %}
+          {% if entry.is_root and lookupLang == "lzh" %}
+            <li hidden>
+              <label for="simplifier">
+                <span class="with-icon">
+                  {% icon "arrowPath" -%}
+                  <span>Simplified (<span lang="zh-Hans">简体</span>)</span>
+                </span>
+                <kbd aria-hidden="true" title="Press C to toggle">C</kbd>
+              </label>
+              <input type="checkbox" id="simplifier">
+            </li>
+          {% endif %}
           {% unless entry.is_root or entry.segmented == blank %}
             <li>
               <label for="rooter">
@@ -216,7 +228,7 @@ eleventyComputed:
               <input
                 type="checkbox"
                 id="rooter"
-                aria-controls="rooter-side rooter-first{% if lookupDict != blank %} definer{% endif %}"
+                aria-controls="rooter-side rooter-first{% if lookupDict != blank %} definer{% endif %}{% if lookupLang == "lzh" %} simplifier{% endif %}"
               >
             </li>
             <li class="sub">
@@ -257,6 +269,18 @@ eleventyComputed:
                   id="definer"
                   data-dict="{{ lookupDict }}"
                 >
+              </li>
+            {% endif %}
+            {% if lookupLang == "lzh" %}
+              <li class="sub" hidden>
+                <label for="simplifier">
+                  <span class="with-icon">
+                    {% icon "arrowPath" -%}
+                    <span>Simplified (<span lang="zh-Hans">简体</span>)</span>
+                  </span>
+                  <kbd aria-hidden="true" title="Press C to toggle">C</kbd>
+                </label>
+                <input type="checkbox" id="simplifier">
               </li>
             {% endif %}
           {% endunless %}

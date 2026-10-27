@@ -22,7 +22,7 @@
   const isLzh = dict === 'lzh-en'
   const lang = isLzh ? 'lzh' : 'pli'
   // The root text: a root page's own, or a translation's beside it
-  const TEXT = `.segment > :is(.translation, .root)[lang="${lang}"] > .text`
+  const TEXT = `.segment > :is(.translation, .root):lang(${lang}) > .text`
   const WORD = isLzh
     ? /\p{Script=Han}/gu
     : /[\p{L}\p{M}\u00ad\u2027]+(?:[’'”][\p{L}\p{M}\u00ad\u2027]+)*/gu
@@ -234,11 +234,13 @@
 
     let html
     if (isLzh) {
-      const at = [...node.data.slice(0, range.startOffset)].length
-      const terms = await dictionary.lookupLzh(node.data, at)
+      // Traditional, as the dictionary is, where `simplify.js` has swapped it
+      const data = window.scxSimplify?.original(node) ?? node.data
+      const at = [...data.slice(0, range.startOffset)].length
+      const terms = await dictionary.lookupLzh(data, at)
       // The longest term the character is in, rather than the character alone
       if (search === latest && terms?.length) {
-        const before = [...node.data].slice(0, terms[0].start).join('').length
+        const before = [...data].slice(0, terms[0].start).join('').length
         const termRange = rangeOf(node, before, before + terms[0].term.length)
         current.range = termRange
         highlight(termRange, null)

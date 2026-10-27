@@ -5,7 +5,7 @@
  * the browser's scroll anchor, and Safari has no scroll anchoring at all, so the first text below the menu is
  * put back where it was. Also keeps the References checkbox showing at least one group, and toggles the
  * settings and listen controls from the keyboard, with the same keys as .net and a few more. And keeps a note's
- * asterisk lit while the note is open, and loads word lookup once it's turned on.
+ * asterisk lit while the note is open, and loads word lookup and simplified characters once they're turned on.
  */
 ;(function () {
   'use strict'
@@ -26,6 +26,7 @@
     m: 'segmenter-main',
     t: 'segmenter-pts',
     d: 'definer',
+    c: 'simplifier',
   }
 
   const LISTEN_CONTROLS = {
@@ -338,6 +339,31 @@
     }
   }
 
+  const loadScript = src =>
+    new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = src
+      script.onload = resolve
+      script.onerror = reject
+      document.head.append(script)
+    })
+
+  // The simplified characters' script and map, fetched only once it's turned on
+  const simplifier = document.getElementById('simplifier')
+  if (simplifier instanceof HTMLInputElement) {
+    let loading = null
+    simplifier.closest('li').hidden = false
+    const loadSimplify = () =>
+      (loading ??= loadScript('/scripts/simplify.js').catch(() => {
+        loading = null
+      }))
+    if (simplifier.checked) loadSimplify()
+    simplifier.addEventListener(
+      'change',
+      () => simplifier.checked && loadSimplify()
+    )
+  }
+
   // Word lookup's scripts and dictionaries, fetched only once it's turned on
   const definer = document.getElementById('definer')
   if (definer instanceof HTMLInputElement) {
@@ -355,15 +381,6 @@
       link.removeAttribute('href')
     }
     document.documentElement.dataset.lookupJs = ''
-
-    const loadScript = src =>
-      new Promise((resolve, reject) => {
-        const script = document.createElement('script')
-        script.src = src
-        script.onload = resolve
-        script.onerror = reject
-        document.head.append(script)
-      })
 
     function loadLookup() {
       loading ??= (async () => {

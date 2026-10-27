@@ -3067,7 +3067,12 @@ a:where([href]) {
   > li:has(#commenter-side),
 &:has(#rooter):not(:has(#rooter:checked))
   #views-menu
-  > li:is(:has(#rooter-side), :has(#rooter-first), :has(#definer)),
+  > li:is(
+    :has(#rooter-side),
+    :has(#rooter-first),
+    :has(#definer),
+    :has(#simplifier)
+  ),
 &:not(:has(#segmenter:checked))
   #views-menu
   > li:is(
@@ -3283,7 +3288,7 @@ a:where([href]) {
 /* Any word can be tapped with JS, not only those with a link */
 :root[data-lookup-js]:has(#definer:checked)
   .segment
-  > :is(.translation, .root):is([lang='pli'], [lang='lzh'])
+  > :is(.translation, .root):is(:lang(pli), :lang(lzh))
   > .text {
   cursor: pointer;
 }
