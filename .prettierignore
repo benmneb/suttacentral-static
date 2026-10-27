@@ -9,5 +9,7 @@ pnpm-lock.yaml
 .vercel
 .cache
 src/pages/_sitemap.liquid
+src/pages/_sitemapIndex.liquid
+src/pages/_robots.liquid
 tauri/target
 tauri/gen/schemas
