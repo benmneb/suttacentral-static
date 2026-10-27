@@ -14,7 +14,7 @@
     >
       {{- node.name -}}
       {% if node.lang %}
-        <span class="root-lang">(from {{ node.lang }})</span>
+        <span class="root-lang">({{ node.lang }})</span>
       {%- endif -%}
       {% if node.reference %}
         <span class="collection-reference">{{ node.reference }}</span>
