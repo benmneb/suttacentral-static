@@ -368,9 +368,9 @@ const attribute = value =>
   value.replaceAll('&', '&amp;').replaceAll('"', '&quot;')
 
 /**
- * A site page as `addHTMLFile` takes it, with its icon, kind, author and edition as meta, its tab's title
- * when its heading is another page's too, and as filters (also in `filters`) its author when they have texts
- * and the collection it's about
+ * A site page as `addHTMLFile` takes it, with its kind, author and edition as meta, its tab's title
+ * when its heading is another page's too, and as filters its icon, and (also in `filters`) its author when
+ * they have texts and the collection it's about
  */
 function sitePage(file, html, sharedTitle) {
   const url = urlOf(file).slice(0, -1)
@@ -386,7 +386,6 @@ function sitePage(file, html, sharedTitle) {
   const label = isMatter && tabTitle?.[1]
   const edition = tabTitle?.[isMatter ? 2 : 1]
   const meta = {
-    icon: pageIcons[`/${root}`] ?? (isEdition ? 'bookOpen' : 'documentText'),
     kind: isEdition ? 'Edition' : (pageKinds.get(`/${root}`) ?? 'Site page'),
     // ie every edition's foreword, "The SuttaCentral Editions Series", as "Foreword—Long Discourses"
     title: sharedTitle && label && decode(`${label}—${edition}`),
@@ -406,13 +405,14 @@ function sitePage(file, html, sharedTitle) {
     ...(uid && { author: [uid] }),
     ...(collection && { in: [collection] }),
   }
-  const filtered = Object.entries(filters)
+  const icon = pageIcons[`/${root}`]
+  // Not meta, as Pagefind searches every meta field, so "documentText" would find the essays
+  const filtered = [...Object.entries(filters), ['icon', [icon]]]
   const attributes = [
     ...shown.map(([key, value]) => `data-${key}="${attribute(value)}"`),
     `data-pagefind-meta="${shown.map(([key]) => `${key}[data-${key}]`).join(', ')}"`,
     ...filtered.map(([key, [value]]) => `data-filter-${key}="${value}"`),
-    filtered.length &&
-      `data-pagefind-filter="${filtered.map(([key]) => `${key}[data-filter-${key}]`).join(', ')}"`,
+    `data-pagefind-filter="${filtered.map(([key]) => `${key}[data-filter-${key}]`).join(', ')}"`,
   ]
   return {
     url,

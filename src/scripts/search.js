@@ -15,13 +15,22 @@
   'use strict'
 
   const pageSize = 5
-  const options = {
-    pageSize,
-    ranking: {
-      // https://pagefind.app/docs/ranking/
-      termFrequency: 0.5,
-      termSimilarity: 10.0,
-      pageLength: 0.5,
+  const ranking = {
+    // https://pagefind.app/docs/ranking/
+    termFrequency: 0.5,
+    termSimilarity: 10.0,
+    pageLength: 0.5,
+    // Low, so ie "bodhi" puts texts with the word before Bhikkhu Bodhi's translations
+    metaWeights: { author: 0.2 },
+  }
+  const options = { pageSize, ranking }
+  // A note's meta has its text's titles, which at 5x outrank the texts
+  const bundleMetaWeights = {
+    notes: {
+      title: 0.5,
+      originalTitle: 0.5,
+      translatorsTitle: 0.5,
+      author: 0.2,
     },
   }
   const pagefind = await import('/pagefind/pagefind.js')
@@ -443,7 +452,8 @@
 
   /** A site page's result, at its section with the most hits, with its icon, kind, edition and author */
   function sitePageHTML(data) {
-    const { title, icon, kind, edition, author } = data.meta
+    const { title, kind, edition, author } = data.meta
+    const [icon] = data.filters.icon
     const section = data.sub_results.reduce(
       (best, sub) =>
         sub.locations.length > best.locations.length ? sub : best,
@@ -467,9 +477,15 @@
   function loadBundle(name) {
     bundles[name] ??= import(`/pagefind-${name}/pagefind.js`).then(
       async bundle => {
+        const own = bundleMetaWeights[name]
+          ? {
+              ...options,
+              ranking: { ...ranking, metaWeights: bundleMetaWeights[name] },
+            }
+          : options
         await bundle.options(
           // Its words are character pairs, so 30 of them would be 30 characters
-          name === 'chinese' ? { ...options, excerptLength: 60 } : options
+          name === 'chinese' ? { ...own, excerptLength: 60 } : own
         )
         return bundle
       }
