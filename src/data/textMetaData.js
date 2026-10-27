@@ -17,6 +17,7 @@ import {
   workId,
 } from '../helpers/pageMetadata.js'
 import { SC_ORIGIN } from '../helpers/scApi.js'
+import { langTag } from '../helpers/strings.js'
 import {
   parseUidNumbers,
   uidIsInRange,
@@ -70,7 +71,7 @@ function editionOf(entry, translation) {
     name: `${entry.scx_range_sutta_individual ? textFromHtml(entry.acronym) : workName(entry)}—${author}`,
     url: absoluteUrl(path),
     sameAs: `${SC_ORIGIN}/${path}`,
-    inLanguage: translation.lang,
+    inLanguage: langTag(translation.lang),
     ...(translation.is_root
       ? { isBasedOn: edition(author, translation.author_uid) }
       : { translator: person(author, translation.author_uid) }),
@@ -120,7 +121,7 @@ function generateTextMetaJsonLd(entry) {
       identifier: entry.uid,
       url,
       sameAs: `${SC_ORIGIN}/${entry.scx_path}`,
-      ...(entry.root_lang && { inLanguage: entry.root_lang }),
+      ...(entry.root_lang && { inLanguage: langTag(entry.root_lang) }),
       publisher: SUTTACENTRAL,
       about: { '@type': 'Thing', name: 'Buddhism' },
       ...(roots.length && {

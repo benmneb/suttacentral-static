@@ -31,7 +31,7 @@
     {% if titled %}
       {% rootTitle parallel.to, href %}
     {% elsif href != blank %}
-      <a href="{{ href }}" hreflang="{{ built_trans.lang }}">
+      <a href="{{ href }}" hreflang="{{ built_trans.lang | langTag }}">
         {{- parallel.to.scx_label -}}
       </a>
     {% else %}
@@ -72,7 +72,7 @@
         {% for trans in parallel.to.scx_translations -%}
           <a
             href="/{{ parallel.to.uid }}/{{ trans.lang }}/{{ trans.author_uid }}{{ anchor }}"
-            hreflang="{{ trans.lang }}"
+            hreflang="{{ trans.lang | langTag }}"
           >
             {{- trans.author | strip -}}
           </a>

@@ -73,6 +73,14 @@
   const languageName = lang =>
     document.getElementById(`lang-${lang}`)?.labels[0]?.textContent.trim() ??
     languageNames.of(lang)
+  /** A language code as `lang` takes it, ie "pli" as "pi" */
+  const langTag = code => {
+    try {
+      return Intl.getCanonicalLocales(code)[0]
+    } catch {
+      return code
+    }
+  }
   const listFormat = new Intl.ListFormat('en')
   let latestSearch = 0
 
@@ -139,7 +147,7 @@
       (showTranslation && root.toLowerCase() === translation?.toLowerCase())
     const title = single ? translation || root || '' : root
     const attributes = [
-      !single && rootLang && ` lang="${rootLang}"`,
+      !single && rootLang && ` lang="${langTag(rootLang)}"`,
       UPRIGHT_SCRIPTS.test(title) && ' class="upright"',
     ]
     const dfn = `<dfn${attributes.filter(Boolean).join('')}>${softHyphenateTitle(title)}</dfn>`
@@ -940,7 +948,7 @@
         shown += defs.length
         if (!defs.length) return ''
         return (
-          `<dt lang="pli" translate="no">${escape(match.b)}</dt>` +
+          `<dt lang="pi" translate="no">${escape(match.b)}</dt>` +
           (match.g ? `<dd><em>${escape(match.g)}</em></dd>` : '') +
           `<dd><ol>${defs.map(d => `<li>${d}</li>`).join('')}</ol></dd>`
         )
@@ -958,7 +966,7 @@
         (page
           ? `<p><a href="${href}">${escape(dictionaryEl.dataset.allLabel)}<i class="icon i-arrowRight"></i></a></p>`
           : '')
-      : `<h2 id="search-dictionary-heading"><a href="${href}">${escape(dictionaryEl.dataset.definitionsLabel)} <b lang="pli" translate="no">${escape(page)}</b><i class="icon i-arrowRight"></i></a></h2>${map}`
+      : `<h2 id="search-dictionary-heading"><a href="${href}">${escape(dictionaryEl.dataset.definitionsLabel)} <b lang="pi" translate="no">${escape(page)}</b><i class="icon i-arrowRight"></i></a></h2>${map}`
     dictionaryEl.classList.toggle('only-link', !matches.length)
     dictionaryEl.hidden = false
   }
@@ -1143,7 +1151,7 @@
 				 <article>
 					 <h2>${title}</h2>
 					 <dl>${details}</dl>
-					 ${batch[i].bundle === 'titles' ? '' : `<p lang="${data.meta.lang}">…${batch[i].bundle === 'chinese' ? unpair(data.excerpt) : data.excerpt}…</p>`}
+					 ${batch[i].bundle === 'titles' ? '' : `<p lang="${langTag(data.meta.lang)}">…${batch[i].bundle === 'chinese' ? unpair(data.excerpt) : data.excerpt}…</p>`}
 				 </article>
 			 `
         resultsContainer.appendChild(listItem)

@@ -18,7 +18,7 @@
         <li>
           <a
             href="/{% if entry.scx_range_sutta and version.segmented != true %}{{ entry.scx_range_sutta_uid }}{% else %}{{ entry.uid }}{% endif %}/{{ version.lang }}/{{ version.author_uid }}"
-            hreflang="{{ version.lang }}"
+            hreflang="{{ version.lang | langTag }}"
           >
             {{-
               version.author
@@ -75,7 +75,7 @@
           <!-- prettier-ignore -->
           <a
             href="/{% if entry.scx_range_sutta and version.segmented != true %}{{ entry.scx_range_sutta_uid }}{% else %}{{ entry.uid }}{% endif %}/{{ version.lang }}/{{ version.author_uid }}"
-            hreflang="{{ version.lang }}"
+            hreflang="{{ version.lang | langTag }}"
           >
             {{-
               version.author
@@ -114,7 +114,7 @@
           <span>{{ version.lang_name | languageName }}—</span
           ><a
             href="/{% if entry.scx_range_sutta and version.segmented != true %}{{ entry.scx_range_sutta_uid }}{% else %}{{ entry.uid }}{% endif %}/{{ version.lang }}/{{ version.author_uid }}"
-            hreflang="{{ version.lang }}"
+            hreflang="{{ version.lang | langTag }}"
           >
             {{-
               version.author

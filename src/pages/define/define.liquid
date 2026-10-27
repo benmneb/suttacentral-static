@@ -23,7 +23,7 @@ eleventyComputed:
 ---
 <hgroup>
   <h1>
-    Definitions for <span lang="pli" translate="no">{{ term.word }}</span>
+    Definitions for <span lang="pi" translate="no">{{ term.word }}</span>
   </h1>
   <p>
     Found in {{ term.entries.size | formatNumber }}
@@ -80,7 +80,7 @@ eleventyComputed:
           <dd>
             <ul>
               {% for xr in entry.xrs %}
-                <li lang="pli" translate="no">
+                <li lang="pi" translate="no">
                   {%- if xr.word -%}
                     <a href="{{ xr.word | defineHref }}">{{ xr.text }}</a>
                   {%- else -%}
@@ -103,13 +103,13 @@ eleventyComputed:
           {% for word in term.adjacent %}
             {% if word == term.word %}
               <li class="no-list-item">
-                <span aria-current="page" lang="pli" translate="no">
+                <span aria-current="page" lang="pi" translate="no">
                   {{- word -}}
                 </span>
               </li>
             {% else %}
               <li>
-                <a href="{{ word | defineHref }}" lang="pli" translate="no">
+                <a href="{{ word | defineHref }}" lang="pi" translate="no">
                   {{- word -}}
                 </a>
               </li>
@@ -124,7 +124,7 @@ eleventyComputed:
         <ol>
           {% for word in term.similar %}
             <li>
-              <a href="{{ word | defineHref }}" lang="pli" translate="no">
+              <a href="{{ word | defineHref }}" lang="pi" translate="no">
                 {{- word -}}
               </a>
             </li>

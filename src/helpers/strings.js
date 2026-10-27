@@ -12,6 +12,25 @@ export function languageName(name) {
   return name === 'Pali' ? 'Pāli' : name
 }
 
+// Not .net's own codes, as BCP 47 takes the two-letter one where there is one
+const LANG_TAGS = {
+  pli: 'pi',
+  san: 'sa',
+  jpn: 'ja',
+  kan: 'kn',
+  uig: 'ug',
+  // `sld` is Sissala, and Saarländisch has no subtag of its own
+  sld: 'de',
+}
+
+/**
+ * A language code as `lang`, `hreflang` and `inLanguage` take it, ie "pli" as "pi"
+ * @param {string} code - SuttaCentral's code for it, as in its URLs
+ */
+export function langTag(code) {
+  return LANG_TAGS[code] ?? code
+}
+
 /** Lets a long Pāli compound title wrap before its suffix, ie "Mahādukkhakkhandha-" over "sutta" */
 export function softHyphenateTitle(title) {
   return String(title ?? '').replace(
@@ -112,7 +131,7 @@ export function rootTitle(entry, href) {
   const single = !root || root.toLowerCase() === translation?.toLowerCase()
   const title = single ? translation || root || '' : root
   const attributes = [
-    !single && lang && ` lang="${lang}"`,
+    !single && lang && ` lang="${langTag(lang)}"`,
     UPRIGHT_SCRIPTS.test(title) && ' class="upright"',
   ]
   const dfn = `<dfn${attributes.filter(Boolean).join('')}>${softHyphenateTitle(title)}</dfn>`

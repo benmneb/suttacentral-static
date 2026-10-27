@@ -559,12 +559,10 @@
     playPauseBtnIcon.innerHTML = ICON_PLAY
   }
 
-  // Text languages whose voices go by another code: Literary Chinese, Japanese, Kannada, Classical Tibetan,
-  // and Norwegian, as Bokmål
+  // Text languages whose voices go by another code: Literary Chinese, Classical Tibetan, and Norwegian,
+  // as Bokmål
   const VOICE_LANGS = {
     lzh: 'zh',
-    jpn: 'ja',
-    kan: 'kn',
     xct: 'bo',
     no: 'nb',
   }

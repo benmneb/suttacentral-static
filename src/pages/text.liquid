@@ -441,7 +441,7 @@ eleventyComputed:
           popover
           aria-labelledby="listen-menu-button"
           id="listen-menu"
-          data-text-lang="{{ entry.lang }}"
+          data-text-lang="{{ entry.lang | langTag }}"
         >
           <li class="notice">
             <noscript>
@@ -731,7 +731,7 @@ eleventyComputed:
             </span>
             {% if text %}
             <!-- This is not a translation, its the root text, the class is so it's not `display: none` by default. -->
-            <span class="translation" lang="{{ entry.lang }}" translate="no">
+            <span class="translation" lang="{{ entry.lang | langTag }}" translate="no">
               {% if entry.scx_range_sutta_individual
                 and is_header
                 and entry.scx_range_sutta_shown_uid == entry.uid
@@ -905,7 +905,7 @@ eleventyComputed:
               {%- endfor %}
             </span>
             {% if text %}
-              <span class="translation" lang="{{ entry.lang }}"{% if text == entry.translated_title or text == entry.translated_name %} data-pagefind-weight="8"{% endif %}>
+              <span class="translation" lang="{{ entry.lang | langTag }}"{% if text == entry.translated_title or text == entry.translated_name %} data-pagefind-weight="8"{% endif %}>
             {% comment %}
               Swap the vagga heading for the number, but only when the sutta has no translated
               heading of its own to title the page (ie Dhp verses) - otherwise it'd just repeat it
@@ -931,7 +931,7 @@ eleventyComputed:
             {% if rootText %}
               {% assign normalisedRoot = rootText | normalise %}
               {% assign normalisedTitle = entry.original_title | normalise %}
-              <span class="root" lang="{{ entry.root_lang }}" translate="no" {% unless normalisedRoot contains normalisedTitle %}data-pagefind-ignore="all"{% endunless %}>
+              <span class="root" lang="{{ entry.root_lang | langTag }}" translate="no" {% unless normalisedRoot contains normalisedTitle %}data-pagefind-ignore="all"{% endunless %}>
                 {% if entry.scx_range_sutta_individual
                   and is_header
                   and entry.scx_range_sutta_shown_uid == entry.uid

@@ -244,7 +244,7 @@ describe('Site page metadata', () => {
     assert.deepEqual(edition.isBasedOn, {
       '@type': 'Book',
       name: 'Majjhima Nikāya',
-      inLanguage: 'pli',
+      inLanguage: 'pi',
       description: 'Original Pāli Buddhist text',
     })
     const articleRoutes = [

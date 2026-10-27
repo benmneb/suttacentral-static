@@ -2555,7 +2555,7 @@ main {
   & > p:where(:has(.segment)) {
     overflow-wrap: break-word;
 
-    [lang='pli'] {
+    [lang='pi'] {
       overflow-wrap: anywhere;
     }
 
@@ -3292,7 +3292,7 @@ a:where([href]) {
 /* Any word can be tapped with JS, not only those with a link */
 :root[data-lookup-js]:has(#definer:checked)
   .segment
-  > :is(.translation, .root):is(:lang(pli), :lang(lzh))
+  > :is(.translation, .root):is(:lang(pi), :lang(lzh))
   > .text {
   cursor: pointer;
 }

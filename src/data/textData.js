@@ -29,7 +29,7 @@ import {
   workId,
 } from '../helpers/pageMetadata.js'
 import { SC_ORIGIN } from '../helpers/scApi.js'
-import { searchId } from '../helpers/strings.js'
+import { langTag, searchId } from '../helpers/strings.js'
 
 let usedPaths = []
 
@@ -129,7 +129,7 @@ function generateTextJsonLd(entry) {
         : entry.root_name || entry.original_title
     ),
     url: absoluteUrl(entry.uid),
-    inLanguage: entry.root_lang,
+    inLanguage: langTag(entry.root_lang),
   }
   // The page, whose breadcrumb only `WebPage` can take, and the text itself, as its main entity
   return jsonLd({
@@ -139,7 +139,7 @@ function generateTextJsonLd(entry) {
     description: descriptionOf(entry),
     url,
     sameAs: `${SC_ORIGIN}/${entry.scx_path}`,
-    inLanguage: entry.lang,
+    inLanguage: langTag(entry.lang),
     isPartOf: website(),
     breadcrumb: breadcrumbList([
       { name: 'Home', url: '/' },
@@ -163,7 +163,7 @@ function generateTextJsonLd(entry) {
       url,
       sameAs: `${SC_ORIGIN}/${entry.scx_path}`,
       identifier: entry.uid,
-      inLanguage: entry.lang,
+      inLanguage: langTag(entry.lang),
       ...(author &&
         (entry.is_root
           ? { isBasedOn: edition(author, entry.author_uid) }

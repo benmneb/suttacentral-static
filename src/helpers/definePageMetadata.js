@@ -117,7 +117,7 @@ export function generateDefineJsonLd(term) {
       description: termDescription,
       url,
       sameAs: `${SC_ORIGIN}${term.href}`,
-      inLanguage: 'pli',
+      inLanguage: 'pi',
       inDefinedTermSet: {
         '@type': 'DefinedTermSet',
         name: 'SuttaCentral Pāli dictionaries',

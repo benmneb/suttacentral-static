@@ -179,7 +179,7 @@ describe('The /define pages', () => {
     assert.equal(jsonLd.mainEntity.name, 'dhamma')
     // The word is described by what a dictionary says of it, not by the page's own description
     assert.equal(jsonLd.mainEntity.description, 'nature; character')
-    assert.equal(jsonLd.mainEntity.inLanguage, 'pli')
+    assert.equal(jsonLd.mainEntity.inLanguage, 'pi')
     assert.equal(jsonLd.mainEntity.inDefinedTermSet['@type'], 'DefinedTermSet')
     assert.equal(
       jsonLd.mainEntity.inDefinedTermSet.url,
@@ -401,7 +401,7 @@ describe('Word lookup', async () => {
       let linked = 0
       let answered = 0
       for (const [, text] of html.matchAll(
-        /<span class="translation" lang="pli" translate="no"><span class="text">(.*?)<\/span>/g
+        /<span class="translation" lang="pi" translate="no"><span class="text">(.*?)<\/span>/g
       )) {
         linked += (text.match(/<a href="\/define\//g) ?? []).length
         for (const word of text.replace(/<[^>]*>/g, '').match(WORD) ?? []) {

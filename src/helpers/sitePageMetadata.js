@@ -13,6 +13,7 @@ import {
 } from './pageMetadata.js'
 import { SC_ORIGIN } from './scApi.js'
 import { siteMap } from './sitePages.js'
+import { langTag } from './strings.js'
 import { t } from './siteStrings.js'
 
 const STATIC_PAGES = {
@@ -595,7 +596,7 @@ export async function buildSitePageMetadata({
         ...(edition.files?.updated && {
           dateModified: edition.files.updated,
         }),
-        inLanguage: publication.translation_lang_iso || 'en',
+        inLanguage: langTag(publication.translation_lang_iso) || 'en',
         publisher: SUTTACENTRAL,
         image,
         potentialAction: {
@@ -609,7 +610,7 @@ export async function buildSitePageMetadata({
             edition.menu?.original_title ||
             edition.menu?.root_name ||
             publication.text_uid,
-          inLanguage: 'pli',
+          inLanguage: 'pi',
           description: 'Original Pāli Buddhist text',
         },
       },
@@ -642,7 +643,7 @@ export async function buildSitePageMetadata({
             name: matter.label,
             url: matterAbsoluteUrl,
             isPartOf: book,
-            inLanguage: publication.translation_lang_iso || 'en',
+            inLanguage: langTag(publication.translation_lang_iso) || 'en',
           },
         },
         [

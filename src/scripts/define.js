@@ -110,7 +110,7 @@
         const item = document.createElement('li')
         const link = document.createElement('a')
         link.href = `/define/${word.replaceAll(' ', '%20')}`
-        link.lang = 'pli'
+        link.lang = 'pi'
         link.translate = false
         link.textContent = word
         item.append(link)

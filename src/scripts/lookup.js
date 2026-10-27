@@ -20,7 +20,7 @@
 
   const dict = toggle.dataset.dict
   const isLzh = dict === 'lzh-en'
-  const lang = isLzh ? 'lzh' : 'pli'
+  const lang = isLzh ? 'lzh' : 'pi'
   // The root text: a root page's own, or a translation's beside it
   const TEXT = `.segment > :is(.translation, .root):lang(${lang}) > .text`
   const WORD = isLzh
@@ -186,7 +186,7 @@
       .map(match => {
         const page = match.p ? match.b : match.h
         const dt = headed
-          ? `<dt><dfn lang="pli" translate="no">${escape(match.b)}</dfn>${page ? ` <a href="${definePath(page)}" aria-label="Full definitions of ${escape(page)}">${icon('bookOpen')}</a>` : ''}</dt>`
+          ? `<dt><dfn lang="pi" translate="no">${escape(match.b)}</dfn>${page ? ` <a href="${definePath(page)}" aria-label="Full definitions of ${escape(page)}">${icon('bookOpen')}</a>` : ''}</dt>`
           : ''
         let dd = match.g
           ? `<span class="grammar">${escape(match.g)}</span>`
@@ -195,7 +195,7 @@
           ? `<ol class="definition">${match.d.map(d => `<li>${d}</li>`).join('')}</ol>`
           : escape(match.m ?? '?')
         if (match.x)
-          dd += `<ul class="xr">${match.x.map(x => `<li>See: <span lang="pli" translate="no">${escape(x)}</span></li>`).join('')}</ul>`
+          dd += `<ul class="xr">${match.x.map(x => `<li>See: <span lang="pi" translate="no">${escape(x)}</span></li>`).join('')}</ul>`
         return `<dl>${dt}<dd>${dd}</dd></dl>`
       })
       .join('')

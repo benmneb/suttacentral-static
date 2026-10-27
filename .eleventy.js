@@ -25,6 +25,7 @@ import { missingKeys, t } from './src/helpers/siteStrings.js'
 import {
   formatVolpages,
   isHeadingHTML,
+  langTag,
   languageName,
   rootTitle,
   softHyphenateTitle,
@@ -157,6 +158,7 @@ export default function (eleventyConfig) {
   })
 
   eleventyConfig.addFilter('t', t)
+  eleventyConfig.addFilter('langTag', langTag)
   eleventyConfig.addFilter('defineHref', defineHref)
 
   // A built page's route as the browser has it, with no trailing slash: page.url's /about/ is /about
@@ -237,11 +239,11 @@ export default function (eleventyConfig) {
     return (await siteLinkFixer)(content, this.page.url)
   })
 
-  eleventyConfig.addTransform('htmlmin', function (content) {
+  eleventyConfig.addTransform('htmlmin', async function (content) {
     if (!(this.page.outputPath || '').endsWith('.html')) return content
 
     // https://github.com/terser/html-minifier-terser?tab=readme-ov-file#options-quick-reference
-    let minified = htmlmin.minify(content, {
+    const minified = await htmlmin.minify(content, {
       useShortDoctype: true,
       removeComments: true,
       collapseWhitespace: true,
@@ -250,7 +252,8 @@ export default function (eleventyConfig) {
       // as a word break, so text running into one (ie "possessions?’</p><p>SC") gets indexed as one word
     })
 
-    return minified
+    // The API's own HTML, ie a legacy text's <li class="division" lang='pli'>, has .net's codes too
+    return minified.replace(/(?<=\s(?:href)?lang=")[a-z]{3}(?=")/g, langTag)
   })
 
   let buildStart
