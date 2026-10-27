@@ -20,6 +20,7 @@ import shortcutsData from './_shortcuts.json' with { type: 'json' }
 
 const DEV_MODE = process.env.NODE_ENV !== 'prod'
 const MAX_CONCURRENT_REQUESTS = 50
+const SCT_NAME = 'SuttaCentral Taishō'
 
 let cachedMasterData = null
 let shortcutsList = []
@@ -163,8 +164,13 @@ async function fetchDataTree(uid, depth = 0) {
 
     function filterTranslations(translations) {
       if (!translations.length) return []
-      return translations.filter(t => t.lang === 'en' || t.is_root)
-      // return translations // oh no my memory 🤯
+      return (
+        translations
+          .filter(t => t.lang === 'en' || t.is_root)
+          // The API names the Taishō edition "Taisho Tipitaka" on one text and nothing on the rest
+          .map(t => (t.author_uid === 'sct' ? { ...t, author: SCT_NAME } : t))
+        // return translations // oh no my memory 🤯
+      )
     }
 
     const translationsToProcess = filterTranslations(translations)
