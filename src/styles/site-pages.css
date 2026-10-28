@@ -155,6 +155,11 @@
       background-color: var(--details-summary-hover-background);
     }
   }
+
+  ul ul,
+  ol ol {
+    margin: initial;
+  }
 }
 
 .site-page:has(.entry-list) {
