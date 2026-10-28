@@ -61,6 +61,14 @@
   function load() {
     const saved = getStoredPrefs()
 
+    // Off unless chosen without popovers, where notes show inline
+    const commenter = document.getElementById('commenter')
+    if (
+      commenter instanceof HTMLInputElement &&
+      !('popover' in HTMLElement.prototype)
+    )
+      commenter.checked = false
+
     IDS.forEach(id => {
       const el = document.getElementById(id)
       if (!el || !(id in saved)) return

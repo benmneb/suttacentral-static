@@ -92,17 +92,31 @@
     display: initial;
   }
 
+  .inline-comment {
+    height: fit-content;
+    margin: 0.5rem;
+    padding: 0.5rem;
+    color: var(--text-color-secondary);
+    background-color: var(--comments-background-color);
+    border-radius: var(--rounding);
+    border: 1px solid var(--comments-border-color);
+    font-weight: initial;
+  }
+
+  /* Inline, as without popovers the note buttons open nothing */
+  @supports not selector(:popover-open) {
+    .inline-comment {
+      display: block;
+    }
+
+    .segment button[popovertarget] {
+      display: none;
+    }
+  }
+
   &:has(#commenter-inline:checked) {
     .inline-comment {
       display: block;
-      height: fit-content;
-      margin: 0.5rem;
-      padding: 0.5rem;
-      color: var(--text-color-secondary);
-      background-color: var(--comments-background-color);
-      border-radius: var(--rounding);
-      border: 1px solid var(--comments-border-color);
-      font-weight: initial;
     }
 
     .segment button[popovertarget] {
