@@ -3050,7 +3050,8 @@ a:where([href]) {
   }
 }
 
-:is(#site-pages, body > footer) a:where([href]):visited:not(:hover, :active) {
+:is(body > header > nav, #site-pages, body > footer)
+  a:where([href]):visited:not(:hover, :active) {
   color: var(--primary-color);
 }
 
