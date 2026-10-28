@@ -21,8 +21,9 @@
     {% unless excludeSearch %}
       <button
         class="icon-button"
-        type="submit"
-        popovertarget="search-modal"
+        type="button"
+        commandfor="search-modal"
+        command="show-modal"
         aria-label="Search"
         title="Cmd/Ctrl+K"
       >
@@ -41,7 +42,7 @@
   </div>
 </nav>
 {% unless excludeSearch %}
-  <section id="search-modal" popover>
+  <dialog id="search-modal" aria-label="Search" closedby="any">
     {% include "searchForm.liquid" %}
-  </section>
+  </dialog>
 {% endunless %}

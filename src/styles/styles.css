@@ -1457,7 +1457,12 @@ main:has(.segment) > :first-child {
   }
 }
 
-[popover]#search-modal {
+dialog#search-modal {
+  color: var(--text-color);
+  border: none;
+  box-shadow: 0 0.3rem 1rem var(--shadow-color);
+  border-radius: var(--rounding);
+  background-color: var(--popover-background-color);
   max-width: calc(min(420px, 100vw) - 2rem);
   width: 100%;
   padding: 0;
@@ -4126,21 +4131,11 @@ summary::marker {
     serif;
 }
 
-/* Not inherited, as some set pointer-events back to auto */
-body:has(#search-modal:popover-open)
-  :not(#search-modal, #search-modal *, :has(#search-modal)) {
-  &,
-  &::before,
-  &::after {
-    pointer-events: none !important;
-  }
-}
-
-[popover]#search-modal::backdrop {
+dialog#search-modal::backdrop {
   backdrop-filter: blur(3px);
 }
 
-body:has([popover]#search-modal:popover-open) {
+body:has(dialog#search-modal[open]) {
   overflow: hidden;
 }
 
