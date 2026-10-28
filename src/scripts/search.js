@@ -130,8 +130,8 @@
   /** Lets a long Pāli compound title wrap before its suffix, as in `helpers/strings.js` */
   const softHyphenateTitle = title =>
     title.replace(
-      /(?<=\p{L})(sutta|vagga|paṇṇāsa|saṁyutta|nipāta)(?=\s*$)/u,
-      '\u00ad$1'
+      /(\p{L})(sutta|vagga|paṇṇāsa|saṁyutta|nipāta)(?=\s*$)/u,
+      '$1\u00ad$2'
     )
 
   /**
