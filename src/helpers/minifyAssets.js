@@ -4,7 +4,7 @@
  * Minifies the CSS and JavaScript files into `_site` for the Eleventy build,
  * and for `tools/minifyAssets.js`, which does it without a full build.
  *
- * CSS minification uses LightningCSS with browserslist targeting (last 2 years).
+ * CSS minification uses LightningCSS, targeting Safari 15.4, Chrome 105 and up.
  * JS minification uses Terser with dead code elimination and mangling.
  *
  * @module AssetMinifier
@@ -26,6 +26,16 @@ import path from 'path'
 import { minify as terserMinify } from 'terser'
 import { recordStat } from './buildStats.js'
 
+// The :has() floor, plus Firefox 115 ESR as the last on Windows 7 and old macOS
+const BROWSERS = [
+  'chrome >= 105',
+  'edge >= 105',
+  'firefox >= 115',
+  'safari >= 15.4',
+  'ios_saf >= 15.4',
+  'samsung >= 20',
+]
+
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
 }
@@ -41,7 +51,7 @@ export async function minifyCss({
 
   ensureDir(destDir)
 
-  const targets = browserslistToTargets(browserslist('last 2 years'))
+  const targets = browserslistToTargets(browserslist(BROWSERS))
 
   const files = fs.readdirSync(srcDir).filter(f => f.endsWith('.css'))
   const stats = []
