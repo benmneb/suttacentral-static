@@ -16,6 +16,7 @@
   {% unless _siteMetaData.source == blank
     and _siteMetaData.analytics == blank
     and _siteMetaData.archive == blank
+    and _siteMetaData.suggestions == blank
     and _siteMetaData.contact == blank
   %}
     <ul>
@@ -36,7 +37,7 @@
       {% endif %}
       {% if _siteMetaData.suggestions %}
         <li>
-          <a href="{{ _siteMetaData.suggestions }}">Report bugs</a>
+          <a href="{{ _siteMetaData.suggestions }}">Send feedback</a>
         </li>
       {% elsif _siteMetaData.contact %}
         <li>
