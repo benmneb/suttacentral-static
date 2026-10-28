@@ -8,6 +8,8 @@ pagination:
   addAllPagesToCollections: true
 
 permalink: '{{ entry.scx_path }}/index.html'
+styles:
+  - text.css
 eleventyComputed:
   title: '{{ entry.scx_title | escape }}'
   json_ld: '{{ entry.scx_json_ld }}'

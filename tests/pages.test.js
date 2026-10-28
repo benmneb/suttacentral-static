@@ -7,9 +7,17 @@
  */
 
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import path from 'node:path'
 import { describe, it } from 'node:test'
 import siteMetaData from '../src/data/_siteMetaData.js'
-import { listSome, pageRoute, scanSite, UNLISTED_PAGES } from './lib/site.js'
+import {
+  listSome,
+  pageRoute,
+  scanSite,
+  SITE_DIR,
+  UNLISTED_PAGES,
+} from './lib/site.js'
 
 // Characters of text a text page's <main> has at least, besides its parallels
 // and popovers. The shortest real texts are a line or two of verse
@@ -50,6 +58,37 @@ describe('Every page', async () => {
       bad.length,
       0,
       `Links with undefined/null/NaN in them:\n${listSome(bad)}`
+    )
+  })
+
+  it('uses only icons its stylesheets have', () => {
+    const iconsIn = new Map()
+    const iconsOf = sheet => {
+      if (!iconsIn.has(sheet)) {
+        const css = fs.readFileSync(
+          path.join(SITE_DIR, 'styles', sheet),
+          'utf8'
+        )
+        iconsIn.set(
+          sheet,
+          new Set([...css.matchAll(/\.i-([A-Za-z0-9]+)[,{]/g)].map(m => m[1]))
+        )
+      }
+      return iconsIn.get(sheet)
+    }
+    const missingIcons = page =>
+      page.icons.filter(
+        icon => !page.stylesheets.some(sheet => iconsOf(sheet).has(icon))
+      )
+    const bad = failures(
+      pages,
+      page => missingIcons(page).length > 0,
+      page => `${page.url}: ${missingIcons(page).join(', ')}`
+    )
+    assert.equal(
+      bad.length,
+      0,
+      `Icons in none of the page's stylesheets:\n${listSome(bad)}`
     )
   })
 

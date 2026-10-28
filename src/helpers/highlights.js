@@ -1,7 +1,7 @@
 /**
  * Highlights
  *
- * Whether a text has any of the markup the "Highlight text-critical details" setting styles, in styles.css:
+ * Whether a text has any of the markup the "Highlight text-critical details" setting styles, in text.css:
  * the structure of Vinaya rules, the speakers of the Kathāvatthu, the questions of the Yamaka, counters on lists,
  * and the editors' marks in the legacy Sanskrit, Gāndhārī and Chinese editions. .net offers the setting on every
  * text, though most have none of it, so here it only shows where it does something.

@@ -217,6 +217,16 @@ function factsFor(url, html) {
         .replace(/<noscript>[\s\S]*?<\/noscript>/g, '')
         .matchAll(REMOTE_IMG),
     ].map(m => m[1]),
+    stylesheets: [
+      ...html.matchAll(/<link rel="?stylesheet"? href="?\/styles\/([^"\s>]*)/g),
+    ].map(match => copyOf(match[1])),
+    icons: [
+      ...new Set(
+        [...html.matchAll(/class="?icon(?: \w+)? i-([A-Za-z0-9]+)/g)].map(
+          match => match[1]
+        )
+      ),
+    ].map(copyOf),
     links,
   }
 }

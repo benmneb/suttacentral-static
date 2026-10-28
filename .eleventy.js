@@ -52,13 +52,16 @@ const utilTemplates = [
   `${inputDir}/_sitemapIndex.liquid`,
 ]
 const iconNames = new Set(
-  ['styles.css', 'site-pages.css'].flatMap(file =>
-    [
-      ...fs
-        .readFileSync(`src/styles/${file}`, 'utf8')
-        .matchAll(/\.i-([A-Za-z0-9]+) \{/g),
-    ].map(match => match[1])
-  )
+  fs
+    .readdirSync('src/styles')
+    .filter(file => file.endsWith('.css'))
+    .flatMap(file =>
+      [
+        ...fs
+          .readFileSync(`src/styles/${file}`, 'utf8')
+          .matchAll(/\.i-([A-Za-z0-9]+) \{/g),
+      ].map(match => match[1])
+    )
 )
 
 export default function (eleventyConfig) {
