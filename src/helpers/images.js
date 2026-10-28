@@ -4,6 +4,10 @@
  * Remote images as local files in `_site/images/`, as everything has to work offline. Each is downloaded once into
  * `.cache` (again with REFETCH, like the API data), shrunk and re-encoded as AVIF, and named by a hash of its bytes
  * and the settings, so a changed image gets a new name and an unchanged one isn't encoded again.
+ *
+ * The images in `src/images` are copied as they are, under the same names, and vercel.json lets
+ * browsers keep them for a day and then a week while refreshing, so a changed one needs a new name
+ * to appear immediately.
  */
 import Fetch from '@11ty/eleventy-fetch'
 import { createHash } from 'node:crypto'

@@ -2,10 +2,8 @@
  * Asset Minification Utilities
  *
  * Minifies the CSS and JavaScript files into `_site` for the Eleventy build,
- * and for `tools/minifyAssets.js`, which does it without a full build. Each
- * file is written twice: under its own name, and under a name with a hash of
- * its content (ie `styles.3f9a1c2b.css`) for the pages to link, so it can be
- * cached for good.
+ * each under a name with a hash of its content (ie `styles.3f9a1c2b.css`), so
+ * it can be cached for good. `tools/serve.js` minifies them per request instead.
  *
  * CSS minification uses LightningCSS, targeting Safari 15.4, Chrome 105 and up.
  * JS minification uses Terser with dead code elimination and mangling.
@@ -17,10 +15,11 @@
  *
  * @example
  * // Use programmatically
- * import { assetUrl, minifyCss, minifyJs } from './src/helpers/minifyAssets.js'
+ * import { assetUrl, minifyCss, minifyCssCode, minifyJs } from './src/helpers/minifyAssets.js'
  * await minifyCss({ srcDir: './src/styles', destDir: './dist/styles' })
  * await minifyJs({ srcDir: './src/scripts', destDir: './dist/scripts' })
  * assetUrl('styles.css') // '/styles/styles.3f9a1c2b.css'
+ * minifyCssCode('styles.css', css) // One file's CSS, minified
  */
 
 import browserslist from 'browserslist'
@@ -44,14 +43,24 @@ const BROWSERS = [
 // A script's URL as a string in another script, ie viewSettings.js's '/scripts/lookup.js'
 const SCRIPT_URL = /(['"])\/scripts\/([\w-]+\.js)\1/g
 
+const CSS_TARGETS = browserslistToTargets(browserslist(BROWSERS))
+
 const hashedUrls = new Map()
 
-function ensureDir(dir) {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+/**
+ * An empty `dir` for this build's files, as nothing links an earlier build's
+ * @param {string} dir
+ * @param {string} ext - ie `.css`
+ */
+function clearDir(dir, ext) {
+  fs.mkdirSync(dir, { recursive: true })
+  for (const file of fs.readdirSync(dir)) {
+    if (file.endsWith(ext)) fs.rmSync(path.join(dir, file))
+  }
 }
 
 /**
- * Writes a minified file under its own name and its hashed one
+ * Writes a minified file under its hashed name
  * @param {string} destDir
  * @param {string} urlDir - Where `destDir` is served, ie `/styles`
  * @param {string} file - ie `styles.css`
@@ -65,13 +74,14 @@ function writeAsset(destDir, urlDir, file, content) {
     .slice(0, 8)
   const ext = path.extname(file)
   const hashedName = `${path.basename(file, ext)}.${hash}${ext}`
-  fs.writeFileSync(path.join(destDir, file), content)
   fs.writeFileSync(path.join(destDir, hashedName), content)
   hashedUrls.set(file, `${urlDir}/${hashedName}`)
 }
 
 /**
- * The URL of a minified asset's hashed copy, ie `styles.css` -> `/styles/styles.3f9a1c2b.css`
+ * The URL of a minified asset's hashed copy, ie `styles.css` -> `/styles/styles.3f9a1c2b.css`.
+ * Templates link CSS and JS only through this, as the `asset` filter.
+ * A hard-coded `/styles/x.css` works under `pnpm dev` but 404s once deployed.
  * @param {string} file
  */
 export function assetUrl(file) {
@@ -80,6 +90,43 @@ export function assetUrl(file) {
   return url
 }
 
+/**
+ * Minifies a stylesheet for the browsers in `BROWSERS`
+ * @param {string} file - Its name, for errors
+ * @param {string} code
+ */
+export function minifyCssCode(file, code) {
+  return transform({
+    filename: file,
+    code: Buffer.from(code),
+    minify: true,
+    targets: CSS_TARGETS,
+  }).code.toString()
+}
+
+/**
+ * Minifies a script
+ * @param {string} code
+ */
+export async function minifyJsCode(code) {
+  const minified = await terserMinify(code, {
+    compress: {
+      dead_code: true,
+      drop_console: false,
+      drop_debugger: true,
+    },
+    mangle: true,
+    format: {
+      comments: 'some',
+    },
+  })
+  return minified.code
+}
+
+/**
+ * Writes each `.css` file at the top of `srcDir` into `destDir` minified, under its hashed name,
+ * after removing earlier builds' ones. Subfolders and other files aren't copied.
+ */
 export async function minifyCss({
   srcDir = path.join(process.cwd(), 'src', 'styles'),
   destDir = path.join(process.cwd(), '_site', 'styles'),
@@ -89,9 +136,7 @@ export async function minifyCss({
     return
   }
 
-  ensureDir(destDir)
-
-  const targets = browserslistToTargets(browserslist(BROWSERS))
+  clearDir(destDir, '.css')
 
   const files = fs.readdirSync(srcDir).filter(f => f.endsWith('.css'))
   const stats = []
@@ -100,14 +145,7 @@ export async function minifyCss({
     const src = path.join(srcDir, file)
     const content = fs.readFileSync(src, 'utf8')
 
-    const result = transform({
-      filename: file,
-      code: Buffer.from(content),
-      minify: true,
-      targets,
-    })
-
-    const minified = result.code.toString()
+    const minified = minifyCssCode(file, content)
     writeAsset(destDir, '/styles', file, minified)
 
     const originalSize = Buffer.byteLength(content, 'utf8')
@@ -123,6 +161,14 @@ export async function minifyCss({
   recordStat('assetsCss', stats)
 }
 
+/**
+ * Writes each `.js` file at the top of `srcDir` into `destDir` minified, under its hashed name,
+ * after removing earlier builds' ones. Subfolders and other files aren't copied.
+ *
+ * A script that loads another names it in a quoted string, ie `'/scripts/lookup.js'`, which gets
+ * swapped for its hashed URL. A template literal or a built path isn't, so it 404s once deployed.
+ * Scripts loaded that way can't load others in turn.
+ */
 export async function minifyJs({
   srcDir = path.join(process.cwd(), 'src', 'scripts'),
   destDir = path.join(process.cwd(), '_site', 'scripts'),
@@ -132,7 +178,7 @@ export async function minifyJs({
     return
   }
 
-  ensureDir(destDir)
+  clearDir(destDir, '.js')
 
   const sources = fs
     .readdirSync(srcDir)
@@ -151,25 +197,15 @@ export async function minifyJs({
       SCRIPT_URL,
       (_, quote, name) => `${quote}${assetUrl(name)}${quote}`
     )
-    const minified = await terserMinify(linked, {
-      compress: {
-        dead_code: true,
-        drop_console: false,
-        drop_debugger: true,
-      },
-      mangle: true,
-      format: {
-        comments: 'some',
-      },
-    })
+    const minified = await minifyJsCode(linked)
 
-    if (minified.code) {
+    if (minified) {
       const originalSize = Buffer.byteLength(code, 'utf8')
-      const minifiedSize = Buffer.byteLength(minified.code, 'utf8')
+      const minifiedSize = Buffer.byteLength(minified, 'utf8')
       const savings = originalSize - minifiedSize
       const savingsPercent = ((savings / originalSize) * 100).toFixed(1)
 
-      writeAsset(destDir, '/scripts', file, minified.code)
+      writeAsset(destDir, '/scripts', file, minified)
       console.log(
         `📦 Minified ${file}: ${originalSize} → ${minifiedSize} bytes (saved ${savings} bytes, ${savingsPercent}%)`
       )

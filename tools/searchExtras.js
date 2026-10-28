@@ -17,6 +17,10 @@
  *
  * The notes' and site pages' bundles each get a filter-values.json, of the filter values they have.
  *
+ * vercel.json caches the hashed files of `pagefind` and each `pagefind-<letters>` bundle for good,
+ * by Pagefind's file names, so a bundle named otherwise, or a new Pagefind version that renames them,
+ * gets the default caching instead.
+ *
  * Run by `pnpm build:search`, after the main index.
  *
  * @module searchExtras
