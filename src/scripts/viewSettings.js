@@ -381,7 +381,11 @@
 
   // Word lookup's scripts and dictionaries, fetched only once it's turned on
   const definer = document.getElementById('definer')
-  if (definer instanceof HTMLInputElement) {
+  // Left hidden without popovers, which show its definitions
+  if (
+    definer instanceof HTMLInputElement &&
+    'popover' in HTMLElement.prototype
+  ) {
     let loading = null
     // Shown now, as it does nothing without JS
     definer.closest('li').hidden = false
