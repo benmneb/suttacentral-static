@@ -928,6 +928,9 @@ main {
       }
 
       .reference {
+        /* Not hidden like its attribute says, which is only for reader views */
+        display: inline;
+
         a {
           display: none;
           border: 1px solid var(--bg-alt-2);

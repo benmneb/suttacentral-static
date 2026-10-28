@@ -712,7 +712,7 @@ eleventyComputed:
           {% capture replacement %}
           {% assign anchor = entry.scx_parallel_anchors[key] %}
           <span id="{{ key }}" class="segment"{% if anchor %} style="anchor-name: {{ anchor }}"{% endif %}>
-            <span class="reference" id="{{ ref }}">
+            <span class="reference" id="{{ ref }}" hidden>
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
               {%- comment -%}
                 Every printed-edition reference too, hidden like the number, so a link like /mn2/en/sujato#bj10.20 has
@@ -743,7 +743,7 @@ eleventyComputed:
               <span class="text">{% if is_heading %}{{ text | softHyphenateTitle | lookupWords: entry.lang }}{% else %}{{ text | lookupWords: entry.lang }}{% endif %}</span>
               {% unless comment == blank %}
                 <button class="variant-btn" popovertarget="comment-{{ key }}" style="anchor-name: --comment{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
-                <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">
+                <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}" hidden>
                   Variant: {{ comment | replace: scOrigin, '' }}
                 </span>
               {% endunless %}
@@ -887,7 +887,7 @@ eleventyComputed:
           {% capture replacement %}
           {% assign anchor = entry.scx_parallel_anchors[key] %}
           <span id="{{ key }}" class="segment"{% if anchor %} style="anchor-name: {{ anchor }}"{% endif %}>
-            <span class="reference" id="{{ ref }}">
+            <span class="reference" id="{{ ref }}" hidden>
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
               {%- comment -%}
                 Every printed-edition reference too, hidden like the number, so a link like /mn2/en/sujato#bj10.20 has
@@ -919,7 +919,7 @@ eleventyComputed:
             <span class="text">{{ text }}</span>
               {% unless comment == blank %}
                 <button popovertarget="comment-{{ key }}" style="anchor-name: --comment{{ forloop.index }}" aria-label="Show {{ entry.author }}'s footnote for segment {{ key }}">*</button>
-                <span class="inline-comment" aria-label="{{ entry.author }}'s footnote for segment {{ key }}">
+                <span class="inline-comment" aria-label="{{ entry.author }}'s footnote for segment {{ key }}" hidden>
                   {{ comment | replace: scOrigin, '' }}
                 </span>
               {% endunless %}
@@ -928,7 +928,7 @@ eleventyComputed:
             {% if rootText %}
               {% assign normalisedRoot = rootText | normalise %}
               {% assign normalisedTitle = entry.original_title | normalise %}
-              <span class="root" lang="{{ entry.root_lang | langTag }}" translate="no" {% unless normalisedRoot contains normalisedTitle %}data-pagefind-ignore="all"{% endunless %}>
+              <span class="root" lang="{{ entry.root_lang | langTag }}" translate="no" hidden {% unless normalisedRoot contains normalisedTitle %}data-pagefind-ignore="all"{% endunless %}>
                 {% if entry.scx_range_sutta_individual
                   and is_header
                   and entry.scx_range_sutta_shown_uid == entry.uid
@@ -940,7 +940,7 @@ eleventyComputed:
                 <span class="text">{% if is_heading %}{{ rootText | softHyphenateTitle | lookupWords: entry.root_lang }}{% else %}{{ rootText | lookupWords: entry.root_lang }}{% endif %}</span>
                 {% unless variant == blank %}
                   <button class="variant-btn" popovertarget="variant-{{ key }}" style="anchor-name: --variant{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
-                  <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">
+                  <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}" hidden>
                     Variant: {{ variant | replace: scOrigin, '' }}
                   </span>
                 {% endunless %}

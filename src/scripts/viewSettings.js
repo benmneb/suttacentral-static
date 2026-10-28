@@ -110,6 +110,21 @@
   viewsMenu.addEventListener('keydown', rememberAnchor)
   viewsMenu.addEventListener('change', restoreAnchor)
 
+  // Reader views go by the hidden attribute, not CSS
+  const rooter = document.getElementById('rooter')
+  let rootsShown = false
+
+  function syncRoots() {
+    if (!(rooter instanceof HTMLInputElement) || rooter.checked === rootsShown)
+      return
+    rootsShown = rooter.checked
+    for (const root of document.querySelectorAll('.segment > .root'))
+      root.hidden = !rootsShown
+  }
+
+  syncRoots()
+  viewsMenu.addEventListener('change', syncRoots)
+
   // References on always shows something
   const segmenter = document.getElementById('segmenter')
   const referenceGroups = [
