@@ -8,19 +8,13 @@
  *
  * Each answer is a list of matches, `{ b: base, d: [definitions], g: grammar, x: [cross-references],
  * m: meaning, p: 1, h: headword }`: `p` where the base has a /define page, and `h` the first headword of its
- * definitions that has one, where that's another word. The same answers pick the page each word of
- * a root text links to.
+ * definitions that has one, where that's another word.
  *
  * Lives here, not in `data/`, as every file in there becomes global data.
  */
 
 import { loadDictionaries } from './dictionaries.js'
-import {
-  defineHref,
-  dpdHeadword,
-  loadDefineWords,
-  pageWord,
-} from './defineWords.js'
+import { dpdHeadword, loadDefineWords, pageWord } from './defineWords.js'
 import { PALI_ENDINGS } from './paliEndings.js'
 
 // A Pāli word in root text: letters, with soft hyphens, syllable breaks and a quote's clitic (ie vā’ti) inside
@@ -32,7 +26,6 @@ const KEPT_TAGS = /^<\/?(b|i|br|sup)\b/i
 
 let loaded = null
 const answers = new Map()
-const targets = new Map()
 
 /** A word as the dictionaries have it: lowercase, no punctuation, soft hyphens or syllable breaks */
 export function cleanPaliWord(word) {
@@ -269,8 +262,8 @@ function serialise({ base, entry, meaning }, words) {
 }
 
 /**
- * Loads what the lookup needs, once per build. Empty, so nothing gets linked, if DPD couldn't be fetched
- * @returns {Promise<{ available: boolean, answerOf: (form: string) => object[], linkWords: (html: string) => string, answers: () => Map<string, object[]> }>}
+ * Loads what the lookup needs, once per build. Empty, so nothing gets answered, if DPD couldn't be fetched
+ * @returns {Promise<{ available: boolean, answerOf: (form: string) => object[], addWords: (html: string) => void, answers: () => Map<string, object[]> }>}
  */
 export function loadLookup() {
   loaded ??= Promise.all([loadDictionaries(), loadDefineWords()]).then(
@@ -290,45 +283,25 @@ export function loadLookup() {
         return answer
       }
 
-      // The page a word links to: its own, or failing that its first match's
-      function targetOf(form) {
-        if (targets.has(form)) return targets.get(form)
-        const target = words.has(form)
-          ? form
-          : (answerOf(form)
-              .map(match => match.h ?? (match.p ? match.b : null))
-              .find(Boolean) ?? null)
-        targets.set(form, target)
-        return target
-      }
-
-      function linkWords(html) {
-        if (!dicts.dpd.size || !words.size) return html
-        return String(html)
+      function addWords(html) {
+        if (!dicts.dpd.size || !words.size) return
+        String(html)
           .split(TAG_OR_ENTITY)
-          .map((part, i) =>
-            i % 2
-              ? part
-              : part.replace(WORD, word => {
-                  const form = cleanPaliWord(word)
-                  if (!form) return word
-                  // Answered even without a page to link, as JS looks a tapped word up all the same
-                  answerOf(form)
-                  const target = targetOf(form)
-                  return target
-                    ? `<a href="${defineHref(target)}" tabindex="-1">${word}</a>`
-                    : word
-                })
-          )
-          .join('')
+          .forEach((part, i) => {
+            if (i % 2) return
+            for (const [word] of part.matchAll(WORD)) {
+              const form = cleanPaliWord(word)
+              if (form) answerOf(form)
+            }
+          })
       }
 
       return {
-        // Whether root texts get linked, which needs DPD and the /define pages' words
+        // Whether root texts get answers, which needs DPD and the /define pages' words
         available: dicts.dpd.size > 0 && words.size > 0,
         answerOf,
-        linkWords,
-        // Every form linkWords was given, by its answer
+        addWords,
+        // Every form addWords was given, by its answer
         answers: () => answers,
       }
     }

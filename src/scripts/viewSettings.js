@@ -368,19 +368,8 @@
   const definer = document.getElementById('definer')
   if (definer instanceof HTMLInputElement) {
     let loading = null
-    // Shown now, as the Chinese one does nothing without JS
+    // Shown now, as it does nothing without JS
     definer.closest('li').hidden = false
-    // The root words' links without their hrefs, as with JS they're only for finding the word, and Safari can't
-    // start selecting text on a link. So they hit-test again too, as the OS dictionary (a hard press on macOS)
-    // needs them to
-    const links = document.querySelectorAll(
-      '.segment .text a[href^="/define/"]'
-    )
-    for (const link of links) {
-      link.dataset.href = link.getAttribute('href')
-      link.removeAttribute('href')
-    }
-    document.documentElement.dataset.lookupJs = ''
 
     function loadLookup() {
       loading ??= (async () => {
@@ -389,9 +378,8 @@
           await loadScript('/scripts/dictionary.js')
           await loadScript('/scripts/lookup.js')
         } catch {
-          // Offline, and never fetched, so the links go to /define as without JS
-          for (const link of links) link.setAttribute('href', link.dataset.href)
-          delete document.documentElement.dataset.lookupJs
+          // Offline and never fetched, so it can be tried again
+          loading = null
         } finally {
           definer.disabled = false
         }

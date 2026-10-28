@@ -6,8 +6,9 @@
  * either side, and Esc or a tap elsewhere closes it. The answers are in shards `dictionary.js` fetches, so it
  * works offline. `viewSettings.js` loads both once the setting is turned on.
  *
- * Without JS, each Pāli word is a link to its /define page, which the CSS lets through only while the setting is
- * on. With it the links are only for finding the word, and a word without one is found where it was tapped.
+ * Each Pāli word gets a span as its segment is first pointed at or reached, for its highlight, and a Chinese
+ * character is found where it was tapped. From the keyboard each segment's root text is a tab stop while it's on,
+ * and Enter looks up its first word and takes focus to the sheet, with its links and buttons, until it closes.
  */
 ;(function () {
   'use strict'
@@ -26,8 +27,6 @@
   const WORD = isLzh
     ? /\p{Script=Han}/gu
     : /[\p{L}\p{M}\u00ad\u2027]+(?:[’'”][\p{L}\p{M}\u00ad\u2027]+)*/gu
-  // As `viewSettings.js` leaves the links, without their hrefs
-  const LINK = 'a[data-href]'
   // The sheet's height, so a word under it gets scrolled up
   const SHEET = 0.3
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)')
@@ -36,15 +35,19 @@
     !!CSS.highlights &&
     typeof Highlight === 'function'
 
+  // The word shown: a Pāli word's span, or a Range of Chinese
   let current = null
   let latest = 0
 
-  const links = main.querySelectorAll(`${TEXT} ${LINK}`)
+  const texts = main.querySelectorAll(TEXT)
+  const wrapped = new WeakSet()
+  popover.tabIndex = -1
 
-  // Tab stops only while it's on, as there's one per word
+  // Tab stops only while it's on
   function setTabbable() {
-    for (const link of links) {
-      link.tabIndex = toggle.checked ? 0 : -1
+    for (const text of texts) {
+      if (toggle.checked) text.tabIndex = 0
+      else text.removeAttribute('tabindex')
     }
   }
   setTabbable()
@@ -70,23 +73,12 @@
     return range
   }
 
-  // The word in a text node at an offset, taking a tap on a word's last half as on it
-  function wordAround(node, offset) {
-    for (const match of node.data.matchAll(WORD)) {
-      const end = match.index + match[0].length
-      if (match.index <= offset && offset <= end && match.index < end) {
-        return rangeOf(node, match.index, end)
-      }
-    }
-    return null
-  }
-
-  function wordAt(event) {
+  // The Chinese character tapped
+  function charAt(event) {
     const caret = caretAt(event.clientX, event.clientY)
     if (caret?.node?.nodeType !== Node.TEXT_NODE) return null
     if (!caret.node.parentElement?.closest(TEXT)) return null
-    if (!isLzh) return wordAround(caret.node, caret.offset)
-    // The character tapped, which the caret can be either side of
+    // The caret can be either side of it
     const { data } = caret.node
     for (const offset of [caret.offset, caret.offset - 1]) {
       if (offset >= 0 && /\p{Script=Han}/u.test(data[offset] ?? '')) {
@@ -106,20 +98,50 @@
     })
   }
 
+  // A segment's Pāli words, each in a span, as Safari leaves a replaced highlight's range painted. One segment at
+  // a time, as Safari is slow to take thousands of new elements at once
+  function wordsOf(text) {
+    if (!wrapped.has(text)) {
+      wrapped.add(text)
+      const nodes = []
+      const walk = document.createTreeWalker(text, NodeFilter.SHOW_TEXT)
+      while (walk.nextNode()) nodes.push(walk.currentNode)
+      for (const node of nodes) wrap(node)
+    }
+    return text.querySelectorAll('.word')
+  }
+
+  function wrap(node) {
+    const fragment = document.createDocumentFragment()
+    let at = 0
+    for (const match of node.data.matchAll(WORD)) {
+      if (match.index > at) fragment.append(node.data.slice(at, match.index))
+      const span = document.createElement('span')
+      span.className = 'word'
+      span.textContent = match[0]
+      fragment.append(span)
+      at = match.index + match[0].length
+    }
+    if (!at) return
+    if (at < node.data.length) fragment.append(node.data.slice(at))
+    node.replaceWith(fragment)
+  }
+
   /** The word before or after the one shown, or null at either end */
   function step(direction) {
     if (!current) return null
+    if (!isLzh) return stepWord(direction)
     const walk = walker()
-    let node = current.range.startContainer
+    let node = current.startContainer
     walk.currentNode = node
     while (node) {
       const matches = [...node.data.matchAll(WORD)]
       const candidates =
-        node === current.range.startContainer
+        node === current.startContainer
           ? matches.filter(match =>
               direction > 0
-                ? match.index >= current.range.endOffset
-                : match.index + match[0].length <= current.range.startOffset
+                ? match.index >= current.endOffset
+                : match.index + match[0].length <= current.startOffset
             )
           : matches
       const match = direction > 0 ? candidates[0] : candidates.at(-1)
@@ -131,24 +153,34 @@
     return null
   }
 
-  let marked = null
-
-  // A link by a class, as Safari leaves a replaced highlight's range painted
-  function highlight(range, link) {
-    clearHighlight()
-    if (link) {
-      marked = link
-      link.classList.add('looked-up')
-    } else if (canHighlight) {
-      CSS.highlights.set('lookup', new Highlight(range))
+  // The Pāli word either side, in the next segment with any at the end of this one
+  function stepWord(direction) {
+    const text = current.closest(TEXT)
+    const own = [...wordsOf(text)]
+    const near = own[own.indexOf(current) + direction]
+    if (near) return near
+    let i = Array.prototype.indexOf.call(texts, text) + direction
+    for (; texts[i]; i += direction) {
+      const words = wordsOf(texts[i])
+      if (words.length) return words[direction > 0 ? 0 : words.length - 1]
     }
+    return null
+  }
+
+  function highlight(word) {
+    clearHighlight()
+    if (word instanceof Element) word.classList.add('looked-up')
+    else if (canHighlight) CSS.highlights.set('lookup', new Highlight(word))
   }
 
   function clearHighlight() {
-    marked?.classList.remove('looked-up')
-    marked = null
+    if (current instanceof Element) current.classList.remove('looked-up')
     if (canHighlight) CSS.highlights.delete('lookup')
   }
+
+  // The element a word is in
+  const elementOf = word =>
+    word instanceof Element ? word : word.startContainer.parentElement
 
   function icon(name) {
     return `<i class="icon i-${name}"></i>`
@@ -161,20 +193,43 @@
     return `/define/${encodeURI(word)}`
   }
 
-  // Opens the sheet on the word at once, its answer following once the shard is in
-  function open(word, link) {
-    const define = link
-      ? `<a href="${link.dataset.href}" aria-label="Full definitions of ${escape(word)}">${icon('bookOpen')}</a>`
-      : ''
-    popover.innerHTML =
-      `<section aria-busy="true"><dfn lang="${lang}" translate="no">${escape(word)}</dfn></section>` +
-      `<nav aria-label="Word lookup">` +
-      `<button type="button" data-step="-1" aria-label="Previous word" aria-keyshortcuts="ArrowLeft">${icon('arrowLeft')}</button>` +
-      define +
-      `<button type="button" data-close aria-label="Close" aria-keyshortcuts="Escape">${icon('xMark')}</button>` +
-      `<button type="button" data-step="1" aria-label="Next word" aria-keyshortcuts="ArrowRight">${icon('arrowRight')}</button>` +
-      `</nav>`
+  function defineLink(page) {
+    return `<a href="${definePath(page)}" aria-label="Full definitions of ${escape(page)}">${icon('bookOpen')}</a>`
+  }
+
+  // The page a match's definitions are on: its own, or its headword's
+  const pageOf = match => (match.p ? match.b : match.h)
+
+  // Opens the sheet on the word at once, its answer following once the shard is in. The nav stays, so a button
+  // keeps its focus from word to word
+  function open(word) {
+    if (!popover.querySelector('nav')) {
+      popover.innerHTML =
+        `<section></section>` +
+        `<nav aria-label="Word lookup">` +
+        `<button type="button" data-step="-1" aria-label="Previous word" aria-keyshortcuts="ArrowLeft">${icon('arrowLeft')}</button>` +
+        `<button type="button" data-close aria-label="Close" aria-keyshortcuts="Escape">${icon('xMark')}</button>` +
+        `<button type="button" data-step="1" aria-label="Next word" aria-keyshortcuts="ArrowRight">${icon('arrowRight')}</button>` +
+        `</nav>`
+    }
+    const section = popover.querySelector('section')
+    section.setAttribute('aria-busy', 'true')
+    section.innerHTML = `<dfn lang="${lang}" translate="no">${escape(word)}</dfn>`
     if (!popover.matches(':popover-open')) popover.showPopover()
+  }
+
+  // The nav's link to the word's /define page, if it has one
+  function setDefine(page) {
+    const link = popover.querySelector('nav > a')
+    if (link) {
+      if (link === document.activeElement) popover.focus()
+      link.remove()
+    }
+    if (page) {
+      popover
+        .querySelector('[data-close]')
+        .insertAdjacentHTML('beforebegin', defineLink(page))
+    }
   }
 
   function paliHtml(word, answer) {
@@ -184,9 +239,9 @@
     const headed = !(matches.length === 1 && matches[0].b === cleaned)
     return matches
       .map(match => {
-        const page = match.p ? match.b : match.h
+        const page = pageOf(match)
         const dt = headed
-          ? `<dt><dfn lang="pi" translate="no">${escape(match.b)}</dfn>${page ? ` <a href="${definePath(page)}" aria-label="Full definitions of ${escape(page)}">${icon('bookOpen')}</a>` : ''}</dt>`
+          ? `<dt><dfn lang="pi" translate="no">${escape(match.b)}</dfn>${page ? ` ${defineLink(page)}` : ''}</dt>`
           : ''
         let dd = match.g
           ? `<span class="grammar">${escape(match.g)}</span>`
@@ -212,47 +267,52 @@
   }
 
   // Scrolls the word up out from under the sheet
-  function keepInSight(range) {
-    const rect = range.getBoundingClientRect()
+  function keepInSight(word) {
+    const rect = word.getBoundingClientRect()
     if (rect.bottom <= innerHeight * (1 - SHEET) && rect.top >= 0) return
-    range.startContainer.parentElement?.scrollIntoView({
+    elementOf(word)?.scrollIntoView({
       block: 'center',
       behavior: reducedMotion.matches ? 'auto' : 'smooth',
     })
   }
 
-  async function show(range) {
+  async function show(target) {
     const search = ++latest
-    const node = range.startContainer
-    const link = node.parentElement?.closest(LINK) ?? null
-    const word = range.toString()
-    current = { range, link }
-    highlight(range, link)
-    open(isLzh ? word : dictionary.cleanWord(word), link)
-    keepInSight(range)
-    link?.setAttribute('aria-busy', 'true')
+    const word = target.textContent ?? target.toString()
+    highlight(target)
+    current = target
+    open(isLzh ? word : dictionary.cleanWord(word))
+    keepInSight(target)
+    // The words either side too, so stepping to one is as quick as a tap
+    if (!isLzh) {
+      for (const near of [stepWord(1), stepWord(-1)]) {
+        if (near) dictionary.lookup(dict, near.textContent)
+      }
+    }
 
     let html
+    let answer
     if (isLzh) {
+      const node = target.startContainer
       // Traditional, as the dictionary is, where `simplify.js` has swapped it
       const data = window.scxSimplify?.original(node) ?? node.data
-      const at = [...data.slice(0, range.startOffset)].length
+      const at = [...data.slice(0, target.startOffset)].length
       const terms = await dictionary.lookupLzh(data, at)
       // The longest term the character is in, rather than the character alone
       if (search === latest && terms?.length) {
         const before = [...data].slice(0, terms[0].start).join('').length
         const termRange = rangeOf(node, before, before + terms[0].term.length)
-        current.range = termRange
-        highlight(termRange, null)
+        highlight(termRange)
+        current = termRange
       }
       html = terms && lzhHtml(terms)
     } else {
-      const answer = await dictionary.lookup(dict, word)
+      answer = await dictionary.lookup(dict, word)
       html = answer && paliHtml(word, answer)
     }
 
-    link?.removeAttribute('aria-busy')
     if (search !== latest || !toggle.checked) return
+    setDefine(answer?.map(pageOf).find(Boolean))
     const section = popover.querySelector('section')
     section.insertAdjacentHTML(
       'beforeend',
@@ -263,8 +323,8 @@
   }
 
   function go(direction) {
-    const range = step(direction)
-    if (range) show(range)
+    const word = step(direction)
+    if (word) show(word)
   }
 
   // In the capture phase, so a tap on a word isn't also taken by listen as one to read from
@@ -274,31 +334,46 @@
       const target = event.target
       if (!toggle.checked || !(target instanceof Element)) return
       if (!target.closest(TEXT) || target.closest('a[href], button')) return
-      const link = target.closest(LINK)
       // Not a tap but the end of selecting text, which has to stay selectable
       if (!getSelection()?.isCollapsed) return
-      const range = link ? rangeOfLink(link) : wordAt(event)
-      if (!range) return
+      const word = isLzh ? charAt(event) : target.closest('.word')
+      if (!word) return
       event.preventDefault()
       event.stopPropagation()
-      show(range)
+      show(word)
     },
     true
   )
 
-  function rangeOfLink(link) {
-    const node = link.firstChild
-    return node?.nodeType === Node.TEXT_NODE
-      ? rangeOf(node, 0, node.data.length)
-      : null
+  // The first word of a segment's text, for one tabbed to
+  function firstWord(text) {
+    if (!isLzh) return wordsOf(text)[0] ?? null
+    const walk = walker()
+    walk.currentNode = text
+    for (
+      let node = walk.nextNode();
+      node && text.contains(node);
+      node = walk.nextNode()
+    ) {
+      const match = node.data.matchAll(WORD).next().value
+      if (match)
+        return rangeOf(node, match.index, match.index + match[0].length)
+    }
+    return null
   }
+
+  main.addEventListener('pointerover', event => {
+    if (isLzh || !toggle.checked) return
+    const text = event.target.closest?.(TEXT)
+    if (text) wordsOf(text)
+  })
 
   // The answer's fetch starts on press, rather than on the click after release. Not on touch, where a press is
   // as likely the start of a scroll
   main.addEventListener('pointerdown', event => {
-    if (event.pointerType === 'touch' || !toggle.checked) return
-    const link = event.target.closest?.(`${TEXT} ${LINK}`)
-    if (link && !isLzh) dictionary.lookup(dict, link.textContent)
+    if (event.pointerType === 'touch' || !toggle.checked || isLzh) return
+    const word = event.target.closest?.(`${TEXT} .word`)
+    if (word) dictionary.lookup(dict, word.textContent)
   })
 
   popover.addEventListener('click', event => {
@@ -308,17 +383,25 @@
     else go(Number(button.dataset.step))
   })
 
-  popover.addEventListener('toggle', event => {
+  // Before it hides, as that takes focus out of it
+  popover.addEventListener('beforetoggle', event => {
     if (event.newState !== 'closed') return
+    if (current && popover.contains(document.activeElement)) {
+      elementOf(current)?.closest(TEXT)?.focus({ preventScroll: true })
+    }
     clearHighlight()
     current = null
   })
 
   document.addEventListener('keydown', event => {
-    // A word tabbed to, as the links have no href for Enter to follow
-    if (event.key === 'Enter' && event.target.matches?.(`${TEXT} ${LINK}`)) {
-      const range = toggle.checked && rangeOfLink(event.target)
-      if (range) show(range)
+    // A segment tabbed to
+    if (event.key === 'Enter' && event.target.matches?.(TEXT)) {
+      const word = toggle.checked && firstWord(event.target)
+      if (word) {
+        event.preventDefault()
+        show(word)
+        popover.focus({ preventScroll: true })
+      }
       return
     }
     if (!popover.matches(':popover-open')) return
@@ -328,5 +411,23 @@
       event.preventDefault()
       go(event.key === 'ArrowLeft' ? -1 : 1)
     }
+    if (event.key === 'Tab') tabOut(event)
   })
+
+  // Out of either end of the sheet to the segments either side of the word, as if it came straight after it
+  // rather than at the end of the text
+  function tabOut(event) {
+    if (!current || !popover.contains(document.activeElement)) return
+    const focusable = popover.querySelectorAll('a[href], button')
+    const edge = event.shiftKey
+      ? [popover, focusable[0]].includes(document.activeElement)
+      : document.activeElement === focusable[focusable.length - 1]
+    if (!edge) return
+    const text = elementOf(current).closest(TEXT)
+    const index = Array.prototype.indexOf.call(texts, text)
+    const next = event.shiftKey ? text : texts[index + 1]
+    if (!next) return
+    event.preventDefault()
+    next.focus()
+  }
 })()

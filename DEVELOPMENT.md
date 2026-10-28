@@ -207,7 +207,7 @@ Then, when a release passes the tests, or you publish a draft release or pre-rel
 - **Links:** internal links go to pages that exist
 - **Search:** the search index has every text page, and hasn't shrunk since production, the extra indexes have every text's titles, every English note once, every Chinese text and every site page, the reference files only list text pages with their titles, `volpage:DN ii 72` finds DN 16, and simplified Chinese has its traditional forms
 - **Site pages:** every key the site pages use is in the strings fetched from .net (read from `.cache`, no build needed), and every page in the site pages menu is built with a heading and its text
-- **Dictionaries:** each dictionary in `.cache` has at least about 95% of the words it had (no build needed), the `/define` pages have their entries and `/map` links to them, and word lookup's files are all there and link and answer at least 97% of the sample texts' words
+- **Dictionaries:** each dictionary in `.cache` has at least about 95% of the words it had (no build needed), the `/define` pages have their entries and `/map` links to them, and word lookup's files are all there and answer at least 97% of the sample texts' words, with a `/define` page
 
 The site's structure comes from SuttaCentral's APIs, so pages coming and going with them is fine - only losing more than a few fails. The limits are constants at the top of each `tests/*.test.js` file. A full run takes a few minutes, mostly reading the mass of HTML.
 

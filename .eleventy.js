@@ -171,10 +171,10 @@ export default function (eleventyConfig) {
     return new URL(url).hostname
   })
 
-  // Each word of a Pāli root text as a link to its /define page, for word lookup
-  eleventyConfig.addFilter('lookupLinks', async function (html, lang) {
-    if (lang !== 'pli') return html
-    return (await loadLookup()).linkWords(html)
+  // Each word of a Pāli root text into word lookup's answers, leaving the text as it is
+  eleventyConfig.addFilter('lookupWords', async function (html, lang) {
+    if (lang === 'pli') (await loadLookup()).addWords(html)
+    return html
   })
 
   // A root title's words, for search to find a compound title by any of them

@@ -188,11 +188,7 @@ eleventyComputed:
             {% endif %}
           {% endif %}
           {% if entry.is_root and lookupDict != blank %}
-            <li
-              {% if lookupDict == "lzh-en" %}
-                hidden
-              {% endif %}
-            >
+            <li hidden>
               <label for="definer">
                 <span class="with-icon">
                   {% icon "bookOpen" -%}
@@ -252,12 +248,7 @@ eleventyComputed:
               <input type="checkbox" id="rooter-first">
             </li>
             {% if lookupDict != blank %}
-              <li
-                class="sub"
-                {% if lookupDict == "lzh-en" %}
-                  hidden
-                {% endif %}
-              >
+              <li class="sub" hidden>
                 <label for="definer">
                   <span class="with-icon">
                     {% icon "bookOpen" -%}
@@ -745,7 +736,7 @@ eleventyComputed:
                   {% endif %}
                 {% endif %}
               {% endif %}
-              <span class="text">{% if is_heading %}{{ text | softHyphenateTitle | lookupLinks: entry.lang }}{% else %}{{ text | lookupLinks: entry.lang }}{% endif %}</span>
+              <span class="text">{% if is_heading %}{{ text | softHyphenateTitle | lookupWords: entry.lang }}{% else %}{{ text | lookupWords: entry.lang }}{% endif %}</span>
               {% unless comment == blank %}
                 <button class="variant-btn" popovertarget="comment-{{ key }}" style="anchor-name: --comment{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
                 <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">
@@ -942,7 +933,7 @@ eleventyComputed:
                     {% capture rootText %}{{ entry.scx_range_sutta_title }}{% endcapture %}
                   {% endif %}
                 {% endif %}
-                <span class="text">{% if is_heading %}{{ rootText | softHyphenateTitle | lookupLinks: entry.root_lang }}{% else %}{{ rootText | lookupLinks: entry.root_lang }}{% endif %}</span>
+                <span class="text">{% if is_heading %}{{ rootText | softHyphenateTitle | lookupWords: entry.root_lang }}{% else %}{{ rootText | lookupWords: entry.root_lang }}{% endif %}</span>
                 {% unless variant == blank %}
                   <button class="variant-btn" popovertarget="variant-{{ key }}" style="anchor-name: --variant{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
                   <span class="inline-comment" aria-label="Variant reading for segment {{ ref }}">

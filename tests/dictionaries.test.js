@@ -71,13 +71,13 @@ const DEFINITION_FIELDS = ['definition', 'text', 'xr', 'homonyms']
 // Share of a dictionary's entries that may have no definition, as DDB has a blank one or two
 const MAX_BROKEN_SHARE = 0.001
 
-// Root texts whose words word lookup has to know, and the share it has to link to a /define page and to answer,
+// Root texts whose words word lookup has to know, and the share it has to answer and to give a /define page,
 // each about 2 points under what they had in October 2026
 const LOOKUP_PAGES = ['/mn1/pli/ms/', '/dn16/pli/ms/', '/mn10/pli/ms/']
-const MIN_LINKED_SHARE = 0.97
 const MIN_ANSWERED_SHARE = 0.97
+const MIN_PAGED_SHARE = 0.97
 
-// Words lookup has to answer, and the headword each links to
+// Words lookup has to answer, and the headword of each
 const LOOKUP_CANARIES = {
   evaṁ: 'evaṁ',
   bhagavā: 'bhagavā',
@@ -395,34 +395,34 @@ describe('Word lookup', async () => {
   })
 
   for (const url of LOOKUP_PAGES) {
-    it(`links and answers the words of ${url}`, async () => {
+    it(`answers the words of ${url}, with a /define page`, async () => {
       const html = await readPage(url)
       let words = 0
-      let linked = 0
       let answered = 0
+      let paged = 0
       for (const [, text] of html.matchAll(
         /<span class="translation" lang="pi" translate="no"><span class="text">(.*?)<\/span>/g
       )) {
-        linked += (text.match(/<a href="\/define\//g) ?? []).length
         for (const word of text.replace(/<[^>]*>/g, '').match(WORD) ?? []) {
           words++
-          if ((await answerOf(word)).length) answered++
+          const answer = await answerOf(word)
+          if (answer.length) answered++
+          if (answer.some(match => match.p || match.h)) paged++
         }
       }
       assert.ok(words > 0, 'No Pāli root text')
       assert.ok(
-        linked / words >= MIN_LINKED_SHARE,
-        `Only ${linked} of ${words} words linked`
-      )
-      assert.ok(
         answered / words >= MIN_ANSWERED_SHARE,
         `Only ${answered} of ${words} words answered`
+      )
+      assert.ok(
+        paged / words >= MIN_PAGED_SHARE,
+        `Only ${paged} of ${words} words with a /define page`
       )
     })
   }
 
-  it('answers the canaries, and links each to its headword', async () => {
-    const html = await readPage('/mn1/pli/ms/')
+  it('answers the canaries, each with its headword', async () => {
     for (const [word, headword] of Object.entries(LOOKUP_CANARIES)) {
       const answer = await answerOf(word)
       assert.ok(answer.length, `No answer for ${word}`)
@@ -431,7 +431,6 @@ describe('Word lookup', async () => {
         `${word} isn't answered with ${headword}: ${JSON.stringify(answer).slice(0, 200)}`
       )
     }
-    assert.match(html, /<a href="\/define\/evaṁ" tabindex="-1">Evaṁ<\/a>/)
   })
 
   it("has room on /search for a word's definition", async () => {

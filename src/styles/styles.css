@@ -3274,65 +3274,27 @@ body > .skip:focus {
   background-color: var(--tts-hover-background-color);
 }
 
-/* Chinese lookup's row until lookup.js shows it, as the menu's rows are flex, which beats [hidden] */
+/* Rows viewSettings.js unhides, as the menu's rows are flex, which beats [hidden] */
 #views-menu > li[hidden] {
   display: none;
 }
 
-/* Word lookup's links on each root word, which look like the text they are */
-.segment .text a[href^='/define/'] {
-  color: inherit;
-  text-decoration: none;
-  /* Not followable while the setting is off. With JS they have no href, see viewSettings.js */
-  pointer-events: none;
-  /* Not the pointer the UA gives a link, as it's only text while the setting is off */
-  cursor: text;
-  user-select: text;
-
-  &:visited {
-    color: inherit;
-  }
-
-  &:hover,
-  &:active {
-    color: inherit;
-    background-color: transparent;
+/* Any root word can be tapped while it's on */
+aside:has(#definer:checked) ~ main .segment > :is(.translation, .root) {
+  &:lang(pi) > .text .word,
+  &:lang(lzh) > .text {
+    cursor: help;
   }
 }
 
-&:has(#definer:checked) .segment .text a:is([href^='/define/'], [data-href]) {
-  pointer-events: auto;
-  cursor: pointer;
-
-  &:hover {
-    color: var(--background-color);
-    background-color: var(--primary-color);
-    border-radius: var(--rounding);
-    box-shadow:
-      0.1rem 0 0 var(--primary-color),
-      -0.1rem 0 0 var(--primary-color);
-  }
-
-  &[aria-busy='true'] {
-    cursor: progress;
-  }
-}
-
-/* Any word can be tapped with JS, not only those with a link */
-:root[data-lookup-js]:has(#definer:checked)
-  .segment
-  > :is(.translation, .root):is(:lang(pi), :lang(lzh))
-  > .text {
-  cursor: pointer;
-}
-
-.segment .text a[data-href].looked-up {
+.segment .text .word.looked-up {
   color: var(--background-color);
   background-color: var(--primary-color);
   border-radius: var(--rounding);
   box-shadow:
     0.1rem 0 0 var(--primary-color),
     -0.1rem 0 0 var(--primary-color);
+  box-decoration-break: clone;
 }
 
 ::highlight(lookup) {
@@ -3356,6 +3318,10 @@ body > .skip:focus {
   &:popover-open {
     display: flex;
     flex-direction: column;
+  }
+
+  &:focus {
+    outline: none;
   }
 
   section {
@@ -3443,6 +3409,13 @@ body > .skip:focus {
 
     a {
       border-left: 1px solid var(--bg-alt-3);
+
+      &:is(:hover, :active) {
+        color: inherit;
+        background-color: var(--details-summary-hover-background);
+        border-radius: 0;
+        box-shadow: none;
+      }
     }
 
     button,
