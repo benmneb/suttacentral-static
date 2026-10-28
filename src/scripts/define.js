@@ -3,8 +3,8 @@
  *
  * Finds words with a /define page as they're typed into the form on /define and each word's page: those
  * starting with what's typed, with or without its diacritics, then those spelt like it. Enter goes to the
- * first. The words are in a list per first letter, fetched when one is first typed. Without it, the form
- * searches the site on DuckDuckGo.
+ * first, and up/down keys move through them. The words are in a list per first letter, fetched when one is
+ * first typed. Without it, the form searches the site on DuckDuckGo.
  */
 ;(function () {
   'use strict'
@@ -133,7 +133,39 @@
     if (search === latest) render(find(words, query))
   }
 
+  const links = () => [...results.querySelectorAll('a')]
+
+  /** Whether a modifier is held, so ⌥↑ and the like keep their usual meaning */
+  const modified = event =>
+    event.altKey || event.ctrlKey || event.metaKey || event.shiftKey
+
   input.addEventListener('input', show)
+  input.addEventListener('keydown', event => {
+    if (event.key !== 'ArrowDown' || modified(event) || results.hidden) return
+    const first = links()[0]
+    if (first) {
+      event.preventDefault()
+      first.focus()
+    }
+  })
+  results.addEventListener('keydown', event => {
+    if (modified(event)) return
+    const all = links()
+    const index = all.indexOf(document.activeElement)
+    if (index < 0) return
+    const target =
+      event.key === 'ArrowDown'
+        ? all[index + 1]
+        : event.key === 'ArrowUp'
+          ? (all[index - 1] ?? input)
+          : event.key === 'Escape'
+            ? input
+            : null
+    if (target) {
+      event.preventDefault()
+      target.focus()
+    }
+  })
   form.addEventListener('submit', async event => {
     event.preventDefault()
     await show()
