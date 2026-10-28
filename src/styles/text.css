@@ -2300,7 +2300,6 @@ aside:has(#definer:checked) ~ main .segment > :is(.translation, .root) {
       font: inherit;
 
       &:is(button:not(:disabled), a[href]):hover {
-        color: inherit;
         background-color: var(--details-summary-hover-background);
       }
     }
