@@ -182,7 +182,7 @@ dfn.upright {
   }
 
   [title] {
-    white-space: nowrap;
+    display: inline-block;
   }
 
   .volpages .icon {
