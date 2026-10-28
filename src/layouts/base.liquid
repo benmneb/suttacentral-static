@@ -35,9 +35,9 @@
       {% endif %}
     {% endfor %}
     <meta name="twitter:card" content="summary_large_image">
-    <link rel="stylesheet" href="/styles/styles.css">
+    <link rel="stylesheet" href="{{ 'styles.css' | asset }}">
     {% for sheet in styles %}
-      <link rel="stylesheet" href="/styles/{{ sheet }}">
+      <link rel="stylesheet" href="{{ sheet | asset }}">
     {% endfor %}
     {% if headStyle %}
       <style>
@@ -58,10 +58,10 @@
       data-allow-params="query"
       src="https://scripts.simpleanalyticscdn.com/light.js"
     ></script>
-    <script src="/scripts/preSearch.js" defer></script>
+    <script src="{{ 'preSearch.js' | asset }}" defer></script>
     {% if scripts %}
       {% for script in scripts %}
-        <script src="/scripts/{{ script }}" defer></script>
+        <script src="{{ script | asset }}" defer></script>
       {% endfor %}
     {% endif %}
   </head>

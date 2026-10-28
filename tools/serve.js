@@ -39,6 +39,11 @@ const server = createServer((req, res) => {
       `${styleText('dim', req.method)} ${req.url} ${styleText(statusColor(res.statusCode), String(res.statusCode))} ${styleText('dim', `${ms}ms`)}`
     )
   })
+  // The plain copy, which `pnpm minify:*` keeps current for pages built earlier
+  req.url = req.url.replace(
+    /^(\/(?:styles|scripts)\/[\w-]+)\.[0-9a-f]{8}(\.(?:css|js))(?=$|\?)/,
+    '$1$2'
+  )
   try {
     assets(req, res)
   } catch (error) {

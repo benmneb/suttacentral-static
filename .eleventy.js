@@ -10,7 +10,7 @@ import { loadLookup } from './src/helpers/lookupAnswers.js'
 import { writeLookupShards } from './src/helpers/lookupShards.js'
 import { mapData } from './src/helpers/mapPlaces.js'
 import { writeMiniMap } from './src/helpers/miniMap.js'
-import { minifyCss, minifyJs } from './src/helpers/minifyAssets.js'
+import { assetUrl, minifyCss, minifyJs } from './src/helpers/minifyAssets.js'
 import { ogTags } from './src/helpers/pageMetadata.js'
 import { parallelAnchor, parallelKeyLabel } from './src/helpers/parallelRuns.js'
 import { isMultiTextSpan } from './src/helpers/rangeSuttas.js'
@@ -160,6 +160,7 @@ export default function (eleventyConfig) {
     return `<i class="icon${size ? ` ${size}` : ''} i-${name}"></i>`
   })
 
+  eleventyConfig.addFilter('asset', assetUrl)
   eleventyConfig.addFilter('t', t)
   eleventyConfig.addFilter('langTag', langTag)
   eleventyConfig.addFilter('defineHref', defineHref)
@@ -323,22 +324,10 @@ export default function (eleventyConfig) {
 
   eleventyConfig.addPassthroughCopy({ 'src/images': 'images' })
 
-  eleventyConfig.addPassthroughCopy({ 'src/styles': 'styles' })
-  eleventyConfig.on('eleventy.after', async () => {
-    try {
-      await minifyCss()
-    } catch (e) {
-      console.error('Error while minifying CSS:', e)
-    }
-  })
-
-  eleventyConfig.addPassthroughCopy({ 'src/scripts': 'scripts' })
-  eleventyConfig.on('eleventy.after', async () => {
-    try {
-      await minifyJs()
-    } catch (e) {
-      console.error('Error while minifying JS:', e)
-    }
+  // Before the pages, which link the hashed names
+  eleventyConfig.on('eleventy.before', async () => {
+    await minifyCss()
+    await minifyJs()
   })
 
   return {

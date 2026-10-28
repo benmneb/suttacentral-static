@@ -465,7 +465,7 @@ async function deployToVercel(isDryRun = false) {
   console.log(`Deploying to Vercel ${deployType}...`)
 
   const prodFlag = isDryRun ? '' : '--prod'
-  const command = `npx vercel deploy --archive=tgz --cwd=_site ${prodFlag} --token="${VERCEL_TOKEN}"`
+  const command = `npx vercel deploy --archive=tgz --cwd=_site ${prodFlag} -A "${join(process.cwd(), 'vercel.json')}" --token="${VERCEL_TOKEN}"`
 
   try {
     // Run deployment and capture output
