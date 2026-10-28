@@ -190,7 +190,7 @@ dfn.upright {
     color: var(--text-color-secondary);
   }
 
-  :is(.alt-acronym, .volpages):not(.texts-list .volpages) {
+  :is(.alt-acronym, .volpages):not(.texts-list *, .parallel-list *) {
     font-size: small;
   }
 }
@@ -880,7 +880,7 @@ main {
         }
 
         > p {
-          margin: 0.3rem 0 0;
+          margin: 0.3rem 0;
           font-size: small;
         }
       }
