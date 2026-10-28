@@ -3,8 +3,8 @@
  *
  * Shows what a word of the root text means in a sheet along the bottom, while "Word lookup" is on: a Pāli word's
  * answer from DPD, or the Chinese terms that take in the character. ← and → or the sheet's arrows go to the words
- * either side, and Esc or a tap elsewhere closes it. The answers are in shards `dictionary.js` fetches, so it
- * works offline. `viewSettings.js` loads both once the setting is turned on.
+ * either side, and Esc or a tap elsewhere closes it. Its help button gives the source and keys. The answers are
+ * in shards `dictionary.js` fetches, so it works offline. `viewSettings.js` loads both once the setting is turned on.
  *
  * Each Pāli word gets a span as its segment is first pointed at or reached, for its highlight, and a Chinese
  * character is found where it was tapped. From the keyboard each segment's root text is a tab stop while it's on,
@@ -200,35 +200,68 @@
   // The page a match's definitions are on: its own, or its headword's
   const pageOf = match => (match.p ? match.b : match.h)
 
+  function helpHtml() {
+    const unit = isLzh ? 'character' : 'word'
+    const source = isLzh
+      ? '<a href="http://www.buddhism-dict.net/ddb/">Digital Dictionary of Buddhism</a>'
+      : '<a href="https://digitalpalidictionary.github.io/">Digital Pāḷi Dictionary</a>'
+    return (
+      `<p>Source: ${source}</p>` +
+      (isLzh
+        ? '<p>Terms are matched by machine, so results are not always accurate.</p>'
+        : '<p>Pāli words are analysed by machine, so results are not always accurate.</p>' +
+          `<p>The book icon ${icon('bookOpen')} goes to a word’s full dictionary entry.</p>`) +
+      '<h2 id="definition-keys">Keyboard</h2>' +
+      '<dl aria-labelledby="definition-keys">' +
+      `<dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Previous or next ${unit}</dd>` +
+      '<dt><kbd>Tab</kbd></dt><dd>Through the text, segment by segment</dd>' +
+      `<dt><kbd>Enter</kbd></dt><dd>Looks up a segment’s first ${unit}</dd>` +
+      '<dt><kbd>Esc</kbd></dt><dd>Closes this</dd>' +
+      '<dt><kbd>D</kbd></dt><dd>Turns word lookup on or off</dd>' +
+      '</dl>'
+    )
+  }
+
   // Opens the sheet on the word at once, its answer following once the shard is in. The nav stays, so a button
   // keeps its focus from word to word
   function open(word) {
     if (!popover.querySelector('nav')) {
       popover.innerHTML =
         `<section></section>` +
+        `<section id="definition-help" aria-label="Word lookup help" hidden>${helpHtml()}</section>` +
         `<nav aria-label="Word lookup">` +
         `<button type="button" data-step="-1" aria-label="Previous word" aria-keyshortcuts="ArrowLeft">${icon('arrowLeft')}</button>` +
+        `<button type="button" data-help aria-label="Help" aria-expanded="false" aria-controls="definition-help">${icon('questionMarkCircle')}</button>` +
+        (isLzh ? '' : `<a>${icon('bookOpen')}</a>`) +
         `<button type="button" data-close aria-label="Close" aria-keyshortcuts="Escape">${icon('xMark')}</button>` +
         `<button type="button" data-step="1" aria-label="Next word" aria-keyshortcuts="ArrowRight">${icon('arrowRight')}</button>` +
         `</nav>`
     }
+    setHelp(false)
     const section = popover.querySelector('section')
     section.setAttribute('aria-busy', 'true')
     section.innerHTML = `<dfn lang="${lang}" translate="no">${escape(word)}</dfn>`
     if (!popover.matches(':popover-open')) popover.showPopover()
   }
 
-  // The nav's link to the word's /define page, if it has one
+  // The help in place of the answer, or the answer back
+  function setHelp(shown) {
+    popover.querySelector('[data-help]').setAttribute('aria-expanded', shown)
+    popover.querySelector('section').hidden = shown
+    popover.querySelector('#definition-help').hidden = !shown
+  }
+
+  // The nav's link to the word's /define page, or a placeholder where it has none, so the buttons stay put
   function setDefine(page) {
     const link = popover.querySelector('nav > a')
-    if (link) {
-      if (link === document.activeElement) popover.focus()
-      link.remove()
-    }
+    if (!link) return
     if (page) {
-      popover
-        .querySelector('[data-close]')
-        .insertAdjacentHTML('beforebegin', defineLink(page))
+      link.href = definePath(page)
+      link.setAttribute('aria-label', `Full definitions of ${page}`)
+    } else {
+      if (link === document.activeElement) popover.focus()
+      link.removeAttribute('href')
+      link.removeAttribute('aria-label')
     }
   }
 
@@ -380,6 +413,8 @@
     const button = event.target.closest('button')
     if (!button) return
     if (button.hasAttribute('data-close')) popover.hidePopover()
+    else if (button.hasAttribute('data-help'))
+      setHelp(button.getAttribute('aria-expanded') !== 'true')
     else go(Number(button.dataset.step))
   })
 
@@ -418,7 +453,9 @@
   // rather than at the end of the text
   function tabOut(event) {
     if (!current || !popover.contains(document.activeElement)) return
-    const focusable = popover.querySelectorAll('a[href], button')
+    const focusable = [...popover.querySelectorAll('a[href], button')].filter(
+      element => !element.closest('[hidden]')
+    )
     const edge = event.shiftKey
       ? [popover, focusable[0]].includes(document.activeElement)
       : document.activeElement === focusable[focusable.length - 1]
