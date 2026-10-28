@@ -531,14 +531,6 @@
     width: calc(100vw - 2rem);
     margin-inline: calc(50% - 50vw + 1rem);
 
-    .skip:not(:focus) {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-    }
-
     /* .pseudo-fullscreen where the Fullscreen API is missing or refused, ie iPhones and app webviews */
     &:fullscreen,
     &.pseudo-fullscreen {

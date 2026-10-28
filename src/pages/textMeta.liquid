@@ -13,6 +13,7 @@ eleventyComputed:
   json_ld: '{{ entry.scx_json_ld }}'
   og_tags: '{{ entry.scx_og_tags }}'
 ---
+<a class="skip" href="#main">Skip to main content</a>
 <header>
   {% capture breadcrumbsList %}
     {% for crumb in entry.scx_breadcrumb_trail %}
@@ -30,7 +31,7 @@ eleventyComputed:
   {% include "headerNav.liquid", breadcrumbsList: breadcrumbsList %}
 </header>
 
-<main>
+<main id="main">
   <!-- This has it's own file because it's reused in text.liquid -->
   {% include "textMetaContent.liquid",
     entry: entry,

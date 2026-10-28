@@ -17,6 +17,7 @@ eleventyComputed:
     - 'viewSettings.js'
     - 'listen.js'
 ---
+<a class="skip" href="#main">Skip to main content</a>
 <header>
   {% capture breadcrumbsList %}
     {% for crumb in entry.scx_breadcrumb_trail %}
@@ -575,6 +576,7 @@ eleventyComputed:
   {% assign title_parts = entry.original_title | titleParts %}
 {% endunless %}
 <main
+  id="main"
   {% comment %} Not when another page indexes this text, nor its titles, as Pagefind searches meta (and the h1 without one) {% endcomment %}
   {% unless entry.scx_unindexed %}
     data-pagefind-body

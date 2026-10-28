@@ -6,6 +6,7 @@ eleventyComputed:
   og_tags: '{{ sitePagesData.pageMetadata[page.url].scx_og_tags }}'
   json_ld: '{{ sitePagesData.pageMetadata[page.url].scx_json_ld }}'
 ---
+<a class="skip" href="#main">Skip to main content</a>
 <header>
   {% if crumbs or parentCrumb %}
     {% capture breadcrumbsList %}
@@ -31,7 +32,7 @@ eleventyComputed:
   {% endif %}
 </header>
 
-<main class="site-page{% if mainClass %} {{ mainClass }}{% endif %}">
+<main id="main" class="site-page{% if mainClass %} {{ mainClass }}{% endif %}">
   {{ content }}
 </main>
 
