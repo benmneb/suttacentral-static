@@ -582,6 +582,7 @@ eleventyComputed:
       </li>
     </ul>
   </fieldset>
+  <p id="views-status" class="sr-only" role="status"></p>
 </aside>
 
 {% unless entry.scx_unindexed %}
@@ -1072,10 +1073,12 @@ eleventyComputed:
     {% unless entry._suttas_data.translation.previous.uid == blank
       and entry.scx_range_sutta_pagination.prev.uid == blank
     %}
-      <span>Previous</span>
+      <span id="pagination-prev" aria-hidden="true">Previous</span>
       <a
+        id="pagination-prev-link"
         href="/{{ entry.scx_range_sutta_pagination.prev.uid | default: entry._suttas_data.translation.previous.uid }}{% if entry._suttas_data.translation.previous.lang %}/{{ entry._suttas_data.translation.previous.lang }}/{{ entry._suttas_data.translation.previous.author_uid }}{% endif %}"
         rel="prev"
+        aria-labelledby="pagination-prev pagination-prev-link"
       >
         {{
           entry.scx_range_sutta_pagination.prev.name
@@ -1089,10 +1092,12 @@ eleventyComputed:
     {% unless entry._suttas_data.translation.next.uid == blank
       and entry.scx_range_sutta_pagination.next.uid == blank
     %}
-      <span>Next</span>
+      <span id="pagination-next" aria-hidden="true">Next</span>
       <a
+        id="pagination-next-link"
         href="/{{ entry.scx_range_sutta_pagination.next.uid | default: entry._suttas_data.translation.next.uid }}{% if entry._suttas_data.translation.next.lang %}/{{ entry._suttas_data.translation.next.lang }}/{{ entry._suttas_data.translation.next.author_uid }}{% endif %}"
         rel="next"
+        aria-labelledby="pagination-next pagination-next-link"
       >
         {{
           entry.scx_range_sutta_pagination.next.name

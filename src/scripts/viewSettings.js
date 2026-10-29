@@ -269,6 +269,7 @@
       [...before].filter(([el, was]) => el.checked !== was).map(([el]) => el)
     )
     if (!changed.size) return
+    announce([...changed])
     for (const el of changed) {
       if (!el.checked) continue
       for (const id of el.getAttribute('aria-controls')?.split(' ') ?? []) {
@@ -297,6 +298,18 @@
     placeRows()
     addEventListener('scroll', placeRows, { passive: true })
     toast(viewsMenu)
+  }
+
+  // What a key changed, for screen readers, as the toast only shows it
+  const status = document.getElementById('views-status')
+  function announce(els) {
+    if (!status) return
+    status.textContent = els
+      .map(el => {
+        const name = el.labels?.[0]?.querySelector('.with-icon')?.textContent
+        return `${name?.trim() ?? el.id} ${el.checked ? 'on' : 'off'}`
+      })
+      .join(', ')
   }
 
   function showListenRow(el) {
@@ -374,6 +387,7 @@
         if (!hasRoom(el)) return
         el.click()
         showListenRow(el)
+        announce([el])
         return
       }
       // Checked before the click, as stop disables itself
