@@ -19,6 +19,15 @@ eleventyComputed:
     - 'viewSettings.js'
     - 'listen.js'
 ---
+{% comment %} Not for a legacy text, whose info is its own footer {% endcomment %}
+{% assign has_info = true %}
+{% if entry._publication_info == blank %}
+  {% if entry.is_root and entry._bilarasuttas_data.size > 0 %}
+    {% assign has_info = false %}
+  {% elsif entry.segmented %}
+    {% assign has_info = false %}
+  {% endif %}
+{% endif %}
 <a class="skip" href="#main">Skip to main content</a>
 <header>
   {% capture breadcrumbsList %}
@@ -102,18 +111,20 @@ eleventyComputed:
           </ol>
         </li>
       {% endif %}
-      <li>
-        <button
-          popovertarget="info"
-          tabindex="0"
-          aria-controls="info"
-          aria-label="Show publication information"
-          title="Show publication information"
-          id="info-button"
-        >
-          {% icon "informationCircle" %}
-        </button>
-      </li>
+      {% if has_info %}
+        <li>
+          <button
+            popovertarget="info"
+            tabindex="0"
+            aria-controls="info"
+            aria-label="Show publication information"
+            title="Show publication information"
+            id="info-button"
+          >
+            {% icon "informationCircle" %}
+          </button>
+        </li>
+      {% endif %}
       <li>
         <button
           popovertarget="views-menu"
@@ -785,9 +796,11 @@ eleventyComputed:
       {% endif %}
     {% endfor %}
     {{ comments }}
-    <article id="info" popover>
-      {% include "publicationInfo.liquid", entry: entry %}
-    </article>
+    {% if has_info %}
+      <article id="info" popover>
+        {% include "publicationInfo.liquid", entry: entry %}
+      </article>
+    {% endif %}
   {% elsif entry.segmented %}
     {% assign comments = "" %}
     {% for key in entry._bilarasuttas_data.keys_order %}
@@ -990,7 +1003,7 @@ eleventyComputed:
       {% endif %}
     {% endfor %}
     {{ comments }}
-    {% if entry._publication_info != blank %}
+    {% if has_info %}
       <article id="info" popover>
         {% include "publicationInfo.liquid", entry: entry %}
       </article>

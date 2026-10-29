@@ -1,162 +1,165 @@
-<section role="main" aria-labelledby="publication-info-heading">
-  <h1 id="publication-info-heading">Publication Info</h1>
+{% assign pub = entry._publication_info %}
+{% assign pub_edition = pub.edition[0] %}
+{% assign pub_license = pub.license %}
+<h1>Publication Info</h1>
 
-  <article
-    about="{{ entry._publication_info.source_url }}"
-    role="article"
-    aria-labelledby="translation-info-heading"
-  >
-    <h2 id="translation-info-heading" class="sr-only">
-      Translation Information
-    </h2>
-
-    <section aria-labelledby="basic-translation-info">
-      <h3 id="basic-translation-info" class="sr-only">
-        Basic Translation Details
-      </h3>
+<div about="{{ pub.source_url }}">
+  {% if pub.translation_title != blank
+    or pub.translation_subtitle != blank
+    or pub.author_name != blank
+    or pub.collaborator != blank
+  %}
+    <section>
+      <h2 class="sr-only">Basic Translation Details</h2>
       <dl>
-        <dt>Translation title</dt>
-        <dd property="dc:title" aria-label="Translation title">
-          {{ entry._publication_info.translation_title }}
-        </dd>
-        <dt>Translation subtitle</dt>
-        <dd property="dc:title" aria-label="Translation subtitle">
-          {{ entry._publication_info.translation_subtitle }}
-        </dd>
-        {% if entry._publication_info.author_name %}
+        {% if pub.translation_title != blank %}
+          <dt>Translation title</dt>
+          <dd property="dc:title">{{ pub.translation_title }}</dd>
+        {% endif %}
+        {% if pub.translation_subtitle != blank %}
+          <dt>Translation subtitle</dt>
+          <dd property="dc:title">{{ pub.translation_subtitle }}</dd>
+        {% endif %}
+        {% if pub.author_name != blank %}
           <dt>Translator</dt>
-          <dd property="dc:creator" aria-label="Translator name">
-            {{ entry._publication_info.author_name }}
-          </dd>
+          <dd property="dc:creator">{{ pub.author_name }}</dd>
         {% endif %}
-        {% if entry._publication_info.collaborator %}
+        {% if pub.collaborator != blank %}
           <dt>Collaborator</dt>
-          <dd property="dc:creator" aria-label="Collaborator name">
-            {{ entry._publication_info.collaborator }}
-          </dd>
+          <dd property="dc:creator">{{ pub.collaborator }}</dd>
         {% endif %}
       </dl>
     </section>
+  {% endif %}
 
-    <section aria-labelledby="language-info">
-      <h3 id="language-info" class="sr-only">Language Information</h3>
+  {% if pub.root_title != blank
+    or pub.translation_lang_name != blank
+    or pub.root_lang_name != blank
+  %}
+    <section>
+      <h2 class="sr-only">Language Information</h2>
       <dl>
-        <dt>Root title</dt>
-        <dd property="dc:title" aria-label="Original root title">
-          {{ entry._publication_info.root_title }}
-        </dd>
-        {% if entry._publication_info.translation_lang_name %}
+        {% if pub.root_title != blank %}
+          <dt>Root title</dt>
+          <dd property="dc:title">{{ pub.root_title }}</dd>
+        {% endif %}
+        {% if pub.translation_lang_name != blank %}
           <dt>Translation language</dt>
-          <dd property="dc:language" aria-label="Language of translation">
-            {{ entry._publication_info.translation_lang_name | languageName }}
+          <dd property="dc:language">
+            {{ pub.translation_lang_name | languageName }}
           </dd>
         {% endif %}
-        <dt>Root language</dt>
-        <dd aria-label="Original language of the text">
-          {{ entry._publication_info.root_lang_name | languageName }}
-        </dd>
+        {% if pub.root_lang_name != blank %}
+          <dt>Root language</dt>
+          <dd>{{ pub.root_lang_name | languageName }}</dd>
+        {% endif %}
       </dl>
     </section>
+  {% endif %}
 
-    <section aria-labelledby="description-info">
-      <h3 id="description-info" class="sr-only">
-        Description and Process Information
-      </h3>
+  {% if pub.translation_description != blank
+    or pub.translation_process != blank
+    or pub.publication_status != blank
+  %}
+    <section>
+      <h2 class="sr-only">Description and Process Information</h2>
       <dl>
-        <dt>Translations description</dt>
-        <dd
-          property="dc:description"
-          aria-label="Description of the translation"
-        >
-          {{ entry._publication_info.translation_description }}
-        </dd>
-        <dt>Translations process</dt>
-        <dd
-          property="dc:description"
-          aria-label="Translation process details"
-        >
-          {{ entry._publication_info.translation_process }}
-        </dd>
-        <dt>Publication status</dt>
-        <dd aria-label="Current publication status">
-          {{ entry._publication_info.publication_status }}
-        </dd>
+        {% if pub.translation_description != blank %}
+          <dt>Translations description</dt>
+          <dd property="dc:description">{{ pub.translation_description }}</dd>
+        {% endif %}
+        {% if pub.translation_process != blank %}
+          <dt>Translations process</dt>
+          <dd property="dc:description">{{ pub.translation_process }}</dd>
+        {% endif %}
+        {% if pub.publication_status != blank %}
+          <dt>Publication status</dt>
+          <dd>{{ pub.publication_status }}</dd>
+        {% endif %}
       </dl>
     </section>
+  {% endif %}
 
-    <section aria-labelledby="publication-details">
-      <h3 id="publication-details" class="sr-only">Publication Details</h3>
+  {% if pub_edition.edition_number != blank
+    or pub_edition.publication_date != blank
+    or pub_edition.publisher != blank
+    or pub_edition.publication_type != blank
+  %}
+    <section>
+      <h2 class="sr-only">Publication Details</h2>
       <dl>
-        <dt>Edition</dt>
-        <dd aria-label="Edition number">
-          {{ entry._publication_info.edition[0].edition_number }}
-        </dd>
-        <dt>Publication date</dt>
-        <dd property="dc:date" aria-label="Date of publication">
-          <time datetime="{{ entry._publication_info.edition[0].publication_date }}">
-            {{ entry._publication_info.edition[0].publication_date }}
-          </time>
-        </dd>
-        <dt>Publisher</dt>
-        <dd property="dc:publisher" aria-label="Publisher name">
-          {{ entry._publication_info.edition[0].publisher }}
-        </dd>
-        <dt>Publication type</dt>
-        <dd property="dc:format" aria-label="Type of publication format">
-          {{ entry._publication_info.edition[0].publication_type }}
-        </dd>
+        {% if pub_edition.edition_number != blank %}
+          <dt>Edition</dt>
+          <dd>{{ pub_edition.edition_number }}</dd>
+        {% endif %}
+        {% if pub_edition.publication_date != blank %}
+          <dt>Publication date</dt>
+          <dd property="dc:date">
+            <time datetime="{{ pub_edition.publication_date }}">
+              {{- pub_edition.publication_date -}}
+            </time>
+          </dd>
+        {% endif %}
+        {% if pub_edition.publisher != blank %}
+          <dt>Publisher</dt>
+          <dd property="dc:publisher">{{ pub_edition.publisher }}</dd>
+        {% endif %}
+        {% if pub_edition.publication_type != blank %}
+          <dt>Publication type</dt>
+          <dd property="dc:format">{{ pub_edition.publication_type }}</dd>
+        {% endif %}
       </dl>
     </section>
+  {% endif %}
 
-    <section aria-labelledby="links-identifiers">
-      <h3 id="links-identifiers" class="sr-only">Links and Identifiers</h3>
+  {% if pub_edition.edition_url != blank
+    or pub.source_url != blank
+    or pub._key != blank
+  %}
+    <section>
+      <h2 class="sr-only">Links and Identifiers</h2>
       <dl>
-        <dt>URL</dt>
-        <dd>
-          <a
-            href="{{ entry._publication_info.edition[0].edition_url }}"
-            aria-label="Link to publication URL"
-          >
-            {{- entry._publication_info.edition[0].edition_url -}}
-          </a>
-        </dd>
-        <dt>Source</dt>
-        <dd>
-          <a
-            href="{{ entry._publication_info.source_url }}"
-            aria-label="Link to source URL"
-          >
-            {{- entry._publication_info.source_url -}}
-          </a>
-        </dd>
-        <dt>SuttaCentral publication number</dt>
-        <dd
-          property="dc:identifier"
-          aria-label="SuttaCentral unique publication identifier"
-        >
-          {{ entry._publication_info._key }}
-        </dd>
+        {% if pub_edition.edition_url != blank %}
+          <dt>URL</dt>
+          <dd>
+            <a href="{{ pub_edition.edition_url }}">
+              {{- pub_edition.edition_url -}}
+            </a>
+          </dd>
+        {% endif %}
+        {% if pub.source_url != blank %}
+          <dt>Source</dt>
+          <dd>
+            <a href="{{ pub.source_url }}">{{ pub.source_url }}</a>
+          </dd>
+        {% endif %}
+        {% if pub._key != blank %}
+          <dt>SuttaCentral publication number</dt>
+          <dd property="dc:identifier">{{ pub._key }}</dd>
+        {% endif %}
       </dl>
     </section>
-  </article>
+  {% endif %}
+</div>
 
-  <section aria-labelledby="license-info">
-    <h2 id="license-info">License</h2>
-    <div role="group" aria-labelledby="license-info">
-      <p property="dc:rights" aria-label="License type">
-        {{ entry._publication_info.license.license_type }}
-      </p>
+{% if pub_license.license_type != blank
+  or pub_license.license_url != blank
+  or pub_license.license_statement != blank
+%}
+  <section>
+    <h2>License</h2>
+    {% if pub_license.license_type != blank %}
+      <p property="dc:rights">{{ pub_license.license_type }}</p>
+    {% endif %}
+    {% if pub_license.license_url != blank %}
       <p>
-        <a
-          href="{{ entry._publication_info.license.license_url }}"
-          aria-label="Link to full license text"
-        >
-          {{ entry._publication_info.license.license_url }}
+        <a href="{{ pub_license.license_url }}">
+          {{- pub_license.license_url -}}
         </a>
       </p>
-      <p aria-label="License statement">
-        {{ entry._publication_info.license.license_statement }}
-      </p>
-    </div>
+    {% endif %}
+    {% if pub_license.license_statement != blank %}
+      <p>{{ pub_license.license_statement }}</p>
+    {% endif %}
   </section>
-</section>
+{% endif %}
