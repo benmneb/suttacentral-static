@@ -333,7 +333,8 @@ function collectSegmentedToc(entry, useRootText) {
 
 /*
  * Collects the h2-h4 headings of a legacy text, injecting an id to anchor to as they don't have any
- * (eg pli-tv-kd1/horner has 66 bare headings).
+ * (eg pli-tv-kd1/horner has 66 bare headings), and keeps only the body of a text that comes as a
+ * whole HTML document (eg mn10/horner), as it's put in the page's <main>.
  *
  * Note: this mutates `entry._suttas_data.translation.text` in place, to avoid holding a second copy
  * of every legacy text in memory. It's idempotent as existing ids are kept.
@@ -341,6 +342,15 @@ function collectSegmentedToc(entry, useRootText) {
 function collectLegacyToc(entry) {
   const translation = entry._suttas_data?.translation
   if (!translation?.text) return []
+
+  const bodyStart = translation.text.indexOf('<body')
+  if (bodyStart !== -1) {
+    const bodyEnd = translation.text.lastIndexOf('</body>')
+    translation.text = translation.text.slice(
+      translation.text.indexOf('>', bodyStart) + 1,
+      bodyEnd === -1 ? undefined : bodyEnd
+    )
+  }
 
   // Leave the footer alone, it becomes the info popover
   const footerIndex = translation.text.lastIndexOf('<footer')
