@@ -930,7 +930,8 @@ aside:where(body > *) {
     @supports selector(:popover-open) {
       @media (hover: hover) {
         &:has(
-          li:hover > #contents-button:not(:focus:not(:focus-visible, :active))
+          li:hover:not(.dismissed)
+            > #contents-button:not(:focus:not(:focus-visible, :active))
         ) {
           border-bottom-left-radius: 0;
         }
@@ -938,7 +939,7 @@ aside:where(body > *) {
     }
 
     @supports not selector(:popover-open) {
-      &:has(li:hover > #contents-menu, li:focus-within > #contents-menu) {
+      &:has(li:is(:hover, :focus-within):not(.dismissed) > #contents-menu) {
         border-bottom-left-radius: 0;
       }
     }
@@ -1242,15 +1243,14 @@ aside:where(body > *) {
             }
 
             @media (hover: hover) {
-              li:hover > & {
+              li:hover:not(.dismissed) > & {
                 display: flex;
               }
             }
           }
 
           @supports not selector(:popover-open) {
-            li:hover > &,
-            li:focus-within > & {
+            li:is(:hover, :focus-within):not(.dismissed) > & {
               display: flex;
             }
           }
@@ -1451,7 +1451,8 @@ aside:where(body > *) {
     @supports selector(:popover-open) {
       /* Safari focuses a clicked button only with a tabindex, on release */
       @media (hover: hover) {
-        li:hover > .dropdown {
+        /* .dismissed is set by Esc, in viewSettings.js */
+        li:hover:not(.dismissed) > .dropdown {
           display: block;
           z-index: 1;
         }
@@ -1467,7 +1468,8 @@ aside:where(body > *) {
           visibility: visible;
         }
 
-        li:hover > #contents-button:not(:focus:not(:focus-visible, :active)) {
+        li:hover:not(.dismissed)
+          > #contents-button:not(:focus:not(:focus-visible, :active)) {
           border-bottom-left-radius: 0;
         }
       }
@@ -1498,8 +1500,7 @@ aside:where(body > *) {
     }
 
     @supports not selector(:popover-open) {
-      li:hover > .dropdown,
-      li:focus-within > .dropdown {
+      li:is(:hover, :focus-within):not(.dismissed) > .dropdown {
         display: block;
       }
 
@@ -1509,8 +1510,7 @@ aside:where(body > *) {
       }
 
       #contents-button {
-        li:hover > &,
-        li:focus-within > & {
+        li:is(:hover, :focus-within):not(.dismissed) > & {
           border-bottom-left-radius: 0;
         }
       }
@@ -2113,7 +2113,8 @@ main {
     /* The rest stays in place, unseen and flat, so the controls keep the menu's width. Hidden 0.1s after the
        mouse leaves, like the other menus, so Safari doesn't flash it while opening */
     @media (hover: hover) {
-      li:not(:hover) > &:has(#stop:enabled, #stop.pressed):not(:popover-open),
+      li:is(:not(:hover), .dismissed)
+        > &:has(#stop:enabled, #stop.pressed):not(:popover-open),
       li:has(> button:focus:not(:focus-visible, :active))
         > &:has(#stop:enabled, #stop.pressed):not(:popover-open) {
         > li:not(.tts-controls):not(.toasted) {
@@ -2496,9 +2497,9 @@ aside:has(#definer:checked) ~ main .segment > :is(.translation, .root) {
   }
 
   @media (hover: hover) {
-    aside:has(#info-button:hover) ~ main #info,
-    aside:has(#parallels-button:hover) ~ main #parallels,
-    [popover]:is(#info, #parallels):hover {
+    aside:has(#info-button:hover) ~ main #info:not(.dismissed),
+    aside:has(#parallels-button:hover) ~ main #parallels:not(.dismissed),
+    [popover]:is(#info, #parallels):not(.dismissed):hover {
       display: block;
     }
 

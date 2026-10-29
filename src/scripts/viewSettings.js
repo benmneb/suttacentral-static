@@ -5,8 +5,8 @@
  * the browser's scroll anchor, and Safari has no scroll anchoring at all, so the first text below the menu is
  * put back where it was. Also keeps the References checkbox showing at least one group, and toggles the
  * settings and listen controls from the keyboard, with the same keys as .net and a few more, unless they're turned
- * off. And keeps a note's asterisk lit while the note is open, and loads word lookup and simplified characters
- * once they're turned on.
+ * off. And keeps a note's asterisk lit while the note is open, lets Esc hide the menus and panels hovering shows,
+ * and loads word lookup and simplified characters once they're turned on.
  */
 ;(function () {
   'use strict'
@@ -53,6 +53,42 @@
 
   const viewsMenu = document.getElementById('views-menu')
   if (!viewsMenu) return
+
+  // Esc hides what hovering shows (see text.css), until the pointer moves off it
+  const dismissed = new Set()
+  const bar = viewsMenu.closest('fieldset')
+  const panels = ['info', 'parallels']
+    .map(id => document.getElementById(id))
+    .filter(Boolean)
+  const invoker = el =>
+    el.id
+      ? document.querySelector(`[popovertarget="${CSS.escape(el.id)}"]`)
+      : null
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return
+    const hovered = [
+      ...(bar?.querySelectorAll(':scope > ul > li:is(:hover, :focus-within)') ??
+        []),
+      ...panels.filter(
+        panel => panel.matches(':hover') || invoker(panel)?.matches(':hover')
+      ),
+    ]
+    for (const el of hovered) {
+      el.classList.add('dismissed')
+      dismissed.add(el)
+    }
+  })
+
+  for (const type of ['pointerover', 'focusin']) {
+    document.addEventListener(type, e => {
+      for (const el of dismissed) {
+        if (el.contains(e.target) || invoker(el)?.contains(e.target)) continue
+        el.classList.remove('dismissed')
+        dismissed.delete(el)
+      }
+    })
+  }
 
   let anchor = null
 
