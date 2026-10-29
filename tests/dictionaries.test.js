@@ -179,8 +179,8 @@ describe('The /define pages', () => {
     assert.equal(jsonLd.mainEntity.name, 'dhamma')
     // The word is described by what a dictionary says of it, not by the page's own description
     assert.equal(jsonLd.mainEntity.description, 'nature; character')
-    assert.equal(jsonLd.mainEntity.inLanguage, 'pi')
     assert.equal(jsonLd.mainEntity.inDefinedTermSet['@type'], 'DefinedTermSet')
+    assert.equal(jsonLd.mainEntity.inDefinedTermSet.inLanguage, 'pi')
     assert.equal(
       jsonLd.mainEntity.inDefinedTermSet.url,
       'https://suttacentral.express/define'

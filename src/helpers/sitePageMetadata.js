@@ -354,7 +354,7 @@ async function mapParts(map, titleFor, imageFor) {
         ...(poster.width && { width: poster.width, height: poster.height }),
       },
       {
-        '@type': 'InteractiveResource',
+        '@type': 'Map',
         name: textFromHtml(titleFor('map:4')),
         description:
           'The places of the early Buddhist texts on an interactive SVG map, with references to related passages.',
@@ -424,7 +424,8 @@ function scholarlyData(url, titleFor) {
   }
 
   return {
-    schemaType: 'ScholarlyArticle',
+    // A page too, as only a `WebPage` can take its breadcrumb
+    schemaType: ['WebPage', 'ScholarlyArticle'],
     author: [...authors].map(name => ({ '@type': 'Person', name })),
     ...(datePublished && { datePublished }),
     about: article.about.map(name => ({ '@type': 'Thing', name })),
@@ -468,7 +469,7 @@ export function generateSitePageJsonLd({
   return jsonLd({
     '@type': schemaType,
     '@id': canonicalUrl,
-    ...(schemaType === 'ScholarlyArticle'
+    ...([schemaType].flat().includes('ScholarlyArticle')
       ? { headline: title }
       : { name: name ?? title }),
     description,

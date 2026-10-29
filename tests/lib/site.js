@@ -227,7 +227,7 @@ const valueTypeOf = value => {
 
 /**
  * Each property of each typed node in some JSON-LD, as `Type.property:valueType`, ie
- * `WebPage.isPartOf:WebSite`, where an untyped object's value type is `node`, and alternative types are joined by `|`
+ * `WebPage.isPartOf:WebSite`, where an untyped object's value type is `node`, and a node's several types are joined by `|`
  * @param {any} data
  * @param {Set<string>} [shapes] - Added to
  */
@@ -237,12 +237,11 @@ export function jsonLdShapes(data, shapes = new Set()) {
     return shapes
   }
   if (!data || typeof data !== 'object') return shapes
-  const types = [data['@type'] ?? []].flat()
+  const type = [data['@type'] ?? []].flat().join('|')
   for (const [key, value] of Object.entries(data)) {
     if (key.startsWith('@')) continue
     for (const item of [value].flat()) {
-      for (const type of types)
-        shapes.add(`${type}.${key}:${valueTypeOf(item)}`)
+      if (type) shapes.add(`${type}.${key}:${valueTypeOf(item)}`)
       jsonLdShapes(item, shapes)
     }
   }

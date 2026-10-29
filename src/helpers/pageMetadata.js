@@ -149,7 +149,7 @@ export function ogTags({ title, description, url, type = 'website', extra }) {
     'og:description': description,
     'og:url': absoluteUrl(url),
     'og:type': type,
-    'og:locale': 'en',
+    'og:locale': 'en_US',
     'og:site_name': siteTitle,
     'og:image': absoluteUrl(OG_IMAGE.src),
     'og:image:width': OG_IMAGE.width,

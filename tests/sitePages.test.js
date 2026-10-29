@@ -213,7 +213,7 @@ describe('Site page metadata', () => {
         'CollectionPage'
       )
     }
-    assert.equal(article['@type'], 'ScholarlyArticle')
+    assert.deepEqual(article['@type'], ['WebPage', 'ScholarlyArticle'])
     assert.equal(article.headline, 'Aṅguttara Nikāya')
     assert.equal(article.name, undefined)
     assert.deepEqual(article.author, [
@@ -260,10 +260,10 @@ describe('Site page metadata', () => {
       '/vinaya-guide-brahmali/',
     ]
     for (const url of articleRoutes) {
-      assert.equal(
-        JSON.parse(pages[url].scx_json_ld)['@type'],
-        'ScholarlyArticle'
-      )
+      assert.deepEqual(JSON.parse(pages[url].scx_json_ld)['@type'], [
+        'WebPage',
+        'ScholarlyArticle',
+      ])
     }
     assert.equal(
       JSON.parse(pages['/discourses-guide-sujato/'].scx_json_ld).datePublished,
@@ -307,7 +307,7 @@ describe('Site page metadata', () => {
     assert.equal(mapPage.name, 'The Buddha’s India')
     assert.deepEqual(
       mapPage.hasPart.map(part => part['@type']),
-      ['ImageObject', 'InteractiveResource', 'Table']
+      ['ImageObject', 'Map', 'Table']
     )
     assert.equal(
       poster.url,

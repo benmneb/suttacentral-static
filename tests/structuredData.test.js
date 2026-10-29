@@ -91,8 +91,11 @@ function shapeProblems(shape, { classes, properties, ancestors, isDataType }) {
     const { supersededBy } = classes.get(name)
     return supersededBy && `${name} is superseded by ${supersededBy}`
   }
-  if (!classes.has(type)) return [typeProblem(type)]
-  const problems = [typeProblem(type)]
+  const types = type.split('|')
+  if (!types.every(name => classes.has(name))) {
+    return types.map(typeProblem).filter(Boolean)
+  }
+  const problems = types.map(typeProblem)
   const term = properties.get(property)
   if (!term) {
     problems.push(`${property} isn't a schema.org property`)
@@ -101,7 +104,8 @@ function shapeProblems(shape, { classes, properties, ancestors, isDataType }) {
   if (term.supersededBy) {
     problems.push(`${property} is superseded by ${term.supersededBy}`)
   }
-  if (!term.domain.some(domain => ancestors(type).has(domain))) {
+  const domains = new Set(types.flatMap(name => [...ancestors(name)]))
+  if (!term.domain.some(domain => domains.has(domain))) {
     problems.push(`${property} isn't a property of ${type}`)
   }
   const inRange = types => term.range.some(range => types.includes(range))
@@ -156,6 +160,7 @@ describe('Structured data checks', async () => {
 
     assert.deepEqual(problems('WebPage.isPartOf:WebSite'), [])
     assert.deepEqual(problems('ImageObject.width:number'), [])
+    assert.deepEqual(problems('WebPage|Book.isbn:string'), [])
     assert.deepEqual(problems('ListItem.item:node'), [])
     assert.deepEqual(problems('Madeup.name:string'), [
       "Madeup isn't a schema.org type",

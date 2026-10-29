@@ -117,10 +117,11 @@ export function generateDefineJsonLd(term) {
       description: termDescription,
       url,
       sameAs: `${SC_ORIGIN}${term.href}`,
-      inLanguage: 'pi',
+      // On its set, as a DefinedTerm has no inLanguage, and the page itself is in English
       inDefinedTermSet: {
         '@type': 'DefinedTermSet',
         name: 'SuttaCentral Pāli dictionaries',
+        inLanguage: 'pi',
         url: absoluteUrl('/define'),
         sameAs: `${SC_ORIGIN}/define`,
       },
