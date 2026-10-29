@@ -53,6 +53,7 @@
     "@tauri-apps/cli": "^2.9.6",
     "@tauri-apps/plugin-opener": "~2.5.2",
     "@tauri-apps/plugin-window-state": "~2.4.1",
+    "axe-core": "^4.14.0",
     "browserslist": "^4.28.0",
     "dotenv": "^17.2.3",
     "dotenv-cli": "^11.0.0",
@@ -63,8 +64,10 @@
     "opencc-js": "^1.4.2",
     "ora": "^8.2.0",
     "prettier": "^3.7.3",
+    "puppeteer-core": "^25.16.0",
     "sirv": "^3.0.2",
     "terser": "^5.44.1",
-    "vercel": "^50.1.0"
+    "vercel": "^50.1.0",
+    "vnu-jar": "^26.10.12"
   }
 }

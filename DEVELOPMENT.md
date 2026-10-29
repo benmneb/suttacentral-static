@@ -198,7 +198,7 @@ Then, when a release passes the tests, or you publish a draft release or pre-rel
 
 #### Tests
 
-`pnpm test` checks a built site (`_site`, or the folder in `SITE_DIR`) for signs the data fetched from SuttaCentral's APIs broke something, as a site can build without errors and still be missing texts or have empty pages. Features are tested by hand while developing, these are only about the data:
+`pnpm test` checks a built site (`_site`, or the folder in `SITE_DIR`) for signs the data fetched from SuttaCentral's APIs broke something, as a site can build without errors and still be missing texts or have empty pages, and for invalid or inaccessible markup. Features are tested by hand while developing. The HTML check needs Java 11+ (`brew install openjdk` on macOS), and the accessibility check Brave or other Chromium (or `BROWSER_PATH`):
 
 - **Fetch:** no API requests failed, besides `/publication_info` which fails for most translators
 - **Inventory:** at most 1% of production's pages are missing (5% of any one collection), each piṭaka has its texts, and the sitemap lists every page. Production's sitemap and search index are the baseline, so `SKIP_BASELINE=1` skips these comparisons offline
@@ -207,9 +207,12 @@ Then, when a release passes the tests, or you publish a draft release or pre-rel
 - **Links:** internal links go to pages that exist
 - **Search:** the search index has every text page, and hasn't shrunk since production, the extra indexes have every text's titles, every English note once, every Chinese text and every site page, the reference files only list text pages with their titles, `volpage:DN ii 72` finds DN 16, and simplified Chinese has its traditional forms
 - **Site pages:** every key the site pages use is in the strings fetched from .net (read from `.cache`, no build needed), and every page in the site pages menu is built with a heading and its text
+- **HTML:** every page passes the [Nu validator](https://validator.w3.org/nu/) with no errors or warnings
+- **Accessibility:** a sample of each kind of page in each collection (or just the pages in `AXE_PAGES=/mn1/en/sujato/,/about/`) has no [axe-core](https://github.com/dequelabs/axe-core) violations of WCAG 2.2 A/AA or its best practices, in light and dark mode and at a phone's width. `AXE_MAX_PAGES` caps the sample
+- **Structured data:** every page's JSON-LD only uses schema.org types, with properties where they belong (checked against a pinned version of schema.org's vocabulary, fetched once into `.cache`), its language tags are canonical BCP 47, and its meta and Open Graph tags are valid
 - **Dictionaries:** each dictionary in `.cache` has at least about 95% of the words it had (no build needed), the `/define` pages have their entries and `/map` links to them, and word lookup's files are all there and answer at least 97% of the sample texts' words, with a `/define` page
 
-The site's structure comes from SuttaCentral's APIs, so pages coming and going with them is fine - only losing more than a few fails. The limits are constants at the top of each `tests/*.test.js` file. A full run takes a few minutes, mostly reading the mass of HTML.
+The site's structure comes from SuttaCentral's APIs, so pages coming and going with them is fine - only losing more than a few fails. The limits are constants at the top of each `tests/*.test.js` file. A full run takes a few minutes, mostly reading the mass of HTML, plus the HTML check, which takes longest as it parses every page again.
 
 #### Tag format
 

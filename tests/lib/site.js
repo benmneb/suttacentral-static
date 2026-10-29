@@ -10,6 +10,7 @@
 
 import fs from 'fs/promises'
 import path from 'path'
+import siteMetaData from '../../src/data/_siteMetaData.js'
 import { sitePageRoots } from '../../src/helpers/sitePages.js'
 
 export const SITE_DIR = path.resolve(process.env.SITE_DIR || '_site')
@@ -130,18 +131,65 @@ export function internalTarget(link, pageUrl) {
 // A copy, as a match is a slice of the page that would keep all its HTML in memory
 const copyOf = str => str && JSON.parse(JSON.stringify(str))
 
+const JSON_LD = /<script type="?application\/ld\+json"?>([\s\S]*?)<\/script>/g
+
+/** A page's JSON-LD scripts, each parsed, or the error parsing it threw */
+function parseJsonLd(html) {
+  return [...html.matchAll(JSON_LD)].map(([, json]) => {
+    try {
+      return JSON.parse(json)
+    } catch (error) {
+      return error
+    }
+  })
+}
+
+const canonicalTags = new Map()
+
+/**
+ * Whether a `lang` value is a BCP 47 tag in its canonical form, ie `pi`, not `pli` or `en-us`
+ * @param {string} tag
+ */
+export function isCanonicalLangTag(tag) {
+  if (!canonicalTags.has(tag)) {
+    let canonical = false
+    try {
+      canonical = Intl.getCanonicalLocales(tag)[0] === tag
+    } catch {}
+    canonicalTags.set(tag, canonical)
+  }
+  return canonicalTags.get(tag)
+}
+
+/** What a breadcrumb list lacks of Google's required fields */
+function breadcrumbProblems(list) {
+  const items = [list.itemListElement ?? []].flat()
+  return items.flatMap((item, i) => {
+    const problems = []
+    if (item?.['@type'] !== 'ListItem') {
+      problems.push(`breadcrumb ${i + 1} is a ${item?.['@type']}`)
+    }
+    if (item?.position !== i + 1) {
+      problems.push(`breadcrumb ${i + 1} has position ${item?.position}`)
+    }
+    if (!item?.name) problems.push(`breadcrumb ${i + 1} has no name`)
+    if (!item?.item && i < items.length - 1) {
+      problems.push(`breadcrumb ${i + 1} has no item`)
+    }
+    return problems
+  })
+}
+
 /** What's wrong with a page's JSON-LD: an unparsable script, a relative URL, or missing data */
-function jsonLdProblems(html) {
-  const scripts = [
-    ...html.matchAll(
-      /<script type="?application\/ld\+json"?>([\s\S]*?)<\/script>/g
-    ),
-  ]
+function jsonLdProblems(scripts) {
   if (!scripts.length) return ['none']
   const problems = []
   const walk = (value, key) => {
     if (Array.isArray(value)) return value.forEach(item => walk(item, key))
     if (value && typeof value === 'object') {
+      if (value['@type'] === 'BreadcrumbList') {
+        problems.push(...breadcrumbProblems(value))
+      }
       for (const [k, v] of Object.entries(value)) walk(v, k)
       return
     }
@@ -149,22 +197,168 @@ function jsonLdProblems(html) {
     if (['@id', 'url', 'item'].includes(key) && !/^https?:\/\//.test(value)) {
       problems.push(`relative ${key}: ${value}`)
     }
+    if (key === 'inLanguage' && !isCanonicalLangTag(value)) {
+      problems.push(`inLanguage: ${value}`)
+    }
     // A dictionary can define a word as "undefined"
     if (key !== 'description' && /\b(undefined|NaN)\b|\[object /.test(value)) {
       problems.push(`${key}: ${value}`)
     }
   }
-  for (const [, json] of scripts) {
-    try {
-      walk(JSON.parse(json))
-    } catch (error) {
-      problems.push(`unparsable: ${error.message}`)
+  for (const data of scripts) {
+    if (data instanceof Error) {
+      problems.push(`unparsable: ${data.message}`)
+      continue
     }
+    if (data['@context'] !== 'https://schema.org') {
+      problems.push(`@context: ${data['@context']}`)
+    }
+    walk(data)
   }
   return problems.slice(0, 3)
 }
 
+const valueTypeOf = value => {
+  if (value && typeof value === 'object') {
+    return [value['@type'] ?? 'node'].flat().join('|')
+  }
+  return typeof value
+}
+
+/**
+ * Each property of each typed node in some JSON-LD, as `Type.property:valueType`, ie
+ * `WebPage.isPartOf:WebSite`, where an untyped object's value type is `node`, and alternative types are joined by `|`
+ * @param {any} data
+ * @param {Set<string>} [shapes] - Added to
+ */
+export function jsonLdShapes(data, shapes = new Set()) {
+  if (Array.isArray(data)) {
+    for (const item of data) jsonLdShapes(item, shapes)
+    return shapes
+  }
+  if (!data || typeof data !== 'object') return shapes
+  const types = [data['@type'] ?? []].flat()
+  for (const [key, value] of Object.entries(data)) {
+    if (key.startsWith('@')) continue
+    for (const item of [value].flat()) {
+      for (const type of types)
+        shapes.add(`${type}.${key}:${valueTypeOf(item)}`)
+      jsonLdShapes(item, shapes)
+    }
+  }
+  return shapes
+}
+
+const ATTR = /([^\s=/>]+)(?:=(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g
+
+/** A tag's attributes, ie `meta property="og:url" content="…"` -> `{ property: 'og:url', content: '…' }` */
+function attributesOf(tag) {
+  return Object.fromEntries(
+    [...tag.matchAll(ATTR)].map(match => [
+      match[1].toLowerCase(),
+      decodeEntities(match[2] ?? match[3] ?? match[4] ?? ''),
+    ])
+  )
+}
+
+const LANG_ATTR = /\s(?:lang|hreflang)=(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g
+
+const TWITTER_CARDS = ['summary', 'summary_large_image', 'app', 'player']
+
+// ogp.me's object types, and the namespaces only they can have tags in
+const OG_TYPES = /^(website|article|book|profile|(music|video)\.[a-z_.]+)$/
+const OG_NAMESPACES = ['article', 'book', 'profile', 'music', 'video']
+const OG_REQUIRED = ['og:title', 'og:type', 'og:image', 'og:url']
+const OG_LOCALE = /^[a-z]{2,3}_[A-Z]{2}$/
+
+/**
+ * What's wrong with a page's language tags, meta tags and Open Graph tags
+ * @param {string} html
+ * @param {string} url - The page's URL, ie `/mn1/en/sujato/`
+ */
+export function metaProblems(html, url) {
+  const problems = []
+  const headEnd = html.indexOf('</head>')
+  const head = headEnd === -1 ? html : html.slice(0, headEnd)
+
+  if (!/<html\s[^>]*\blang=/.test(html)) problems.push('no <html lang>')
+  const langs = new Set(
+    [...html.matchAll(LANG_ATTR)].map(match => match[1] ?? match[2] ?? match[3])
+  )
+  for (const lang of langs) {
+    // An empty lang is valid, as "unknown"
+    if (lang && lang !== 'x-default' && !isCanonicalLangTag(lang)) {
+      problems.push(`lang: ${lang}`)
+    }
+  }
+
+  const metas = [...head.matchAll(/<meta\s([^>]*)>/g)].map(match =>
+    attributesOf(match[1])
+  )
+  const named = name => metas.filter(meta => meta.name === name)
+  for (const name of ['viewport', 'description', 'twitter:card']) {
+    const count = named(name).length
+    if (count !== 1) problems.push(`${count} ${name} meta tags`)
+  }
+  const card = named('twitter:card')[0]?.content
+  if (card && !TWITTER_CARDS.includes(card)) {
+    problems.push(`twitter:card: ${card}`)
+  }
+
+  const og = new Map()
+  for (const { property, content } of metas) {
+    if (!property) continue
+    if (!og.has(property)) og.set(property, [])
+    og.get(property).push(content)
+  }
+  if (og.size || !UNLISTED_PAGES.includes(url)) {
+    for (const property of OG_REQUIRED) {
+      const count = og.get(property)?.length ?? 0
+      if (count !== 1) problems.push(`${count} ${property} tags`)
+    }
+  }
+  const type = og.get('og:type')?.[0]
+  if (type && !OG_TYPES.test(type)) problems.push(`og:type: ${type}`)
+  for (const property of og.keys()) {
+    const namespace = property.split(':')[0]
+    if (OG_NAMESPACES.includes(namespace) && !type?.startsWith(namespace)) {
+      problems.push(`${property} on an og:type ${type}`)
+    }
+  }
+  for (const locale of [
+    ...(og.get('og:locale') ?? []),
+    ...(og.get('og:locale:alternate') ?? []),
+  ]) {
+    if (!OG_LOCALE.test(locale)) problems.push(`og:locale: ${locale}`)
+  }
+  const ogUrl = og.get('og:url')?.[0]
+  const canonical = head.match(
+    /<link rel="?canonical"? href="?([^"\s>]*)"?/
+  )?.[1]
+  if (ogUrl && canonical && decodeURI(ogUrl) !== decodeURI(canonical)) {
+    problems.push(`og:url ${ogUrl} isn't the canonical ${canonical}`)
+  }
+  const image = og.get('og:image')?.[0]
+  if (image && !image.startsWith(`${siteMetaData().origin}/`)) {
+    problems.push(`og:image: ${image}`)
+  }
+  return problems.slice(0, 3)
+}
+
+/** A page's Open Graph image and what its tags say about it, ie `https://…/og.jpg 1200 630 image/jpeg` */
+function ogImageOf(html) {
+  const content = property =>
+    html.match(
+      new RegExp(`<meta property="?${property}"? content="?([^"\\s>]*)"?`)
+    )?.[1] ?? ''
+  if (!content('og:image')) return null
+  return ['og:image', 'og:image:width', 'og:image:height', 'og:image:type']
+    .map(content)
+    .join(' ')
+}
+
 function factsFor(url, html) {
+  const jsonLd = parseJsonLd(html)
   const title = html.match(/<title>([^<]*)<\/title>/)?.[1] ?? ''
   const main = mainOf(html)
   const links = new Set()
@@ -188,7 +382,12 @@ function factsFor(url, html) {
     canonicals: [
       ...html.matchAll(/<link rel="?canonical"? href="?([^"\s>]*)"?/g),
     ].map(match => copyOf(match[1])),
-    jsonLdProblems: jsonLdProblems(html).map(copyOf),
+    jsonLdProblems: jsonLdProblems(jsonLd).map(copyOf),
+    jsonLdShapes: [
+      ...jsonLdShapes(jsonLd.filter(data => !(data instanceof Error))),
+    ],
+    metaProblems: metaProblems(html, url).map(copyOf),
+    ogImage: copyOf(ogImageOf(html)),
     h1: /<h1[\s>]/.test(main),
     // The piṭaka a page sits in, from the first step of its breadcrumbs
     pitaka: copyOf(
@@ -231,7 +430,11 @@ function factsFor(url, html) {
   }
 }
 
-async function listFiles(dir, base = dir) {
+/**
+ * Every file under a directory, relative to it
+ * @param {string} dir
+ */
+export async function listFiles(dir, base = dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true })
   const files = await Promise.all(
     entries.map(entry => {
@@ -250,7 +453,10 @@ async function listFiles(dir, base = dir) {
  *   files: Set<string>,
  *   pages: Map<string, ReturnType<typeof factsFor>>,
  *   linkSources: Map<string, string>,
- * }>} Every file's URL, every HTML page's facts by URL, and every internal link target with the first page that links it
+ *   jsonLdShapes: Map<string, string>,
+ *   ogImages: Map<string, string>,
+ * }>} Every file's URL, every HTML page's facts by URL, and every internal link target, JSON-LD shape
+ * (see `jsonLdShapes`) and Open Graph image with the first page that has it
  */
 export function scanSite() {
   scan ??= (async () => {
@@ -259,6 +465,11 @@ export function scanSite() {
     const htmlFiles = all.filter(file => file.endsWith('.html'))
     const pages = new Map()
     const linkSources = new Map()
+    const jsonLdShapes = new Map()
+    const ogImages = new Map()
+    const firstOf = (map, key, url) => {
+      if (!map.has(key)) map.set(key, url)
+    }
 
     for (let i = 0; i < htmlFiles.length; i += READ_CONCURRENCY) {
       const batch = htmlFiles.slice(i, i + READ_CONCURRENCY)
@@ -268,16 +479,19 @@ export function scanSite() {
       batch.forEach((file, j) => {
         const url = urlForFile(file)
         const facts = factsFor(url, htmls[j])
-        for (const target of facts.links) {
-          if (!linkSources.has(target)) linkSources.set(target, url)
-        }
-        // The targets live on in `linkSources`, no need for a copy per page
+        for (const target of facts.links) firstOf(linkSources, target, url)
+        for (const shape of facts.jsonLdShapes)
+          firstOf(jsonLdShapes, shape, url)
+        if (facts.ogImage) firstOf(ogImages, facts.ogImage, url)
+        // These live on in the site-wide maps, no need for a copy per page
         facts.links = facts.links.size
+        delete facts.jsonLdShapes
+        delete facts.ogImage
         pages.set(url, facts)
       })
     }
 
-    return { files, pages, linkSources }
+    return { files, pages, linkSources, jsonLdShapes, ogImages }
   })()
   return scan
 }
