@@ -254,6 +254,7 @@
     flex-direction: column;
     align-items: flex-start;
     min-width: 0;
+    margin-bottom: 0.5rem;
   }
 
   dfn + span,
@@ -277,23 +278,73 @@
       list-style: none;
     }
 
+    ul:not(:has(details)) {
+      padding-inline-start: 0.4rem;
+    }
+
     li {
       margin: 0;
       list-style: none;
     }
 
-    li:has(> .tipitaka-label) {
-      margin-top: 0.5rem;
+    li:not(:has(> details)) {
       margin-inline-start: 1rem;
       list-style: disc;
     }
 
-    li:has(> .tipitaka-label)::marker {
+    li:not(:has(> details))::marker {
       color: var(--text-color-secondary);
     }
 
+    /* The toggle where the marker was, on the label's baseline, as the link can't go inside it */
+    li:has(> details) {
+      display: grid;
+      grid-template-columns: 2rem minmax(0, 1fr);
+      align-items: baseline;
+      margin-inline-start: -1.5rem;
+
+      > ul {
+        grid-column: 2;
+      }
+    }
+
+    li:has(> details:not([open])) > ul {
+      display: none;
+    }
+
     summary {
-      list-style-position: outside;
+      display: block;
+      padding-block: 0.25rem;
+      border-radius: var(--rounding);
+      text-align: center;
+      color: var(--text-color-secondary);
+      list-style: none;
+      cursor: pointer;
+
+      &:hover,
+      &:active {
+        background-color: var(--details-summary-hover-background);
+      }
+
+      /* Safari before 18.4 draws it even with no list-style */
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      &::before {
+        content: '▸';
+        content: '▸' / '';
+      }
+    }
+
+    details[open] > summary::before {
+      content: '▾';
+      content: '▾' / '';
+    }
+
+    > li > .tipitaka-label {
+      margin-block: 0.5rem;
+      font-size: larger;
     }
 
     > li > details > summary {
@@ -877,6 +928,18 @@
     .button {
       white-space: nowrap;
       padding-inline: 0.5rem;
+    }
+  }
+
+  details > summary {
+    cursor: pointer;
+    padding: 0.5rem 0.15rem 0.5rem 0.5rem;
+    border-radius: var(--rounding);
+    margin-left: -0.5rem;
+
+    &:hover,
+    &:active {
+      background-color: var(--details-summary-hover-background);
     }
   }
 
