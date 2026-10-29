@@ -327,15 +327,19 @@
   }
   [data-doxy='orthodox']::before {
     content: '👍';
+    content: '👍' / 'Orthodox:';
   }
   [data-doxy='heterodox']::before {
     content: '👎';
+    content: '👎' / 'Heterodox:';
   }
   [data-direction='forward']::before {
     content: '👉';
+    content: '👉' / 'Forward:';
   }
   [data-direction='reverse']::before {
     content: '👈';
+    content: '👈' / 'Reverse:';
   }
   [data-counter]::after {
     content: attr(data-counter);
@@ -352,6 +356,7 @@
   /* Editors' marks in the legacy Sanskrit, Gāndhārī and Chinese editions */
   .term {
     color: var(--brown);
+    font-weight: bold;
   }
   .gloss {
     color: var(--aqua);
@@ -359,23 +364,58 @@
   .supplied,
   .supplied2 {
     color: var(--blue);
+
+    /* Leiden's brackets */
+    &::before {
+      content: '⟨';
+      content: '⟨' / 'Supplied:';
+    }
+    &::after {
+      content: '⟩';
+      content: '⟩' / '';
+    }
   }
   .surplus {
     color: var(--orange);
+
+    &::before {
+      content: '{';
+      content: '{' / 'Surplus:';
+    }
+    &::after {
+      content: '}';
+      content: '}' / '';
+    }
   }
   .var {
     color: var(--purple);
+
+    &::before {
+      content: '';
+      content: '' / 'Variant:';
+    }
   }
   .corr,
   .corrected {
     color: var(--green);
+
+    &::before {
+      content: '';
+      content: '' / 'Corrected:';
+    }
   }
   .unclear,
   .expanded {
     color: var(--text-color-secondary);
   }
-  :is(.var, .corr, .corrected)[title] {
+  .unclear::before {
+    content: '';
+    content: '' / 'Unclear:';
+  }
+  :is(.var, .corr, .corrected) {
     text-decoration: underline dotted;
+  }
+  :is(.var, .corr, .corrected)[title] {
     cursor: help;
   }
   .metre {
