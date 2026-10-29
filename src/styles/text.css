@@ -868,6 +868,17 @@ main:has(.segment) > :first-child {
 }
 
 @media only screen and (max-width: 600px) {
+  /* So what focus moves to isn't put under the menu bar */
+  :root:has(#positioner:checked) {
+    scroll-padding-block-end: 2.75rem;
+
+    @media (hover: none) {
+      &:has(#stop:enabled) {
+        scroll-padding-block-end: calc(2.75rem + var(--tts-controls-height));
+      }
+    }
+  }
+
   body:has(#positioner:checked) {
     padding-bottom: 2.75rem;
 
