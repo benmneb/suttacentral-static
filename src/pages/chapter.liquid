@@ -144,16 +144,26 @@ eleventyComputed:
   <nav aria-label="Article pagination">
     <div>
       {% if entry.scx_chapter_pagination.prev.uid %}
-        <span>Previous</span>
-        <a href="/{{ entry.scx_chapter_pagination.prev.uid }}" rel="prev">
+        <span id="pagination-prev" aria-hidden="true">Previous</span>
+        <a
+          id="pagination-prev-link"
+          href="/{{ entry.scx_chapter_pagination.prev.uid }}"
+          rel="prev"
+          aria-labelledby="pagination-prev pagination-prev-link"
+        >
           {{- entry.scx_chapter_pagination.prev.name | softHyphenateTitle -}}
         </a>
       {% endif %}
     </div>
     <div>
       {% if entry.scx_chapter_pagination.next.uid %}
-        <span>Next</span>
-        <a href="/{{ entry.scx_chapter_pagination.next.uid }}" rel="next">
+        <span id="pagination-next" aria-hidden="true">Next</span>
+        <a
+          id="pagination-next-link"
+          href="/{{ entry.scx_chapter_pagination.next.uid }}"
+          rel="next"
+          aria-labelledby="pagination-next pagination-next-link"
+        >
           {{- entry.scx_chapter_pagination.next.name | softHyphenateTitle -}}
         </a>
       {% endif %}
