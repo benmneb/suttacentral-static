@@ -487,6 +487,12 @@ main:has(.segment) > :first-child {
   anchor-name: --text-column;
 }
 
+/* Names from style="--anchor: …", as the validator doesn't know anchor-name */
+.segment[style],
+button[style]:is([popovertarget^='comment-'], [popovertarget^='variant-']) {
+  anchor-name: var(--anchor);
+}
+
 .parallel-run {
   --parallel-color: var(--yellow);
   position: absolute;
@@ -495,6 +501,8 @@ main:has(.segment) > :first-child {
       var(--parallel-step)
   );
   right: anchor(--text-column right);
+  top: anchor(top var(--from));
+  bottom: anchor(bottom var(--to));
   margin: 0;
   padding: 0;
   border: none;
@@ -814,6 +822,7 @@ main:has(.segment) > :first-child {
   }
 
   main > article[popover]:is([id^='comment-'], [id^='variant-']) {
+    position-anchor: var(--anchored-to);
     inset: auto;
     top: anchor(bottom);
     /* 320px is the popover's widest, padding and all */

@@ -823,7 +823,12 @@
   }
 
   @supports (anchor-name: --a) {
+    .map-places > button {
+      anchor-name: var(--anchor);
+    }
+
     .map-place {
+      position-anchor: var(--anchored-to);
       inset: auto;
       position-area: bottom;
       margin: 0.25rem 0;

@@ -102,7 +102,7 @@ eleventyComputed:
                       type="button"
                       class="{{ kind }} layer-{{ layerIndex }}"
                       popovertarget="{{ place.id }}"
-                      style="--x: {{ place.shape.x }}; --y: {{ place.shape.y }}; anchor-name: --place-{{ layerIndex }}-{{ forloop.index }}"
+                      style="--x: {{ place.shape.x }}; --y: {{ place.shape.y }}; --anchor: --place-{{ layerIndex }}-{{ forloop.index }}"
                     >
                       {%- if kind == "point" -%}
                         <svg aria-hidden="true">
@@ -116,7 +116,7 @@ eleventyComputed:
                     <div
                       id="{{ place.id }}"
                       class="map-place"
-                      style="position-anchor: --place-{{ layerIndex }}-{{ forloop.index }}"
+                      style="--anchored-to: --place-{{ layerIndex }}-{{ forloop.index }}"
                       popover
                     >
                       {% capture layerName %}

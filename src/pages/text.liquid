@@ -729,7 +729,7 @@ eleventyComputed:
           {% assign is_heading = html | isHeading %}
           {% capture replacement %}
           {% assign anchor = entry.scx_parallel_anchors[key] %}
-          <span id="{{ key }}" class="segment"{% if anchor %} style="anchor-name: {{ anchor }}"{% endif %}>
+          <span id="{{ key }}" class="segment"{% if anchor %} style="--anchor: {{ anchor }}"{% endif %}>
             <span class="reference" id="{{ ref }}" hidden>
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
               {%- comment -%}
@@ -760,7 +760,7 @@ eleventyComputed:
               {% endif %}
               <span class="text">{% if is_heading %}{{ text | softHyphenateTitle | lookupWords: entry.lang }}{% else %}{{ text | lookupWords: entry.lang }}{% endif %}</span>
               {% unless comment == blank %}
-                <button class="variant-btn" popovertarget="comment-{{ key }}" style="anchor-name: --comment{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
+                <button class="variant-btn" popovertarget="comment-{{ key }}" style="--anchor: --comment{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
                 <span class="inline-comment" hidden>
                   Variant: {{ comment | replace: scOrigin, '' }}
                 </span>
@@ -776,7 +776,7 @@ eleventyComputed:
           {%- unless comment == blank -%}
             {% capture comments %}
             {{ comments }}
-            <article id="comment-{{ key }}" popover style="position-anchor: --comment{{ forloop.index }}">
+            <article id="comment-{{ key }}" popover style="--anchored-to: --comment{{ forloop.index }}">
               Variant: {{ comment | replace: scOrigin, '' }}
             </article>
             {% endcapture %}
@@ -904,7 +904,7 @@ eleventyComputed:
           {% assign is_heading = html | isHeading %}
           {% capture replacement %}
           {% assign anchor = entry.scx_parallel_anchors[key] %}
-          <span id="{{ key }}" class="segment"{% if anchor %} style="anchor-name: {{ anchor }}"{% endif %}>
+          <span id="{{ key }}" class="segment"{% if anchor %} style="--anchor: {{ anchor }}"{% endif %}>
             <span class="reference" id="{{ ref }}" hidden>
               <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
               {%- comment -%}
@@ -936,7 +936,7 @@ eleventyComputed:
             {% endif %}
             <span class="text">{{ text }}</span>
               {% unless comment == blank %}
-                <button popovertarget="comment-{{ key }}" style="anchor-name: --comment{{ forloop.index }}" aria-label="Show {{ entry.author }}'s footnote for segment {{ key }}">*</button>
+                <button popovertarget="comment-{{ key }}" style="--anchor: --comment{{ forloop.index }}" aria-label="Show {{ entry.author }}'s footnote for segment {{ key }}">*</button>
                 <span class="inline-comment" hidden>
                   <span class="sr-only">Note:</span> {{ comment | replace: scOrigin, '' }}
                 </span>
@@ -957,7 +957,7 @@ eleventyComputed:
                 {% endif %}
                 <span class="text">{% if is_heading %}{{ rootText | softHyphenateTitle | lookupWords: entry.root_lang }}{% else %}{{ rootText | lookupWords: entry.root_lang }}{% endif %}</span>
                 {% unless variant == blank %}
-                  <button class="variant-btn" popovertarget="variant-{{ key }}" style="anchor-name: --variant{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
+                  <button class="variant-btn" popovertarget="variant-{{ key }}" style="--anchor: --variant{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
                   <span class="inline-comment" hidden>
                     Variant: {{ variant | replace: scOrigin, '' }}
                   </span>
@@ -973,7 +973,7 @@ eleventyComputed:
           {%- unless comment == blank -%}
             {% capture comments %}
             {{ comments }}
-            <article id="comment-{{ key }}" popover style="position-anchor: --comment{{ forloop.index }}">
+            <article id="comment-{{ key }}" popover style="--anchored-to: --comment{{ forloop.index }}">
               {{ comment | replace: scOrigin, '' }}
             </article>
             {% endcapture %}
@@ -981,7 +981,7 @@ eleventyComputed:
           {%- unless variant == blank -%}
             {% capture comments %}
             {{ comments }}
-            <article id="variant-{{ key }}" popover style="position-anchor: --variant{{ forloop.index }}">
+            <article id="variant-{{ key }}" popover style="--anchored-to: --variant{{ forloop.index }}">
               Variant: {{ variant | replace: scOrigin, '' }}
             </article>
             {% endcapture %}
@@ -1031,7 +1031,7 @@ eleventyComputed:
               data-outer
             {% endif %}
             aria-label="{{ run.label }}, {{ run.count }} parallel{% if run.count != 1 %}s{% endif %}"
-            style="--lane: {{ run.lane }}; top: anchor(--ps{{ run.start }} top); bottom: anchor(--ps{{ run.end }} bottom)"
+            style="--lane: {{ run.lane }}; --from: --ps{{ run.start }}; --to: --ps{{ run.end }}"
           ></button>
           <article id="parallels-{{ forloop.index0 }}" popover>
             <h1>Parallels of {{ run.label }}</h1>
