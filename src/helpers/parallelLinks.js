@@ -9,6 +9,9 @@
  *
  * Each also gets what `parallelItems.liquid` shows of it, worked out once here rather than
  * on every page it's on: its label with the passage, its language, and its volume and pages.
+ *
+ * /api/parallels only has an English title for a parallel with a legacy English translation,
+ * so SN 51.10 from DN 16 is just "Cetiyasutta". The rest get the one their own text has.
  */
 import { parallelAnchor, passageLabel } from './parallelRuns.js'
 import { formatVolpages } from './strings.js'
@@ -39,6 +42,17 @@ function volpagesOf(to) {
   }
 }
 
+/** Every text's English title, as `uid -> title` */
+function indexTitles(nodes, titles = new Map()) {
+  for (const node of nodes ?? []) {
+    if (!node) continue
+    if (node.translated_title?.trim())
+      titles.set(node.uid, node.translated_title)
+    indexTitles(node.children, titles)
+  }
+  return titles
+}
+
 /**
  * Gives every parallel the English translations built for it, and what's shown of it.
  * Mutates `_parallels_data` in place, as it's shared by every page made from it.
@@ -48,6 +62,7 @@ function volpagesOf(to) {
 export function addParallelDetails(tree, resolve) {
   // Shared by every parallel to the same text, as there are hundreds of thousands
   const byUid = new Map()
+  const titles = indexTitles(tree)
   let linked = 0
 
   function translationsOf(uid, passage) {
@@ -69,6 +84,8 @@ export function addParallelDetails(tree, resolve) {
     to.scx_type = parallel.resembling ? 'resembling' : to.type
     to.scx_anchor = parallelAnchor(to.to ?? '')
     to.scx_label = `${to.acronym?.trim() ?? ''}${passageLabel(to.to ?? '')}`
+    if (!to.translated_title && titles.has(to.uid))
+      to.translated_title = titles.get(to.uid)
     if (to.root_lang && to.root_lang !== rootLang)
       to.scx_lang_name = LANGUAGES[to.root_lang] ?? to.root_lang
     const { volpages, full } = volpagesOf(to)
