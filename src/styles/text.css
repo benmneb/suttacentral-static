@@ -2207,6 +2207,34 @@ aside:has(#definer:checked) ~ main .segment > :is(.translation, .root) {
   background-color: var(--primary-color);
 }
 
+/* System colours, as forced colours override any others */
+@media (forced-colors: active) {
+  .tts-highlight {
+    color: MarkText;
+    background-color: Mark;
+  }
+
+  ::highlight(tts-current) {
+    color: MarkText;
+    background-color: Mark;
+  }
+
+  .segment .text .word.looked-up {
+    color: HighlightText;
+    background-color: Highlight;
+  }
+
+  ::highlight(tts-word) {
+    color: HighlightText;
+    background-color: Highlight;
+  }
+
+  ::highlight(lookup) {
+    color: HighlightText;
+    background-color: Highlight;
+  }
+}
+
 [popover]#definition {
   box-sizing: border-box;
   max-width: none;
