@@ -1030,7 +1030,7 @@ aside:where(body > *) {
       border-radius: var(--rounding);
       padding: 0 0.2rem;
       color: var(--text-color);
-      font-size: xx-small;
+      font-size: x-small;
       cursor: pointer;
       margin: 0 0 0 0.2rem;
       background-color: var(--background-color-secondary);
