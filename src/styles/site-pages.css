@@ -3,8 +3,16 @@
   --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3Z'/%3E %3Cpath fill-rule='evenodd' d='M13 6H3v6a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6ZM8.75 7.75a.75.75 0 0 0-1.5 0v2.69L6.03 9.22a.75.75 0 0 0-1.06 1.06l2.5 2.5a.75.75 0 0 0 1.06 0l2.5-2.5a.75.75 0 1 0-1.06-1.06l-1.22 1.22V7.75Z' clip-rule='evenodd'/%3E%3C/svg%3E");
 }
 
+.i-arrowDown {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M8 2a.75.75 0 0 1 .75.75v8.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.22 3.22V2.75A.75.75 0 0 1 8 2Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+}
+
 .i-arrowsPointingOut {
   --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M2.75 9a.75.75 0 0 1 .75.75v1.69l2.22-2.22a.75.75 0 0 1 1.06 1.06L4.56 12.5h1.69a.75.75 0 0 1 0 1.5h-3.5a.75.75 0 0 1-.75-.75v-3.5A.75.75 0 0 1 2.75 9ZM2.75 7a.75.75 0 0 0 .75-.75V4.56l2.22 2.22a.75.75 0 0 0 1.06-1.06L4.56 3.5h1.69a.75.75 0 0 0 0-1.5h-3.5a.75.75 0 0 0-.75.75v3.5c0 .414.336.75.75.75ZM13.25 9a.75.75 0 0 0-.75.75v1.69l-2.22-2.22a.75.75 0 1 0-1.06 1.06l2.22 2.22H9.75a.75.75 0 0 0 0 1.5h3.5a.75.75 0 0 0 .75-.75v-3.5a.75.75 0 0 0-.75-.75ZM13.25 7a.75.75 0 0 1-.75-.75V4.56l-2.22 2.22a.75.75 0 1 1-1.06-1.06l2.22-2.22H9.75a.75.75 0 0 1 0-1.5h3.5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-.75.75Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+.i-arrowUp {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M8 14a.75.75 0 0 1-.75-.75V4.56L4.03 7.78a.75.75 0 0 1-1.06-1.06l4.5-4.5a.75.75 0 0 1 1.06 0l4.5 4.5a.75.75 0 0 1-1.06 1.06L8.75 4.56v8.69A.75.75 0 0 1 8 14Z' clip-rule='evenodd'/%3E%3C/svg%3E");
 }
 
 .i-devicePhoneMobile {
@@ -148,18 +156,6 @@
 
   blockquote.gatha {
     font-style: italic;
-  }
-
-  details summary {
-    cursor: pointer;
-    padding: 0.5rem 0.15rem 0.5rem 0.5rem;
-    border-radius: var(--rounding);
-    margin-left: -0.5rem;
-
-    &:hover,
-    &:active {
-      background-color: var(--details-summary-hover-background);
-    }
   }
 
   ul ul,
@@ -348,7 +344,6 @@
     }
 
     > li > details > summary {
-      margin-block: 0.5rem;
       font-size: larger;
     }
   }
@@ -626,6 +621,8 @@
   .map-frame {
     position: relative;
     overflow: hidden;
+    /* Clip, as focusing a place out of the view would scroll a hidden one */
+    overflow: clip;
     aspect-ratio: var(--home-width) / var(--home-height);
     border-radius: var(--rounding);
     background-color: var(--bg-hard);

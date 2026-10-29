@@ -212,6 +212,46 @@ eleventyComputed:
               {% icon "arrowsPointingOut" %}
               <span>Full screen</span>
             </button>
+            <button
+              type="button"
+              class="button"
+              data-move="h"
+              aria-label="Move left"
+              aria-keyshortcuts="H"
+              title="Move left (H)"
+            >
+              {% icon "arrowLeft" %}
+            </button>
+            <button
+              type="button"
+              class="button"
+              data-move="j"
+              aria-label="Move down"
+              aria-keyshortcuts="J"
+              title="Move down (J)"
+            >
+              {% icon "arrowDown" %}
+            </button>
+            <button
+              type="button"
+              class="button"
+              data-move="k"
+              aria-label="Move up"
+              aria-keyshortcuts="K"
+              title="Move up (K)"
+            >
+              {% icon "arrowUp" %}
+            </button>
+            <button
+              type="button"
+              class="button"
+              data-move="l"
+              aria-label="Move right"
+              aria-keyshortcuts="L"
+              title="Move right (L)"
+            >
+              {% icon "arrowRight" %}
+            </button>
             <dl>
               <div>
                 <dt>Zoom</dt>
@@ -223,7 +263,8 @@ eleventyComputed:
               <div>
                 <dt>Pan</dt>
                 <dd>
-                  drag or <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd>
+                  drag, or the arrows, or <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd>
+                  <kbd>L</kbd>
                 </dd>
               </div>
             </dl>

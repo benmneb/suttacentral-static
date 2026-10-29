@@ -2,11 +2,11 @@
  * Map
  *
  * Pans and zooms the map on /map: ctrl/⌘ + scroll (so the page still scrolls), pinching, double clicking or
- * tapping, dragging, the view buttons and their hotkeys (I, O, R, F), H J K L to move, and full screen. The keys
- * only work once the map was last clicked or focused, so they don't catch keys meant for anything else. It
- * changes the SVG's viewBox, and the --x0 --y0 --width --height the places over it are positioned by, gliding
- * there for buttons and keys, and opens the place a link's #place-… names. Without it the map shows its first
- * view, and its places and layers still work.
+ * tapping, dragging, the view buttons and their hotkeys (I, O, R, F), the arrows or H J K L to move, and full
+ * screen, and brings a place tabbed to into view. The keys only work once the map was last clicked or focused,
+ * so they don't catch keys meant for anything else. It changes the SVG's viewBox, and the --x0 --y0 --width
+ * --height the places over it are positioned by, gliding there for buttons and keys, and opens the place a
+ * link's #place-… names. Without it the map shows its first view, and its places and layers still work.
  */
 ;(function () {
   'use strict'
@@ -239,13 +239,50 @@
     if (isDouble) glideTo(zoomed(event.shiftKey ? 0.5 : 2, toMap(tap.x, tap.y)))
   }
 
+  /** Moves the view by one of `MOVES` */
+  function move(key) {
+    const [x, y, width, height] = view
+    const [dx, dy] = MOVES[key]
+    glideTo([x + dx * width, y + dy * height, width, height])
+  }
+
   viewControls.addEventListener('click', event => {
     const button = event.target.closest('button')
     if (!button) return
+    if (MOVES[button.dataset.move]) move(button.dataset.move)
     if (button.dataset.zoom === 'in') glideTo(zoomed(1.5, centre()))
     if (button.dataset.zoom === 'out') glideTo(zoomed(1 / 1.5, centre()))
     if (button.dataset.zoom === 'reset') glideTo(fitting(home))
     if (button.hasAttribute('data-fullscreen')) toggleFullscreen()
+  })
+
+  // Kept from before a focus scrolls the page, as the scroll event only comes after.
+  // Also on Tab, before Safari's scroll, whose event can come first
+  let pageScroll = [scrollX, scrollY]
+  const keepScroll = () => (pageScroll = [scrollX, scrollY])
+  addEventListener('scroll', keepScroll, { passive: true })
+  addEventListener('keydown', event => event.key === 'Tab' && keepScroll(), {
+    capture: true,
+  })
+
+  // A place tabbed to outside the view is brought into the middle of it, with the page put back first, as
+  // the browser scrolls it to where the place sits off the map
+  frame.querySelector('.map-places')?.addEventListener('focusin', event => {
+    const button = event.target.closest('.map-places > button')
+    if (!button) return
+    const x = Number(button.style.getPropertyValue('--x'))
+    const y = Number(button.style.getPropertyValue('--y'))
+    const [vx, vy, width, height] = view
+    if (x > vx && x < vx + width && y > vy && y < vy + height) return
+    const before = pageScroll
+    const putBack = () => {
+      scrollTo(...before)
+      frame.scrollIntoView({ block: 'nearest' })
+    }
+    putBack()
+    // Again next frame, as Safari scrolls to the place after focusin
+    requestAnimationFrame(putBack)
+    glideTo([x - width / 2, y - height / 2, width, height])
   })
 
   // A region or journey's shape opens its popover, as its name does, where it's clicked rather than dragged
@@ -311,9 +348,7 @@
     const key = event.key.toLowerCase()
     if (MOVES[key]) {
       event.preventDefault()
-      const [x, y, width, height] = view
-      const [dx, dy] = MOVES[key]
-      glideTo([x + dx * width, y + dy * height, width, height])
+      move(key)
       return
     }
     const action = HOTKEYS[key]
