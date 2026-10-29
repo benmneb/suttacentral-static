@@ -7,7 +7,12 @@
 
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { bilaraMarkup, langTag, languageName } from '../src/helpers/strings.js'
+import {
+  bilaraMarkup,
+  closeHeadingGaps,
+  langTag,
+  languageName,
+} from '../src/helpers/strings.js'
 
 describe('Language names', () => {
   it('spells Pali as the site does', () => {
@@ -73,5 +78,23 @@ describe('Bilara markup', () => {
     const html = 'a <i>b</i> <span class="j">c</span>'
     assert.equal(bilaraMarkup(html), html)
     assert.equal(bilaraMarkup(undefined), undefined)
+  })
+})
+
+describe('Heading levels', () => {
+  it('moves a heading up to a level below the one it is under', () => {
+    assert.equal(
+      closeHeadingGaps('<h1>A</h1><h4 id="b">B</h4><h6>C</h6><h4>D</h4>'),
+      '<h1>A</h1><h2 id="b">B</h2><h3>C</h3><h2>D</h2>'
+    )
+    assert.equal(
+      closeHeadingGaps('<h3>A</h3><h1>B</h1>'),
+      '<h2>A</h2><h1>B</h1>'
+    )
+  })
+
+  it('leaves headings that go up, or one level down, as they are', () => {
+    const html = '<h1>A</h1><h2>B</h2><h3>C</h3><h2>D</h2><hr><header></header>'
+    assert.equal(closeHeadingGaps(html), html)
   })
 })

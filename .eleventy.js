@@ -23,6 +23,7 @@ import { SC_ORIGIN } from './src/helpers/scApi.js'
 import { createSiteLinkFixer } from './src/helpers/siteLinks.js'
 import { missingKeys, t } from './src/helpers/siteStrings.js'
 import {
+  closeHeadingGaps,
   formatVolpages,
   isHeadingHTML,
   langTag,
@@ -257,7 +258,9 @@ export default function (eleventyConfig) {
     })
 
     // The API's own HTML, ie a legacy text's <li class="division" lang='pli'>, has .net's codes too
-    return minified.replace(/(?<=\s(?:href)?lang=")[a-z]{3}(?=")/g, langTag)
+    return closeHeadingGaps(
+      minified.replace(/(?<=\s(?:href)?lang=")[a-z]{3}(?=")/g, langTag)
+    )
   })
 
   let buildStart

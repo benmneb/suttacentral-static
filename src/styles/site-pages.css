@@ -450,6 +450,17 @@
     font-size: small;
   }
 
+  /* The size of the h3 and h4 a dictionary has, which are a level up so none skips one */
+  dd h2 {
+    margin-block: 1em;
+    font-size: 1.17em;
+  }
+
+  dd h3 {
+    margin-block: 1.33em;
+    font-size: 1em;
+  }
+
   .grammar {
     display: block;
     color: var(--text-color-secondary);
