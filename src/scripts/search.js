@@ -42,6 +42,12 @@
   const countEl = document.getElementById('search-count')
   const resultsContainer = document.getElementById('search-results')
   const showMoreBtn = document.getElementById('show-more')
+  // Focus goes to the first new result, as the button moves down below them
+  const onShowMore = showMore => async () => {
+    const first = resultsContainer.children.length
+    await showMore()
+    resultsContainer.children[first]?.querySelector('a[href]')?.focus()
+  }
   const scRedirectLink = document.getElementById('sc-redirect')
   const filtersEl = document.getElementById('search-filters')
   const resetFiltersBtn = document.getElementById('search-filters-reset')
@@ -882,7 +888,7 @@
       showMoreBtn.hidden = shown >= found.length
     }
     await showMore()
-    showMoreBtn.onclick = showMore
+    showMoreBtn.onclick = onShowMore(showMore)
   }
 
   // A query of one word, which may be a Pāli one
@@ -1165,7 +1171,7 @@
     await showMore()
     if (searchId !== latestSearch) return
 
-    showMoreBtn.onclick = showMore
+    showMoreBtn.onclick = onShowMore(showMore)
   }
 
   // Pagefind splits words on a soft hyphen, which a title copied from a page has in it
