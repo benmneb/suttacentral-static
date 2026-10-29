@@ -1160,6 +1160,12 @@ a:where([href]) {
   color: var(--primary-color);
 }
 
+/* Opacity too, as Firefox fades placeholders */
+::placeholder {
+  color: var(--text-color-secondary);
+  opacity: 1;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
