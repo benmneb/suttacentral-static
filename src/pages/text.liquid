@@ -735,14 +735,18 @@ eleventyComputed:
         {% assign text = entry._bilarasuttas_data.root_text[key] %}
         {% assign comment = entry._bilarasuttas_data.variant_text[key] %}
         {% assign ref = key | split: ":" | last %}
+        {% assign ref_id = entry.scx_segment_ids[key] | default: ref %}
+        {% if entry.scx_full_segment_refs %}
+          {% assign ref = key %}
+        {% endif %}
 
         {% if html %}
           {% assign is_heading = html | isHeading %}
           {% capture replacement %}
           {% assign anchor = entry.scx_parallel_anchors[key] %}
           <span id="{{ key }}" class="segment"{% if anchor %} style="--anchor: {{ anchor }}"{% endif %}>
-            <span class="reference" id="{{ ref }}" hidden>
-              <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
+            <span class="reference" id="{{ ref_id }}" hidden>
+              <a href="#{{ ref_id }}" title="SuttaCentral segment number">{{ ref }}</a>
               {%- comment -%}
                 Every printed-edition reference too, hidden like the number, so a link like /mn2/en/sujato#bj10.20 has
                 somewhere to land - CSS reveals whichever is targeted. Not searchable, they'd only add noise like "pts" and "pli1"
@@ -912,14 +916,18 @@ eleventyComputed:
         {% assign comment = entry._bilarasuttas_data.comment_text[key] %}
         {% assign variant = entry._bilarasuttas_data.variant_text[key] %}
         {% assign ref = key | split: ":" | last %}
+        {% assign ref_id = entry.scx_segment_ids[key] | default: ref %}
+        {% if entry.scx_full_segment_refs %}
+          {% assign ref = key %}
+        {% endif %}
 
         {% if html %}
           {% assign is_heading = html | isHeading %}
           {% capture replacement %}
           {% assign anchor = entry.scx_parallel_anchors[key] %}
           <span id="{{ key }}" class="segment"{% if anchor %} style="--anchor: {{ anchor }}"{% endif %}>
-            <span class="reference" id="{{ ref }}" hidden>
-              <a href="#{{ ref }}" title="SuttaCentral segment number">{{ ref }}</a>
+            <span class="reference" id="{{ ref_id }}" hidden>
+              <a href="#{{ ref_id }}" title="SuttaCentral segment number">{{ ref }}</a>
               {%- comment -%}
                 Every printed-edition reference too, hidden like the number, so a link like /mn2/en/sujato#bj10.20 has
                 somewhere to land - CSS reveals whichever is targeted. Not searchable, they'd only add noise like "pts" and "pli1"

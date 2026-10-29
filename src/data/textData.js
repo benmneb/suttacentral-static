@@ -263,6 +263,27 @@ async function localiseIllustrations(entries) {
   )
 }
 
+/**
+ * Segment number ids for a page of several texts, where the short one (ie 1.1) would repeat: .net's
+ * whole key for a range like an1.1-10 (ie an1.2_1.1), else the short one only where first used, as a .net link lands there
+ */
+function segmentIdsOf(entry) {
+  const keys = shownKeysOf(entry)
+  const none = { scx_segment_ids: null, scx_full_segment_refs: false }
+  if (!keys || new Set(keys.map(key => key.split(':')[0])).size < 2) {
+    return none
+  }
+  const isRange = /^\d+-\d+$/.test(entry.uid.split('.')[1] ?? '')
+  const ids = {}
+  const seen = new Set()
+  for (const key of keys) {
+    const ref = key.split(':').at(-1)
+    if (isRange || seen.has(ref)) ids[key] = key.replace(':', '_')
+    seen.add(ref)
+  }
+  return { scx_segment_ids: ids, scx_full_segment_refs: isRange }
+}
+
 /** Whether each of the views menu's text-specific settings applies, and what it shows */
 function viewOptionsOf(entry) {
   const keys = shownKeysOf(entry)
@@ -593,6 +614,7 @@ function flatten(nodes, parent, parentPath) {
               scx_og_tags: generateTextOGTags(entry),
               ...tocOf(entry),
               ...referenceGroupsOf(entry),
+              ...segmentIdsOf(entry),
               ...viewOptionsOf(entry),
             }
           })
@@ -622,6 +644,7 @@ function flatten(nodes, parent, parentPath) {
         scx_og_tags: generateTextOGTags(entry),
         ...tocOf(entry),
         ...referenceGroupsOf(entry),
+        ...segmentIdsOf(entry),
         ...viewOptionsOf(entry),
       })
       return results
