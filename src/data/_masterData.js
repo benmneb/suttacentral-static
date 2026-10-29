@@ -49,6 +49,26 @@ function sortParallels(parallels) {
 }
 
 /**
+ * A text's printed-edition references as .net makes them: without whitespace, which a few have (ie dn33:1.11.85),
+ * and leaving out any named like an id the text has, ie pdhp2 on the verse pdhp2
+ */
+function tidyReferences(bilaraData) {
+  const refs = bilaraData.reference_text
+  if (!refs) return
+  const ids = new Set()
+  for (const html of Object.values(bilaraData.html_text ?? {})) {
+    for (const [, id] of html.matchAll(/\bid=['"]([^'"]+)/g)) ids.add(id)
+  }
+  for (const key in refs) {
+    refs[key] = refs[key]
+      .replace(/\s+/g, '')
+      .split(',')
+      .filter(ref => ref && !ids.has(ref))
+      .join(',')
+  }
+}
+
+/**
  * Fetches JSON data with caching and cache timestamp tracking.
  *
  * Uses Eleventy Fetch to cache responses and adds a `scx_fetched_at` property
@@ -189,6 +209,7 @@ async function fetchDataTree(uid, depth = 0) {
           ]) {
             for (const key in texts) texts[key] = bilaraMarkup(texts[key])
           }
+          tidyReferences(bilaraData)
         } catch (e) {
           fetchErrors++
           spinner
