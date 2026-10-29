@@ -143,6 +143,45 @@
   }
 }
 
+/* 7:1 on the lightest surface text sits on, --bg-alt-1, for WCAG AAA */
+@media (prefers-contrast: more) {
+  :root {
+    --fg-alt-2: #d8c9a9;
+    --fg-alt-3: #d3c9b6;
+    --fg-alt-4: #d2c9bd;
+
+    --red: #fdbab2;
+    --green: #ced12a;
+    --yellow: #fac23e;
+    --blue: #bccec7;
+    --purple: #e8c0cb;
+    --aqua: #b1d4a5;
+    --gray: #cfc9c2;
+    --orange: #febd87;
+    --brown: #e8c4a0;
+  }
+}
+
+/* 7:1 on the darkest surface text sits on, --bg-alt-1 */
+@media (prefers-contrast: more) and (prefers-color-scheme: light) {
+  :root {
+    --fg-alt-2: #49433f;
+    --fg-alt-3: #4b433d;
+    --fg-alt-4: #4c423b;
+
+    --red: #8f0005;
+    --green: #494608;
+    --yellow: #5e3d0a;
+    --blue: #054b58;
+    --purple: #6b2f54;
+    --aqua: #284b36;
+    --orange: #7c2800;
+    --orange-alt: #7a2903;
+    --gray: #4b433b;
+    --brown: #56402d;
+  }
+}
+
 ::selection {
   color: var(--background-color);
   background-color: var(--primary-color);

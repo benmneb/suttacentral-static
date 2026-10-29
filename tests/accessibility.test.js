@@ -1,9 +1,9 @@
 /**
  * A sample of every kind of page has no accessibility problems axe-core can find,
- * by WCAG 2.2 A and AA and axe's best practices.
+ * by WCAG 2.2 A and AA and axe's best practices, and by AAA with more contrast.
  *
- * Each runs in a headless browser, in light and dark mode and on a phone's width,
- * so it's a sample rather than every page: the sample builds' pages, and the
+ * Each runs in a headless browser, in light and dark mode, on a phone's width and
+ * with `prefers-contrast: more`, so it's a sample rather than every page: the sample builds' pages, and the
  * first few of each kind of page in each collection.
  *
  * Uses Brave or Chrome, whichever is installed, or `BROWSER_PATH`.
@@ -42,11 +42,35 @@ const AXE_TAGS = [
   'wcag22aa',
   'best-practice',
 ]
+// Only AAA where there's more contrast, as the other runs cover the rest
+const MORE_CONTRAST_TAGS = ['wcag2aaa']
 
+const desktop = { width: 1280, height: 800, open: true, tags: AXE_TAGS }
 const VARIANTS = [
-  { name: 'light', width: 1280, height: 800, scheme: 'light', open: true },
-  { name: 'dark', width: 1280, height: 800, scheme: 'dark', open: true },
-  { name: 'phone', width: 375, height: 812, scheme: 'light', open: false },
+  { ...desktop, name: 'light', scheme: 'light' },
+  { ...desktop, name: 'dark', scheme: 'dark' },
+  {
+    ...desktop,
+    name: 'phone',
+    width: 375,
+    height: 812,
+    scheme: 'light',
+    open: false,
+  },
+  {
+    ...desktop,
+    name: 'light, more contrast',
+    scheme: 'light',
+    contrast: 'more',
+    tags: MORE_CONTRAST_TAGS,
+  },
+  {
+    ...desktop,
+    name: 'dark, more contrast',
+    scheme: 'dark',
+    contrast: 'more',
+    tags: MORE_CONTRAST_TAGS,
+  },
 ]
 
 const BROWSERS = [
@@ -107,6 +131,7 @@ async function violationsOn(page, origin, url) {
     await page.setViewport({ width: variant.width, height: variant.height })
     await page.emulateMediaFeatures([
       { name: 'prefers-color-scheme', value: variant.scheme },
+      { name: 'prefers-contrast', value: variant.contrast ?? 'no-preference' },
     ])
     await page.goto(`${origin}${encodeURI(url)}`, { waitUntil: 'load' })
     if (variant.open) {
@@ -120,7 +145,7 @@ async function violationsOn(page, origin, url) {
     const violations = await page
       .evaluate(
         tags => axe.run(document, { runOnly: { type: 'tag', values: tags } }),
-        AXE_TAGS
+        variant.tags
       )
       .then(results => results.violations)
     for (const { id, impact, help, helpUrl, nodes } of violations) {
