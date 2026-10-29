@@ -46,8 +46,13 @@
   // Tab stops only while it's on
   function setTabbable() {
     for (const text of texts) {
-      if (toggle.checked) text.tabIndex = 0
-      else text.removeAttribute('tabindex')
+      if (toggle.checked) {
+        text.tabIndex = 0
+        text.setAttribute('aria-describedby', 'definition-hint')
+      } else {
+        text.removeAttribute('tabindex')
+        text.removeAttribute('aria-describedby')
+      }
     }
   }
   setTabbable()

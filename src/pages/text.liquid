@@ -1065,6 +1065,10 @@ eleventyComputed:
       popover
       aria-label="Word definition"
     ></article>
+    <p id="definition-hint" hidden data-pagefind-ignore>
+      Enter looks up its first
+      {% if lookupDict == "lzh-en" %}character{% else %}word{% endif %}.
+    </p>
   {% endif %}
 </main>
 
