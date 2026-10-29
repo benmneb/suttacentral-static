@@ -2,7 +2,8 @@
  * Map
  *
  * Pans and zooms the map on /map: ctrl/⌘ + scroll (so the page still scrolls), pinching, double clicking or
- * tapping, dragging, the view buttons and their hotkeys (I, O, R, F), H J K L to move, and full screen. It
+ * tapping, dragging, the view buttons and their hotkeys (I, O, R, F), H J K L to move, and full screen. The keys
+ * only work once the map was last clicked or focused, so they don't catch keys meant for anything else. It
  * changes the SVG's viewBox, and the --x0 --y0 --width --height the places over it are positioned by, gliding
  * there for buttons and keys, and opens the place a link's #place-… names. Without it the map shows its first
  * view, and its places and layers still work.
@@ -282,6 +283,14 @@
 
   document.addEventListener('fullscreenchange', labelFullscreen)
 
+  // Only while the map was the last thing clicked or focused
+  let active = false
+  for (const type of ['pointerdown', 'focusin']) {
+    document.addEventListener(type, event => {
+      active = figure.contains(event.target)
+    })
+  }
+
   document.addEventListener('keydown', event => {
     if (
       event.key === 'Escape' &&
@@ -293,7 +302,7 @@
       }
       return
     }
-    if (event.ctrlKey || event.metaKey || event.altKey) return
+    if (!active || event.ctrlKey || event.metaKey || event.altKey) return
     if (
       event.target.closest?.('input:not([type="checkbox"]), textarea, select')
     ) {
