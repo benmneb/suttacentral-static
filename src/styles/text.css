@@ -2447,6 +2447,11 @@ aside:has(#definer:checked) ~ main .segment > :is(.translation, .root) {
 
     kbd {
       margin: 0.3rem 0 0;
+
+      /* Gone rather than unseen, so the icon centres */
+      .hotkeys-off & {
+        display: none;
+      }
     }
 
     /* Like .sr-only, as they name the buttons */
