@@ -12,7 +12,11 @@
  * the anchor only if it's a segment of that text. .net just takes them to the chapter.
  *
  * Otherwise the #anchor and anything else after the author is always kept.
+ *
+ * Whitespace in a link is taken out first, as no link has any on purpose, ie DN 16's "/sn47.14 /en/sujato".
  */
+
+const HREF_WITH_SPACE = /href=(['"])([^'"]*\s[^'"]*)\1/g
 
 const LINK =
   /(href=['"]https:\/\/suttacentral\.net\/)([^/#?'"\s]+)\/([a-z]+)\/([^/#?'"]+)(#[^'"]*)?/g
@@ -58,9 +62,13 @@ export function fixCommentLinks(tree, resolve) {
         seen.add(comments)
 
         for (const [key, comment] of Object.entries(comments)) {
-          comments[key] = comment.replace(
-            LINK,
-            (match, start, uid, lang, author, anchor = '') => {
+          comments[key] = comment
+            .replace(
+              HREF_WITH_SPACE,
+              (match, quote, url) =>
+                `href=${quote}${url.replace(/\s+/g, '')}${quote}`
+            )
+            .replace(LINK, (match, start, uid, lang, author, anchor = '') => {
               const target = suttaInAnchor(
                 resolve,
                 uid,
@@ -76,8 +84,7 @@ export function fixCommentLinks(tree, resolve) {
               return target.lang
                 ? `${start}${target.uid}/${target.lang}/${target.author}${target.anchor}`
                 : `${start}${target.uid}${target.anchor}`
-            }
-          )
+            })
         }
       }
       walk(node.children)
