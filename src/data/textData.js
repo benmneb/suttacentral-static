@@ -29,7 +29,7 @@ import {
   workId,
 } from '../helpers/pageMetadata.js'
 import { SC_ORIGIN } from '../helpers/scApi.js'
-import { langTag, searchId } from '../helpers/strings.js'
+import { headingRenumberer, langTag, searchId } from '../helpers/strings.js'
 
 let usedPaths = []
 
@@ -295,24 +295,35 @@ function viewOptionsOf(entry) {
 }
 
 /*
- * Collects the h2-h4 headings of a segmented text, anchored to the segment span that already carries an id.
+ * Collects the h2-h4 headings of a segmented text, anchored to the segment span that already carries an id,
+ * at the level each has on the page, where `closeHeadingGaps` renumbers them.
  */
 function collectSegmentedToc(entry, useRootText) {
   const data = entry._bilarasuttas_data
+  const isRange =
+    entry.scx_range_sutta_individual && entry.scx_range_sutta_shown_uid
+  const renumber = headingRenumberer()
   const toc = []
 
   for (const key of data.keys_order ?? []) {
     const html = data.html_text[key]
-    const heading = html?.match(/<h([2-4])([^>]*)>(?=\{\})/)
+    if (!html) continue
+    const rangeKey = isRange && getRangeKeyInfo(entry, key)
+    if (rangeKey && !rangeKey.isRendered) continue
+    const heading = html.match(/<h([2-4])([^>]*)>(?=\{\})/)
+    let level
+    for (const match of html.matchAll(/<h([1-6])/g)) {
+      const to = renumber(Number(match[1]))
+      if (match.index === heading?.index) level = to
+    }
     if (!heading) continue
 
     let text = useRootText
       ? data.root_text?.[key]
       : data.translation_text?.[key]
 
-    if (entry.scx_range_sutta_individual && entry.scx_range_sutta_shown_uid) {
-      const { isRendered, isHeader } = getRangeKeyInfo(entry, key)
-      if (!isRendered) continue
+    if (rangeKey) {
+      const { isHeader } = rangeKey
       // Same title substitutions as the template. A whole range document
       // (ie sn45.50-54) is shown as is, so its own headings are already right
       const isRetitled =
@@ -337,7 +348,7 @@ function collectSegmentedToc(entry, useRootText) {
     if (!text?.trim()) continue
 
     toc.push({
-      level: Number(heading[1]),
+      level,
       href: `#${key}`,
       html: tocLabel(text),
       // On a range page (eg an1.1-10) each sutta's own title is the only
@@ -353,8 +364,8 @@ function collectSegmentedToc(entry, useRootText) {
 }
 
 /*
- * Collects the h2-h4 headings of a legacy text, injecting an id to anchor to as they don't have any
- * (eg pli-tv-kd1/horner has 66 bare headings), and keeps only the body of a text that comes as a
+ * Collects the h2-h4 headings of a legacy text at the level each has on the page, injecting an id to anchor
+ * to as they don't have any (eg pli-tv-kd1/horner has 66 bare headings), and keeps only the body of a text that comes as a
  * whole HTML document (eg mn10/horner), as it's put in the page's <main>.
  *
  * Note: this mutates `entry._suttas_data.translation.text` in place, to avoid holding a second copy
@@ -381,16 +392,23 @@ function collectLegacyToc(entry) {
       : translation.text.slice(0, footerIndex)
   const footer = footerIndex === -1 ? '' : translation.text.slice(footerIndex)
 
+  // The level each heading has on the page, where `closeHeadingGaps` renumbers them
+  const renumber = headingRenumberer()
+  const levels = new Map()
+  for (const match of body.matchAll(/<h([1-6])/g)) {
+    levels.set(match.index, renumber(Number(match[1])))
+  }
+
   const toc = []
   let n = 0
   const bodyWithHeadingIds = body.replace(
     /<h([2-4])([^>]*)>([\s\S]*?)<\/h\1>/g,
-    (match, level, attrs, inner) => {
+    (match, level, attrs, inner, offset) => {
       const existingId = attrs.match(/\bid=["']([^"']+)["']/)
       const id = existingId?.[1] ?? `toc-${++n}`
       if (inner.trim()) {
         toc.push({
-          level: Number(level),
+          level: levels.get(offset),
           href: `#${id}`,
           html: tocLabel(inner),
         })

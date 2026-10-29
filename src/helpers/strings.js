@@ -67,18 +67,25 @@ export function bilaraMarkup(text) {
  * after the h1 as an h2, as .net's texts, dictionaries and site pages skip levels
  */
 export function closeHeadingGaps(html) {
-  // Each open section as its heading's level and new level, under one for anything before the h1
-  const sections = [{ level: 0, to: 1 }]
+  const renumber = headingRenumberer()
   const open = []
   return html.replace(/<(\/?)h([1-6])(?=[\s>])/g, (match, close, digit) => {
     if (close) return `</h${open.pop() ?? digit}`
-    const level = Number(digit)
+    open.push(renumber(Number(digit)))
+    return `<h${open.at(-1)}`
+  })
+}
+
+/** Gives each heading level in turn the one `closeHeadingGaps` makes it, ie h1, h4, h6, h4 as 1, 2, 3, 2 */
+export function headingRenumberer() {
+  // Each open section as its heading's level and new level, under one for anything before the h1
+  const sections = [{ level: 0, to: 1 }]
+  return level => {
     while (sections.length > 1 && sections.at(-1).level >= level) sections.pop()
     const to = level === 1 ? 1 : sections.at(-1).to + 1
     sections.push({ level, to })
-    open.push(to)
-    return `<h${to}`
-  })
+    return to
+  }
 }
 
 /** Is a segment's bilara html a heading? ie "<h1 class='sutta-title'>{}</h1>" */
