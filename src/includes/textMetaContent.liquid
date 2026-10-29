@@ -28,7 +28,7 @@
   <p data-pagefind-ignore="all">{{ entry.blurb }}</p>
 {% endunless %}
 
-<section class="texts-list" data-pagefind-ignore="all">
+<div class="texts-list" data-pagefind-ignore="all">
   {% include "translationsDetails.liquid",
     entry: entry,
     translations: translations
@@ -40,4 +40,4 @@
       parallelsOpen: parallelsOpen
     %}
   {% endif %}
-</section>
+</div>

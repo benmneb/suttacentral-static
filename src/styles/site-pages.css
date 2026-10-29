@@ -266,12 +266,13 @@
   .tipitaka-tree {
     margin: 0;
     padding-inline-start: 1.25rem;
-    list-style: none;
+    /* Not none, which drops a list's semantics in Safari */
+    list-style: '\200B';
 
     ul {
       margin: 0;
       padding-inline-start: 1.1rem;
-      list-style: none;
+      list-style: '\200B';
     }
 
     ul:not(:has(details)) {
@@ -280,7 +281,7 @@
 
     li {
       margin: 0;
-      list-style: none;
+      list-style: '\200B';
     }
 
     li:not(:has(> details)) {
