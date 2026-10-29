@@ -86,14 +86,20 @@
   }
 
   table {
-    margin: 2em auto 1em;
+    margin: 1rem auto;
     border-collapse: collapse;
 
-    td {
+    :is(th, td) {
       padding: 0.6667em;
       vertical-align: text-top;
       border: none;
+    }
 
+    th[scope='row'] {
+      text-align: start;
+    }
+
+    td {
       &:first-child {
         font-weight: bold;
       }
@@ -298,16 +304,17 @@
 }
 
 /* The parser adds the tbody */
-@media (max-width: 30em) {
-  .site-page:has(> article > table > tbody > tr > td + td) {
+@media (max-width: 480px) {
+  .site-page:has(> article > table > tbody > tr > :is(th, td) + td) {
     table,
     tbody,
     tr,
+    th,
     td {
       display: block;
     }
 
-    td:first-child {
+    :is(th, td):first-child {
       padding-bottom: 0;
     }
 
@@ -1122,11 +1129,13 @@
       padding: 0;
       vertical-align: middle;
       font-weight: normal;
+    }
 
-      &:first-child:not(:only-child) {
-        font-weight: 500;
-        vertical-align: top;
-      }
+    th {
+      padding: 0;
+      vertical-align: top;
+      font-weight: 500;
+      text-align: start;
 
       small {
         font-weight: normal;
@@ -1220,7 +1229,7 @@
       margin: 0 0 1rem;
     }
 
-    table td:first-child:not(:only-child) svg {
+    table th svg {
       display: none;
     }
   }

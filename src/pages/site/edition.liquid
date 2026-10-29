@@ -61,7 +61,7 @@ eleventyComputed:
         {% for volume in entry.volumes %}
           <tr>
             {% if forloop.first %}
-              <td rowspan="{{ entry.volumes.size }}">Paperback</td>
+              <th scope="row" rowspan="{{ entry.volumes.size }}">Paperback</th>
             {% endif %}
             <td>
               <a href="{{ volume.volume_lulu_url }}" rel="external">
@@ -76,7 +76,7 @@ eleventyComputed:
         {% endfor %}
         {% if entry.files.epub %}
           <tr>
-            <td>EPUB</td>
+            <th scope="row">EPUB</th>
             <td>
               <a href="{{ entry.files.epub.download_url }}" download
                 >Download</a
@@ -86,7 +86,7 @@ eleventyComputed:
         {% endif %}
         {% if entry.files.pdf %}
           <tr>
-            <td>PDF</td>
+            <th scope="row">PDF</th>
             <td>
               <a href="{{ entry.files.pdf.download_url }}" download>Download</a>
             </td>
@@ -94,14 +94,14 @@ eleventyComputed:
         {% endif %}
         {% if entry.files.html %}
           <tr>
-            <td>
+            <th scope="row">
               HTML
               <small class="with-icon">
                 <span>(right click</span>
                 {% icon "arrowRight" %}
                 <span>save)</span>
               </small>
-            </td>
+            </th>
             <td>
               <a href="{{ entry.files.html.download_url }}" download
                 >Download</a
@@ -111,14 +111,14 @@ eleventyComputed:
         {% endif %}
         {% if entry.files.tex %}
           <tr>
-            <td>LaTeX</td>
+            <th scope="row">LaTeX</th>
             <td>
               <a href="{{ entry.files.tex.download_url }}" download>Download</a>
             </td>
           </tr>
         {% endif %}
         <tr>
-          <td>Web</td>
+          <th scope="row">Web</th>
           <td>
             <a href="{{ entry.readHref }}">Read on {{ _siteMetaData.title }}</a>
           </td>

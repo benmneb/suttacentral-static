@@ -31,7 +31,7 @@ eleventyComputed:
       </caption>
       {% for abbreviation in sitePagesData.abbreviations[table] %}
         <tr>
-          <td>{{ abbreviation.acronym }}</td>
+          <th scope="row">{{ abbreviation.acronym }}</th>
           <td>{{ abbreviation.name }}</td>
         </tr>
       {% endfor %}
