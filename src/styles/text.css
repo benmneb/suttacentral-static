@@ -31,6 +31,10 @@
   --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1 8a7 7 0 1 1 14 0A7 7 0 0 1 1 8Zm7.75-4.25a.75.75 0 0 0-1.5 0V8c0 .414.336.75.75.75h3.25a.75.75 0 0 0 0-1.5h-2.5v-3.5Z' clip-rule='evenodd'/%3E%3C/svg%3E");
 }
 
+.i-commandLine {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M2 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4Zm2.22 1.97a.75.75 0 0 0 0 1.06l.97.97-.97.97a.75.75 0 1 0 1.06 1.06l1.5-1.5a.75.75 0 0 0 0-1.06l-1.5-1.5a.75.75 0 0 0-1.06 0ZM8.75 8.5a.75.75 0 0 0 0 1.5h2.5a.75.75 0 0 0 0-1.5h-2.5Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+}
+
 .i-document {
   --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2.5 3.5A1.5 1.5 0 0 1 4 2h4.879a1.5 1.5 0 0 1 1.06.44l3.122 3.12a1.5 1.5 0 0 1 .439 1.061V12.5A1.5 1.5 0 0 1 12 14H4a1.5 1.5 0 0 1-1.5-1.5v-9Z'/%3E%3C/svg%3E");
 }
@@ -851,8 +855,11 @@ main:has(.segment) > :first-child {
     --tts-controls-height: 2.75rem;
   }
 
-  :root:has(#listen-menu.hotkeys) {
-    --tts-controls-height: 3.5rem;
+  /* Taller for the keys' hints */
+  @media (any-pointer: fine) {
+    :root {
+      --tts-controls-height: 3.5rem;
+    }
   }
 
   .tts-controls {
@@ -1012,8 +1019,8 @@ aside:where(body > *) {
       }
     }
 
+    /* Only with a fine pointer, as the keys only work with one */
     kbd {
-      /* Shown by the script when there's a keyboard */
       display: none;
       border: 1px solid var(--shadow-color);
       border-radius: var(--rounding);
@@ -1027,8 +1034,13 @@ aside:where(body > *) {
         0 1px 1px rgb(0 0 0 / 0.2),
         0 1px 0 0 rgb(255 255 255 / 0.1) inset;
 
-      .hotkeys & {
+      @media (any-pointer: fine) {
         display: inline;
+      }
+
+      /* Unseen rather than gone, so the menus keep their size */
+      .hotkeys-off & {
+        visibility: hidden;
       }
     }
 
@@ -2004,6 +2016,12 @@ main {
 
 @media not all and (min-width: 600px) {
   #views-menu > li:is(:has(#commenter-side), :has(#rooter-side)) {
+    display: none;
+  }
+}
+
+@media not all and (any-pointer: fine) {
+  #views-menu > li:has(#shortcutter) {
     display: none;
   }
 }

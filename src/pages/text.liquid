@@ -395,6 +395,23 @@ eleventyComputed:
               {% endif %}
             {% endif %}
           {% endif %}
+          <li hidden>
+            <label
+              for="shortcutter"
+              title="Single-key shortcuts for these settings and Listen"
+            >
+              <span class="with-icon">
+                {% icon "commandLine" -%}
+                <span>Hot keys</span>
+              </span>
+            </label>
+            <input
+              type="checkbox"
+              id="shortcutter"
+              title="Single-key shortcuts for these settings and Listen"
+              checked
+            >
+          </li>
           <li>
             <label for="positioner">
               <span class="with-icon">

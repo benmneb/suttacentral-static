@@ -4,8 +4,9 @@
  * Keeps the reading position when a view setting changes. Sidenotes rebuild each segment's layout, which loses
  * the browser's scroll anchor, and Safari has no scroll anchoring at all, so the first text below the menu is
  * put back where it was. Also keeps the References checkbox showing at least one group, and toggles the
- * settings and listen controls from the keyboard, with the same keys as .net and a few more. And keeps a note's
- * asterisk lit while the note is open, and loads word lookup and simplified characters once they're turned on.
+ * settings and listen controls from the keyboard, with the same keys as .net and a few more, unless they're turned
+ * off. And keeps a note's asterisk lit while the note is open, and loads word lookup and simplified characters
+ * once they're turned on.
  */
 ;(function () {
   'use strict'
@@ -280,26 +281,41 @@
     })
   }
 
-  // Set here rather than in the markup so they're only announced when they work
+  const shortcutter = document.getElementById('shortcutter')
+  // Shown now, as the keys do nothing without JS
+  if (shortcutter) shortcutter.closest('li').hidden = false
+  const shortcutsOn = () =>
+    !(shortcutter instanceof HTMLInputElement) || shortcutter.checked
+  // A fine pointer is the best guess as to whether there's a keyboard too, as in text.css
+  const finePointer = matchMedia('(any-pointer: fine)')
+
   const shortcuts = [
     ...Object.entries(VIEW_SETTINGS).map(([key, ids]) => [key, ids[0]]),
     ...Object.entries(SUB_SETTINGS),
     ...Object.entries(LISTEN_CONTROLS),
   ]
-  for (const [key, id] of shortcuts) {
-    document
-      .getElementById(id)
-      ?.setAttribute('aria-keyshortcuts', key.toUpperCase())
-  }
 
-  // A fine pointer is the best guess as to whether there's a keyboard too
-  if (matchMedia('(any-pointer: fine)').matches) {
+  // Set here rather than in the markup so they're only announced when they work
+  function syncShortcuts() {
+    const on = shortcutsOn() && finePointer.matches
+    for (const [key, id] of shortcuts) {
+      const el = document.getElementById(id)
+      if (on) el?.setAttribute('aria-keyshortcuts', key.toUpperCase())
+      else el?.removeAttribute('aria-keyshortcuts')
+    }
     for (const id of ['views-menu', 'listen-menu']) {
-      document.getElementById(id)?.classList.add('hotkeys')
+      document
+        .getElementById(id)
+        ?.classList.toggle('hotkeys-off', !shortcutsOn())
     }
   }
 
+  syncShortcuts()
+  shortcutter?.addEventListener('change', syncShortcuts)
+  finePointer.addEventListener('change', syncShortcuts)
+
   document.addEventListener('keydown', e => {
+    if (!shortcutsOn() || !finePointer.matches) return
     if (e.ctrlKey || e.metaKey || e.altKey) return
     const target = e.target
     if (

@@ -30,6 +30,7 @@
     'highlighter',
     'paralleler',
     'positioner',
+    'shortcutter',
     'rate',
     'pitch',
     'auto-scroll',
