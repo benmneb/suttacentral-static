@@ -331,12 +331,6 @@ ul#search-results {
       font-weight: bold;
       color: var(--tts-highlight-text-color);
       background-color: var(--tts-highlight-background-color);
-
-      /* System colours, as forced colours override any others */
-      @media (forced-colors: active) {
-        color: MarkText;
-        background-color: Mark;
-      }
     }
   }
 
