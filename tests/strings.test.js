@@ -7,7 +7,7 @@
 
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { langTag, languageName } from '../src/helpers/strings.js'
+import { bilaraMarkup, langTag, languageName } from '../src/helpers/strings.js'
 
 describe('Language names', () => {
   it('spells Pali as the site does', () => {
@@ -47,5 +47,31 @@ describe('Language tags', () => {
 
   it('leaves a missing code missing', () => {
     assert.equal(langTag(undefined), undefined)
+  })
+})
+
+describe('Bilara markup', () => {
+  it('closes each half-line at the end of its segment', () => {
+    assert.equal(
+      bilaraMarkup('Before the mendicants, <j>the Buddha, '),
+      'Before the mendicants, <span class="j">the Buddha, </span>'
+    )
+    assert.equal(
+      bilaraMarkup('a <j>b <j>c'),
+      'a <span class="j">b <span class="j">c</span></span>'
+    )
+  })
+
+  it('makes supplied and unclear readings spans, as legacy texts have', () => {
+    assert.equal(
+      bilaraMarkup('itarī<supplied>tarena</supplied> <unclear>x</unclear>'),
+      'itarī<span class="supplied">tarena</span> <span class="unclear">x</span>'
+    )
+  })
+
+  it('leaves the rest, and what it made, as it is', () => {
+    const html = 'a <i>b</i> <span class="j">c</span>'
+    assert.equal(bilaraMarkup(html), html)
+    assert.equal(bilaraMarkup(undefined), undefined)
   })
 })

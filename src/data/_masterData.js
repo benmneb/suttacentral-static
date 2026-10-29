@@ -15,6 +15,7 @@ import {
   suttasUrl,
 } from '../helpers/scApi.js'
 import { fixMovedLegacyLinks } from '../helpers/siteLinks.js'
+import { bilaraMarkup } from '../helpers/strings.js'
 import { createLinkResolver } from '../helpers/textLinks.js'
 import shortcutsData from './_shortcuts.json' with { type: 'json' }
 
@@ -182,6 +183,12 @@ async function fetchDataTree(uid, depth = 0) {
           bilaraData = await fetchJson(
             segmentedTranslationUrl(node.uid, trans.author_uid, trans.lang)
           )
+          for (const texts of [
+            bilaraData.root_text,
+            bilaraData.translation_text,
+          ]) {
+            for (const key in texts) texts[key] = bilaraMarkup(texts[key])
+          }
         } catch (e) {
           fetchErrors++
           spinner

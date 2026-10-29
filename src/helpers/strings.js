@@ -44,6 +44,24 @@ export function searchId(text) {
   return String(text).toLowerCase().replace(/\s+/g, '').replaceAll('–', '-')
 }
 
+/**
+ * A segment's text with bilara's own tags as HTML: <supplied> and <unclear> as the classes legacy
+ * texts use, and <j>, which starts a verse's next half-line, as a span closed at the segment's end
+ */
+export function bilaraMarkup(text) {
+  if (!text?.includes('<')) return text
+  let joins = 0
+  const html = text
+    .replace(/<j>/g, () => {
+      joins++
+      return '<span class="j">'
+    })
+    .replace(/<(\/?)(supplied|unclear)>/g, (match, close, tag) =>
+      close ? '</span>' : `<span class="${tag}">`
+    )
+  return html + '</span>'.repeat(joins)
+}
+
 /** Is a segment's bilara html a heading? ie "<h1 class='sutta-title'>{}</h1>" */
 export function isHeadingHTML(html) {
   return /<h[1-6][^>]*>\{\}/.test(html ?? '')
