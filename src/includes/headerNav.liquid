@@ -1,5 +1,5 @@
 <nav aria-label="Breadcrumb">
-  <ul>
+  <ol>
     {% if isHome %}
       <li aria-current="page">
         <span>
@@ -9,38 +9,38 @@
       </li>
     {% else %}
       <li>
-        <a href="/" aria-label="Home">
+        <a href="/">
           {%- icon "home" -%}
           <span class="sr-only">Home</span></a
         >
       </li>
       {{ breadcrumbsList }}
     {% endif %}
-  </ul>
-  <div>
-    {% unless excludeSearch %}
-      <button
-        class="icon-button"
-        type="button"
-        commandfor="search-modal"
-        command="show-modal"
-        aria-label="Search"
-        title="Cmd/Ctrl+K"
-      >
-        {% icon "magnifyingGlass" %}
-      </button>
-    {% endunless %}
+  </ol>
+</nav>
+<div>
+  {% unless excludeSearch %}
     <button
       class="icon-button"
       type="button"
-      popovertarget="site-pages"
-      aria-label="Site pages"
-      title="Site pages"
+      commandfor="search-modal"
+      command="show-modal"
+      aria-label="Search"
+      title="Cmd/Ctrl+K"
     >
-      {% icon "bars3" %}
+      {% icon "magnifyingGlass" %}
     </button>
-  </div>
-</nav>
+  {% endunless %}
+  <button
+    class="icon-button"
+    type="button"
+    popovertarget="site-pages"
+    aria-label="Site pages"
+    title="Site pages"
+  >
+    {% icon "bars3" %}
+  </button>
+</div>
 {% unless excludeSearch %}
   <dialog id="search-modal" aria-label="Search" closedby="any">
     {% include "searchForm.liquid" %}

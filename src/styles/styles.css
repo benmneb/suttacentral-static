@@ -444,6 +444,10 @@ body {
   }
 
   & > header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
     margin: 1rem;
     view-timeline-name: --site-header;
 
@@ -453,68 +457,61 @@ body {
       block-size: 1rem;
     }
 
-    > nav {
+    > nav ol {
+      list-style: none;
       display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 1rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0;
+      margin: 0;
+      scrollbar-width: none;
+      &::-webkit-scrollbar {
+        display: none;
+      }
 
-      ul {
-        list-style: none;
+      li {
+        list-style-type: none;
         display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        padding: 0;
-        margin: 0;
-        scrollbar-width: none;
-        &::-webkit-scrollbar {
-          display: none;
-        }
 
-        li {
-          list-style-type: none;
+        &:first-of-type > * {
+          text-decoration: none;
           display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 1.75rem;
+          margin: -0.125rem -0.375rem;
+          padding: 0 0.375rem;
+          border-radius: var(--rounding);
+        }
 
-          &:first-of-type > * {
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 1.75rem;
-            margin: -0.125rem -0.375rem;
-            padding: 0 0.375rem;
-            border-radius: var(--rounding);
-          }
+        &::after {
+          content: '/';
+          content: '/' / '';
+          margin-left: 0.5rem;
+          color: var(--gray);
+        }
 
-          &::after {
-            content: '/';
-            content: '/' / '';
-            margin-left: 0.5rem;
-            color: var(--gray);
-          }
-
-          &:last-child::after {
-            content: '';
-          }
+        &:last-child::after {
+          content: '';
         }
       }
+    }
 
-      /* Stacked only when the breadcrumbs need the room */
-      > div {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        flex-shrink: 1000;
-        gap: 0.5rem;
-      }
+    /* Stacked only when the breadcrumbs need the room */
+    > div {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      flex-shrink: 1000;
+      gap: 0.5rem;
+    }
 
-      button[popovertarget='site-pages'] {
-        anchor-name: --site-pages-button;
-      }
+    button[popovertarget='site-pages'] {
+      anchor-name: --site-pages-button;
+    }
 
-      > div > .icon-button {
-        margin-block: -0.3125rem;
-      }
+    > div > .icon-button {
+      margin-block: -0.3125rem;
     }
   }
 
