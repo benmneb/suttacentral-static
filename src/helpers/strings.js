@@ -101,7 +101,7 @@ export function textRefs(acronym, altAcronym, language, volpages, altVolpages) {
         className === 'volpages' ? '<i class="icon i-bookOpen"></i>' : ''
       const dot = i ? '<span aria-hidden="true">∙</span> ' : ''
       const value = title
-        ? `<span title="${title}">${icon}${text}</span>`
+        ? `<span title="${title}"><span class="sr-only" data-pagefind-ignore>${title}: </span>${icon}${text}</span>`
         : text
       return `<span${className ? ` class="${className}"` : ''}>${dot}${value}</span>`
     })

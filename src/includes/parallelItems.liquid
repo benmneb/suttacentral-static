@@ -7,6 +7,20 @@
       title="{% if type == 'full' %}Full parallel: different versions of the same text{% elsif type == 'resembling' %}Resembling parallel: texts are comparable{% elsif type == 'mention' %}Mention: one text is quoted or mentioned in another{% elsif type == 'retelling' %}Retelling: the events of one text are retold in another{% endif %}"
     {% endif %}
   >
+    {% if typed %}
+      <span class="sr-only">
+        {%- case type -%}
+          {%- when "full" -%}
+            Full parallel:
+          {%- when "resembling" -%}
+            Resembling parallel:
+          {%- when "mention" -%}
+            Mention:
+          {%- when "retelling" -%}
+            Retelling:
+        {%- endcase -%}
+      </span>
+    {% endif %}
     {% comment %} Only English and root texts are built, see `filterTranslations` in `_masterData.js` {% endcomment %}
     {% assign built_trans = null %}
     {% for trans in parallel.to.translations %}
@@ -49,9 +63,7 @@
         <summary class="text-refs" title="Notes">
           {{- refs }}
           {% icon "informationCircle" %}
-          {%- if refs == blank -%}
-            <span class="sr-only">Notes</span>
-          {%- endif -%}
+          <span class="sr-only">Notes</span>
         </summary>
         {% for remark in parallel.to.scx_remarks %}
           <p>{{ remark }}</p>

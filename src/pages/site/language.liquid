@@ -23,7 +23,7 @@ eleventyComputed:
     {% assign percent = entry.percent | at_least: 0 | at_most: 100 %}
     {% assign offset = 100 | minus: percent | times: 502.65 | divided_by: 100 %}
     <figure>
-      <svg viewBox="0 0 220 220" aria-hidden="true">
+      <svg viewBox="0 0 220 220" role="img" aria-label="{{ percent }}%">
         <circle r="80" cx="110" cy="110" class="pie-track"></circle>
         <circle
           r="80"
@@ -47,7 +47,7 @@ eleventyComputed:
   {% endif %}
 
   {% for group in entry.divisions %}
-    <h3>{{ group.root }}</h3>
+    <h2>{{ group.root }}</h2>
     <ul>
       {% for division in group.divisions %}
         <li>{{ division.name }} ({{ division.total | formatNumber }})</li>
