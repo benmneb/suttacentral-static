@@ -423,10 +423,11 @@
     border: 1px solid;
     padding: 0.4rem;
     border-radius: var(--rounding);
-    border-color: var(--bg-alt-4);
+    border-color: var(--text-color-secondary);
 
     &:focus-within {
       border-color: inherit;
+      outline: 1px solid;
     }
 
     input {

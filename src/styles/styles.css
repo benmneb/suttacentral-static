@@ -132,8 +132,8 @@
     --variant-btn-color: var(--blue);
     --shadow-color: var(--gray-dim);
     --tts-highlight-text-color: var(--headings-color);
-    --tts-highlight-background-color: var(--bg);
-    --tts-word-background-color: var(--bg-alt-1);
+    --tts-highlight-background-color: var(--bg-alt-1);
+    --tts-word-background-color: var(--bg-alt-2);
     --tts-hover-background-color: var(--background-color-secondary);
     --details-summary-hover-background: var(--bg-alt-1);
     --comments-background-color: var(--offerwhite);
@@ -1189,10 +1189,11 @@ form#search-form {
   border: 1px solid;
   padding: 0.4rem;
   border-radius: var(--rounding);
-  border-color: var(--bg-alt-4);
+  border-color: var(--text-color-secondary);
 
   &:focus-within {
     border-color: inherit;
+    outline: 1px solid;
   }
 
   input {

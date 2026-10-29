@@ -328,6 +328,7 @@ ul#search-results {
     }
 
     mark {
+      font-weight: bold;
       color: var(--tts-highlight-text-color);
       background-color: var(--tts-highlight-background-color);
     }
