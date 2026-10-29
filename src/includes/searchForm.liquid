@@ -22,4 +22,9 @@
   <button aria-label="Search" type="submit">
     {% icon "magnifyingGlass", "mini" %}
   </button>
+  {% if inDialog %}
+    <button formmethod="dialog" formnovalidate aria-label="Close search">
+      {% icon "xMark", "mini" %}
+    </button>
+  {% endif %}
 </form>

@@ -43,6 +43,6 @@
 </div>
 {% unless excludeSearch %}
   <dialog id="search-modal" aria-label="Search" closedby="any">
-    {% include "searchForm.liquid" %}
+    {% include "searchForm.liquid", inDialog: true %}
   </dialog>
 {% endunless %}
