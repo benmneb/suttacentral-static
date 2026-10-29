@@ -113,8 +113,8 @@ const UPRIGHT_SCRIPTS =
   /[\p{Script=Han}\p{Script=Hangul}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Tibetan}]/u
 
 /**
- * A menu or suttaplex entry's title, its root title in italics over the translation. Just the one in italics
- * where there's only one, or they're the same
+ * A menu or suttaplex entry's title, its root title in italics over the translation. Just the one where
+ * there's only one, or they're the same, and plain if that's the translation
  * @param {Object} entry - With `original_title` or `root_name`, and `translated_title` or `translated_name`
  * @param {string} [href] - Links the root title
  */
@@ -134,8 +134,11 @@ export function rootTitle(entry, href) {
     !single && lang && ` lang="${langTag(lang)}"`,
     UPRIGHT_SCRIPTS.test(title) && ' class="upright"',
   ]
-  const dfn = `<dfn${attributes.filter(Boolean).join('')}>${softHyphenateTitle(title)}</dfn>`
-  if (single || !translation) return link(dfn)
+  const name = softHyphenateTitle(title)
+  const i = single
+    ? name
+    : `<i${attributes.filter(Boolean).join('')}>${name}</i>`
+  if (single || !translation) return link(i)
   // The space keeps the two apart in reader mode and copied text
-  return `<span class="root-title">${link(dfn)}<span> ${translation}</span></span>`
+  return `<span class="root-title">${link(i)}<span> ${translation}</span></span>`
 }

@@ -241,7 +241,7 @@
     overflow-wrap: anywhere;
   }
 
-  dfn:not(h1 dfn) {
+  i[lang]:not(h1 i) {
     font-size: larger;
   }
 
@@ -253,12 +253,12 @@
     margin-bottom: 0.5rem;
   }
 
-  dfn + span,
+  i[lang] + span,
   .tipitaka-label > a + span {
     color: var(--text-color-secondary);
   }
 
-  a:hover dfn + span,
+  a:hover i[lang] + span,
   .tipitaka-label > a:hover + span {
     color: unset;
   }

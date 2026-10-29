@@ -141,8 +141,8 @@
     )
 
   /**
-   * The root title in italics over the translation, linked, as on the menu pages. Just the one in italics
-   * where `showTranslation` is false, there's only one, or they're the same
+   * The root title in italics over the translation, linked, as on the menu pages. Just the one where
+   * `showTranslation` is false, there's only one, or they're the same, and plain if that's the translation
    */
   function titleHTML(root, translation, href, rootLang, showTranslation) {
     root = root?.trim()
@@ -156,9 +156,12 @@
       !single && rootLang && ` lang="${langTag(rootLang)}"`,
       UPRIGHT_SCRIPTS.test(title) && ' class="upright"',
     ]
-    const dfn = `<dfn${attributes.filter(Boolean).join('')}>${softHyphenateTitle(title)}</dfn>`
-    if (single || !translation || !showTranslation) return link(dfn)
-    return `<span class="root-title">${link(dfn)}<span> ${translation}</span></span>`
+    const name = softHyphenateTitle(title)
+    const i = single
+      ? name
+      : `<i${attributes.filter(Boolean).join('')}>${name}</i>`
+    if (single || !translation || !showTranslation) return link(i)
+    return `<span class="root-title">${link(i)}<span> ${translation}</span></span>`
   }
 
   /*
