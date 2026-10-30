@@ -598,6 +598,16 @@ button[style]:is([popovertarget^='comment-'], [popovertarget^='variant-']) {
   }
 }
 
+/* A heading only the root fills is empty till the root shows,
+   ie /dhp1-20/en/sujato's verse stories and /sn46.57/en/sujato */
+&:not(:has(#rooter:checked))
+  main
+  :is(h1, h2, h3, h4, h5, h6):has(> .segment > .root):not(
+    :has(> .segment > .translation)
+  ) {
+  display: none;
+}
+
 &:has(#rooter:checked) .segment {
   display: grid;
   margin-bottom: 0.3rem;
