@@ -187,6 +187,10 @@
     &:not(:is(header, h2, h3, h4, h5, h6) .reference > a) {
       display: inline-block;
     }
+
+    .reference > & ~ a {
+      margin-left: 0.1rem;
+    }
   }
 }
 
@@ -682,10 +686,6 @@ button[style]:is([popovertarget^='comment-'], [popovertarget^='variant-']) {
             align-items: end;
             gap: 0.2rem;
 
-            a.ref {
-              margin-right: 0;
-            }
-
             a.ref:target {
               order: -1;
             }
@@ -766,10 +766,6 @@ button[style]:is([popovertarget^='comment-'], [popovertarget^='variant-']) {
             flex-direction: column;
             align-items: end;
             gap: 0.2rem;
-
-            a.ref {
-              margin-right: 0;
-            }
 
             a.ref:target {
               order: -1;

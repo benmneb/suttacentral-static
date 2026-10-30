@@ -993,6 +993,7 @@ main {
           color: var(--fg-alt-4);
           font-size: 0.7rem;
           font-weight: initial;
+          margin-right: 0;
           box-shadow: none;
 
           &:hover {
@@ -1024,6 +1025,10 @@ main {
 
       &:hover {
         color: unset;
+      }
+
+      .reference > & ~ a {
+        margin-left: 0.1rem;
       }
     }
 
