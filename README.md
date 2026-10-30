@@ -2,7 +2,7 @@
 [![Codeberg](https://img.shields.io/badge/-on_Codeberg-4793cc.svg?logo=codeberg&logoColor=white&style=flat)](https://codeberg.org/benmneb/suttacentral-static)
 [![GitHub](https://img.shields.io/badge/-on_GitHub-010409.svg?logo=github&style=flat)](https://github.com/benmneb/suttacentral-static)
 
-# 📚 [SuttaCentral.Express](https://suttacentral.express) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/benmneb/suttacentral-static/deploy-published-release.yml?style=flat&logo=github)](https://github.com/benmneb/suttacentral-static/actions/workflows/deploy-published-release.yml)
+# 📚 [SuttaCentral.Express](https://suttacentral.express) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/benmneb/suttacentral-static/deploy-published-release.yml?style=flat&logo=github)](https://github.com/benmneb/suttacentral-static/actions/workflows/deploy-published-release.yml) [![HTML: valid](https://img.shields.io/badge/HTML-valid-green?logo=html5&logoColor=white&style=flat)](https://validator.w3.org/nu/?doc=https%3A%2F%2Fsuttacentral.express%2F) [![WCAG 2.2: AA target](https://img.shields.io/badge/WCAG_2.2-AA_target-green?style=flat)](ACCESSIBILITY.md)
 
 ## A fast and minimal alternative frontend for [SuttaCentral.net](https://suttacentral.net)
 

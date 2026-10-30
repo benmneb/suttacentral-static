@@ -17,6 +17,7 @@
  * @returns {string} title - Site name displayed in browser tabs and meta tags
  * @returns {string} description - Site description for search engines and social sharing
  * @returns {string} origin - Full site URL with protocol (e.g., 'https://example.com')
+ * @returns {string} accessibility - Accessibility statement, linked from the footer
  * @returns {string} contact - Contact email address for site inquiries/bug reports
  * @returns {string[]} mirrors - Other copies of the `source` repository
  * @returns {{ name: string, url?: string }} maintainer - Who runs this instance, for its structured data
@@ -41,6 +42,8 @@ export default function () {
       'https://github.com/benmneb/suttacentral-static',
     ],
     analytics: 'https://dashboard.simpleanalytics.com/suttacentral.express',
+    accessibility:
+      'https://git.sr.ht/~benmneb/suttacentral-static/tree/main/item/ACCESSIBILITY.md',
     archive: 'https://codeberg.org/benmneb/suttacentral-static/releases/latest',
     // contact: 'email@example.com',
     suggestions: 'https://todo.sr.ht/~benmneb/suttacentral-static',
