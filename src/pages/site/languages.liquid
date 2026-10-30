@@ -6,7 +6,13 @@ eleventyComputed:
   title: '{{ "interface:languages" | t | strip_html }}'
 ---
 <article>
-  <h1>{{ "languages:languagesOnSuttaCentral" | t }}</h1>
+  <h1>
+    {{-
+      "languages:languagesOnSuttaCentral"
+      | t
+      | replace: "SuttaCentral", _siteMetaData.title
+    -}}
+  </h1>
   {% assign groups = "ancient,modern" | split: "," %}
   {% for group in groups %}
     {% assign languages = sitePagesData.languages[group] %}

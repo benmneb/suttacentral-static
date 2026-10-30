@@ -87,8 +87,7 @@ const STATIC_PAGES = {
   },
   '/languages/': {
     titleKey: 'interface:languages',
-    description:
-      'Explore the languages represented in SuttaCentral and the texts and translations available in each.',
+    description: `Explore the languages represented in ${siteMetaData().title} and the texts and translations available in each.`,
     schemaType: 'CollectionPage',
   },
   '/licensing/': {
