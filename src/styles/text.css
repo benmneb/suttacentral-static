@@ -522,6 +522,23 @@ button[style]:is([popovertarget^='comment-'], [popovertarget^='variant-']) {
     --parallel-color: var(--orange);
   }
 
+  /* Drawn by gradients, which forced colours drop */
+  @media (forced-colors: active) {
+    &,
+    &[data-type] {
+      --parallel-color: LinkText;
+    }
+
+    &::before,
+    &::after {
+      forced-color-adjust: none;
+    }
+
+    &:focus-visible::before {
+      outline-color: Highlight;
+    }
+  }
+
   &::before {
     --tick: max(4px, var(--parallel-step) - 2px);
     content: '';
@@ -745,6 +762,10 @@ button[style]:is([popovertarget^='comment-'], [popovertarget^='variant-']) {
     .translation {
       order: 2;
       color: var(--fg-alt-4);
+
+      @media (forced-colors: active) {
+        color: GrayText;
+      }
     }
   }
 }
@@ -940,6 +961,11 @@ aside:where(body > *) {
     pointer-events: auto;
     anchor-name: --aside-bar;
 
+    /* Forced colours paint it as the page, so it needs an edge over the text */
+    @media (forced-colors: active) {
+      border: 1px solid;
+    }
+
     /* This has to happen here and not on the button */
     &:has(#contents-menu:popover-open) {
       border-bottom-left-radius: 0;
@@ -978,6 +1004,13 @@ aside:where(body > *) {
       &:hover:not(button[disabled]) {
         background-color: var(--primary-color);
         color: var(--background-color);
+      }
+
+      @media (forced-colors: active) {
+        &:is(:hover, :focus-visible):not([disabled]) {
+          outline: 2px solid Highlight;
+          outline-offset: -2px;
+        }
       }
     }
 
@@ -1337,6 +1370,10 @@ aside:where(body > *) {
       color: var(--text-color);
       border-radius: var(--rounding);
       border-top-right-radius: unset;
+
+      @media (forced-colors: active) {
+        border: 1px solid;
+      }
     }
 
     ul li ul,
@@ -1363,6 +1400,13 @@ aside:where(body > *) {
           &:last-of-type {
             border-bottom-left-radius: var(--rounding);
             border-bottom-right-radius: var(--rounding);
+          }
+
+          @media (forced-colors: active) {
+            &:not(.voice-info, .tts-controls) {
+              outline: 2px solid Highlight;
+              outline-offset: -2px;
+            }
           }
         }
 
@@ -1499,6 +1543,11 @@ aside:where(body > *) {
       li:has(> .dropdown:popover-open) > button {
         background-color: var(--primary-color);
         color: var(--background-color);
+
+        @media (forced-colors: active) {
+          outline: 2px solid Highlight;
+          outline-offset: -2px;
+        }
       }
 
       li:has(> .dropdown:not(:popover-open))
@@ -1801,6 +1850,22 @@ main {
           &::before {
             background-color: var(--variant-btn-color);
           }
+        }
+      }
+
+      /* Or forced colours give it the text's colour */
+      @media (forced-colors: active) {
+        &,
+        &.variant-btn,
+        &:is(:focus, [aria-expanded='true']),
+        &.variant-btn:is(:focus, [aria-expanded='true']) {
+          color: LinkText;
+        }
+
+        &:is(:focus, [aria-expanded='true'])::before {
+          background: none;
+          outline: 2px solid Highlight;
+          outline-offset: 1px;
         }
       }
     }
@@ -2224,7 +2289,19 @@ aside:has(#definer:checked) ~ main .segment > :is(.translation, .root) {
 
 /* System colours, as forced colours override any others */
 @media (forced-colors: active) {
-  .tts-highlight {
+  .tts-clickable:not(.tts-sentences):hover {
+    color: HighlightText;
+    background-color: Highlight;
+  }
+
+  ::highlight(tts-hover) {
+    color: HighlightText;
+    background-color: Highlight;
+  }
+
+  /* After the hover, so the one being read keeps its Mark */
+  .tts-highlight,
+  .tts-highlight.tts-clickable:hover {
     color: MarkText;
     background-color: Mark;
   }
@@ -2385,6 +2462,11 @@ aside:has(#definer:checked) ~ main .segment > :is(.translation, .root) {
 
       &[aria-expanded='true'] {
         color: var(--primary-color);
+
+        @media (forced-colors: active) {
+          outline: 2px solid Highlight;
+          outline-offset: -2px;
+        }
       }
     }
 
@@ -2404,6 +2486,11 @@ aside:has(#definer:checked) ~ main .segment > :is(.translation, .root) {
         background-color: var(--details-summary-hover-background);
         border-radius: 0;
         box-shadow: none;
+
+        @media (forced-colors: active) {
+          outline: 2px solid Highlight;
+          outline-offset: -2px;
+        }
       }
     }
 
@@ -2420,6 +2507,11 @@ aside:has(#definer:checked) ~ main .segment > :is(.translation, .root) {
 
       &:is(button:not(:disabled), a[href]):hover {
         background-color: var(--details-summary-hover-background);
+
+        @media (forced-colors: active) {
+          outline: 2px solid Highlight;
+          outline-offset: -2px;
+        }
       }
     }
   }

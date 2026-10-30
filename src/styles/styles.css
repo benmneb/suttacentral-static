@@ -282,6 +282,11 @@ i.upright {
   forced-color-adjust: preserve-parent-color;
   print-color-adjust: exact;
 
+  /* Important, as forced colours leave the palette's own icon colours be */
+  @media (forced-colors: active) {
+    color: inherit !important;
+  }
+
   &.mini {
     inline-size: 1.25em;
     block-size: 1.25em;
@@ -662,6 +667,11 @@ body {
   max-height: 60vh;
   overflow-y: scroll;
 
+  /* Forced colours drop the shadow, which was its only edge */
+  @media (forced-colors: active) {
+    border: 1px solid;
+  }
+
   dl dt {
     color: var(--text-color-secondary);
   }
@@ -670,6 +680,11 @@ body {
     &:hover,
     &:active {
       background-color: var(--details-summary-hover-background);
+
+      @media (forced-colors: active) {
+        outline: 2px solid Highlight;
+        outline-offset: -2px;
+      }
     }
   }
 }
@@ -753,6 +768,10 @@ dialog#search-modal {
   max-width: calc(min(420px, 100vw) - 2rem);
   width: 100%;
   padding: 0;
+
+  @media (forced-colors: active) {
+    border: 1px solid;
+  }
 }
 
 main {
@@ -854,6 +873,11 @@ main {
         &:hover,
         &:active {
           background-color: var(--details-summary-hover-background);
+
+          @media (forced-colors: active) {
+            outline: 2px solid Highlight;
+            outline-offset: -2px;
+          }
         }
       }
 
@@ -978,6 +1002,11 @@ main {
         display: none;
         color: var(--fg-alt-4);
         /* word-break: break-all; */
+
+        /* Or forced colours give it the translation's colour */
+        @media (forced-colors: active) {
+          color: GrayText;
+        }
       }
 
       .reference {
@@ -1025,6 +1054,11 @@ main {
 
       &:hover {
         color: unset;
+      }
+
+      @media (forced-colors: active) {
+        outline: 2px solid Highlight;
+        outline-offset: -2px;
       }
 
       .reference > & ~ a {
@@ -1204,6 +1238,13 @@ a:where([href]) {
   color: var(--primary-color);
 }
 
+/* Hovered too, as hover gets no colour of its own here */
+@media (forced-colors: active) {
+  :is(body > header > nav, #site-pages, body > footer) a:where([href]):visited {
+    color: LinkText;
+  }
+}
+
 /* Opacity too, as Firefox fades placeholders */
 ::placeholder {
   color: var(--text-color-secondary);
@@ -1240,6 +1281,10 @@ body > .skip:focus {
   color: var(--popover-background-color);
   background-color: var(--primary-color);
   box-shadow: 0 0.3rem 1rem var(--shadow-color);
+
+  @media (forced-colors: active) {
+    border: 1px solid;
+  }
 }
 
 /* https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/Heading_Elements#specifying_a_uniform_font_size_for_h1 */
@@ -1366,6 +1411,10 @@ form#search-form {
 
   &:visited {
     color: var(--text-color);
+
+    @media (forced-colors: active) {
+      color: LinkText;
+    }
   }
 
   &:is(:hover, :focus):not(:disabled, [aria-disabled='true']) {
@@ -1380,6 +1429,16 @@ form#search-form {
   &:is(:disabled, [aria-disabled='true']) {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  /* Forced colours paint the fill as the page, so only an edge shows it's a button */
+  @media (forced-colors: active) {
+    border: 1px solid ButtonBorder;
+
+    &:is(:hover, :focus):not(:disabled, [aria-disabled='true']) {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
   }
 }
 
@@ -1411,6 +1470,13 @@ form#search-form {
     opacity: 0.5;
     cursor: not-allowed;
     background-color: transparent;
+  }
+
+  @media (forced-colors: active) {
+    &:is(:focus, :hover):not(:disabled) {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
   }
 }
 
