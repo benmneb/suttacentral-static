@@ -26,6 +26,19 @@
   }
   if (input) input.name = 'query'
 
+  // Moves focus to the skip link's target before the jump, so the link's bar is gone by then.
+  // Otherwise Firefox and Safari land the jump short by the bar's height
+  const skip = document.querySelector('body > .skip')
+  skip?.addEventListener('click', () => {
+    const target = document.getElementById(skip.hash.slice(1))
+    if (!target) return
+    target.tabIndex = -1
+    target.focus({ preventScroll: true })
+    target.addEventListener('blur', () => target.removeAttribute('tabindex'), {
+      once: true,
+    })
+  })
+
   if (!dialog) return
 
   // Invoker commands and closedby are too new for some targets

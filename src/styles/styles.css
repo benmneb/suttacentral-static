@@ -1272,19 +1272,16 @@ a:where([href]) {
 }
 
 body > .skip:focus {
-  position: absolute;
-  inset-block-start: 0.5rem;
-  inset-inline-start: 0.5rem;
-  z-index: 2;
-  padding: 0.5rem 1rem;
-  border-radius: var(--rounding);
+  padding: 0.75rem 1rem;
   color: var(--popover-background-color);
   background-color: var(--primary-color);
-  box-shadow: 0 0.3rem 1rem var(--shadow-color);
+  /* Transparent, so it shows only in forced colours, where the fill is lost */
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+}
 
-  @media (forced-colors: active) {
-    border: 1px solid;
-  }
+body > main:focus {
+  outline: none;
 }
 
 /* https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/Heading_Elements#specifying_a_uniform_font_size_for_h1 */
