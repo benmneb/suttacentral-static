@@ -18,7 +18,7 @@ eleventyComputed:
   json_ld: '{{ built.scx_json_ld }}'
 ---
 <h1>Definitions</h1>
-{% include "defineForm.liquid" %}
+{% include "defineForm.liquid", autofocus: true %}
 
 <footer class="sources" aria-labelledby="define-sources-heading">
   <h2 id="define-sources-heading">Sources</h2>
