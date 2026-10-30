@@ -10,6 +10,7 @@ import { describe, it } from 'node:test'
 import {
   bilaraMarkup,
   closeHeadingGaps,
+  dropEmptyHeadings,
   langTag,
   languageName,
 } from '../src/helpers/strings.js'
@@ -96,5 +97,36 @@ describe('Heading levels', () => {
   it('leaves headings that go up, or one level down, as they are', () => {
     const html = '<h1>A</h1><h2>B</h2><h3>C</h3><h2>D</h2><hr><header></header>'
     assert.equal(closeHeadingGaps(html), html)
+  })
+})
+
+describe('Empty headings', () => {
+  const segment = (key, text = '') =>
+    `<span id="${key}" class="segment"><span class="reference" id="${key}" hidden><a href="#${key}">${key}</a></span>${text}</span>`
+
+  it('unwraps a heading with only its segment number', () => {
+    assert.equal(
+      dropEmptyHeadings(`<h2>${segment('3.0')}</h2><p>A</p>`),
+      `${segment('3.0')}<p>A</p>`
+    )
+  })
+
+  it('makes a section it headed a div', () => {
+    assert.equal(
+      dropEmptyHeadings(
+        `<section class="a"><h2 class="b">${segment('1.0')}</h2><section><h3>B</h3></section></section><section><h2>C</h2></section>`
+      ),
+      `<div class="a">${segment('1.0')}<section><h3>B</h3></section></div><section><h2>C</h2></section>`
+    )
+  })
+
+  it('keeps a heading with text, even hidden, or an image', () => {
+    const html = [
+      `<h2>${segment('1.0', '<span class="text">A</span>')}</h2>`,
+      `<h2>${segment('2.0', '<span class="root" hidden><span class="text">B</span></span>')}</h2>`,
+      '<h2><svg></svg></h2>',
+      '<h2 aria-label="C"></h2>',
+    ].join('')
+    assert.equal(dropEmptyHeadings(html), html)
   })
 })

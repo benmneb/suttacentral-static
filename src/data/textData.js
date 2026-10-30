@@ -311,8 +311,13 @@ function collectSegmentedToc(entry, useRootText) {
     const rangeKey = isRange && getRangeKeyInfo(entry, key)
     if (rangeKey && !rangeKey.isRendered) continue
     const heading = html.match(/<h([2-4])([^>]*)>(?=\{\})/)
+    // A heading with no text, which `dropEmptyHeadings` takes off the page
+    const isDropped =
+      !data.root_text?.[key]?.trim() &&
+      (useRootText || !data.translation_text?.[key]?.trim())
     let level
-    for (const match of html.matchAll(/<h([1-6])/g)) {
+    for (const match of html.matchAll(/<h([1-6])[^>]*>(\{\})?/g)) {
+      if (match[2] && isDropped) continue
       const to = renumber(Number(match[1]))
       if (match.index === heading?.index) level = to
     }

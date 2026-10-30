@@ -24,6 +24,7 @@ import { createSiteLinkFixer } from './src/helpers/siteLinks.js'
 import { missingKeys, t } from './src/helpers/siteStrings.js'
 import {
   closeHeadingGaps,
+  dropEmptyHeadings,
   formatVolpages,
   isHeadingHTML,
   langTag,
@@ -259,7 +260,9 @@ export default function (eleventyConfig) {
 
     // The API's own HTML, ie a legacy text's <li class="division" lang='pli'>, has .net's codes too
     return closeHeadingGaps(
-      minified.replace(/(?<=\s(?:href)?lang=")[a-z]{3}(?=")/g, langTag)
+      dropEmptyHeadings(
+        minified.replace(/(?<=\s(?:href)?lang=")[a-z]{3}(?=")/g, langTag)
+      )
     )
   })
 
