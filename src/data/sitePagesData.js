@@ -20,6 +20,7 @@ import {
   pageIcons,
   pitakaGuides,
   siteMap,
+  tidyMatter,
 } from '../helpers/sitePages.js'
 import { loadStrings } from '../helpers/siteStrings.js'
 import masterData from './_masterData.js'
@@ -206,7 +207,7 @@ async function editions() {
             ...matterName(file),
             uid,
             scx_path: `${path}/${matterName(file).slug}`,
-            html: files[file],
+            html: tidyMatter(files[file]),
           })),
       }
     })

@@ -1324,11 +1324,11 @@
     font-style: italic;
   }
 
-  a[epub\:type='backlink'] {
+  a[role='doc-backlink'] {
     text-decoration: none;
   }
 
-  a[epub\:type='noteref'] {
+  a[role='doc-noteref'] {
     vertical-align: super;
     font-size: small;
     text-decoration: none;

@@ -217,3 +217,42 @@ export const sitePageRoots = new Set([
 export function configKeys() {
   return Object.values(mapLayerKeys)
 }
+
+/** An edition's front or back matter as valid HTML, as the editions' EPUB markup isn't */
+export function tidyMatter(html) {
+  const ids = new Set()
+  return (
+    html
+      .normalize('NFC')
+      .replace(/\s+epub:type=(['"])[^'"]*\1/g, '')
+      .replace(/<[a-z][^>]*\sclass=[^>]*\sclass=[^>]*>/g, tag => {
+        const classes = []
+        const rest = tag.replace(
+          /\s+class=(['"])([^'"]*)\1/g,
+          (match, quote, value) => {
+            classes.push(value)
+            return ''
+          }
+        )
+        return rest.replace(
+          /^<[a-z\d]+/,
+          name => `${name} class="${classes.join(' ')}"`
+        )
+      })
+      .replace(/\sid=(['"])([^'"]*)\1/g, (match, quote, id) => {
+        if (ids.has(id)) return ''
+        ids.add(id)
+        return match
+      })
+      .replace(
+        /(<dt\b[^>]*>((?:(?!<\/dt>)[\s\S])*)<\/dt>(?:\s*<dd\b(?:(?!<\/?d[dlt]\b)[\s\S])*<\/dd>)+)\s*<dt\b[^>]*>\2<\/dt>/g,
+        '$1'
+      )
+      .replace(/<\/dt>(?=\s*(?:<dt\b|<\/dl>))/g, '</dt><dd></dd>')
+      // A markdown link the editions left in an href, which ends at its first ")"
+      .replace(
+        /href=(['"])(https:\/\/suttacentral\.net\/[^)'"\s]+)\)(?:(?!\1)[\s\S])*\1/g,
+        'href=$1$2$1'
+      )
+  )
+}

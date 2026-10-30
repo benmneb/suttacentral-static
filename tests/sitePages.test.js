@@ -14,7 +14,7 @@ import {
   generateSitePageJsonLd,
   generateSitePageOGTags,
 } from '../src/helpers/sitePageMetadata.js'
-import { siteMap } from '../src/helpers/sitePages.js'
+import { siteMap, tidyMatter } from '../src/helpers/sitePages.js'
 import {
   fetchStrings,
   STRING_FILES,
@@ -480,5 +480,61 @@ describe('Every site page', async () => {
         `${layer.name} has a positioned ListItem`
       )
     }
+  })
+})
+
+describe('Edition matter', () => {
+  it('drops epub:type and keeps the DPUB role', () => {
+    assert.equal(
+      tidyMatter("<a epub:type='noteref' href='#n1' role='doc-noteref'>1</a>"),
+      "<a href='#n1' role='doc-noteref'>1</a>"
+    )
+  })
+
+  it('normalises to NFC', () => {
+    assert.equal(tidyMatter('Pa\u0304li'), 'P\u0101li')
+  })
+
+  it("merges a tag's class attributes", () => {
+    assert.equal(
+      tidyMatter("<a class='ref' href='/snp' class='text-root'>Snp</a>"),
+      '<a class="ref text-root" href=\'/snp\'>Snp</a>'
+    )
+  })
+
+  it('keeps only the first of each id', () => {
+    assert.equal(
+      tidyMatter(
+        "<dl><dt id='kala'>kāla</dt><dd>time</dd><dt id='kala'>kaḷa</dt><dd>?</dd></dl>"
+      ),
+      "<dl><dt id='kala'>kāla</dt><dd>time</dd><dt>kaḷa</dt><dd>?</dd></dl>"
+    )
+  })
+
+  it('lists a term once where it comes twice in a row', () => {
+    assert.equal(
+      tidyMatter(
+        "<dl>\n<dt id='s'>sammuti</dt>\n<dd>appointment</dd>\n<dt id='s'>sammuti</dt>\n<dd>a building</dd>\n</dl>"
+      ),
+      "<dl>\n<dt id='s'>sammuti</dt>\n<dd>appointment</dd>\n<dd>a building</dd>\n</dl>"
+    )
+  })
+
+  it('gives a term with no description an empty one', () => {
+    assert.equal(
+      tidyMatter(
+        '<dl><dt>Sosa</dt>\n<dt>Taka</dt><dd>?</dd>\n<dt>Kāla</dt></dl>'
+      ),
+      '<dl><dt>Sosa</dt><dd></dd>\n<dt>Taka</dt><dd>?</dd>\n<dt>Kāla</dt><dd></dd></dl>'
+    )
+  })
+
+  it('ends a markdown link left in an href at its ")"', () => {
+    assert.equal(
+      tidyMatter(
+        '<a href="https://suttacentral.net/pli-tv-kd21.1.1.1)%20begins%20<i%20lang=\'pli\'>at%20[DN%2016](dn16:1.6.13">Kd 21</a>'
+      ),
+      '<a href="https://suttacentral.net/pli-tv-kd21.1.1.1">Kd 21</a>'
+    )
   })
 })
