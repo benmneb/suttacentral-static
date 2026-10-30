@@ -188,7 +188,8 @@
     }
   }
 
-  dt {
+  dt,
+  .again {
     margin-top: 0.5rem;
   }
 

@@ -20,7 +20,17 @@ eleventyComputed:
   <p>{{ "numbering:11" | t }}</p>
   <p>{{ "numbering:12" | t }}</p>
   <p>{{ "numbering:13" | t }}</p>
-  <div class="pre">{{ "numbering:14" | t }}</div>
+  {% comment %} Each paragraph as code, as .net has them inside one code, which can't hold a paragraph {% endcomment %}
+  <div class="pre">
+    {{-
+      "numbering:14"
+      | t
+      | remove: "<code>"
+      | remove: "</code>"
+      | replace: "<p>", "<p><code>"
+      | replace: "</p>", "</code></p>"
+    -}}
+  </div>
   <p>{{ "numbering:15" | t }}</p>
   <h2>{{ "numbering:16" | t }}</h2>
   <p>{{ "numbering:17" | t }}</p>
