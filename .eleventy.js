@@ -47,8 +47,6 @@ const navTemplates = [
 const siteTemplates = `${inputDir}/site/**`
 const defineTemplates = `${inputDir}/define/**`
 const utilTemplates = [
-  `${inputDir}/_search.liquid`,
-  `${inputDir}/_404.liquid`,
   `${inputDir}/_robots.liquid`,
   `${inputDir}/_sitemap.liquid`,
   `${inputDir}/_sitemapIndex.liquid`,
@@ -84,8 +82,10 @@ export default function (eleventyConfig) {
     utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
     console.log('📄 Building only text pages (ONLY_TEXTS enabled)')
   } else if (process.env.ONLY_UTILS) {
+    // The sitemaps come out empty, as they list `collections.all` and this leaves no pages in it
     eleventyConfig.ignores.add(textTemplate)
     navTemplates.forEach(page => eleventyConfig.ignores.add(page))
+    eleventyConfig.ignores.add(siteTemplates)
     eleventyConfig.ignores.add(defineTemplates)
     console.log('🧰 Building only utility pages (ONLY_UTILS enabled)')
   } else if (process.env.ONLY_SITE) {
@@ -303,7 +303,7 @@ export default function (eleventyConfig) {
   // With /search, but not in a sample build, which has only some texts
   const buildsSearch =
     !sampleUids &&
-    !['ONLY_NAV', 'ONLY_TEXTS', 'ONLY_SITE', 'ONLY_DEFINE'].some(
+    !['ONLY_NAV', 'ONLY_TEXTS', 'ONLY_UTILS', 'ONLY_DEFINE'].some(
       flag => process.env[flag]
     )
   eleventyConfig.on('eleventy.after', async () => {
@@ -316,7 +316,7 @@ export default function (eleventyConfig) {
   })
 
   // With /map, /define and /search, whose mini maps share it
-  const buildsMiniMaps = !['ONLY_NAV', 'ONLY_TEXTS'].some(
+  const buildsMiniMaps = !['ONLY_NAV', 'ONLY_TEXTS', 'ONLY_UTILS'].some(
     flag => process.env[flag]
   )
   eleventyConfig.on('eleventy.after', async () => {
