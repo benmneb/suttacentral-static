@@ -1052,7 +1052,7 @@
         flex: 1 1 300px;
       }
 
-      section {
+      > div {
         max-width: var(--content-max-width);
         flex: 1 1 300px;
 
@@ -1078,7 +1078,7 @@
       }
     }
 
-    > section {
+    > div {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
       gap: 2rem;
@@ -1137,7 +1137,7 @@
   }
 
   @media (max-width: 600px) {
-    > article > section article figure {
+    > article > div article figure {
       img {
         float: none;
         width: 100%;

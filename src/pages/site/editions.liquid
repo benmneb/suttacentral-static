@@ -13,7 +13,7 @@ eleventyComputed:
   </hgroup>
 
   <header>
-    <section>
+    <div>
       <p>{{ "publication:editions1" | t }}</p>
       <p>{{ "publication:editions2" | t }}</p>
       <ul>
@@ -38,13 +38,13 @@ eleventyComputed:
         <p>{{ "publication:about3" | t }}</p>
         <p>{{ "publication:about4" | t }}</p>
       </aside>
-    </section>
+    </div>
     {% capture imageUrl %}{{ scOrigin }}/img/publication-pages/editions-kn-wet.jpg{% endcapture %}
     {% assign imageAlt = "Stack of SuttaCentral edition books" %}
     {% siteImage imageUrl, imageAlt %}
   </header>
 
-  <section>
+  <div>
     {% for edition in sitePagesData.editions %}
       <article>
         <header>
@@ -65,5 +65,5 @@ eleventyComputed:
         </figure>
       </article>
     {% endfor %}
-  </section>
+  </div>
 </article>
