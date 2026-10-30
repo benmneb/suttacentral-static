@@ -124,16 +124,32 @@ async function serveSite() {
   return server
 }
 
-/** Each axe violation on a page, as one string per element */
-async function violationsOn(page, origin, url) {
+/** Each axe violation on a page, as one string per element, or why it didn't load */
+async function violationsOn(page, origin, url, pending) {
   const found = []
   for (const variant of VARIANTS) {
+    // Not resized on the last page, which can take minutes to lay out again
+    await page.goto('about:blank')
     await page.setViewport({ width: variant.width, height: variant.height })
     await page.emulateMediaFeatures([
       { name: 'prefers-color-scheme', value: variant.scheme },
       { name: 'prefers-contrast', value: variant.contrast ?? 'no-preference' },
     ])
-    await page.goto(`${origin}${encodeURI(url)}`, { waitUntil: 'load' })
+    pending.clear()
+    try {
+      // Not waitUntil load, which headless Brave sometimes never fires for a mini map's <use>
+      await page.goto(`${origin}${encodeURI(url)}`, {
+        waitUntil: 'domcontentloaded',
+      })
+      await page.waitForNetworkIdle({ idleTime: 250 })
+    } catch (error) {
+      const waiting = [...pending].map(request => request.url()).join(' ')
+      found.push({
+        rule: `Didn't load: ${error.message}`,
+        place: `${url} [${variant.name}] waiting on ${waiting || 'nothing'}`,
+      })
+      continue
+    }
     if (variant.open) {
       await page.evaluate(() => {
         for (const details of document.querySelectorAll('details')) {
@@ -176,8 +192,13 @@ describe('Accessibility', async () => {
       executablePath,
       userDataDir: profile,
       headless: true,
-      // Ubuntu's AppArmor stops Chrome's sandbox on GitHub's runners
-      args: process.env.CI ? ['--no-sandbox'] : [],
+      args: [
+        // Nothing off the site, ie the analytics, so tests never count as visits
+        '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1',
+        '--no-proxy-server',
+        // Ubuntu's AppArmor stops Chrome's sandbox on GitHub's runners
+        ...(process.env.CI ? ['--no-sandbox'] : []),
+      ],
     })
   })
 
@@ -198,22 +219,39 @@ describe('Accessibility', async () => {
       const origin = `http://127.0.0.1:${server.address().port}`
       const queue = [...urls]
       const found = []
-      const next = async () => {
+      const openTab = async () => {
         const page = await browser.newPage()
-        await page.setRequestInterception(true)
-        // Nothing off the site, ie the analytics, so tests never count as visits
-        page.on('request', request =>
-          /^(data|blob):/.test(request.url()) ||
-          request.url().startsWith(origin)
-            ? request.continue()
-            : request.abort()
-        )
-        for (let url; (url = queue.shift()); ) {
-          found.push(...(await violationsOn(page, origin, url)))
+        const pending = new Set()
+        page.on('request', request => pending.add(request))
+        page.on('requestfinished', request => pending.delete(request))
+        page.on('requestfailed', request => pending.delete(request))
+        return { page, pending }
+      }
+      const next = async () => {
+        let tab = await openTab()
+        for (let url; browser.connected && (url = queue.shift()); ) {
+          try {
+            found.push(
+              ...(await violationsOn(tab.page, origin, url, tab.pending))
+            )
+          } catch (error) {
+            found.push({ rule: `Couldn't check: ${error.message}`, place: url })
+            // A crashed tab can't load the next page
+            if (browser.connected) {
+              await tab.page.close().catch(() => {})
+              tab = await openTab()
+            }
+          }
         }
-        await page.close()
+        if (browser.connected) await tab.page.close()
       }
       await Promise.all(Array.from({ length: TABS }, next))
+      if (queue.length > 0) {
+        found.push({
+          rule: `The browser closed, so ${queue.length} pages weren't checked`,
+          place: queue[0],
+        })
+      }
 
       const byRule = Map.groupBy(found, ({ rule }) => rule)
       const report = [...byRule]
