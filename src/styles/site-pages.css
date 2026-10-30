@@ -408,7 +408,7 @@
     }
   }
 
-  > section {
+  > div {
     display: grid;
     /* Not auto, which widens the search as its results come in */
     grid-template-columns: minmax(0, 1fr) 30ch;
@@ -419,7 +419,7 @@
       grid-template-columns: 1fr;
     }
 
-    > article > dl {
+    > dl {
       > dt {
         font-weight: bold;
         margin-bottom: 0.4rem;
@@ -429,7 +429,8 @@
         }
       }
 
-      > dd + dt {
+      > dd + dt,
+      > dd.again {
         margin-top: 1em;
       }
     }
@@ -464,6 +465,10 @@
   .grammar {
     display: block;
     color: var(--text-color-secondary);
+  }
+
+  .lower-greek {
+    list-style-type: lower-greek;
   }
 
   .on-map a > .icon:first-child {

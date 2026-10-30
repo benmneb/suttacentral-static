@@ -36,7 +36,11 @@ eleventyComputed:
   {{ content }}
 </main>
 
-{% assign route = page.url | remove_first: "/" | remove_last: "/" %}
+{% assign route = page.url
+  | remove_first: "/"
+  | remove_last: "/"
+  | replace: " ", "%20"
+%}
 {% assign fetchedAt = sitePagesData.fetchedAt[fetchedFrom]
   | default: sitePagesData.fetchedAt.strings
 %}

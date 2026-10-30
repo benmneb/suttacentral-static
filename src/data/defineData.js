@@ -231,6 +231,8 @@ function entriesOf(word, entries, words) {
       })
     }
   }
+  // Each id once on the page, as PTS gives each of a word's homonyms the word as its id, ie ambho
+  const ids = new Set()
   for (const name of ['dhammika', 'dppn', 'pts']) {
     for (const text of entries[name]) {
       // .net's map component, which the page swaps for a link to the place on /map
@@ -239,6 +241,11 @@ function entriesOf(word, entries, words) {
       const html = text
         // DPPN's coordinates, which .net hides
         .replace(/<dd class='info'>.*?<\/dd>/gs, '')
+        // Not a list type HTML has, so left to the lower-greek class it comes with
+        .replace(/ type='α'/g, '')
+        .replace(/ id=(['"])(.*?)\1/g, (match, quote, id) =>
+          ids.has(id) ? '' : (ids.add(id), match)
+        )
         // To the page here, or as text where there's none, as .net would show nothing
         .replace(DEFINE_LINK, (match, linked, content) => {
           const page = linkedWord(decodeURIComponent(linked), words)

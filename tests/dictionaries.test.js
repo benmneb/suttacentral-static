@@ -263,9 +263,11 @@ describe('The /define pages', () => {
     it(`include ${url}, with its entries`, async () => {
       const html = await readPage(url)
       assert.match(html, /<h1>/)
-      const found = [...html.matchAll(/<dt class="(\w+)"/g)].map(
-        ([, name]) => name
-      )
+      // A dictionary's later entries go under its first one's dt
+      let name
+      const found = [
+        ...html.matchAll(/<dt class="(\w+)"|<dd class="again">/g),
+      ].map(match => (name = match[1] ?? name))
       assert.deepEqual(found, dictionaries)
     })
   }

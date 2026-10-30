@@ -30,10 +30,13 @@ eleventyComputed:
     {% if term.entries.size == 1 %}dictionary{% else %}dictionaries{% endif %}
   </p>
 </hgroup>
-<section>
-  <article>
-    <dl>
-      {% for entry in term.entries %}
+<div>
+  <dl>
+    {% for entry in term.entries %}
+      {% comment %} One dt for a dictionary's several entries, ie NCPED's homonyms, as a dl can't name two the same {% endcomment %}
+      {% if entry.name == previous_name %}
+        {% assign dd = '<dd class="again">' %}
+      {% else %}
         <dt class="{{ entry.name }}">
           {{- entry.title -}}
           {%- if entry.name == "dpd" %}
@@ -43,14 +46,18 @@ eleventyComputed:
             ></a>
           {%- endif %}
         </dt>
-        {% if entry.grammar %}
-          <dd>
-            <em>{{ entry.grammar }}</em>
-          </dd>
-        {% endif %}
-        {% if entry.mapTag %}
-          {% assign place = sitePagesData.map.places[entry.mapView] %}
-          {% capture mapLink %}
+        {% assign dd = "<dd>" %}
+      {% endif %}
+      {% assign previous_name = entry.name %}
+      {% if entry.grammar %}
+        {{ dd -}}
+        {%- assign dd = "<dd>" %}
+        <em>{{ entry.grammar }}</em>
+        </dd>
+      {% endif %}
+      {% if entry.mapTag %}
+        {% assign place = sitePagesData.map.places[entry.mapView] %}
+        {% capture mapLink %}
             {%- if place and sitePagesData.map.base -%}
               {% include "miniMap.liquid", place: place %}
             {%- elsif place -%}
@@ -59,41 +66,48 @@ eleventyComputed:
               </p>
             {%- endif -%}
           {% endcapture %}
-          <dd>{{ entry.html | replace: entry.mapTag, mapLink }}</dd>
-        {% elsif entry.html %}
-          <dd>{{ entry.html }}</dd>
+        {{ dd -}}
+        {%- assign dd = "<dd>" -%}
+        {{- entry.html | replace: entry.mapTag, mapLink }}
+        </dd>
+      {% elsif entry.html %}
+        {{ dd -}}
+        {%- assign dd = "<dd>" -%}
+        {{- entry.html }}
+        </dd>
+      {% endif %}
+      {% if entry.definitions.size > 0 %}
+        {{ dd -}}
+        {%- assign dd = "<dd>" %}
+        {% if entry.numbered %}
+          <ol>
+            {% for definition in entry.definitions %}
+              <li>{{ definition }}</li>
+            {% endfor %}
+          </ol>
+        {% else %}
+          {{ entry.definitions | join: "; " }}
         {% endif %}
-        {% if entry.definitions.size > 0 %}
-          <dd>
-            {% if entry.numbered %}
-              <ol>
-                {% for definition in entry.definitions %}
-                  <li>{{ definition }}</li>
-                {% endfor %}
-              </ol>
-            {% else %}
-              {{ entry.definitions | join: "; " }}
-            {% endif %}
-          </dd>
-        {% endif %}
-        {% if entry.xrs.size > 0 %}
-          <dd>
-            <ul>
-              {% for xr in entry.xrs %}
-                <li lang="pi" translate="no">
-                  {%- if xr.word -%}
-                    <a href="{{ xr.word | defineHref }}">{{ xr.text }}</a>
-                  {%- else -%}
-                    {{ xr.text }}
-                  {%- endif -%}
-                </li>
-              {% endfor %}
-            </ul>
-          </dd>
-        {% endif %}
-      {% endfor %}
-    </dl>
-  </article>
+        </dd>
+      {% endif %}
+      {% if entry.xrs.size > 0 %}
+        {{ dd -}}
+        {%- assign dd = "<dd>" %}
+        <ul>
+          {% for xr in entry.xrs %}
+            <li lang="pi" translate="no">
+              {%- if xr.word -%}
+                <a href="{{ xr.word | defineHref }}">{{ xr.text }}</a>
+              {%- else -%}
+                {{ xr.text }}
+              {%- endif -%}
+            </li>
+          {% endfor %}
+        </ul>
+        </dd>
+      {% endif %}
+    {% endfor %}
+  </dl>
   <nav aria-label="Other words">
     {% include "defineForm.liquid" %}
     {% if term.adjacent.size > 0 %}
@@ -133,4 +147,4 @@ eleventyComputed:
       </article>
     {% endif %}
   </nav>
-</section>
+</div>
