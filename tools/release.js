@@ -46,6 +46,7 @@ import { execSync } from 'child_process'
 import { createReadStream, existsSync, mkdirSync, statSync } from 'fs'
 import https from 'https'
 import { basename, join } from 'path'
+import { createArchive, formatBytes } from './archive.js'
 
 // const SOURCEHUT_TOKEN = process.env.SOURCEHUT_TOKEN
 const CODEBERG_TOKEN = process.env.CODEBERG_TOKEN
@@ -113,39 +114,12 @@ function getArchiveName(tag) {
   return `scx_archive-${cleanTag}.tar.gz`
 }
 
-function formatBytes(bytes) {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
-}
-
 function ensureDistDirectory() {
   const distDir = join(process.cwd(), '.dist')
   if (!existsSync(distDir)) {
     mkdirSync(distDir, { recursive: true })
   }
   return distDir
-}
-
-function createArchive(sourceDir, archivePath) {
-  if (!existsSync(sourceDir)) {
-    console.error(`Error: Source directory ${sourceDir} does not exist!`)
-    console.error('Make sure to run `pnpm build` first.')
-    process.exit(1)
-  }
-  if (existsSync(archivePath)) {
-    console.log(`Archive already exists at ${archivePath}, using that`)
-    return
-  }
-
-  console.log(`Creating archive from ${sourceDir}...`)
-  execSync(`tar -czf ${archivePath} -C ${sourceDir} .`)
-
-  const archiveSize = statSync(archivePath).size
-  console.log(`Archive created: ${archivePath}`)
-  console.log(`Archive size: ${formatBytes(archiveSize)}`)
 }
 
 function makeHTTPRequest(options, data = null) {
@@ -558,7 +532,7 @@ async function main() {
   const archivePath = join(distDir, archiveName)
   console.log(`Archive filename: ${archiveName}`)
 
-  createArchive(SITE_BUILD_DIR, archivePath)
+  createArchive(tag.replace(/^v/, ''), archivePath, SITE_BUILD_DIR)
 
   if (DRY_RUN) {
     console.log('🔍 DRY RUN - Skipping uploads')

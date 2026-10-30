@@ -126,7 +126,7 @@ Note: `GITHUB_TOKEN` is automatically provided by GitHub Actions. Codeberg is op
    - Runs `check-tag` job to verify tag is on main branch
    - If tag is on main → runs `release-draft` job:
      - Builds site with `pnpm predeploy`, then runs the tests
-     - Creates archive named: `scx_archive-{version}.tar.gz`
+     - Creates archive named: `scx_archive-{version}.tar.gz`, holding a `scx_{version}` folder and a `README.txt`
      - Deploys to Vercel preview
      - Creates **draft** GitHub release with preview URL (initially shows "builds in progress" warning)
    - Runs `build-tauri` jobs in parallel (macOS ARM64, macOS Intel, Windows, Linux, Android ARM64, Android ARMv7):

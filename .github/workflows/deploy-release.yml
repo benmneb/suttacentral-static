@@ -53,7 +53,7 @@ jobs:
               curl -L -o ".assets/$name" "$url"
 
               # Track archive name for extraction
-              if [[ "$name" == *.tar.gz ]]; then
+              if [[ "$name" == scx_archive-*.tar.gz ]]; then
                 echo "archive_name=$name" >> $GITHUB_ENV
               fi
             fi
@@ -64,8 +64,10 @@ jobs:
 
       - name: Extract archive
         run: |
-          mkdir -p _site
-          tar -xzf ".assets/${{ env.archive_name }}" -C .
+          # Older archives hold _site/, newer ones scx_{version}/ beside a README.txt
+          mkdir .extract
+          tar -xzf ".assets/${{ env.archive_name }}" -C .extract
+          mv .extract/*/ _site
           ls -la _site
 
       - name: Setup Node.js

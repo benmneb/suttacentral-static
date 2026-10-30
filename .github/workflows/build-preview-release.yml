@@ -161,8 +161,7 @@ jobs:
         run: |
           ARCHIVE_NAME="scx_archive-${{ steps.version.outputs.version }}.tar.gz"
           echo "Creating archive: $ARCHIVE_NAME"
-          mkdir -p .dist
-          tar -czf .dist/$ARCHIVE_NAME _site
+          node tools/archive.js "${{ steps.version.outputs.version }}" ".dist/$ARCHIVE_NAME"
           echo "archive_name=$ARCHIVE_NAME" >> $GITHUB_OUTPUT
           echo "archive_path=.dist/$ARCHIVE_NAME" >> $GITHUB_OUTPUT
 
@@ -626,13 +625,13 @@ jobs:
             To use it locally:
 
             1. Download the \`scx_archive*.tar.gz\` file to your device
-            2. Extract its contents (open it with your OS's built-in archive utility or a free unzip tool from the App Store / Play Store)
-            3. Serve the extracted folder over a local HTTP server, then visit the server's local URL in your browser
+            2. Extract its contents (open it with your OS's built-in archive utility or a free unzip tool from the App Store / Play Store). You'll get a \`scx_{version}\` folder, with a \`README.txt\` beside it
+            3. Serve the \`scx_{version}\` folder over a local HTTP server, then visit the server's local URL in your browser
 
             Note: opening \`index.html\` directly (double-clicking it) will **not** work — the site uses absolute references to its other files which only resolve correctly when served over HTTP, not when loaded via the \`file://\` protocol.
 
             A local HTTP server can be set up for free on any computer, tablet, or smartphone. For example:
-            - **Desktop:** run \`python3 -m http.server\` inside the extracted folder, then visit the provided URL in your browser
+            - **Desktop:** run \`python3 -m http.server --directory scx_{version}\` where you extracted it, then visit the provided URL in your browser
             - **Mobile or tablet:** free HTTP server apps are available on the App Store / Play Store
             </details>
 
@@ -924,8 +923,7 @@ jobs:
         run: |
           ARCHIVE_NAME="scx_archive-${{ steps.version.outputs.version }}-content-refresh-${{ steps.date.outputs.date }}.tar.gz"
           echo "Creating archive: $ARCHIVE_NAME"
-          mkdir -p .dist
-          tar -czf .dist/$ARCHIVE_NAME _site
+          node tools/archive.js "${{ steps.version.outputs.version }}-content-refresh-${{ steps.date.outputs.date }}" ".dist/$ARCHIVE_NAME"
           echo "archive_name=$ARCHIVE_NAME" >> $GITHUB_OUTPUT
           echo "archive_path=.dist/$ARCHIVE_NAME" >> $GITHUB_OUTPUT
 
@@ -1388,13 +1386,13 @@ jobs:
             To use it locally:
 
             1. Download the \`scx_archive*.tar.gz\` file to your device
-            2. Extract its contents (open it with your OS's built-in archive utility or a free unzip tool from the App Store / Play Store)
-            3. Serve the extracted folder over a local HTTP server, then visit the server's local URL in your browser
+            2. Extract its contents (open it with your OS's built-in archive utility or a free unzip tool from the App Store / Play Store). You'll get a \`scx_{version}\` folder, with a \`README.txt\` beside it
+            3. Serve the \`scx_{version}\` folder over a local HTTP server, then visit the server's local URL in your browser
 
             Note: opening \`index.html\` directly (double-clicking it) will **not** work — the site uses absolute references to its other files which only resolve correctly when served over HTTP, not when loaded via the \`file://\` protocol.
 
             A local HTTP server can be set up for free on any computer, tablet, or smartphone. For example:
-            - **Desktop:** run \`python3 -m http.server\` inside the extracted folder, then visit the provided URL in your browser
+            - **Desktop:** run \`python3 -m http.server --directory scx_{version}\` where you extracted it, then visit the provided URL in your browser
             - **Mobile or tablet:** free HTTP server apps are available on the App Store / Play Store
             </details>
 
