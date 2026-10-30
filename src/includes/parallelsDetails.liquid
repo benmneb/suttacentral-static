@@ -24,9 +24,14 @@
             | first
           %}
           {% assign base_path = segment[0] | parallelPath: entry.uid %}
-          <a href="/{{ base_path }}/{{ root_trans.lang }}/{{ root_trans.author_uid }}{{ segment[0] | parallelAnchor }}">
-            {{- segment[0] | parallelLabel: entry -}}
-          </a>
+          {% comment %} No link without a root text, ie the Pātimokkha's rules, as on .net {% endcomment %}
+          {% if root_trans %}
+            <a href="/{{ base_path }}/{{ root_trans.lang }}/{{ root_trans.author_uid }}{{ segment[0] | parallelAnchor }}">
+              {{- segment[0] | parallelLabel: entry -}}
+            </a>
+          {% else %}
+            <span>{{ segment[0] | parallelLabel: entry }}</span>
+          {% endif %}
           <ul>
             {% include "parallelItems.liquid",
               parallels: segment[1],
