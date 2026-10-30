@@ -2,8 +2,8 @@
  * Every page is valid HTML, with no errors or warnings from the Nu validator,
  * the checker validator.w3.org/nu runs.
  *
- * It's a Java program, so this needs Java 11 or later: `brew install openjdk` on
- * macOS, and CI's runner has it already. `JAVA` or `JAVA_HOME` point at another.
+ * It's a Java program, so it uses Java 11+ from the PATH, or else downloads a Java
+ * runtime into `node_modules` once. `JAVA` or `JAVA_HOME` point at another.
  */
 
 import assert from 'node:assert/strict'
@@ -13,6 +13,7 @@ import path from 'node:path'
 import { describe, it } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import vnuJar from 'vnu-jar'
+import javaDownloader from 'vnu-jar/vnu-java-downloader.js'
 import { listFiles, listSome, SITE_DIR, urlForFile } from './lib/site.js'
 
 // Files per run of the validator, few enough to stay under the OS's argument length limit
@@ -37,21 +38,17 @@ function run(command, args) {
   })
 }
 
-/** The first Java that runs, or null */
+/** `JAVA` or `JAVA_HOME`'s Java if it runs, else a Java 11+ on the PATH or one vnu-jar downloads */
 async function findJava() {
   const candidates = [
     process.env.JAVA,
     process.env.JAVA_HOME && path.join(process.env.JAVA_HOME, 'bin', 'java'),
-    '/opt/homebrew/opt/openjdk/bin/java',
-    '/usr/local/opt/openjdk/bin/java',
-    'java',
   ].filter(Boolean)
   for (const java of candidates) {
-    // Not just whether it exists, as macOS has a /usr/bin/java that only says to install one
     const { code } = await run(java, ['-version']).catch(() => ({}))
     if (code === 0) return java
   }
-  return null
+  return javaDownloader.resolveJava()
 }
 
 /** The validator's messages for some files */
@@ -75,13 +72,12 @@ async function validate(java, files) {
 }
 
 describe('Every page’s HTML', async () => {
-  const java = await findJava()
-
   it('passes the Nu validator', { timeout: 4 * 60 * 60 * 1000 }, async () => {
-    assert.ok(
-      java,
-      'The Nu validator needs Java 11+, ie `brew install openjdk`'
-    )
+    const java = await findJava().catch(error => {
+      throw new Error(
+        `Couldn't download Java for the Nu validator, so install Java 11+ or set JAVA: ${error.message}`
+      )
+    })
 
     const files = (await listFiles(SITE_DIR))
       .filter(file => file.endsWith('.html'))

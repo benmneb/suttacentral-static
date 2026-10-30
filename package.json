@@ -48,6 +48,7 @@
     "sharp": "^0.35.5"
   },
   "devDependencies": {
+    "@puppeteer/browsers": "^3.2.6",
     "@shopify/prettier-plugin-liquid": "^1.10.0",
     "@taplo/cli": "^0.7.0",
     "@tauri-apps/cli": "^2.9.6",

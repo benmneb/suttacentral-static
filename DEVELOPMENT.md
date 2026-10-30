@@ -198,7 +198,7 @@ Then, when a release passes the tests, or you publish a draft release or pre-rel
 
 #### Tests
 
-`pnpm test` checks a built site (`_site`, or the folder in `SITE_DIR`) for signs the data fetched from SuttaCentral's APIs broke something, as a site can build without errors and still be missing texts or have empty pages, and for invalid or inaccessible markup. Features are tested by hand while developing. The HTML check needs Java 11+ (`brew install openjdk` on macOS), and the accessibility check Brave or other Chromium (or `BROWSER_PATH`):
+`pnpm test` checks a built site (`_site`, or the folder in `SITE_DIR`) for signs the data fetched from SuttaCentral's APIs broke something, as a site can build without errors and still be missing texts or have empty pages, and for invalid or inaccessible markup. Features are tested by hand while developing. The HTML check runs on Java and the accessibility check in Brave or Chrome, and the first run downloads either into `node_modules` if it isn't installed (`JAVA` and `BROWSER_PATH` pick your own):
 
 - **Fetch:** no API requests failed, besides `/publication_info` which fails for most translators
 - **Inventory:** at most 1% of production's pages are missing (5% of any one collection), each piṭaka has its texts, and the sitemap lists every page. Production's sitemap and search index are the baseline, so `SKIP_BASELINE=1` skips these comparisons offline

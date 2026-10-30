@@ -6,10 +6,12 @@
  * with `prefers-contrast: more`, so it's a sample rather than every page: the sample builds' pages, and the
  * first few of each kind of page in each collection.
  *
- * Uses Brave or Chrome, whichever is installed, or `BROWSER_PATH`.
+ * Uses Brave or Chrome, whichever is installed, or `BROWSER_PATH`, or else
+ * downloads Chrome Headless Shell into `node_modules/.cache` once.
  * `AXE_PAGES=/mn1/en/sujato/,/about/` checks just those, and `AXE_MAX_PAGES` caps the sample.
  */
 
+import { Browser, install } from '@puppeteer/browsers'
 import axe from 'axe-core'
 import assert from 'node:assert/strict'
 import { createReadStream, existsSync, readFileSync } from 'node:fs'
@@ -19,6 +21,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { after, before, describe, it } from 'node:test'
 import puppeteer from 'puppeteer-core'
+import { PUPPETEER_REVISIONS } from 'puppeteer-core/internal/revisions.js'
 import sirv from 'sirv'
 import { defineSample } from '../src/helpers/samplePages.js'
 import {
@@ -110,6 +113,16 @@ function samplePages(urls) {
   return [...picked].slice(0, MAX_PAGES)
 }
 
+/** The Chrome Headless Shell puppeteer-core is made for, downloaded the first time */
+async function downloadBrowser() {
+  const { executablePath } = await install({
+    browser: Browser.CHROMEHEADLESSSHELL,
+    buildId: PUPPETEER_REVISIONS['chrome-headless-shell'],
+    cacheDir: path.join('node_modules', '.cache', 'puppeteer'),
+  })
+  return executablePath
+}
+
 /** Serves the site on a free port, like `pnpm dev` but as built */
 async function serveSite() {
   const assets = sirv(SITE_DIR, {
@@ -186,8 +199,9 @@ describe('Accessibility', async () => {
   before(async () => {
     server = await serveSite()
     profile = await fs.mkdtemp(path.join(os.tmpdir(), 'scx-axe-'))
-    const executablePath = BROWSERS.find(file => file && existsSync(file))
-    if (!executablePath) return
+    const executablePath =
+      BROWSERS.find(file => file && existsSync(file)) ??
+      (await downloadBrowser())
     browser = await puppeteer.launch({
       executablePath,
       userDataDir: profile,
@@ -212,10 +226,6 @@ describe('Accessibility', async () => {
     `has no axe violations on ${urls.length} pages`,
     { timeout: 2 * 60 * 60 * 1000 },
     async () => {
-      assert.ok(
-        browser,
-        'No Brave or Chrome found, so set BROWSER_PATH to a Chromium browser'
-      )
       const origin = `http://127.0.0.1:${server.address().port}`
       const queue = [...urls]
       const found = []
