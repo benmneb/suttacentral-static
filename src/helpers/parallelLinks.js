@@ -11,7 +11,8 @@
  * on every page it's on: its label with the passage, its language, and its volume and pages.
  *
  * /api/parallels only has an English title for a parallel with a legacy English translation,
- * so SN 51.10 from DN 16 is just "Cetiyasutta". The rest get the one their own text has.
+ * and it's that translation's, so SN 47.9 from DN 16 is Bodhi's "Ill" and SN 51.10 has none.
+ * Each gets the one its own text has instead, ie Sujato's "Sick", as long as it has one.
  */
 import { parallelAnchor, passageLabel } from './parallelRuns.js'
 import { formatVolpages } from './strings.js'
@@ -84,8 +85,7 @@ export function addParallelDetails(tree, resolve) {
     to.scx_type = parallel.resembling ? 'resembling' : to.type
     to.scx_anchor = parallelAnchor(to.to ?? '')
     to.scx_label = `${to.acronym?.trim() ?? ''}${passageLabel(to.to ?? '')}`
-    if (!to.translated_title && titles.has(to.uid))
-      to.translated_title = titles.get(to.uid)
+    if (titles.has(to.uid)) to.translated_title = titles.get(to.uid)
     if (to.root_lang && to.root_lang !== rootLang)
       to.scx_lang_name = LANGUAGES[to.root_lang] ?? to.root_lang
     const { volpages, full } = volpagesOf(to)
