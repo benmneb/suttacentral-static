@@ -3,8 +3,9 @@
 /**
  * Handle Codeberg/Github releases
  *
- * Creates an archive of the site build directory and uploads it to
- * Codeberg and GitHub releases. Supports dry-run mode for testing without uploads.
+ * Creates an archive of the site build directory and a Kiwix ZIM of it, and uploads
+ * them to Codeberg and GitHub releases with PGP-signed SHA256 checksums. Supports
+ * dry-run mode for testing without uploads.
  * Supports CI mode for automated releases in GitHub Actions.
  * Sourcehut currently has 100mb file size limits so doesn't work there.
  *
@@ -16,7 +17,7 @@
  *   VERCEL_TOKEN      - Authentication token for Vercel CLI
  *   VERCEL_ORG_ID     - Vercel organization/user ID
  *   VERCEL_PROJECT_ID - Vercel project ID
- *   SITE_BUILD_DIR    - Directory to archive (default: "_site")
+ *   SITE_DIR          - Directory to archive (default: "_site")
  *   CI                - Set to enable CI mode (disables interactive prompts)
  *   GITHUB_ACTIONS    - Auto-set by GitHub Actions (enables CI mode)
  *
@@ -24,13 +25,19 @@
  *   Manual workflow:
  *     1. Create and push git tag: git tag -a v1.0.0 -m "Release notes"
  *     2. Run: `pnpm release:upload`
- *     3. Script creates archive and uploads to Codeberg/GitHub
+ *     3. Script creates archive and ZIM, signs their checksums and uploads to Codeberg/GitHub
  *     4. Script deploys to Vercel production
  *
  *   Dry run mode (testing):
  *     - Run: `pnpm release:dry`
- *     - Creates archive but skips all uploads and deployments
+ *     - Creates archive and ZIM but skips signing, uploads and deployments
  *     - Uses test tag v0.0.0-test if no git tag exists
+ *
+ *   Without the ZIM:
+ *     - Add `nozim`, ie `pnpm release:dry nozim`
+ *
+ *   Signing:
+ *     - Needs gpg with the key in `_siteMetaData.js`'s `pgpPublicKey`; skipped with a warning without it
  *
  *   CI mode (GitHub Actions):
  *     - Detected via CI or GITHUB_ACTIONS environment variables
@@ -42,10 +49,18 @@
  *   - Archives are stored in `.dist` directory
  *   - Node.js >= 18 required
  */
-import { execSync } from 'child_process'
-import { createReadStream, existsSync, mkdirSync, statSync } from 'fs'
+import { execFileSync, execSync } from 'child_process'
+import { createHash } from 'crypto'
+import {
+  createReadStream,
+  existsSync,
+  mkdirSync,
+  statSync,
+  writeFileSync,
+} from 'fs'
 import https from 'https'
 import { basename, join } from 'path'
+import siteMetaData from '../src/data/_siteMetaData.js'
 import { createArchive, formatBytes } from './archive.js'
 
 // const SOURCEHUT_TOKEN = process.env.SOURCEHUT_TOKEN
@@ -60,9 +75,13 @@ const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID
 
 const SITE_BUILD_DIR = process.env.SITE_DIR || '_site'
 
+const PGP_KEY = siteMetaData().pgpPublicKey
+const CHECKSUMS_NAME = 'SHA256SUMS.txt'
+
 // Parse command-line arguments
 const args = process.argv.slice(2)
 const DRY_RUN = args.includes('dry')
+const NO_ZIM = args.includes('nozim')
 
 function isCI() {
   return !!(process.env.CI || process.env.GITHUB_ACTIONS)
@@ -112,6 +131,68 @@ function getTimestamp() {
 function getArchiveName(tag) {
   const cleanTag = tag.startsWith('v') ? tag.substring(1) : tag
   return `scx_archive-${cleanTag}.tar.gz`
+}
+
+function getZimName(tag) {
+  const cleanTag = tag.startsWith('v') ? tag.substring(1) : tag
+  return `scx_archive-${cleanTag}.zim`
+}
+
+function contentType(filePath) {
+  if (filePath.endsWith('.tar.gz')) return 'application/gzip'
+  if (filePath.endsWith('.zim')) return 'application/x-openzim'
+  if (filePath.endsWith('.asc')) return 'application/pgp-signature'
+  return 'text/plain'
+}
+
+function sha256(filePath) {
+  return new Promise((resolve, reject) => {
+    const hash = createHash('sha256')
+    createReadStream(filePath)
+      .on('data', chunk => hash.update(chunk))
+      .on('end', () => resolve(hash.digest('hex')))
+      .on('error', reject)
+  })
+}
+
+/**
+ * Write SHA256SUMS.txt for the assets, as `sha256sum -c` reads it, and sign it with
+ * the release key where gpg has it
+ * @returns {Promise<string[]>} the checksums file, and its signature if signed
+ */
+async function signAssets(distDir, assetPaths) {
+  const checksumsPath = join(distDir, CHECKSUMS_NAME)
+  const lines = []
+  for (const assetPath of assetPaths) {
+    console.log(`Checksumming ${basename(assetPath)}...`)
+    lines.push(`${await sha256(assetPath)}  ${basename(assetPath)}`)
+  }
+  writeFileSync(checksumsPath, lines.join('\n') + '\n')
+  console.log(`✓ Wrote ${CHECKSUMS_NAME}`)
+
+  try {
+    if (!PGP_KEY) throw new Error('No pgpPublicKey')
+    execFileSync('gpg', ['--list-secret-keys', PGP_KEY], { stdio: 'ignore' })
+  } catch {
+    console.warn(
+      `⚠️  gpg or the release key (pgpPublicKey in _siteMetaData.js) isn't available, so ${CHECKSUMS_NAME} is unsigned`
+    )
+    return [checksumsPath]
+  }
+  execFileSync(
+    'gpg',
+    [
+      '--yes',
+      '--armor',
+      '--local-user',
+      PGP_KEY,
+      '--detach-sign',
+      checksumsPath,
+    ],
+    { stdio: 'inherit' }
+  )
+  console.log(`✓ Signed ${CHECKSUMS_NAME}`)
+  return [checksumsPath, `${checksumsPath}.asc`]
 }
 
 function ensureDistDirectory() {
@@ -290,7 +371,7 @@ async function uploadToCodeberg(release, archivePath) {
     method: 'POST',
     headers: {
       Authorization: `token ${CODEBERG_TOKEN}`,
-      'Content-Type': 'application/gzip',
+      'Content-Type': contentType(archivePath),
       'Content-Length': fileSize,
       Accept: 'application/json',
     },
@@ -383,7 +464,7 @@ async function uploadToGitHub(release, archivePath) {
     headers: {
       Authorization: `token ${GITHUB_TOKEN}`,
       'User-Agent': 'Node.js Release Script',
-      'Content-Type': 'application/gzip',
+      'Content-Type': contentType(archivePath),
       'Content-Length': fileSize,
       Accept: 'application/vnd.github.v3+json',
     },
@@ -465,7 +546,7 @@ async function main() {
   }
 
   if (DRY_RUN) {
-    console.log('🔍 DRY RUN MODE - Archive will be created but not uploaded\n')
+    console.log('🔍 DRY RUN MODE - Archives will be created but not uploaded\n')
   }
 
   // const hasSourcehut = SOURCEHUT_TOKEN && SOURCEHUT_REPO
@@ -533,6 +614,19 @@ async function main() {
   console.log(`Archive filename: ${archiveName}`)
 
   createArchive(tag.replace(/^v/, ''), archivePath, SITE_BUILD_DIR)
+  const assetPaths = [archivePath]
+
+  if (!NO_ZIM) {
+    const zimName = getZimName(tag)
+    const zimPath = join(distDir, zimName)
+    console.log(`ZIM filename: ${zimName}`)
+    execFileSync(
+      'pnpm',
+      ['build:zim', tag.replace(/^v/, ''), zimPath, SITE_BUILD_DIR],
+      { stdio: 'inherit' }
+    )
+    assetPaths.push(zimPath)
+  }
 
   if (DRY_RUN) {
     console.log('🔍 DRY RUN - Skipping uploads')
@@ -541,17 +635,25 @@ async function main() {
   }
 
   try {
+    if (hasCodeberg || hasGitHub) {
+      assetPaths.push(...(await signAssets(distDir, assetPaths)))
+    }
+
     if (hasCodeberg) {
       const codebergRelease = await createCodebergRelease(tag, tagMessage)
-      await uploadWithRetry(() =>
-        uploadToCodeberg(codebergRelease, archivePath)
-      )
+      for (const assetPath of assetPaths) {
+        await uploadWithRetry(() =>
+          uploadToCodeberg(codebergRelease, assetPath)
+        )
+      }
       console.log('✓ Successfully uploaded to Codeberg')
     }
 
     if (hasGitHub) {
       const githubRelease = await createGitHubRelease(tag, tagMessage)
-      await uploadWithRetry(() => uploadToGitHub(githubRelease, archivePath))
+      for (const assetPath of assetPaths) {
+        await uploadWithRetry(() => uploadToGitHub(githubRelease, assetPath))
+      }
       console.log('✓ Successfully uploaded to GitHub')
     }
 

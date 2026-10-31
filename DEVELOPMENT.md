@@ -18,7 +18,7 @@ The final build is 138,000+ HTML files at about 3.4gb uncompressed. This is pret
 
 Following are two options to do that. The first builds locally on your machine, and the second builds on GitHub Actions. They both then deploy to a free [Vercel account](https://vercel.com/signup) via the corresponding environment variables/secrets (see each section below)
 
-If you have set the additional environment variables, it can also upload a gzipped archive of the site build to GitHub and/or Codeberg releases based on versioned git tags
+If you have set the additional environment variables, it can also upload a gzipped archive of the site build and a [Kiwix](https://kiwix.org) ZIM file of it to GitHub and/or Codeberg releases based on versioned git tags, with PGP-signed checksums
 
 When using Github Actions, these releases also automatically include native apps for macOS (ARM64 + Intel), Windows, Linux, and Android, for easier use of the offline archive
 
@@ -57,7 +57,8 @@ You need a `.env` file with these: (any missing vars will just skip that provide
    pnpm release:upload
    ```
 
-   - Script finds the git tag, creates archive, and uploads it to GitHub/Codeberg releases
+   - Script finds the git tag, creates archive and ZIM, and uploads them to GitHub/Codeberg releases
+   - It also uploads `SHA256SUMS.txt` for them, signed as `SHA256SUMS.txt.asc` if gpg has the release key (otherwise unsigned, with a warning)
    - Script deploys to Vercel production
 
    **Or, use Dry Run mode** (for testing without uploads):
@@ -66,8 +67,18 @@ You need a `.env` file with these: (any missing vars will just skip that provide
    pnpm release:dry
    ```
 
-   - Creates archive but skips all uploads and deployments
+   - Creates archive and ZIM but skips signing, uploads and deployments
    - Uses test tag if no git tag exists
+   - `pnpm release:dry nozim` skips the ZIM, as PR previews do
+
+   **Or, just build the ZIM** (into `.dist`, from `_site` as it is):
+
+   ```bash
+   pnpm build:zim                      # scx_archive-0.0.0-test.zim
+   ONLY_UIDS=mn1,dn33 pnpm build:zim   # just those texts' pages, for a quick test
+   ```
+
+   - Its dependencies are in `zim/`, installed by this command rather than `pnpm i`
 
    **Or, just deploy to Vercel** (without creating a release):
 
@@ -101,7 +112,7 @@ Configure these in the repo settings (Settings → Secrets and variables → Act
 - `VERCEL_PROJECT_ID` - From `.vercel/project.json` or Vercel dashboard
 - `CODEBERG_TOKEN` - Personal access token from Codeberg (optional)
 - `CODEBERG_REPO` - Format: "owner/repo" (optional)
-- `PGP_PRIVATE_KEY` - Private key to sign app builds (export with `gpg --armor --export-secret-keys YOUR_KEY_ID`)
+- `PGP_PRIVATE_KEY` - Private key to sign release checksums (export with `gpg --armor --export-secret-keys YOUR_KEY_ID`)
 - `PGP_PASSPHRASE` - Passphrase for the private key
 - `ANDROID_KEYSTORE_BASE64` - Keystore to sign Android apps (create with `keytool -genkeypair`, then `base64 -i release.jks`)
 - `ANDROID_KEYSTORE_PASSWORD` - Password for the keystore
@@ -132,6 +143,8 @@ Note: `GITHUB_TOKEN` is automatically provided by GitHub Actions. Codeberg is op
    - Runs `build-tauri` jobs in parallel (macOS ARM64, macOS Intel, Windows, Linux, Android ARM64, Android ARMv7):
      - Builds apps for each platform
      - Attaches `.dmg`, `.exe`, `.AppImage`, `.apk` to the draft release
+   - Runs `build-zim` job in parallel, attaching `scx_archive-{version}.zim` to the draft release
+   - Runs `sign-release` job to attach `SHA256SUMS.txt` for the archives and apps, PGP-signed
    - Runs `finalize-release` job when all builds complete to update release body with which platforms built, and whether the tests passed
    - If the tests passed → publishes the release and runs `auto-deploy` (see below)
    - **Next step** if they failed: Review preview URL and publish when release shows all builds complete
@@ -148,6 +161,7 @@ Note: `GITHUB_TOKEN` is automatically provided by GitHub Actions. Codeberg is op
    - Runs build-tauri jobs in parallel (macOS ARM64, macOS Intel, Windows, Linux, Android ARM64, Android ARMv7):
      - Builds apps for each platform
      - Attaches `.dmg`, `.exe`, `.AppImage`, `.apk` to the pre-release
+   - Runs `build-zim-content-refresh` job in parallel, attaching `scx_archive-{version}-content-refresh-{date}.zim`
    - When all builds complete it updates release body with which platforms built, and whether the tests passed
    - If the tests passed → promotes the pre-release to a release and runs `auto-deploy-content-refresh` (see below)
    - **Next step** if they failed: Review preview URL and uncheck "Set as a pre-release" when release shows all builds complete
@@ -163,7 +177,7 @@ Note: `GITHUB_TOKEN` is automatically provided by GitHub Actions. Codeberg is op
 
 Then, when a release passes the tests, or you publish a draft release or pre-release in GitHub UI, it deploys to production (`deploy-release.yml`):
 
-- Downloads all release assets (archive + desktop apps)
+- Downloads all release assets (archives + apps)
 - Deploys to Vercel production
 - Uploads all assets to Codeberg releases (if the secrets exist, otherwise skips)
 
@@ -235,6 +249,14 @@ App builds run in parallel with the main release workflow. The release is create
 
 CI generates the Android project (`tauri/gen/android`) on each build with `tauri android init`, copies in the app icons and `tauri/android/MainActivity.kt`, builds it with the Tauri CLI, then signs the APK. Generating it in CI means no Android SDK is needed locally, and using the CLI rather than tauri-action leaves room for the steps between. Each ABI is a separate APK as the whole site is embedded per ABI, so a universal APK would be several times larger. The `versionCode` is the workflow run number, so every release installs over the previous one as an update
 
+**Kiwix ZIM:** `zim/build.js` writes `_site` into a ZIM without changing it, so the web and app builds stay as they are. It fails if a link that works on the web doesn't in the ZIM, or if a site script or Pagefind update adds a URL its rewriting doesn't cover. Some readers can't run everything, so the ZIM hides what can't work there:
+
+- **Listen** shows only where the reader has the Web Speech API, so not in Kiwix for Android or Kiwix Desktop
+- **Search, word lookup and simplified Chinese** need to fetch files, which Kiwix Desktop 2.5.1 and older can't, so they're hidden there, and its own full-text search (in every ZIM) stands in
+- **Settings** don't last between sessions in Kiwix Desktop, and start afresh with each new ZIM in the iOS and macOS apps
+- Kiwix Desktop's contents list has the headings of menus and popovers too, as it reads the page from outside its scripts' reach
+- Kiwix Desktop from Linux distros' own repositories is on a browser engine too old for the site's CSS
+
 **Note on "Listen"**: The Android app's webview doesn't support the Web Speech API, so the "Listen" button is hidden there (as in any browser without it). The Linux app's WebKitGTK may have no voices available, in which case Listen shows its "No voices found" message. You can always use the website in a browser for the "Listen" feature
 
 #### Handling partial builds and build failures
@@ -304,7 +326,7 @@ The exception is the Android APKs, which are signed in CI with this project's ow
 - Open it, and allow your browser or file manager to _"Install unknown apps"_ when asked
 - If Play Protect warns about an unknown developer, tap **"More details"** then **"Install anyway"**
 
-**All releases include PGP-signed SHA256 checksums for verification of the apps:**
+**All releases include PGP-signed SHA256 checksums for verification of the archives and apps:**
 
 - `SHA256SUMS.txt` - checksums for all artifacts
 - `SHA256SUMS.txt.asc` - PGP signature

@@ -1,0 +1,44 @@
+/*
+ * Only in the ZIM, as `styles/zim.css`, after the site's own styles. Hides what the
+ * reader can't run, from the classes `runtime.js` puts on <html>:
+ * - `zim`: scripts run
+ * - `zim-speech`: the Web Speech API is there
+ * - `zim-no-fetch`: files can't be fetched
+ */
+
+/* Important, as the site's own rules show some of these more specifically */
+html:not(.zim)
+  :is(
+    .define-form,
+    #search-form,
+    main > search,
+    [commandfor='search-modal'],
+    .aside-search
+  ) {
+  display: none !important;
+}
+
+.zim-no-fetch
+  :is(
+    .define-form,
+    #search-form,
+    main > search,
+    [commandfor='search-modal'],
+    .aside-search,
+    li:has(#definer, #simplifier)
+  ) {
+  display: none !important;
+}
+
+html:not(.zim-speech) li:has(> #listen-menu-button) {
+  display: none !important;
+}
+
+.zim-notice {
+  display: none;
+}
+
+html:not(.zim) .zim-notice,
+.zim-no-fetch .zim-notice {
+  display: block;
+}

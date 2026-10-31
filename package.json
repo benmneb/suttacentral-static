@@ -22,6 +22,7 @@
     "sync:site-pages": "node tools/syncSitePages.js",
     "sync:dictionaries": "node tools/syncDictionaries.js",
     "build:refetch": "REFETCH=1 pnpm predeploy",
+    "build:zim": "pnpm --dir zim install --ignore-workspace && node zim/build.js",
     "dev": "node tools/serve.js",
     "dev:fresh": "pnpm predeploy && pnpm dev",
     "tauri:dev": "pnpm tauri dev",

@@ -41,11 +41,32 @@ eleventyComputed:
       <li>
         <a class="with-icon" href="{{ _siteMetaData.archive }}">
           {% icon "archiveBoxArrowDown" %}
-          <span>Archives and native apps</span>
+          <span>Site archive</span>
         </a>
         <p>
-          This whole site as plain HTML to download, which works on any computer
-          or smartphone, plus apps to install.
+          The whole site as plain HTML files to download, which work on any
+          computer or smartphone with a local web server.
+        </p>
+      </li>
+      <li>
+        <a class="with-icon" href="{{ _siteMetaData.archive }}">
+          {% icon "computerDesktop" %}
+          <span>Native apps</span>
+        </a>
+        <p>
+          The whole site as an app to install on macOS, Windows, Linux or
+          Android, which opens like any other.
+        </p>
+      </li>
+      <li>
+        <a class="with-icon" href="{{ _siteMetaData.archive }}">
+          {% icon "documentArrowDown" %}
+          <span>Kiwix ZIM</span>
+        </a>
+        <p>
+          The whole site as one file for
+          <a href="https://kiwix.org" rel="external">Kiwix</a>, the free offline
+          reader for phones, tablets and computers.
         </p>
       </li>
     </ul>

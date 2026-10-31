@@ -20,7 +20,8 @@
  * @returns {string} accessibility - Accessibility statement, linked from the footer
  * @returns {string} contact - Contact email address for site inquiries/bug reports
  * @returns {string[]} mirrors - Other copies of the `source` repository
- * @returns {{ name: string, url?: string }} maintainer - Who runs this instance, for its structured data
+ * @returns {{ name: string, url?: string }} maintainer - Who runs this instance, for its structured data, and the ZIM's publisher
+ * @returns {string} pgpPublicKey - Fingerprint of the key `pnpm release:upload` signs release checksums with, if gpg has it
  * @returns {string} environment - Current build environment ('dev' or 'prod')
  *
  * @example
@@ -48,6 +49,7 @@ export default function () {
     // contact: 'email@example.com',
     suggestions: 'https://todo.sr.ht/~benmneb/suttacentral-static',
     maintainer: { name: 'sankhato', url: 'https://sr.ht/~benmneb' },
+    pgpPublicKey: 'AECABD60A4CB5BE900864AF2C8DAB4CE409C4AB8',
     environment: process.env.NODE_ENV || 'dev',
   }
 }

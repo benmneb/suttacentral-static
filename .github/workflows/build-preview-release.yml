@@ -73,6 +73,7 @@ jobs:
       search_pages: ${{ steps.stats.outputs.search_pages }}
       search_words: ${{ steps.stats.outputs.search_words }}
       checks_passed: ${{ steps.checks.outcome == 'success' }}
+      pgp_public_key: ${{ steps.site_meta.outputs.pgp_public_key }}
 
     steps:
       - name: Checkout repository
@@ -155,6 +156,10 @@ jobs:
           echo "message<<EOF" >> $GITHUB_OUTPUT
           echo "$TAG_MESSAGE" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Read release key
+        id: site_meta
+        run: node -e "import('./src/data/_siteMetaData.js').then(m => console.log('pgp_public_key=' + (m.default().pgpPublicKey ?? '')))" >> $GITHUB_OUTPUT
 
       - name: Create archive
         id: archive
@@ -451,9 +456,59 @@ jobs:
           draft: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
+  build-zim:
+    name: Build Kiwix ZIM
+    needs: release-draft
+    runs-on: ubuntu-latest
+    outputs:
+      zim_name: ${{ steps.zim.outputs.zim_name }}
+      zim_size: ${{ steps.zim.outputs.zim_size }}
+    steps:
+      # The site, the ZIM and libzim's index while it writes get close to the runner's free space
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          android: false
+          large-packages: false
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Download site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: site-build
+          path: _site
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.3.0'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Build ZIM
+        id: zim
+        run: |
+          ZIM_NAME="scx_archive-${{ needs.release-draft.outputs.version }}.zim"
+          pnpm build:zim "${{ needs.release-draft.outputs.version }}" ".dist/$ZIM_NAME"
+          echo "zim_name=$ZIM_NAME" >> $GITHUB_OUTPUT
+          echo "zim_size=$(du -h ".dist/$ZIM_NAME" | cut -f1)" >> $GITHUB_OUTPUT
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.release-draft.outputs.tag }}
+          files: .dist/${{ steps.zim.outputs.zim_name }}
+          draft: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
   sign-release:
     name: Sign Release Artifacts
-    needs: [release-draft, build-tauri]
+    needs: [release-draft, build-tauri, build-zim]
     if: always() && needs.release-draft.result == 'success'
     runs-on: ubuntu-latest
     outputs:
@@ -468,11 +523,11 @@ jobs:
           mkdir -p artifacts
           gh release download "${{ needs.release-draft.outputs.tag }}" \
             --repo "${{ github.repository }}" \
-            --pattern "scx_app-*" \
+            --pattern "scx_*" \
             --dir artifacts || true
 
           if [ -z "$(ls -A artifacts 2>/dev/null)" ]; then
-            echo "⚠️ No Tauri build artifacts found - all builds may have failed"
+            echo "⚠️ No release artifacts found - all builds may have failed"
             echo "has_artifacts=false" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -485,7 +540,7 @@ jobs:
         if: steps.download.outputs.has_artifacts == 'true'
         run: |
           cd artifacts
-          sha256sum scx_app-* > SHA256SUMS.txt
+          sha256sum scx_* > SHA256SUMS.txt
           echo "Generated checksums:"
           cat SHA256SUMS.txt
 
@@ -522,7 +577,7 @@ jobs:
 
   finalize-release:
     name: Finalize Release
-    needs: [release-draft, sign-release]
+    needs: [release-draft, build-zim, sign-release]
     if: always() && needs.release-draft.result == 'success'
     runs-on: ubuntu-latest
     steps:
@@ -547,6 +602,7 @@ jobs:
           [[ "$ARTIFACTS" =~ windows ]] && PLATFORMS="${PLATFORMS}- Windows\n"
           [[ "$ARTIFACTS" =~ android_arm64 ]] && PLATFORMS="${PLATFORMS}- Android (64-bit)\n"
           [[ "$ARTIFACTS" =~ android_armv7 ]] && PLATFORMS="${PLATFORMS}- Android (32-bit)\n"
+          [[ "$ARTIFACTS" =~ \.zim ]] && echo "zim_available=true" >> $GITHUB_OUTPUT
 
           if [ -z "$PLATFORMS" ]; then
             echo "platforms_available=false" >> $GITHUB_OUTPUT
@@ -563,6 +619,7 @@ jobs:
         with:
           script: |
             const signed = '${{ needs.sign-release.outputs.signed }}' === 'true';
+            const pgpPublicKey = '${{ needs.release-draft.outputs.pgp_public_key }}';
             const checksPassed = '${{ needs.release-draft.outputs.checks_passed }}' === 'true';
             const autoDeploy = checksPassed && '${{ vars.AUTO_DEPLOY }}' !== 'false';
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
@@ -574,13 +631,26 @@ jobs:
             const tagMessage = `${{ needs.release-draft.outputs.tag_message }}`;
             const platformsAvailable = '${{ steps.platforms.outputs.platforms_available }}' === 'true';
             const platformsList = `${{ steps.platforms.outputs.platforms_list }}`;
+            const zimAvailable = '${{ steps.platforms.outputs.zim_available }}' === 'true';
+            const zimSection = zimAvailable ? `
+
+            <details>
+            <summary><strong>About the Kiwix ZIM</strong></summary>
+
+            The attached \`scx_archive*.zim\` file is the whole site as one file for [Kiwix](https://kiwix.org), the free offline reader for Android, iOS, macOS, Windows and Linux. Open it in a Kiwix app, or serve it to any browser with \`kiwix-serve\`.
+
+            It works as the site does, except in some readers:
+            - **Listen** only shows where the reader has text-to-speech, so not in Kiwix for Android, which has its own "Read aloud", or Kiwix Desktop
+            - **Search, word lookup and simplified Chinese** need a newer Kiwix Desktop than 2.5.1, which can't load their files, so they're hidden there. Kiwix's own search bar searches the full text instead
+            - **Settings** aren't kept between sessions in Kiwix Desktop, and start afresh with each new ZIM in the iOS and macOS apps
+            </details>` : '';
 
             // Build GPG section if signed
-            const gpgSection = signed ? `
+            const gpgSection = signed && pgpPublicKey ? `
 
             Import my public key (same key used to sign all commits to this repo)
             \`\`\`bash
-            gpg --keyserver keys.openpgp.org --recv-keys AECABD60A4CB5BE900864AF2C8DAB4CE409C4AB8
+            gpg --keyserver keys.openpgp.org --recv-keys ${pgpPublicKey}
             \`\`\`
 
             Verify signature
@@ -633,7 +703,7 @@ jobs:
             A local HTTP server can be set up for free on any computer, tablet, or smartphone. For example:
             - **Desktop:** run \`python3 -m http.server --directory scx_{version}\` where you extracted it, then visit the provided URL in your browser
             - **Mobile or tablet:** free HTTP server apps are available on the App Store / Play Store
-            </details>
+            </details>${zimSection}
 
             <details>
             <summary><strong>App Installation Instructions</strong></summary>
@@ -667,7 +737,7 @@ jobs:
             </details>
 
             <details>
-            <summary><strong>App Verification Instruction (optional)</strong></summary>
+            <summary><strong>Verification Instructions (optional)</strong></summary>
 
             Verify checksum matches
             \`\`\`bash
@@ -694,6 +764,7 @@ jobs:
             - Version: ${{ needs.release-draft.outputs.version }}
             - Files: ${{ needs.release-draft.outputs.html_count }} HTML files (${{ needs.release-draft.outputs.total_count }} total)
             - Archive size: ${{ needs.release-draft.outputs.archive_size || 'n/a' }}
+            - ZIM size: ${{ needs.build-zim.outputs.zim_size || 'n/a' }}
             - Build time: ${{ needs.release-draft.outputs.build_duration || 'n/a' }} (11ty: ${{ needs.release-draft.outputs.eleventy_duration || 'n/a' }}, search index: ${{ needs.release-draft.outputs.search_duration || 'n/a' }})
             - API fetch: ${{ needs.release-draft.outputs.fetch_summary || 'n/a' }}${fetchFailuresLine}
             - Pages written: ${{ needs.release-draft.outputs.eleventy_files || 'n/a' }}
@@ -769,7 +840,7 @@ jobs:
       - name: Create archive for preview
         env:
           CI: true
-        run: pnpm release:dry
+        run: pnpm release:dry nozim
 
       - name: Deploy to Vercel Preview
         id: vercel_preview
@@ -822,6 +893,7 @@ jobs:
       search_words: ${{ steps.stats.outputs.search_words }}
       checks_passed: ${{ steps.checks.outcome == 'success' }}
       trigger: ${{ github.event_name == 'schedule' && 'Monthly scheduled build' || 'Manual trigger' }}
+      pgp_public_key: ${{ steps.site_meta.outputs.pgp_public_key }}
 
     steps:
       - name: Checkout repository
@@ -915,6 +987,10 @@ jobs:
           else
             echo "⊘ Codeberg not configured, skipping tag push"
           fi
+
+      - name: Read release key
+        id: site_meta
+        run: node -e "import('./src/data/_siteMetaData.js').then(m => console.log('pgp_public_key=' + (m.default().pgpPublicKey ?? '')))" >> $GITHUB_OUTPUT
 
       - name: Create archive
         id: archive
@@ -1214,9 +1290,59 @@ jobs:
           files: artifacts/*
           token: ${{ secrets.GITHUB_TOKEN }}
 
+  build-zim-content-refresh:
+    name: Build Kiwix ZIM Content Refresh
+    needs: content-refresh
+    runs-on: ubuntu-latest
+    outputs:
+      zim_name: ${{ steps.zim.outputs.zim_name }}
+      zim_size: ${{ steps.zim.outputs.zim_size }}
+    steps:
+      # The site, the ZIM and libzim's index while it writes get close to the runner's free space
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          android: false
+          large-packages: false
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Download site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: site-build-content-refresh
+          path: _site
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.3.0'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Build ZIM
+        id: zim
+        run: |
+          ZIM_NAME="scx_archive-${{ needs.content-refresh.outputs.version }}-content-refresh-${{ needs.content-refresh.outputs.date }}.zim"
+          pnpm build:zim "${{ needs.content-refresh.outputs.version }}-content-refresh-${{ needs.content-refresh.outputs.date }}" ".dist/$ZIM_NAME"
+          echo "zim_name=$ZIM_NAME" >> $GITHUB_OUTPUT
+          echo "zim_size=$(du -h ".dist/$ZIM_NAME" | cut -f1)" >> $GITHUB_OUTPUT
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.content-refresh.outputs.preview_tag }}
+          files: .dist/${{ steps.zim.outputs.zim_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
   sign-release-content-refresh:
     name: Sign Content Refresh Artifacts
-    needs: [content-refresh, build-tauri-content-refresh]
+    needs:
+      [content-refresh, build-tauri-content-refresh, build-zim-content-refresh]
     if: always() && needs.content-refresh.result == 'success'
     runs-on: ubuntu-latest
     outputs:
@@ -1231,11 +1357,11 @@ jobs:
           mkdir -p artifacts
           gh release download "${{ needs.content-refresh.outputs.preview_tag }}" \
             --repo "${{ github.repository }}" \
-            --pattern "scx_app-*" \
+            --pattern "scx_*" \
             --dir artifacts || true
 
           if [ -z "$(ls -A artifacts 2>/dev/null)" ]; then
-            echo "⚠️ No Tauri build artifacts found - all builds may have failed"
+            echo "⚠️ No release artifacts found - all builds may have failed"
             echo "has_artifacts=false" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -1248,7 +1374,7 @@ jobs:
         if: steps.download.outputs.has_artifacts == 'true'
         run: |
           cd artifacts
-          sha256sum scx_app-* > SHA256SUMS.txt
+          sha256sum scx_* > SHA256SUMS.txt
           echo "Generated checksums:"
           cat SHA256SUMS.txt
 
@@ -1284,7 +1410,8 @@ jobs:
 
   finalize-release-content-refresh:
     name: Finalize Content Refresh Release
-    needs: [content-refresh, sign-release-content-refresh]
+    needs:
+      [content-refresh, build-zim-content-refresh, sign-release-content-refresh]
     if: always() && needs.content-refresh.result == 'success'
     runs-on: ubuntu-latest
     steps:
@@ -1309,6 +1436,7 @@ jobs:
           [[ "$ARTIFACTS" =~ windows ]] && PLATFORMS="${PLATFORMS}- Windows\n"
           [[ "$ARTIFACTS" =~ android_arm64 ]] && PLATFORMS="${PLATFORMS}- Android (64-bit)\n"
           [[ "$ARTIFACTS" =~ android_armv7 ]] && PLATFORMS="${PLATFORMS}- Android (32-bit)\n"
+          [[ "$ARTIFACTS" =~ \.zim ]] && echo "zim_available=true" >> $GITHUB_OUTPUT
 
           if [ -z "$PLATFORMS" ]; then
             echo "platforms_available=false" >> $GITHUB_OUTPUT
@@ -1325,6 +1453,7 @@ jobs:
         with:
           script: |
             const signed = '${{ needs.sign-release-content-refresh.outputs.signed }}' === 'true';
+            const pgpPublicKey = '${{ needs.content-refresh.outputs.pgp_public_key }}';
             const checksPassed = '${{ needs.content-refresh.outputs.checks_passed }}' === 'true';
             const autoDeploy = checksPassed && '${{ vars.AUTO_DEPLOY }}' !== 'false';
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
@@ -1335,13 +1464,26 @@ jobs:
             const fetchFailuresLine = fetchFailures && fetchFailures !== 'n/a' ? `\n  - ${fetchFailures}` : '';
             const platformsAvailable = '${{ steps.platforms.outputs.platforms_available }}' === 'true';
             const platformsList = `${{ steps.platforms.outputs.platforms_list }}`;
+            const zimAvailable = '${{ steps.platforms.outputs.zim_available }}' === 'true';
+            const zimSection = zimAvailable ? `
+
+            <details>
+            <summary><strong>About the Kiwix ZIM</strong></summary>
+
+            The attached \`scx_archive*.zim\` file is the whole site as one file for [Kiwix](https://kiwix.org), the free offline reader for Android, iOS, macOS, Windows and Linux. Open it in a Kiwix app, or serve it to any browser with \`kiwix-serve\`.
+
+            It works as the site does, except in some readers:
+            - **Listen** only shows where the reader has text-to-speech, so not in Kiwix for Android, which has its own "Read aloud", or Kiwix Desktop
+            - **Search, word lookup and simplified Chinese** need a newer Kiwix Desktop than 2.5.1, which can't load their files, so they're hidden there. Kiwix's own search bar searches the full text instead
+            - **Settings** aren't kept between sessions in Kiwix Desktop, and start afresh with each new ZIM in the iOS and macOS apps
+            </details>` : '';
 
             // Build GPG section if signed
-            const gpgSection = signed ? `
+            const gpgSection = signed && pgpPublicKey ? `
 
             Import my public key (same key used to sign all commits to this repo)
             \`\`\`bash
-            gpg --keyserver keys.openpgp.org --recv-keys AECABD60A4CB5BE900864AF2C8DAB4CE409C4AB8
+            gpg --keyserver keys.openpgp.org --recv-keys ${pgpPublicKey}
             \`\`\`
 
             Verify signature
@@ -1394,7 +1536,7 @@ jobs:
             A local HTTP server can be set up for free on any computer, tablet, or smartphone. For example:
             - **Desktop:** run \`python3 -m http.server --directory scx_{version}\` where you extracted it, then visit the provided URL in your browser
             - **Mobile or tablet:** free HTTP server apps are available on the App Store / Play Store
-            </details>
+            </details>${zimSection}
 
             <details>
             <summary><strong>App Installation Instructions</strong></summary>
@@ -1428,7 +1570,7 @@ jobs:
             </details>
 
             <details>
-            <summary><strong>App Verification Instruction (optional)</strong></summary>
+            <summary><strong>Verification Instructions (optional)</strong></summary>
 
             Verify checksum matches
             \`\`\`bash
@@ -1456,6 +1598,7 @@ jobs:
             - Preview Tag: ${{ needs.content-refresh.outputs.preview_tag }}
             - Files: ${{ needs.content-refresh.outputs.html_count }} HTML files (${{ needs.content-refresh.outputs.total_count }} total)
             - Archive size: ${{ needs.content-refresh.outputs.archive_size || 'n/a' }}
+            - ZIM size: ${{ needs.build-zim-content-refresh.outputs.zim_size || 'n/a' }}
             - Build time: ${{ needs.content-refresh.outputs.build_duration || 'n/a' }} (11ty: ${{ needs.content-refresh.outputs.eleventy_duration || 'n/a' }}, search index: ${{ needs.content-refresh.outputs.search_duration || 'n/a' }})
             - API fetch: ${{ needs.content-refresh.outputs.fetch_summary || 'n/a' }}${fetchFailuresLine}
             - Pages written: ${{ needs.content-refresh.outputs.eleventy_files || 'n/a' }}
