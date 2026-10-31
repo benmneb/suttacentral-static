@@ -1,5 +1,4 @@
 import fs from 'fs'
-import htmlmin from 'html-minifier-terser'
 import masterData from './src/data/_masterData.js'
 import siteMetaData from './src/data/_siteMetaData.js'
 import { recordStat } from './src/helpers/buildStats.js'
@@ -10,7 +9,12 @@ import { loadLookup } from './src/helpers/lookupAnswers.js'
 import { writeLookupShards } from './src/helpers/lookupShards.js'
 import { mapData } from './src/helpers/mapPlaces.js'
 import { writeMiniMap } from './src/helpers/miniMap.js'
-import { assetUrl, minifyCss, minifyJs } from './src/helpers/minifyAssets.js'
+import {
+  assetUrl,
+  minifyCss,
+  minifyHtmlCode,
+  minifyJs,
+} from './src/helpers/minifyAssets.js'
 import { ogTags } from './src/helpers/pageMetadata.js'
 import { parallelAnchor, parallelKeyLabel } from './src/helpers/parallelRuns.js'
 import { isMultiTextSpan } from './src/helpers/rangeSuttas.js'
@@ -248,15 +252,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addTransform('htmlmin', async function (content) {
     if (!(this.page.outputPath || '').endsWith('.html')) return content
 
-    // https://github.com/terser/html-minifier-terser?tab=readme-ov-file#options-quick-reference
-    const minified = await htmlmin.minify(content, {
-      useShortDoctype: true,
-      removeComments: true,
-      collapseWhitespace: true,
-      collapseBooleanAttributes: true,
-      // Not removeOptionalTags: browsers build the same DOM without them, but Pagefind takes a closing tag
-      // as a word break, so text running into one (ie "possessions?’</p><p>SC") gets indexed as one word
-    })
+    const minified = await minifyHtmlCode(content)
 
     // The API's own HTML, ie a legacy text's <li class="division" lang='pli'>, has .net's codes too
     return closeHeadingGaps(

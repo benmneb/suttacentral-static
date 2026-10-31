@@ -25,6 +25,7 @@
 import browserslist from 'browserslist'
 import crypto from 'crypto'
 import fs from 'fs'
+import htmlmin from 'html-minifier-terser'
 import { browserslistToTargets, transform } from 'lightningcss'
 import path from 'path'
 import { minify as terserMinify } from 'terser'
@@ -121,6 +122,22 @@ export async function minifyJsCode(code) {
     },
   })
   return minified.code
+}
+
+/**
+ * Minifies a page, as the build's `htmlmin` transform does
+ * @param {string} html
+ */
+export function minifyHtmlCode(html) {
+  // https://github.com/terser/html-minifier-terser?tab=readme-ov-file#options-quick-reference
+  return htmlmin.minify(html, {
+    useShortDoctype: true,
+    removeComments: true,
+    collapseWhitespace: true,
+    collapseBooleanAttributes: true,
+    // Not removeOptionalTags: browsers build the same DOM without them, but Pagefind takes a closing tag
+    // as a word break, so text running into one (ie "possessions?’</p><p>SC") gets indexed as one word
+  })
 }
 
 /**

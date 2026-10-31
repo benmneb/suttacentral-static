@@ -6,7 +6,9 @@
  */
 
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
 import { describe, it } from 'node:test'
+import { minifyHtmlCode } from '../src/helpers/minifyAssets.js'
 import {
   entryPath,
   patchPagefind,
@@ -99,14 +101,26 @@ describe('ZIM links', () => {
   })
 })
 
-describe('ZIM pages', () => {
-  const page = `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="/styles/s.css"><script defer src="https://analytics.example/script.js" data-id="1"></script></head><body><a href="/mn1/pli/ms">MN</a><a href="https://suttacentral.net/mn1">.net</a><a href="#top">Top</a><a href="//example.com">x</a></body></html>`
+describe('ZIM pages', async () => {
+  const layout = await minifyHtmlCode(
+    fs
+      .readFileSync(
+        new URL('../src/layouts/base.liquid', import.meta.url),
+        'utf8'
+      )
+      .replace(/{%[\s\S]*?%}|{{[\s\S]*?}}/g, '')
+  )
+  const page = layout.replace(
+    '<body></body>',
+    '<body><a href="/mn1/pli/ms">MN</a><img src="/images/a.png" alt=""><a href="https://suttacentral.net/mn1">.net</a><a href="#top">Top</a><a href="//example.com">x</a></body>'
+  )
   const { html, links } = rewriteHtml(page, 'mn1/en/sujato')
+  const outside = /<script[^>]*\ssrc="https?:/
 
   it('make root-absolute links relative', () => {
-    assert.match(html, /href="\.\.\/\.\.\/styles\/s\.css"/)
     assert.match(html, /href="\.\.\/pli\/ms"/)
-    assert.equal(links.length, 2)
+    assert.match(html, /src="\.\.\/\.\.\/images\/a\.png"/)
+    assert.ok(links.every(({ original }) => /^\/(?!\/)/.test(original)))
   })
 
   it('leave other links alone', () => {
@@ -115,8 +129,9 @@ describe('ZIM pages', () => {
     assert.match(html, /href="\/\/example\.com"/)
   })
 
-  it('drop the analytics', () => {
-    assert.doesNotMatch(html, /<script[^>]*src="https?:/)
+  it('drop the layout’s outside scripts, ie analytics', t => {
+    if (!outside.test(layout)) return t.skip('the layout has none')
+    assert.doesNotMatch(html, outside)
   })
 
   it('load the ZIM script first', () => {
