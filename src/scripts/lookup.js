@@ -172,15 +172,19 @@
     return null
   }
 
+  // Changed in place, as Safari doesn't repaint what a replaced one covered
+  const rangeHighlight = canHighlight ? new Highlight() : null
+  if (rangeHighlight) CSS.highlights.set('lookup', rangeHighlight)
+
   function highlight(word) {
     clearHighlight()
     if (word instanceof Element) word.classList.add('looked-up')
-    else if (canHighlight) CSS.highlights.set('lookup', new Highlight(word))
+    else rangeHighlight?.add(word)
   }
 
   function clearHighlight() {
     if (current instanceof Element) current.classList.remove('looked-up')
-    if (canHighlight) CSS.highlights.delete('lookup')
+    rangeHighlight?.clear()
   }
 
   // The element a word is in
