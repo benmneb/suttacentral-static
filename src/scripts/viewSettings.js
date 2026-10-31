@@ -6,7 +6,7 @@
  * put back where it was. Also keeps the References checkbox showing at least one group, and toggles the
  * settings and listen controls from the keyboard, with the same keys as .net and a few more, unless they're turned
  * off. And keeps a note's asterisk lit while the note is open, lets Esc hide the menus and panels hovering shows,
- * and loads word lookup and simplified characters once they're turned on.
+ * titles each highlighting line, and loads word lookup and simplified characters once they're turned on.
  */
 ;(function () {
   'use strict'
@@ -418,6 +418,34 @@
         if (!running) el.classList.remove('pressed')
       })
     }
+  }
+
+  // Each line's title is its --mark-label in text.css
+  const highlighter = document.getElementById('highlighter')
+  if (highlighter instanceof HTMLInputElement) {
+    const MARKED =
+      ':is(.nidana, .padabhajaniya, .cakka, .anapatti, .vinaya-vinita, .kamma, .patimokkha, .rule:not(.patimokkha *):has(.segment), .suttanta, .jataka):not(span)'
+    let titled = false
+
+    function titleLines() {
+      if (titled || !highlighter.checked) return
+      titled = true
+      for (const el of document.querySelectorAll(`main ${MARKED}`)) {
+        const label = getComputedStyle(el)
+          .getPropertyValue('--mark-label')
+          .trim()
+          .replace(/^(['"])(.*)\1$/, '$2')
+        if (!label) continue
+        const line = document.createElement('span')
+        line.className = 'mark-line'
+        line.title = label
+        line.setAttribute('aria-hidden', 'true')
+        el.append(line)
+      }
+    }
+
+    titleLines()
+    highlighter.addEventListener('change', titleLines)
   }
 
   const loadScript = src =>

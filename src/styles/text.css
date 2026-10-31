@@ -226,21 +226,31 @@
 }
 
 /* Highlight text-critical details */
+.mark-line {
+  display: none;
+}
+
 &:has(#highlighter:checked) {
+  /* Labels with no ::before only title the line, see viewSettings.js */
   .nidana {
     --mark-color: var(--aqua);
+    --mark-label: 'Origin story';
   }
   .padabhajaniya {
     --mark-color: var(--blue);
+    --mark-label: 'Definitions';
   }
   .cakka {
     --mark-color: var(--purple);
+    --mark-label: 'Permutations';
   }
   .anapatti {
     --mark-color: var(--yellow);
+    --mark-label: 'Non-offenses';
   }
   .vinaya-vinita {
     --mark-color: var(--gray);
+    --mark-label: 'Case studies';
   }
   .kamma {
     --mark-color: var(--orange);
@@ -277,8 +287,18 @@
     .suttanta,
     .jataka
   ):not(span) {
+    position: relative;
     border-inline-start: 2px dotted var(--mark-color);
     padding-inline-start: 0.75rem;
+  }
+
+  .mark-line {
+    display: block;
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: -2px;
+    width: calc(0.75rem + 2px);
+    cursor: help;
   }
 
   :where(
