@@ -100,7 +100,7 @@ jobs:
           node-version: '24.3.0'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Install dependencies
         run: pnpm install
@@ -290,7 +290,7 @@ jobs:
           node-version: '24.3.0'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Install dependencies
         run: pnpm install
@@ -488,7 +488,7 @@ jobs:
           node-version: '24.3.0'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Build ZIM
         id: zim
@@ -834,7 +834,7 @@ jobs:
           node-version: '24.3.0'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Install dependencies
         run: pnpm install
@@ -913,7 +913,7 @@ jobs:
           node-version: '24.3.0'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Install dependencies
         run: pnpm install
@@ -1130,7 +1130,7 @@ jobs:
           node-version: '24.3.0'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Install dependencies
         run: pnpm install
@@ -1327,7 +1327,7 @@ jobs:
           node-version: '24.3.0'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Build ZIM
         id: zim

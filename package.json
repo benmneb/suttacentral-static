@@ -4,7 +4,7 @@
   "author": "benmneb",
   "version": "1.3.0",
   "license": "CC0",
-  "packageManager": "pnpm@10.33.0",
+  "packageManager": "pnpm@12.16.1",
   "type": "module",
   "private": true,
   "scripts": {
@@ -22,7 +22,7 @@
     "sync:site-pages": "node tools/syncSitePages.js",
     "sync:dictionaries": "node tools/syncDictionaries.js",
     "build:refetch": "REFETCH=1 pnpm predeploy",
-    "build:zim": "pnpm --dir zim install --ignore-workspace && node zim/build.js",
+    "build:zim": "pnpm --dir zim install && node zim/build.js",
     "dev": "node tools/serve.js",
     "dev:fresh": "pnpm predeploy && pnpm dev",
     "tauri:dev": "pnpm tauri dev",

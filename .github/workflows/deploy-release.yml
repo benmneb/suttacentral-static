@@ -76,7 +76,7 @@ jobs:
           node-version: '24.3.0'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Install dependencies (for Vercel CLI)
         run: pnpm install

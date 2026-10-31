@@ -2,17 +2,11 @@
   "name": "suttacentral-static-zim",
   "description": "Builds the Kiwix ZIM release asset from _site",
   "license": "CC0",
-  "packageManager": "pnpm@10.33.0",
+  "packageManager": "pnpm@12.16.1",
   "type": "module",
   "private": true,
   "dependencies": {
     "@openzim/libzim": "4.7.0",
     "sharp": "^0.35.5"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@openzim/libzim",
-      "sharp"
-    ]
   }
 }
