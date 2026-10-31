@@ -118,6 +118,12 @@ function onWeb(files, url) {
     : files.has(path) || files.has(`${path}/index.html`)
 }
 
+/** Whether a root-absolute URL is a stylesheet, script, image or the like, not a page */
+function isAsset(url) {
+  const ext = extname(url.match(/^[^?#]*/)[0]).slice(1)
+  return ext !== 'html' && ext in { ...TEXT_TYPES, ...BINARY_TYPES }
+}
+
 /** The ZIM path a relative URL in a page goes to */
 function zimTarget(entry, url) {
   const base = new URL(encodeURI(entry), 'http://zim/')
@@ -155,7 +161,9 @@ export async function createZim(version, zimPath, siteDir = '_site') {
     process.exit(1)
   }
   if (existsSync(zimPath)) {
-    console.log(`ZIM already exists at ${zimPath}, using that`)
+    console.log(
+      `ZIM already exists at ${zimPath}, using that (delete it to build anew)`
+    )
     return
   }
 
@@ -201,7 +209,14 @@ export async function createZim(version, zimPath, siteDir = '_site') {
       }
       const { html, links } = rewriteHtml(readFileSync(source, 'utf8'), entry)
       for (const { original, rewritten } of links) {
-        if (!onWeb(fileSet, original)) continue
+        if (!onWeb(fileSet, original)) {
+          if (!isAsset(original)) continue
+          console.error(
+            `Error: ${entry} needs ${original}, which ${siteDir} doesn't have`
+          )
+          console.error('Its pages are from different builds, so rebuild it')
+          process.exit(1)
+        }
         const target = zimTarget(entry, rewritten)
         if (!targets.has(target)) targets.set(target, entry)
       }
