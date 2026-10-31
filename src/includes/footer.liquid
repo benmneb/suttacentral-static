@@ -13,23 +13,9 @@
       {{ fetchedAt | split: ", " | last }}
     </p>
   {% endif %}
-  {% unless page.url == "/404.html" %}
-    {% capture canonical %}{{ _siteMetaData.origin }}{{ page.url | url | route | uri_escape }}{% endcapture %}
-    <p>
-      This page is
-      <a href="https://validator.w3.org/nu/?doc={{ canonical | url_encode }}"
-        >W3C-valid HTML</a
-      >
-      and targets
-      {% if _siteMetaData.accessibility -%}
-        <a href="{{ _siteMetaData.accessibility }}">WCAG 2.2 AA</a>
-      {%- else -%}
-        WCAG 2.2 AA
-      {%- endif %}
-    </p>
-  {% endunless %}
   {% unless _siteMetaData.source == blank
     and _siteMetaData.analytics == blank
+    and _siteMetaData.accessibility == blank
     and _siteMetaData.archive == blank
     and _siteMetaData.suggestions == blank
     and _siteMetaData.contact == blank
@@ -43,6 +29,11 @@
       {% if _siteMetaData.analytics %}
         <li>
           <a href="{{ _siteMetaData.analytics }}">Open analytics</a>
+        </li>
+      {% endif %}
+      {% if _siteMetaData.accessibility %}
+        <li>
+          <a href="{{ _siteMetaData.accessibility }}">Accessibility</a>
         </li>
       {% endif %}
       {% if _siteMetaData.archive %}
