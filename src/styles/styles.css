@@ -1301,7 +1301,9 @@ form#search-form {
 
   &:focus-within {
     border-color: inherit;
-    outline: 1px solid;
+    /* The browser's own ring, the first line where -webkit-focus-ring-color is unknown */
+    outline: 1px auto;
+    outline: auto 1px -webkit-focus-ring-color;
   }
 
   input {

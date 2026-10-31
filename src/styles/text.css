@@ -553,10 +553,6 @@ button[style]:is([popovertarget^='comment-'], [popovertarget^='variant-']) {
     &::after {
       forced-color-adjust: none;
     }
-
-    &:focus-visible::before {
-      outline-color: Highlight;
-    }
   }
 
   &::before {
@@ -597,8 +593,14 @@ button[style]:is([popovertarget^='comment-'], [popovertarget^='variant-']) {
   }
 
   &:focus-visible::before {
-    outline: 2px solid var(--primary-color);
+    /* The browser's own ring, the first line where -webkit-focus-ring-color is unknown */
+    outline: 1px auto;
+    outline: auto 1px -webkit-focus-ring-color;
     outline-offset: 1px;
+
+    @media (forced-colors: active) {
+      outline-color: Highlight;
+    }
   }
 
   &::after {
@@ -1858,6 +1860,16 @@ main {
 
         &::before {
           background-color: var(--primary-color);
+        }
+      }
+
+      &:focus-visible {
+        outline: none;
+
+        &::before {
+          outline: 1px auto;
+          outline: auto 1px -webkit-focus-ring-color;
+          outline-offset: 1px;
         }
       }
 
