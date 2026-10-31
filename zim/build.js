@@ -60,7 +60,8 @@ const BINARY_TYPES = {
 }
 
 // The root languages of the texts, as ISO 639-3, after the English of the site and translations
-const LANGUAGES = 'eng,pli,lzh,san,xct,pgd,pra'
+// Not SuttaCentral's pra for Prakrit, which isn't ISO 639-3
+const LANGUAGES = 'eng,pli,lzh,san,xct,pgd'
 
 // Pages kept with ONLY_UIDS, as the others link to them
 const ALWAYS = ['index.html', 'search', 'map', 'define']
@@ -159,6 +160,12 @@ export async function createZim(version, zimPath, siteDir = '_site') {
   }
 
   const meta = siteMetaData()
+  if ([...meta.title].length > 30) {
+    console.error(
+      'Error: The site title is longer than a ZIM title can be (30)'
+    )
+    process.exit(1)
+  }
   const only = process.env.ONLY_UIDS?.split(',').filter(Boolean)
   const files = siteFiles(siteDir)
   const fileSet = new Set(files)
@@ -254,16 +261,23 @@ export async function createZim(version, zimPath, siteDir = '_site') {
 
   creator.addMetadata('Name', `${new URL(meta.origin).hostname}_en_all`)
   creator.addMetadata('Title', meta.title)
-  creator.addMetadata('Description', meta.description)
+  creator.addMetadata(
+    'Description',
+    'Early Buddhist texts, translations and parallels'
+  )
   creator.addMetadata(
     'LongDescription',
     `A complete offline copy of ${meta.origin}, version ${version}. It has every sutta, vinaya and abhidhamma text in its root language, all English translations, notes, parallels and search. The texts are from SuttaCentral (https://suttacentral.net), as they were on the build date.`
   )
   creator.addMetadata('Language', LANGUAGES)
-  creator.addMetadata('Creator', meta.title)
+  creator.addMetadata('Creator', 'SuttaCentral')
   creator.addMetadata('Publisher', meta.maintainer.name)
   creator.addMetadata('Date', new Date().toISOString().slice(0, 10))
   creator.addMetadata('Source', meta.origin)
+  creator.addMetadata(
+    'License',
+    'CC0 1.0 for SuttaCentral’s own texts and translations; others as each one states'
+  )
   creator.addMetadata('Tags', 'buddhism;suttas;pali;_ftindex:yes;_pictures:yes')
   const { name } = JSON.parse(readFileSync(join(here, '../package.json')))
   creator.addMetadata('Scraper', `${name} ${version}`)
