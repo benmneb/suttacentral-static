@@ -1,0 +1,69 @@
+:root {
+  color-scheme: light;
+}
+
+/* Not the screen's 100vh flex column, as Firefox then gives the header and footer a page each */
+body {
+  display: block;
+  min-height: 0;
+}
+
+/* Important, as the site's own rules show some of these more specifically, ie #site-pages:popover-open */
+:is(
+  body > header > div,
+  body > aside,
+  body > nav,
+  .skip,
+  [popover],
+  dialog,
+  main :is(form, search),
+  .map-controls
+) {
+  display: none !important;
+}
+
+/* Not a grid, as Firefox moves a grid item taller than what's left of the page to the next one */
+main:has(.segment) {
+  display: block;
+  width: calc(100% - 2rem - var(--parallel-reserve, 0px));
+  max-width: var(--content-max-width);
+  padding-inline-start: calc(1rem + var(--parallel-reserve, 0px));
+}
+
+:root:is(
+    :has(#rooter:checked):has(#rooter-side:checked),
+    :has(#commenter:checked):has(#commenter-inline:checked):has(
+        #commenter-side:checked
+      )
+  )
+  main:has(.segment) {
+  max-width: calc(
+    var(--content-double-width-gap) - var(--parallel-reserve, 0px)
+  );
+}
+
+/* Drawn by gradients, which browsers leave out of print by default */
+.parallel-run::before {
+  print-color-adjust: exact;
+}
+
+body > footer {
+  background: none;
+
+  > :not(p:first-of-type, #updated) {
+    display: none;
+  }
+}
+
+:is(h1, h2, h3, h4, h5, h6) {
+  break-after: avoid;
+}
+
+:is(.segment, .illustration) {
+  break-inside: avoid;
+}
+
+/* Whole, as Firefox leaves the land on one page and moves the places over it to the next */
+.map-frame {
+  break-inside: avoid;
+}

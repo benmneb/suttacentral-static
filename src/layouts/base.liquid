@@ -39,6 +39,7 @@
     {% for sheet in styles %}
       <link rel="stylesheet" href="{{ sheet | asset }}">
     {% endfor %}
+    <link rel="stylesheet" href="{{ 'print.css' | asset }}" media="print">
     {% if headStyle %}
       <style>
         {{ headStyle }}

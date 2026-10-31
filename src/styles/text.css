@@ -120,7 +120,7 @@
     }
 
     /* can't use `var(--content-max-width)` in media queries :'( */
-    @media only screen and (min-width: 600px) {
+    @media (min-width: 600px) {
       &:has(#commenter-side:checked) {
         main {
           --main-column: 1fr;
@@ -680,7 +680,7 @@ button[style]:is([popovertarget^='comment-'], [popovertarget^='variant-']) {
   }
 
   /* can't use `var(--content-max-width)` in media queries :'( */
-  @media only screen and (min-width: 600px) {
+  @media (min-width: 600px) {
     &:has(#rooter-side:checked) {
       .segment {
         display: grid;
@@ -791,7 +791,7 @@ button[style]:is([popovertarget^='comment-'], [popovertarget^='variant-']) {
 }
 
 /* can't use `var(--content-max-width)` in media queries :'( */
-@media only screen and (min-width: 600px) {
+@media (min-width: 600px) {
   &:has(#segmenter:checked) {
     &:has(#commenter:checked)&:has(#commenter-inline:checked) {
       &:has(#commenter-side:checked) {
