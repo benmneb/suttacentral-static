@@ -36,7 +36,7 @@ export default function () {
     origin: 'https://suttacentral.express',
     host: 'suttacentral.express',
     source: 'https://sr.ht/~benmneb/suttacentral-static',
-    analytics: 'https://dashboard.simpleanalytics.com/suttacentral.express',
+    analytics: 'https://umamalytics.netlify.app/share/4PY6ujsQ2Mxhz8d2',
     archive: 'https://codeberg.org/benmneb/suttacentral-static/releases/latest',
     // contact: 'email@example.com',
     suggestions: 'https://todo.sr.ht/~benmneb/suttacentral-static',

@@ -26,8 +26,11 @@
     {% endif %}
     <script
       defer
-      data-allow-params="query"
-      src="https://scripts.simpleanalyticscdn.com/light.js"
+      src="https://umamalytics.netlify.app/script.js"
+      data-website-id="480aa584-78e8-42ab-a911-e06bdb82a31f"
+      data-domains="suttacentral.express,www.suttacentral.express,sxc.onl,www.sxc.onl"
+      data-exclude-search="true"
+      data-exclude-hash="true"
     ></script>
     <script src="/scripts/preSearch.js" defer></script>
     {% if scripts %}
@@ -38,12 +41,5 @@
   </head>
   <body>
     {{ content }}
-    <noscript>
-      <img
-        src="https://queue.simpleanalyticscdn.com/noscript.gif"
-        alt=""
-        referrerpolicy="no-referrer-when-downgrade"
-      >
-    </noscript>
   </body>
 </html>
