@@ -62,8 +62,6 @@ export function relativeUrl(from, url) {
 const ROOT_ABSOLUTE_ATTR = /\b(href|src)="(\/(?!\/)[^"]*)"/g
 // Analytics and the like, which every reader blocks
 const EXTERNAL_SCRIPT = /<script[^>]*\ssrc="https?:\/\/[^"]*"[^>]*><\/script>/g
-const EXTERNAL_PIXEL =
-  /<noscript><img src="https?:\/\/[^"]*"[^>]*><\/noscript>/g
 
 const SEARCH_NOTICE =
   '<p class="zim-notice">Site search can’t run in this reader, but Kiwix’s own search can find any text here.</p>'
@@ -89,7 +87,6 @@ export function rewriteHtml(html, entry) {
   let out = html
     .replace(ROOT_ABSOLUTE_ATTR, (_, attr, url) => `${attr}="${relative(url)}"`)
     .replace(EXTERNAL_SCRIPT, '')
-    .replace(EXTERNAL_PIXEL, '')
     .replace('<meta charset="utf-8">', `$&<script src="${script}"></script>`)
     .replace('</head>', `<link rel="stylesheet" href="${stylesheet}">$&`)
   if (entry === 'search') {

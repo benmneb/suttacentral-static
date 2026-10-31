@@ -100,7 +100,7 @@ describe('ZIM links', () => {
 })
 
 describe('ZIM pages', () => {
-  const page = `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="/styles/s.css"><script defer data-allow-params="query" src="https://scripts.simpleanalyticscdn.com/light.js"></script></head><body><a href="/mn1/pli/ms">MN</a><a href="https://suttacentral.net/mn1">.net</a><a href="#top">Top</a><a href="//example.com">x</a><noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif" alt="" referrerpolicy="no-referrer-when-downgrade"></noscript></body></html>`
+  const page = `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="/styles/s.css"><script defer src="https://analytics.example/script.js" data-id="1"></script></head><body><a href="/mn1/pli/ms">MN</a><a href="https://suttacentral.net/mn1">.net</a><a href="#top">Top</a><a href="//example.com">x</a></body></html>`
   const { html, links } = rewriteHtml(page, 'mn1/en/sujato')
 
   it('make root-absolute links relative', () => {
@@ -116,7 +116,7 @@ describe('ZIM pages', () => {
   })
 
   it('drop the analytics', () => {
-    assert.doesNotMatch(html, /simpleanalytics/)
+    assert.doesNotMatch(html, /<script[^>]*src="https?:/)
   })
 
   it('load the ZIM script first', () => {
