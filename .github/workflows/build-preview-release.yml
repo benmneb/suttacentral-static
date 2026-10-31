@@ -635,14 +635,19 @@ jobs:
             const zimSection = zimAvailable ? `
 
             <details>
-            <summary><strong>About the Kiwix ZIM</strong></summary>
+            <summary><strong>About the ZIM Archive</strong></summary>
 
-            The attached \`scx_archive*.zim\` file is the whole site as one file for [Kiwix](https://kiwix.org), the free offline reader for Android, iOS, macOS, Windows and Linux. Open it in a Kiwix app, or serve it to any browser with \`kiwix-serve\`.
+            The attached \`scx_archive*.zim\` file is the whole site in one file for [Kiwix](https://kiwix.org), a free offline reader for Android, iOS, macOS, Windows and Linux.
 
-            It works as the site does, except in some readers:
-            - **Listen** only shows where the reader has text-to-speech, so not in Kiwix for Android, which has its own "Read aloud", or Kiwix Desktop
-            - **Search, word lookup and simplified Chinese** need a newer Kiwix Desktop than 2.5.1, which can't load their files, so they're hidden there. Kiwix's own search bar searches the full text instead
-            - **Settings** aren't kept between sessions in Kiwix Desktop, and start afresh with each new ZIM in the iOS and macOS apps
+            To use it:
+
+            1. [Install Kiwix](https://get.kiwix.org/en/solutions/applications/download-options/)
+            2. Download the \`scx_archive*.zim\` file
+            3. Open it in Kiwix
+
+            To read it in any browser on your network instead, serve it with \`kiwix-serve\`.
+
+            Kiwix readers differ in what they can run, so anything a reader doesn't support, such as text-to-speech or site search, is left out. Kiwix has its own full-text search, and Kiwix for Android its own "Read aloud". In a browser through \`kiwix-serve\`, every feature works as it does on the website.
             </details>` : '';
 
             // Build GPG section if signed
@@ -1468,14 +1473,19 @@ jobs:
             const zimSection = zimAvailable ? `
 
             <details>
-            <summary><strong>About the Kiwix ZIM</strong></summary>
+            <summary><strong>About the ZIM Archive</strong></summary>
 
-            The attached \`scx_archive*.zim\` file is the whole site as one file for [Kiwix](https://kiwix.org), the free offline reader for Android, iOS, macOS, Windows and Linux. Open it in a Kiwix app, or serve it to any browser with \`kiwix-serve\`.
+            The attached \`scx_archive*.zim\` file is the whole site in one file for [Kiwix](https://kiwix.org), a free offline reader for Android, iOS, macOS, Windows and Linux.
 
-            It works as the site does, except in some readers:
-            - **Listen** only shows where the reader has text-to-speech, so not in Kiwix for Android, which has its own "Read aloud", or Kiwix Desktop
-            - **Search, word lookup and simplified Chinese** need a newer Kiwix Desktop than 2.5.1, which can't load their files, so they're hidden there. Kiwix's own search bar searches the full text instead
-            - **Settings** aren't kept between sessions in Kiwix Desktop, and start afresh with each new ZIM in the iOS and macOS apps
+            To use it:
+
+            1. [Install Kiwix](https://get.kiwix.org/en/solutions/applications/download-options/)
+            2. Download the \`scx_archive*.zim\` file
+            3. Open it in Kiwix
+
+            To read it in any browser on your network instead, serve it with \`kiwix-serve\`.
+
+            Kiwix readers differ in what they can run, so anything a reader doesn't support, such as text-to-speech or site search, is left out. Kiwix has its own full-text search, and Kiwix for Android its own "Read aloud". In a browser through \`kiwix-serve\`, every feature works as it does on the website.
             </details>` : '';
 
             // Build GPG section if signed
