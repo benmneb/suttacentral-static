@@ -26,14 +26,16 @@
   }
   if (input) input.name = 'query'
 
-  // Moves focus to the skip link's target before the jump, so the link's bar is gone by then.
-  // Otherwise Firefox and Safari land the jump short by the bar's height
+  // Not the link's own jump, after which Firefox drops focus for a caret, which on a text lands in a hidden
+  // segment number, so Tab starts again from the top. Focused before the scroll, so the link's bar is gone by then
   const skip = document.querySelector('body > .skip')
-  skip?.addEventListener('click', () => {
+  skip?.addEventListener('click', event => {
     const target = document.getElementById(skip.hash.slice(1))
     if (!target) return
+    event.preventDefault()
     target.tabIndex = -1
     target.focus({ preventScroll: true })
+    target.scrollIntoView()
     target.addEventListener('blur', () => target.removeAttribute('tabindex'), {
       once: true,
     })
