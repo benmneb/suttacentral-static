@@ -65,16 +65,20 @@ function generateTextMetaOGTags(entry) {
 function editionOf(entry, translation) {
   const path = `${entry.uid}/${translation.lang}/${translation.author_uid}`
   const author = textFromHtml(translation.author || translation.author_uid)
+  const work = entry.scx_range_sutta_individual
+    ? textFromHtml(entry.acronym)
+    : workName(entry) || textFromHtml(entry.acronym)
   return {
     '@type': 'CreativeWork',
     '@id': textId(path),
-    name: `${entry.scx_range_sutta_individual ? textFromHtml(entry.acronym) : workName(entry)}—${author}`,
+    name: author ? `${work}—${author}` : work,
     url: absoluteUrl(path),
     sameAs: `${SC_ORIGIN}/${path}`,
     inLanguage: langTag(translation.lang),
-    ...(translation.is_root
-      ? { isBasedOn: edition(author, translation.author_uid) }
-      : { translator: person(author, translation.author_uid) }),
+    ...(author &&
+      (translation.is_root
+        ? { isBasedOn: edition(author, translation.author_uid) }
+        : { translator: person(author, translation.author_uid) })),
     ...(translation.publication_date && {
       datePublished: translation.publication_date,
     }),

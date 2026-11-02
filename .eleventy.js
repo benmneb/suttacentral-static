@@ -16,8 +16,11 @@ import {
   minifyJs,
 } from './src/helpers/minifyAssets.js'
 import { ogTags } from './src/helpers/pageMetadata.js'
-import { parallelAnchor, parallelKeyLabel } from './src/helpers/parallelRuns.js'
-import { isMultiTextSpan } from './src/helpers/rangeSuttas.js'
+import {
+  parallelAnchor,
+  parallelKeyLabel,
+  parallelPath,
+} from './src/helpers/parallelRuns.js'
 import {
   referenceEditionName,
   referenceGroup,
@@ -123,15 +126,7 @@ export default function (eleventyConfig) {
     return value?.replace(/\s+/g, ' ').trim() ?? ''
   })
 
-  // A parallel's key says which span of this text it covers. That span can run across two suttas -
-  // sn36.31 is keyed sn36.30-31, because the parallel covers the pair - and such a span is no uid at all,
-  // so it gets swapped for the text on screen, as on .net. A key naming one sutta is kept, so the rows of
-  // a range page like /an1.170-187 still point at an1.173, an1.174 and so on, one each
-  eleventyConfig.addFilter('parallelPath', function (key, uid) {
-    const base = String(key).split('#')[0]
-    return isMultiTextSpan(base) ? uid : base
-  })
-
+  eleventyConfig.addFilter('parallelPath', parallelPath)
   eleventyConfig.addFilter('parallelLabel', parallelKeyLabel)
   eleventyConfig.addFilter('parallelAnchor', parallelAnchor)
 

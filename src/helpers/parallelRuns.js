@@ -5,7 +5,11 @@
  * The API keys a parallel to where it starts, so a passage runs to the end of that section. Overlapping passages
  * sit in lanes, nested ones inside, like a git graph.
  */
-import { rangeUidToAcronym, uidIsInRange } from './rangeSuttas.js'
+import {
+  parseUidNumbers,
+  rangeUidToAcronym,
+  uidIsInRange,
+} from './rangeSuttas.js'
 
 /**
  * A key of /api/parallels, split into the text it names and the part of it
@@ -14,9 +18,11 @@ import { rangeUidToAcronym, uidIsInRange } from './rangeSuttas.js'
  * "dn1#1.9.1" -> { base: "dn1", start: "1.9.1", end: "1.9.1" }
  * "dn16#3.1.1-#4.23.1" -> { base: "dn16", start: "3.1.1", end: "4.23.1" }
  * "snp1.1#vns6" -> { base: "snp1.1", start: "vns6", end: "vns6" }, a reference
+ * "~cnd2#74.1" -> { base: "cnd2", start: "74.1", end: "74.1" }
  */
 export function parseParallelKey(key) {
-  const [base, ...rest] = key.split('#')
+  // A "~" marks a resembling parallel in sc-data
+  const [base, ...rest] = key.replace(/^~/, '').split('#')
   if (!rest.length) return { base }
   // References can have hyphens of their own (pts-vp-pli1)
   const part = rest.join('#')
@@ -30,7 +36,32 @@ export function parseParallelKey(key) {
 
 // Not `rangeUidToAcronym` for the text itself, which would make its "Snp" "SNP"
 function acronymOf(base, entry) {
-  return base === entry.uid ? entry.acronym : rangeUidToAcronym(base)
+  if (base === entry.uid) return entry.acronym
+  // A part of the text, ie pli-tv-bi-vb-pc92 of "Bi Pc 91–93", by the text's own acronym
+  const own = parseUidNumbers(entry.uid)
+  const part = parseUidNumbers(base)
+  const number = /\d+(?:–\d+)?$/
+  if (own && part && own.prefix === part.prefix && number.test(entry.acronym)) {
+    const { start, end } = part
+    return entry.acronym.replace(
+      number,
+      start === end ? start : `${start}–${end}`
+    )
+  }
+  return rangeUidToAcronym(base)
+}
+
+/**
+ * The text a key's passage links to: its own if it has a page, as a range's suttas do, else
+ * the one the key is from, as .net links them all
+ * @param {string} key
+ * @param {Object} entry - The text the key is from
+ */
+export function parallelPath(key, entry) {
+  const { base } = parseParallelKey(key)
+  return base === entry.uid || entry.scx_range_sutta_range_uids?.includes(base)
+    ? base
+    : entry.uid
 }
 
 /** A passage id without its edition's letters, ie "wal1.1" -> "1.1", "t0831a07" -> "0831a07" */
@@ -51,14 +82,13 @@ export function parallelKeyLabel(key, entry) {
 
 /** Where a key or parallel's passage starts on its page, ie "dn16#3.1.1-#4.23.1" -> "#3.1.1" */
 export function parallelAnchor(key) {
-  const { start } = parseParallelKey(key.replace(/^~/, ''))
+  const { start } = parseParallelKey(key)
   return start ? `#${start}` : ''
 }
 
 /** The part of the text a key or parallel names, ie "sf245#wal1.1" -> ":1.1", or "" for all of it */
 export function passageLabel(key) {
-  // A "~" marks a resembling parallel in sc-data
-  const { start, end } = parseParallelKey(key.replace(/^~/, ''))
+  const { start, end } = parseParallelKey(key)
   if (!start) return ''
   const [from, to] = [passageRef(start), passageRef(end)]
   return `:${from === to ? from : `${from}–${to}`}`

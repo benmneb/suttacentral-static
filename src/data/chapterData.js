@@ -120,6 +120,7 @@ function flatten(nodes, parentPath = '') {
       })
       results.push({
         ...shortcutEntry,
+        scx_title: menuTitle(shortcutEntry),
         scx_breadcrumb_trail: trailOf(shortcutEntry),
         scx_json_ld: generateChapterJsonLd(shortcutEntry),
         scx_og_tags: generateChapterOGTags(shortcutEntry),
@@ -135,6 +136,7 @@ function flatten(nodes, parentPath = '') {
       })
       results.push({
         ...entry,
+        scx_title: menuTitle(entry),
         scx_breadcrumb_trail: trailOf(entry),
         scx_json_ld: generateChapterJsonLd(entry),
         scx_og_tags: generateChapterOGTags(entry),

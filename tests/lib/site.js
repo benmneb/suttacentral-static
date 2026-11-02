@@ -8,9 +8,12 @@
  * The site is `_site`, or wherever `SITE_DIR` points.
  */
 
+import Fetch from '@11ty/eleventy-fetch'
+import assert from 'node:assert/strict'
 import fs from 'fs/promises'
 import path from 'path'
 import siteMetaData from '../../src/data/_siteMetaData.js'
+import { fetchOptions } from '../../src/helpers/scApi.js'
 import { sitePageRoots } from '../../src/helpers/sitePages.js'
 
 export const SITE_DIR = path.resolve(process.env.SITE_DIR || '_site')
@@ -493,6 +496,20 @@ export function scanSite() {
     return { files, pages, linkSources, jsonLdShapes, ogImages }
   })()
   return scan
+}
+
+/**
+ * The response the build used, from `.cache`. Never fetched, as the pages were built from
+ * what's cached, and anything else would be comparing them with different data
+ * @param {string} url
+ */
+export async function cachedApi(url) {
+  const cache = Fetch.Fetch(url, fetchOptions(url, '*'))
+  assert.ok(
+    cache.isCacheValid('*'),
+    `${url} isn't in .cache, was the site built here?`
+  )
+  return cache.getCachedValue()
 }
 
 /**

@@ -72,14 +72,16 @@
       {% for version in root_versions %}
         <li>
           <span>{{ version.lang_name | languageName }}—</span>
+          {% comment %} Some roots have no author, ie sf276, so their page is at /null, as on .net {% endcomment %}
           <!-- prettier-ignore -->
           <a
-            href="/{% if entry.scx_range_sutta and version.segmented != true %}{{ entry.scx_range_sutta_uid }}{% else %}{{ entry.uid }}{% endif %}/{{ version.lang }}/{{ version.author_uid }}"
+            href="/{% if entry.scx_range_sutta and version.segmented != true %}{{ entry.scx_range_sutta_uid }}{% else %}{{ entry.uid }}{% endif %}/{{ version.lang }}/{{ version.author_uid | default: "null" }}"
             hreflang="{{ version.lang | langTag }}"
           >
             {{-
               version.author
               | default: version.author_uid
+              | default: entry.acronym
               | replace: "&nbsp;", " "
               | replace: "&#160;", " "
               | replace: "\u00A0", " "

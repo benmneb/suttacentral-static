@@ -37,26 +37,6 @@ export function parseUidNumbers(uid) {
   }
 }
 
-/**
- * Does `uid` span more than one text? Either as a range of numbers ("sn36.30-31", "an1.1-10"),
- * or as two uids joined ("dk1-dk14", "mil3.1.7-mil3.1.8") - though not a uid that just has
- * hyphens in it ("pli-tv-bu-vb-pj1")
- */
-export function isMultiTextSpan(uid) {
-  const span = parseUidNumbers(uid)
-  if (span && span.start !== span.end) return true
-  const str = String(uid ?? '')
-  for (let i = str.indexOf('-'); i !== -1; i = str.indexOf('-', i + 1)) {
-    const start = str.slice(0, i)
-    const end = str.slice(i + 1)
-    const stem = start.replace(/[\d.]+$/, '') // ie "mil3.1.7" -> "mil"
-    if (stem && stem !== start && end !== start && end.startsWith(stem)) {
-      if (/^[\d.]+$/.test(end.slice(stem.length))) return true
-    }
-  }
-  return false
-}
-
 /** Is `uid` covered by `rangeUid`? eg "sn45.52" is in "sn45.50-54" */
 export function uidIsInRange(uid, rangeUid) {
   const range = parseUidNumbers(rangeUid)

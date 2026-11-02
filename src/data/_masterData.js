@@ -155,7 +155,13 @@ async function fetchDataTree(uid, depth = 0) {
     return null
   }
 
-  let node = menuData[0]
+  // /menu gives some nodes an empty child with a null uid, ie g2dhp
+  let node = {
+    ...menuData[0],
+    ...(menuData[0].children && {
+      children: menuData[0].children.filter(child => child?.uid),
+    }),
+  }
 
   async function getTextData() {
     let suttaplexData = null

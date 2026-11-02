@@ -11,7 +11,9 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, it } from 'node:test'
 import siteMetaData from '../src/data/_siteMetaData.js'
+import { menuUrl } from '../src/helpers/scApi.js'
 import {
+  cachedApi,
   listSome,
   pageRoute,
   scanSite,
@@ -26,6 +28,9 @@ const MIN_TEXT_LENGTH = 20
 // A text's title is "AN 1.1: Rūpādivagga—Bhikkhu Sujato", or "AN 1.1—Bhikkhu Sujato" for a sutta of a range
 const TEXT_TITLE = /^[^:—]*\S(: \S.*)?—\S.*$/
 
+// The API gives these roots no author, so their URL ends in /null, as on .net, and their title has none
+const AUTHORLESS_ROOTS = /\/(sf36|sf276)\/san\/null\b/
+
 function failures(pages, isBad, describeBad = page => page.url) {
   return [...pages.values()].filter(isBad).map(describeBad)
 }
@@ -34,8 +39,19 @@ const { pages } = await scanSite()
 
 describe('Every page', () => {
   it('has a title', () => {
-    const bad = failures(pages, page => !page.title)
-    assert.equal(bad.length, 0, `Pages without a <title>:\n${listSome(bad)}`)
+    const bad = failures(
+      pages,
+      page => {
+        const own = page.title.replace(/\s*@ [^@]*$/, '')
+        return !own || /^—|—$/.test(own)
+      },
+      page => `${page.url}: "${page.title}"`
+    )
+    assert.equal(
+      bad.length,
+      0,
+      `Pages with no title of their own:\n${listSome(bad)}`
+    )
   })
 
   // Everything has to work offline, so a remote image is one that couldn't be downloaded at build time
@@ -49,10 +65,12 @@ describe('Every page', () => {
   })
 
   it('has no links built from missing data', () => {
+    const brokenLinks = page =>
+      page.brokenLinks.filter(link => !AUTHORLESS_ROOTS.test(link))
     const bad = failures(
       pages,
-      page => page.brokenLinks.length > 0,
-      page => `${page.url}: ${page.brokenLinks.slice(0, 3).join(', ')}`
+      page => brokenLinks(page).length > 0,
+      page => `${page.url}: ${brokenLinks(page).slice(0, 3).join(', ')}`
     )
     assert.equal(
       bad.length,
@@ -155,7 +173,7 @@ describe('Every text page', () => {
   it('has an acronym, title and author in its <title>', () => {
     const bad = failures(
       texts,
-      page => !TEXT_TITLE.test(page.title),
+      page => !TEXT_TITLE.test(page.title) && !AUTHORLESS_ROOTS.test(page.url),
       page => `${page.url}: "${page.title}"`
     )
     assert.equal(
@@ -191,8 +209,31 @@ describe('Every navigation page', () => {
     )
   )
 
-  it('links to something', () => {
-    const bad = failures(navs, page => page.mainLinks === 0)
+  // The texts with a page, ie mn1 for /mn1/en/sujato/
+  const builtTexts = new Set(
+    [...pages.values()]
+      .filter(page => page.kind === 'text')
+      .map(page => page.url.split('/')[1])
+  )
+
+  /** Does `uid`, or anything under it in the menu, have a text page? */
+  async function hasBuiltText(uid) {
+    if (builtTexts.has(uid)) return true
+    // Not every text's own /menu is fetched, as its parent's lists it
+    const [node] = await cachedApi(menuUrl(uid)).catch(() => [])
+    for (const child of node?.children ?? []) {
+      if (child.uid && (await hasBuiltText(child.uid))) return true
+    }
+    return false
+  }
+
+  it('links to something, unless none of its texts are built', async () => {
+    const bad = []
+    for (const page of navs.values()) {
+      if (page.mainLinks > 0) continue
+      const uid = page.url.split('/').filter(Boolean).at(-1)
+      if (await hasBuiltText(uid)) bad.push(page.url)
+    }
     assert.equal(
       bad.length,
       0,

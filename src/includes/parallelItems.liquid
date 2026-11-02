@@ -33,7 +33,7 @@
     {% assign href = "" %}
     {% if built_trans %}
       {% capture href -%}
-        /{{ parallel.to.uid }}/{{ built_trans.lang }}/{{ built_trans.author_uid }}{{ anchor }}
+        /{{ parallel.to.uid }}/{{ built_trans.lang }}/{{ built_trans.author_uid | default: "null" }}{{ anchor }}
       {%- endcapture %}
     {% endif %}
     {% assign titled = false %}

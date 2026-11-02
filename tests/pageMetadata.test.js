@@ -7,6 +7,7 @@ import { describe, it } from 'node:test'
 import {
   breadcrumbList,
   jsonLd,
+  menuTitle,
   ogTags,
   person,
   withTranslatedTitle,
@@ -62,6 +63,32 @@ describe('Page metadata', () => {
     )
     assert.equal(withTranslatedTitle('Dhammapada', 'Dhammapada'), 'Dhammapada')
     assert.equal(withTranslatedTitle('Dhammapada', undefined), 'Dhammapada')
+    assert.equal(
+      withTranslatedTitle('', 'Untitled Discourse on Ten Qualities '),
+      'Untitled Discourse on Ten Qualities'
+    )
+  })
+
+  it('titles a text or collection by its acronym when it has no names', () => {
+    assert.equal(
+      menuTitle({
+        root_name: 'Paṭhamapaṇṇāsaka',
+        translated_name: 'The First Fifty ',
+      }),
+      'Paṭhamapaṇṇāsaka—The First Fifty'
+    )
+    assert.equal(
+      menuTitle({ original_title: '', translated_title: 'Untitled Discourse' }),
+      'Untitled Discourse'
+    )
+    assert.equal(
+      menuTitle({
+        original_title: '',
+        translated_title: '',
+        acronym: 'EA 34.1',
+      }),
+      'EA 34.1'
+    )
   })
 
   it('links a translator to their Wikipedia article only if they have one', () => {

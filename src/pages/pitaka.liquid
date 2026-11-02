@@ -67,7 +67,8 @@ eleventyComputed:
           {% if child.uid | endswith: '-pm' %}
             {% capture pitaka_url %}false{% endcapture %}
           {% endif %}
-          {% capture href %}{% if pitaka_url == 'false' %}/{{ child.uid }}/{% else %}/pitaka/{{ entry.scx_path }}/{{ child.uid }}/{% endif %}{% endcapture %}
+          {% assign inPatimokkha = entry.uid | endswith: "-pm" %}
+          {% capture href %}{% if inPatimokkha %}/{{ entry.uid }}#{{ child.uid }}{% elsif pitaka_url == 'false' %}/{{ child.uid }}/{% else %}/pitaka/{{ entry.scx_path }}/{{ child.uid }}/{% endif %}{% endcapture %}
           <hgroup>
             <h2>{% rootTitle child, href %}</h2>
             {% comment %} Like .net's card header, ie "SN 1–11 ∙ Pāli → 657 English" {% endcomment %}

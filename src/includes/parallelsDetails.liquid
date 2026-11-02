@@ -23,10 +23,10 @@
             | where: "is_root", true
             | first
           %}
-          {% assign base_path = segment[0] | parallelPath: entry.uid %}
+          {% assign base_path = segment[0] | parallelPath: entry %}
           {% comment %} No link without a root text, ie the Pātimokkha's rules, as on .net {% endcomment %}
           {% if root_trans %}
-            <a href="/{{ base_path }}/{{ root_trans.lang }}/{{ root_trans.author_uid }}{{ segment[0] | parallelAnchor }}">
+            <a href="/{{ base_path }}/{{ root_trans.lang }}/{{ root_trans.author_uid | default: "null" }}{{ segment[0] | parallelAnchor }}">
               {{- segment[0] | parallelLabel: entry -}}
             </a>
           {% else %}

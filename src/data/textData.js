@@ -38,20 +38,19 @@ let tree = []
 
 const trailOf = entry => breadcrumbTrail(tree, entry.scx_breadcrumb)
 
-/** The original title, and the translated one too for a translation */
+/** The original title, and the translated one too for a translation. A root with no title of its own has the translated one, as its heading does */
 function titlesOf(entry) {
+  const translated = entry.translated_title || entry.translated_name
   return entry.is_root
-    ? textFromHtml(entry.original_title)
-    : withTranslatedTitle(
-        entry.original_title,
-        entry.translated_title || entry.translated_name
-      )
+    ? textFromHtml(entry.original_title || translated)
+    : withTranslatedTitle(entry.original_title, translated)
 }
 
 /** The page's title, ie "MN 1: Mūlapariyāyasutta (The Root of All Things)—Bhikkhu Sujato", or "AN 1.1—Bhikkhu Sujato" for a sutta of a range */
 function titleOf(entry) {
-  const name = entry.scx_range_sutta_individual ? '' : `: ${titlesOf(entry)}`
-  return `${textFromHtml(entry.acronym)}${name}—${textFromHtml(entry.author)}`
+  const titles = !entry.scx_range_sutta_individual && titlesOf(entry)
+  const author = textFromHtml(entry.author)
+  return `${textFromHtml(entry.acronym)}${titles ? `: ${titles}` : ''}${author ? `—${author}` : ''}`
 }
 
 /** The text's blurb, or else a sentence saying which text it is and whose edition or translation */
@@ -62,7 +61,7 @@ function descriptionOf(entry) {
   const acronym = textFromHtml(entry.acronym)
   const name = entry.scx_range_sutta_individual
     ? `${acronym} from ${titles}`
-    : `${acronym} ${titles}`
+    : `${acronym} ${titles}`.trim()
   const author = textFromHtml(entry.author)
   const language = entry.lang_name || entry.lang
   if (entry.is_root) {

@@ -42,18 +42,21 @@ export function excerpt(text, length = 160) {
   return `${shortened.slice(0, boundary > 0 ? boundary : shortened.length)}…`
 }
 
-/** "Mūlapariyāyasutta (The Root of All Things)", or just the original where there's no other */
+/** "Mūlapariyāyasutta (The Root of All Things)", or just the one where there's no other */
 export function withTranslatedTitle(original, translated) {
   const name = textFromHtml(original)
   const translation = textFromHtml(translated)
+  if (!name) return translation
   return translation && translation !== name ? `${name} (${translation})` : name
 }
 
-/** A text or collection's title as its page has it, ie "Mūlapariyāyavagga—The Root of All Things" */
+/** A text or collection's title as its page has it, ie "Mūlapariyāyavagga—The Root of All Things", or its acronym if untitled */
 export function menuTitle(node) {
   const name = textFromHtml(node.original_title || node.root_name)
   const translated = textFromHtml(node.translated_title || node.translated_name)
-  return `${name}${translated ? `—${translated}` : ''}`
+  return (
+    [name, translated].filter(Boolean).join('—') || textFromHtml(node.acronym)
+  )
 }
 
 /** The site, as every page's `isPartOf` */

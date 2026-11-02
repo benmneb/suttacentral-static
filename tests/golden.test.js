@@ -7,32 +7,24 @@
  * data stop matching.
  */
 
-import Fetch from '@11ty/eleventy-fetch'
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
+import siteMetaData from '../src/data/_siteMetaData.js'
+import { withTranslatedTitle } from '../src/helpers/pageMetadata.js'
 import {
-  fetchOptions,
   leafUrl,
   menuUrl,
   parallelsUrl,
   segmentedTranslationUrl,
   suttasUrl,
 } from '../src/helpers/scApi.js'
-import { decodeEntities, readPage, scanSite, textOf } from './lib/site.js'
-
-/**
- * The response the build used, from `.cache`. Never fetched, as the page was built from
- * what's cached, and anything else would be comparing it with different data
- * @param {string} url
- */
-async function api(url) {
-  const cache = Fetch.Fetch(url, fetchOptions(url, '*'))
-  assert.ok(
-    cache.isCacheValid('*'),
-    `${url} isn't in .cache, was the site built here?`
-  )
-  return cache.getCachedValue()
-}
+import {
+  cachedApi as api,
+  decodeEntities,
+  readPage,
+  scanSite,
+  textOf,
+} from './lib/site.js'
 
 // The same translations `_masterData.js` builds pages for
 const builtTranslations = suttaplex =>
@@ -46,8 +38,11 @@ const titleOf = html =>
 const segmentIds = html =>
   [...html.matchAll(/<span id="([^"]+)" class="segment"[ >]/g)].map(m => m[1])
 
+// In the parallels popover, as a segmented page has each in the margin's too
 const parallelCount = html =>
-  html.match(/class="parallel-list-item-(full|mention)"/g)?.length ?? 0
+  html
+    .match(/<article id="parallels" popover>[\s\S]*?<\/article>/)?.[0]
+    .match(/class="parallel-list-item-/g)?.length ?? 0
 
 /**
  * Asserts the parts every text page shares: its title, a link to every built
@@ -64,10 +59,16 @@ async function assertTextPage({ uid, lang, author, html, rangeSutta }) {
     `/suttaplex/${uid} has no ${lang}/${author} translation`
   )
 
+  const name = translation.is_root
+    ? suttaplex.original_title
+    : withTranslatedTitle(suttaplex.original_title, suttaplex.translated_title)
   const expectedTitle = rangeSutta
     ? `${rangeSutta.acronym}—${translation.author}`
-    : `${suttaplex.acronym}: ${suttaplex.original_title}—${translation.author}`
-  assert.equal(titleOf(html), normalise(expectedTitle))
+    : `${suttaplex.acronym}: ${name}—${translation.author}`
+  assert.equal(
+    titleOf(html),
+    normalise(`${expectedTitle} @ ${siteMetaData().title}`)
+  )
 
   const linkUid = rangeSutta?.range ?? uid
   for (const t of builtTranslations(suttaplex)) {
