@@ -1144,6 +1144,7 @@ main {
       display: none;
       border: 1px solid var(--bg-alt-2);
       border-radius: var(--rounding);
+      box-shadow: none;
       padding: 0.2rem;
       text-decoration: none;
       color: var(--fg-alt-4);
