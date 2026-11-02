@@ -401,8 +401,9 @@ describe('Site page strings', () => {
   })
 })
 
-describe('Every site page', async () => {
-  const { pages } = await scanSite()
+const { pages } = await scanSite()
+
+describe('Every site page', () => {
   const sitePages = [...pages.values()].filter(page => page.kind === 'site')
 
   it('in the menu is built', () => {

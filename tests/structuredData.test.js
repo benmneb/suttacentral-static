@@ -132,9 +132,10 @@ function shapeProblems(shape, { classes, properties, ancestors, isDataType }) {
   return problems.filter(Boolean)
 }
 
-describe('Structured data checks', async () => {
-  const schema = await schemaOrg()
+const schema = await schemaOrg()
+const { pages, jsonLdShapes: shapes, ogImages } = await scanSite()
 
+describe('Structured data checks', () => {
   it('lists every property of every typed node', () => {
     const shapes = jsonLdShapes({
       '@type': 'WebPage',
@@ -205,11 +206,7 @@ describe('Structured data checks', async () => {
   })
 })
 
-describe('Every page’s structured data', async () => {
-  const [{ pages, jsonLdShapes: shapes, ogImages }, schema] = await Promise.all(
-    [scanSite(), schemaOrg()]
-  )
-
+describe('Every page’s structured data', () => {
   it('uses schema.org types, with properties where they belong', () => {
     const bad = [
       ...new Set(

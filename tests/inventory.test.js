@@ -9,7 +9,7 @@
 import assert from 'node:assert/strict'
 import fs from 'fs/promises'
 import path from 'path'
-import { describe, it } from 'node:test'
+import { before, describe, it } from 'node:test'
 import {
   SKIP_BASELINE,
   allSitemapPaths,
@@ -35,11 +35,11 @@ const MIN_TEXTS_PER_PITAKA = { sutta: 25_000, vinaya: 1_000, abhidhamma: 200 }
 
 const percent = share => `${(share * 100).toFixed(1)}%`
 
-describe('Page inventory', async () => {
-  const { pages } = await scanSite()
-  // Pages are keyed as they're built, ie `/mn1/en/sujato/`, while a sitemap lists their routes
-  const routes = new Set([...pages.keys()].map(pageRoute))
+const { pages } = await scanSite()
+// Pages are keyed as they're built, ie `/mn1/en/sujato/`, while a sitemap lists their routes
+const routes = new Set([...pages.keys()].map(pageRoute))
 
+describe('Page inventory', () => {
   it('has a sitemap listing every built page', async () => {
     const read = file => fs.readFile(path.join(SITE_DIR, file), 'utf8')
     const xml = await read('sitemap.xml')
@@ -79,9 +79,14 @@ describe('Page inventory', async () => {
     })
   }
 
-  describe('compared with production', { skip: SKIP_BASELINE }, async () => {
-    const production = SKIP_BASELINE ? [] : await productionPages()
-    const missing = production.filter(route => !routes.has(route))
+  describe('compared with production', { skip: SKIP_BASELINE }, () => {
+    let production = []
+    let missing = []
+
+    before(async () => {
+      production = await productionPages()
+      missing = production.filter(route => !routes.has(route))
+    })
 
     it(`is missing at most ${percent(MAX_MISSING_SHARE)} of its pages`, () => {
       const share = missing.length / production.length

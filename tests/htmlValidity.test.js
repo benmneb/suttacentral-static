@@ -71,7 +71,7 @@ async function validate(java, files) {
   }
 }
 
-describe('Every page’s HTML', async () => {
+describe('Every page’s HTML', () => {
   it('passes the Nu validator', { timeout: 4 * 60 * 60 * 1000 }, async () => {
     const java = await findJava().catch(error => {
       throw new Error(

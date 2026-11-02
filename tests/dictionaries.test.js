@@ -98,18 +98,18 @@ const MAX_SHARD_BYTES = 200 * 1024
 // As lookup.js finds a Pāli word
 const WORD = /[\p{L}\p{M}\u00ad\u2027]+(?:[’'”][\p{L}\p{M}\u00ad\u2027]+)*/gu
 
-describe('Dictionaries', async () => {
-  const dictionaries = Object.fromEntries(
-    await Promise.all(
-      Object.keys(DICTIONARY_FILES).map(async name => [
-        name,
-        await fetchDictionary(name)
-          .then(result => result.data)
-          .catch(() => null),
-      ])
-    )
+const dictionaries = Object.fromEntries(
+  await Promise.all(
+    Object.keys(DICTIONARY_FILES).map(async name => [
+      name,
+      await fetchDictionary(name)
+        .then(result => result.data)
+        .catch(() => null),
+    ])
   )
+)
 
+describe('Dictionaries', () => {
   for (const [name, min] of Object.entries(MIN_WORDS)) {
     it(`${name} has at least ${min.toLocaleString('en-US')} words`, () => {
       assert.ok(dictionaries[name], `Couldn't fetch ${DICTIONARY_FILES[name]}`)
@@ -333,20 +333,21 @@ describe('The /define pages', () => {
   })
 })
 
-describe('Word lookup', async () => {
-  const dir = path.join(SITE_DIR, 'dictionaries')
-  const readJson = async file =>
-    JSON.parse(await fs.readFile(path.join(dir, file), 'utf8'))
-  const context = { window: {} }
-  vm.runInNewContext(
-    await fs.readFile(
-      new URL('../src/scripts/dictionary.js', import.meta.url),
-      'utf8'
-    ),
-    context
-  )
-  const client = context.window.scxDictionary
-  const pliIndex = await readJson('pli-en/index.json')
+const dir = path.join(SITE_DIR, 'dictionaries')
+const readJson = async file =>
+  JSON.parse(await fs.readFile(path.join(dir, file), 'utf8'))
+const context = { window: {} }
+vm.runInNewContext(
+  await fs.readFile(
+    new URL('../src/scripts/dictionary.js', import.meta.url),
+    'utf8'
+  ),
+  context
+)
+const client = context.window.scxDictionary
+const pliIndex = await readJson('pli-en/index.json')
+
+describe('Word lookup', () => {
   const shards = new Map()
   const answerOf = async word => {
     const key = cleanPaliWord(word)

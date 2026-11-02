@@ -27,10 +27,10 @@ const pageCount = entry =>
     0
   )
 
-describe('Search index', async () => {
-  const { pages } = await scanSite()
-  const indexed = pageCount(await readEntry('pagefind'))
+const { pages } = await scanSite()
+const indexed = pageCount(await readEntry('pagefind'))
 
+describe('Search index', () => {
   it('has every searchable page', () => {
     const searchable = [...pages.values()].filter(
       page => page.searchable

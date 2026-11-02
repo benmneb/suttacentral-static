@@ -14,9 +14,9 @@ import { listSome, resolves, scanSite } from './lib/site.js'
 // Dead link targets in the last full build, plus some headroom
 const MAX_DEAD_LINKS = 0
 
-describe('Internal links', async () => {
-  const { files, linkSources } = await scanSite()
+const { files, linkSources } = await scanSite()
 
+describe('Internal links', () => {
   it(`have at most ${MAX_DEAD_LINKS} dead targets`, () => {
     const dead = [...linkSources]
       .filter(([target]) => !resolves(files, target))

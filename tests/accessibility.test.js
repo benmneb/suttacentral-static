@@ -189,9 +189,10 @@ async function violationsOn(page, origin, url, pending) {
   return found
 }
 
-describe('Accessibility', async () => {
-  const { pages } = await scanSite()
-  const urls = samplePages(new Set(pages.keys()))
+const { pages } = await scanSite()
+const urls = samplePages(new Set(pages.keys()))
+
+describe('Accessibility', () => {
   let server
   let browser
   let profile

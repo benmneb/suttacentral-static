@@ -131,9 +131,9 @@ async function assertLegacyText(html, url) {
   )
 }
 
-describe('Golden pages', async () => {
-  const { pages } = await scanSite()
+const { pages } = await scanSite()
 
+describe('Golden pages', () => {
   const page = async url => {
     assert.ok(pages.has(url), `${url} wasn't built`)
     return readPage(url)

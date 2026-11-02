@@ -101,15 +101,16 @@ describe('ZIM links', () => {
   })
 })
 
-describe('ZIM pages', async () => {
-  const layout = await minifyHtmlCode(
-    fs
-      .readFileSync(
-        new URL('../src/layouts/base.liquid', import.meta.url),
-        'utf8'
-      )
-      .replace(/{%[\s\S]*?%}|{{[\s\S]*?}}/g, '')
-  )
+const layout = await minifyHtmlCode(
+  fs
+    .readFileSync(
+      new URL('../src/layouts/base.liquid', import.meta.url),
+      'utf8'
+    )
+    .replace(/{%[\s\S]*?%}|{{[\s\S]*?}}/g, '')
+)
+
+describe('ZIM pages', () => {
   const page = layout.replace(
     '<body></body>',
     '<body><a href="/mn1/pli/ms">MN</a><img src="/images/a.png" alt=""><a href="https://suttacentral.net/mn1">.net</a><a href="#top">Top</a><a href="//example.com">x</a></body>'

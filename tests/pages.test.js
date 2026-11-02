@@ -30,9 +30,9 @@ function failures(pages, isBad, describeBad = page => page.url) {
   return [...pages.values()].filter(isBad).map(describeBad)
 }
 
-describe('Every page', async () => {
-  const { pages } = await scanSite()
+const { pages } = await scanSite()
 
+describe('Every page', () => {
   it('has a title', () => {
     const bad = failures(pages, page => !page.title)
     assert.equal(bad.length, 0, `Pages without a <title>:\n${listSome(bad)}`)
@@ -106,8 +106,7 @@ describe('Every page', async () => {
   })
 })
 
-describe('Every page’s metadata', async () => {
-  const { pages } = await scanSite()
+describe('Every page’s metadata', () => {
   const { origin, description } = siteMetaData()
   const listed = new Map(
     [...pages].filter(([url]) => !UNLISTED_PAGES.includes(url))
@@ -150,8 +149,7 @@ describe('Every page’s metadata', async () => {
   })
 })
 
-describe('Every text page', async () => {
-  const { pages } = await scanSite()
+describe('Every text page', () => {
   const texts = new Map([...pages].filter(([, page]) => page.kind === 'text'))
 
   it('has an acronym, title and author in its <title>', () => {
@@ -186,8 +184,7 @@ describe('Every text page', async () => {
   })
 })
 
-describe('Every navigation page', async () => {
-  const { pages } = await scanSite()
+describe('Every navigation page', () => {
   const navs = new Map(
     [...pages].filter(
       ([, page]) => page.kind === 'nav' || page.kind === 'pitaka'
