@@ -88,31 +88,43 @@ export function closeHeadingGaps(html) {
   })
 }
 
+const SECTIONS_AND_HEADINGS =
+  /<(\/?)(section|article)\b|<(h[1-6])\b[^>]*>((?:(?!<\/h[1-6]>)[\s\S])*)<\/\3>/g
+
 /**
- * A page's headings with no text unwrapped, and a section one of them opens made a div. On a root text's page
+ * A page's headings with no text unwrapped, and a section they leave with none made a div. On a root text's page
  * these are headings only translations fill, ie /ma1/lzh/sct, /pli-tv-bu-vb-pj1/pli/ms and /pli-tv-bi-vb-np10/pli/ms
  */
 export function dropEmptyHeadings(html) {
-  const unsectioned = html.replace(
-    /<section\b([^>]*)>(\s*<(h[1-6])\b[^>]*>((?:(?!<\/h[1-6]>)[\s\S])*)<\/\3>)/g,
-    (match, attrs, heading) =>
-      isEmptyHeading(heading)
-        ? `<div${attrs} data-unsectioned>${heading}`
-        : match
-  )
   const open = []
-  return unsectioned.replace(
-    /<div([^>]*) data-unsectioned>|<section\b|<\/section>|<(h[1-6])\b[^>]*>((?:(?!<\/h[1-6]>)[\s\S])*)<\/\2>/g,
-    (match, divAttrs, tag, inner) => {
-      if (divAttrs !== undefined) {
-        open.push('div')
-        return `<div${divAttrs}>`
+  const unsectioned = new Set()
+  let tag = 0
+  for (const [match, close, name, heading] of html.matchAll(
+    SECTIONS_AND_HEADINGS
+  )) {
+    const n = tag++
+    // As the validator counts them, a heading in a nested section isn't the outer one's
+    if (heading) {
+      const section = open.at(-1)
+      if (!section) continue
+      if (isEmptyHeading(match)) section.emptied = true
+      else section.titled = true
+    } else if (!close) {
+      open.push({ name, tag: n, emptied: false, titled: false })
+    } else if (open.at(-1)?.name === name) {
+      const section = open.pop()
+      if (name === 'section' && section.emptied && !section.titled) {
+        unsectioned.add(section.tag).add(n)
       }
-      if (match === '<section') open.push('section')
-      else if (match === '</section>') {
-        return open.pop() === 'div' ? '</div>' : match
-      } else if (tag && isEmptyHeading(match)) return inner
-      return match
+    }
+  }
+  tag = 0
+  return html.replace(
+    SECTIONS_AND_HEADINGS,
+    (match, close, name, heading, inner) => {
+      const n = tag++
+      if (heading) return isEmptyHeading(match) ? inner : match
+      return unsectioned.has(n) ? `<${close}div` : match
     }
   )
 }

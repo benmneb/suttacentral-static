@@ -68,13 +68,14 @@ function tidyReferences(bilaraData) {
   }
 }
 
-const ARTICLE_TAGS = /<(\/?)(article|h[1-6])\b/g
+const SECTIONING_TAGS = /<(\/?)(article|section|h[1-6])\b/g
 
 /**
- * A range document's untitled texts as divs, not articles, which need a heading, ie dhp4 in dhp1-20,
- * under dhp3's title, and every text of an1.378-393. Closes the article Taishō texts leave open
+ * A text's articles and sections with no heading of their own as divs, ie dhp4 in dhp1-20, under dhp3's title,
+ * every text of an1.378-393 and the Vinaya's marked passages, ie <section class='kamma'>. Closes the article
+ * Taishō texts leave open
  */
-function tidyArticles(bilaraData) {
+function tidySections(bilaraData) {
   const html = bilaraData.html_text
   const keys = bilaraData.keys_order
   if (!html || !keys) return
@@ -82,29 +83,30 @@ function tidyArticles(bilaraData) {
   const untitled = new Set()
   let tag = 0
   for (const key of keys) {
-    for (const [, close, name] of (html[key] ?? '').matchAll(ARTICLE_TAGS)) {
+    for (const [, close, name] of (html[key] ?? '').matchAll(SECTIONING_TAGS)) {
       const n = tag++
-      if (name !== 'article') {
-        if (!close) for (const article of open) article.titled = true
+      // As the validator counts them, a heading in a nested section isn't the outer one's
+      if (name.startsWith('h')) {
+        if (!close && open.length) open.at(-1).titled = true
       } else if (!close) {
-        open.push({ tag: n, titled: false })
-      } else {
-        const article = open.pop()
-        if (article && !article.titled) untitled.add(article.tag).add(n)
+        open.push({ name, tag: n, titled: false })
+      } else if (open.at(-1)?.name === name) {
+        const element = open.pop()
+        if (!element.titled) untitled.add(element.tag).add(n)
       }
     }
   }
   const last = keys.at(-1)
-  for (const article of open.reverse()) {
-    if (!article.titled) untitled.add(article.tag).add(tag)
+  for (const element of open.reverse()) {
+    if (!element.titled) untitled.add(element.tag).add(tag)
     tag++
-    html[last] = `${html[last] ?? ''}</article>`
+    html[last] = `${html[last] ?? ''}</${element.name}>`
   }
   if (!untitled.size) return
   tag = 0
   for (const key of keys) {
     if (!html[key]) continue
-    html[key] = html[key].replace(ARTICLE_TAGS, (match, close) =>
+    html[key] = html[key].replace(SECTIONING_TAGS, (match, close) =>
       untitled.has(tag++) ? `<${close}div` : match
     )
   }
@@ -258,7 +260,7 @@ async function fetchDataTree(uid, depth = 0) {
             for (const key in texts) texts[key] = bilaraMarkup(texts[key])
           }
           tidyReferences(bilaraData)
-          tidyArticles(bilaraData)
+          tidySections(bilaraData)
         } catch (e) {
           fetchErrors++
           spinner

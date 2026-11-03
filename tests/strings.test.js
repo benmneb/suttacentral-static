@@ -146,6 +146,15 @@ describe('Empty headings', () => {
     )
   })
 
+  it('makes a section a div wherever its only heading was, but not one with another', () => {
+    assert.equal(
+      dropEmptyHeadings(
+        `<article><h1>A</h1><section class="cakka"><p>B</p><h2>${segment('2.0')}</h2><p>C</p></section><section><h2>${segment('3.0')}</h2><h3>D</h3></section></article>`
+      ),
+      `<article><h1>A</h1><div class="cakka"><p>B</p>${segment('2.0')}<p>C</p></div><section>${segment('3.0')}<h3>D</h3></section></article>`
+    )
+  })
+
   it('keeps a heading with text, even hidden, or an image', () => {
     const html = [
       `<h2>${segment('1.0', '<span class="text">A</span>')}</h2>`,
