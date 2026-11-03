@@ -1212,7 +1212,7 @@ main {
 
 /* Only real links: legacy texts use bare <a id> anchors (eg in headings)
    that shouldn't look clickable. :where() keeps the specificity of `a`. */
-a:where([href]) {
+a:where([href]):not(.button) {
   color: var(--primary-color);
   box-decoration-break: clone;
 
