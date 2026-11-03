@@ -21,6 +21,7 @@ import {
   entriesOf,
   fetchDictionary,
 } from '../src/helpers/dictionaries.js'
+import { mendNcped, tidyDictionaryHtml } from '../src/helpers/defineWords.js'
 import { cleanPaliWord } from '../src/helpers/lookupAnswers.js'
 import { SC_ORIGIN } from '../src/helpers/scApi.js'
 import { mainOf, readPage, SITE_DIR, textOf } from './lib/site.js'
@@ -137,6 +138,35 @@ describe('Dictionaries', () => {
       0,
       `Entries with no word or definition:\n${bad.join('\n')}`
     )
+  })
+})
+
+describe('Dictionary markup', () => {
+  it('names each term once in a dl', () => {
+    assert.equal(
+      tidyDictionaryHtml(
+        "<dl id='a' class='b'><dt>A</dt><dt>A</dt><dt>C</dt><dd>1</dd><dt>A<sup>2</sup></dt><dd>2</dd><dt>C</dt><dt>D</dt><dd>3</dd></dl>"
+      ),
+      "<dl id='a' class='b'><dt>A</dt><dt>C</dt><dd>1</dd><dt>A<sup>2</sup></dt><dd>2</dd></dl><dl class='b'><dt>C</dt><dt>D</dt><dd>3</dd></dl>"
+    )
+  })
+
+  it('mends slips in it', () => {
+    assert.equal(
+      tidyDictionaryHtml(
+        "<dl><dt>A</dt></dt>B</dt>&gt;<dd><p span class='eti'>1</p></dd><dl><dt>Uses for <td>A</td></dt><dd>Gr. <span class='at'>̓η</span></dd></dl>"
+      ),
+      "<dl><dt>A</dt><dt>B</dt><dd><p class='eti'>1</p></dd><dt>Uses for A</dt><dd>Gr.<span class='at'> ̓η</span></dd></dl>"
+    )
+  })
+
+  it("rejoins NCPED's grammar where it was split at an &amp;", () => {
+    assert.deepEqual(
+      mendNcped({ entry: 'paṅgu', grammar: 'adj &amp', xr: 'n' }),
+      { entry: 'paṅgu', grammar: 'adj & n' }
+    )
+    const entry = { entry: 'akata', grammar: 'adjective & neuter', xr: 'kata' }
+    assert.equal(mendNcped(entry), entry)
   })
 })
 

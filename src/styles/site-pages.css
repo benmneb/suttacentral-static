@@ -465,6 +465,15 @@
     font-size: small;
   }
 
+  /* A dictionary's dl split where it named a term twice, so read as one */
+  dd > dl:has(+ dl) {
+    margin-bottom: 0;
+  }
+
+  dd > dl + dl {
+    margin-top: 0;
+  }
+
   /* The size of the h3 and h4 a dictionary has, which are a level up so none skips one */
   dd h2 {
     margin-block: 1em;
