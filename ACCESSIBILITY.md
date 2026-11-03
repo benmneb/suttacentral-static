@@ -28,4 +28,4 @@ The site also:
 
 ## Feedback
 
-If anything on the site is hard to use, please let me know in the [issue tracker](https://todo.sr.ht/~benmneb/suttacentral-static) (you can submit via email)
+If anything on the site is hard to use, please let me know via email: [accessibility@suttacentral.express](mailto:accessibility@suttacentral.express)
