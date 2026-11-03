@@ -72,7 +72,7 @@ const ARTICLE_TAGS = /<(\/?)(article|h[1-6])\b/g
 
 /**
  * A range document's untitled texts as divs, not articles, which need a heading, ie dhp4 in dhp1-20,
- * under dhp3's title, and every text of an1.378-393
+ * under dhp3's title, and every text of an1.378-393. Closes the article Taishō texts leave open
  */
 function tidyArticles(bilaraData) {
   const html = bilaraData.html_text
@@ -93,6 +93,12 @@ function tidyArticles(bilaraData) {
         if (article && !article.titled) untitled.add(article.tag).add(n)
       }
     }
+  }
+  const last = keys.at(-1)
+  for (const article of open.reverse()) {
+    if (!article.titled) untitled.add(article.tag).add(tag)
+    tag++
+    html[last] = `${html[last] ?? ''}</article>`
   }
   if (!untitled.size) return
   tag = 0

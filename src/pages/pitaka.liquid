@@ -9,7 +9,7 @@ pagination:
 
 permalink: '/pitaka/{{ entry.scx_path }}/index.html'
 eleventyComputed:
-  title: '{{ entry.original_title | default: entry.root_name }}{% if entry.translated_title or entry.translated_name %}—{{ entry.translated_title | default: entry.translated_name }}{% endif %}'
+  title: '{{ entry.scx_title | escape }}'
   json_ld: '{{ entry.scx_json_ld }}'
   og_tags: '{{ entry.scx_og_tags }}'
 ---
@@ -69,6 +69,7 @@ eleventyComputed:
           {% endif %}
           {% assign inPatimokkha = entry.uid | endswith: "-pm" %}
           {% capture href %}{% if inPatimokkha %}/{{ entry.uid }}#{{ child.uid }}{% elsif pitaka_url == 'false' %}/{{ child.uid }}/{% else %}/pitaka/{{ entry.scx_path }}/{{ child.uid }}/{% endif %}{% endcapture %}
+          {% assign titled = child | isTitled %}
           <hgroup>
             <h2>{% rootTitle child, href %}</h2>
             {% comment %} Like .net's card header, ie "SN 1–11 ∙ Pāli → 657 English" {% endcomment %}
@@ -77,7 +78,7 @@ eleventyComputed:
               or child.yellow_brick_road
             %}
               <p class="card-details">
-                {% if child.child_range %}
+                {% if child.child_range and titled %}
                   <span class="range">{{ child.child_range }}</span>
                 {% endif %}
                 {% if child.root_lang_name %}

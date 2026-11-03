@@ -69,7 +69,7 @@ describe('Page metadata', () => {
     )
   })
 
-  it('titles a text or collection by its acronym when it has no names', () => {
+  it('titles a text or collection by its acronym or range when it has no names', () => {
     assert.equal(
       menuTitle({
         root_name: 'Paṭhamapaṇṇāsaka',
@@ -88,6 +88,10 @@ describe('Page metadata', () => {
         acronym: 'EA 34.1',
       }),
       'EA 34.1'
+    )
+    assert.equal(
+      menuTitle({ root_name: '', acronym: null, child_range: 'T 765.63–74' }),
+      'T 765.63–74'
     )
   })
 

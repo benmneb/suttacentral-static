@@ -112,6 +112,7 @@ function flatten(nodes, parentPath = '') {
 
     const nodeWithJsonLd = {
       ...flatNode,
+      scx_title: menuTitle(flatNode),
       scx_breadcrumb_trail: trailOf(flatNode),
       scx_json_ld: generatePitakaJsonLd(flatNode),
       scx_og_tags: generatePitakaOGTags(flatNode),

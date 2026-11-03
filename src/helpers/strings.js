@@ -196,24 +196,32 @@ export function textRefs(acronym, altAcronym, language, volpages, altVolpages) {
 const UPRIGHT_SCRIPTS =
   /[\p{Script=Han}\p{Script=Hangul}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Tibetan}]/u
 
+// The API leaves trailing spaces on names
+const rootNameOf = entry => (entry?.original_title || entry?.root_name)?.trim()
+const translatedNameOf = entry =>
+  (entry?.translated_title || entry?.translated_name)?.trim()
+
+/** Has a menu or suttaplex entry a name, not just its acronym or range? */
+export const isTitled = entry =>
+  Boolean(rootNameOf(entry) || translatedNameOf(entry))
+
 /**
  * A menu or suttaplex entry's title, its root title in italics over the translation. Just the one where
- * there's only one, or they're the same, and plain if that's the translation
+ * there's only one, or they're the same, and plain if that's the translation or, untitled, its acronym or range
  * @param {Object} entry - With `original_title` or `root_name`, and `translated_title` or `translated_name`
  * @param {string} [href] - Links the root title
  */
 export function rootTitle(entry, href) {
-  // The API leaves trailing spaces on names
-  const root = (entry?.original_title || entry?.root_name)?.trim()
-  const translation = (
-    entry?.translated_title || entry?.translated_name
-  )?.trim()
+  const root = rootNameOf(entry)
+  const translation = translatedNameOf(entry)
   const lang = entry?.root_lang || entry?.root_lang_iso
   const link = text => (href ? `<a href="${href}">${text}</a>` : text)
 
   // Some, ie lzh-sarv-bi-pm-pc170, have the English as their root name too, so no lang for those
   const single = !root || root.toLowerCase() === translation?.toLowerCase()
-  const title = single ? translation || root || '' : root
+  const title = single
+    ? translation || root || entry?.acronym || entry?.child_range || ''
+    : root
   const attributes = [
     !single && lang && ` lang="${langTag(lang)}"`,
     UPRIGHT_SCRIPTS.test(title) && ' class="upright"',

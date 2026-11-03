@@ -50,12 +50,13 @@ export function withTranslatedTitle(original, translated) {
   return translation && translation !== name ? `${name} (${translation})` : name
 }
 
-/** A text or collection's title as its page has it, ie "Mūlapariyāyavagga—The Root of All Things", or its acronym if untitled */
+/** A text or collection's title as its page has it, ie "Mūlapariyāyavagga—The Root of All Things", or its acronym or range if untitled */
 export function menuTitle(node) {
   const name = textFromHtml(node.original_title || node.root_name)
   const translated = textFromHtml(node.translated_title || node.translated_name)
   return (
-    [name, translated].filter(Boolean).join('—') || textFromHtml(node.acronym)
+    [name, translated].filter(Boolean).join('—') ||
+    textFromHtml(node.acronym || node.child_range)
   )
 }
 

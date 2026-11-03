@@ -13,6 +13,7 @@ import {
   dropEmptyHeadings,
   langTag,
   languageName,
+  rootTitle,
 } from '../src/helpers/strings.js'
 
 describe('Language names', () => {
@@ -128,5 +129,25 @@ describe('Empty headings', () => {
       '<h2 aria-label="C"></h2>',
     ].join('')
     assert.equal(dropEmptyHeadings(html), html)
+  })
+})
+
+describe('Root titles', () => {
+  it('falls back to the acronym, then the range, with no names', () => {
+    assert.equal(
+      rootTitle({
+        original_title: '',
+        translated_title: '',
+        acronym: 'EA 27.1',
+      }),
+      'EA 27.1'
+    )
+    assert.equal(
+      rootTitle(
+        { root_name: '', translated_name: '', child_range: 'T 765.63–74' },
+        '/t765-dvikavarga-1/'
+      ),
+      '<a href="/t765-dvikavarga-1/">T 765.63–74</a>'
+    )
   })
 })

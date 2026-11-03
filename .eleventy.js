@@ -36,6 +36,7 @@ import {
   isHeadingHTML,
   langTag,
   languageName,
+  isTitled,
   rootTitle,
   softHyphenateTitle,
   textRefs,
@@ -148,6 +149,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addFilter('softHyphenateTitle', softHyphenateTitle)
   eleventyConfig.addFilter('languageName', languageName)
   eleventyConfig.addFilter('isHeading', isHeadingHTML)
+  eleventyConfig.addFilter('isTitled', isTitled)
   eleventyConfig.addFilter('formatVolpages', formatVolpages)
   eleventyConfig.addFilter('formatNumber', function (number) {
     return new Intl.NumberFormat('en').format(number)
