@@ -2505,6 +2505,10 @@ aside:has(#definer:checked) ~ main .segment > :is(.translation, .root) {
     a {
       border-left: 1px solid var(--bg-alt-3);
 
+      @media (forced-colors: active) {
+        border-left: 1px solid ButtonBorder;
+      }
+
       &:not([href]) {
         cursor: not-allowed;
 
@@ -2536,6 +2540,10 @@ aside:has(#definer:checked) ~ main .segment > :is(.translation, .root) {
       cursor: pointer;
       color: inherit;
       font: inherit;
+
+      @media (forced-colors: active) {
+        color: ButtonBorder;
+      }
 
       &:is(button:not(:disabled), a[href]):hover {
         background-color: var(--details-summary-hover-background);
