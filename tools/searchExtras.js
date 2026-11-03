@@ -168,7 +168,7 @@ function chinese(page, html) {
   const text = decode(
     main
       .slice(
-        main.indexOf('<article'),
+        main.search(/<(?:article|section|div)\b/),
         main.search(/<article[^>]*popover|<\/main>/)
       )
       .replace(

@@ -666,7 +666,7 @@ button[style]:is([popovertarget^='comment-'], [popovertarget^='variant-']) {
 }
 
 &:has(#rooter:checked) {
-  main article .endbook,
+  main .endbook,
   .endvagga,
   .endkanda {
     color: unset;

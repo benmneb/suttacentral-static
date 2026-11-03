@@ -68,6 +68,42 @@ function tidyReferences(bilaraData) {
   }
 }
 
+const ARTICLE_TAGS = /<(\/?)(article|h[1-6])\b/g
+
+/**
+ * A range document's untitled texts as divs, not articles, which need a heading, ie dhp4 in dhp1-20,
+ * under dhp3's title, and every text of an1.378-393
+ */
+function tidyArticles(bilaraData) {
+  const html = bilaraData.html_text
+  const keys = bilaraData.keys_order
+  if (!html || !keys) return
+  const open = []
+  const untitled = new Set()
+  let tag = 0
+  for (const key of keys) {
+    for (const [, close, name] of (html[key] ?? '').matchAll(ARTICLE_TAGS)) {
+      const n = tag++
+      if (name !== 'article') {
+        if (!close) for (const article of open) article.titled = true
+      } else if (!close) {
+        open.push({ tag: n, titled: false })
+      } else {
+        const article = open.pop()
+        if (article && !article.titled) untitled.add(article.tag).add(n)
+      }
+    }
+  }
+  if (!untitled.size) return
+  tag = 0
+  for (const key of keys) {
+    if (!html[key]) continue
+    html[key] = html[key].replace(ARTICLE_TAGS, (match, close) =>
+      untitled.has(tag++) ? `<${close}div` : match
+    )
+  }
+}
+
 /**
  * Fetches JSON data with caching and cache timestamp tracking.
  *
@@ -216,6 +252,7 @@ async function fetchDataTree(uid, depth = 0) {
             for (const key in texts) texts[key] = bilaraMarkup(texts[key])
           }
           tidyReferences(bilaraData)
+          tidyArticles(bilaraData)
         } catch (e) {
           fetchErrors++
           spinner
