@@ -2545,6 +2545,10 @@ aside:has(#definer:checked) ~ main .segment > :is(.translation, .root) {
           outline-offset: -2px;
         }
       }
+
+      &:is(button:not(:disabled), a[href]):active {
+        background-color: var(--background-color-secondary);
+      }
     }
   }
 }
