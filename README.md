@@ -44,4 +44,4 @@ Donated to the public domain via [CC0](https://creativecommons.org/publicdomain/
 
 Favicon via [thesunshade](https://github.com/thesunshade/citation-helper)
 
-[UI icons](src/styles/styles.css) via [Heroicons](https://heroicons.com) by Tailwind Labs, MIT
+UI icons via [Heroicons](https://heroicons.com) by Tailwind Labs, MIT
