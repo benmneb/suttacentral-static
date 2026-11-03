@@ -696,42 +696,18 @@ eleventyComputed:
           {% assign matches_uid = true %}
         {% endif %}
 
-        {% comment %} Include if it's a header, last key, or matches uid {% endcomment %}
-        {% if is_header or is_last_key or matches_uid %}
+        {% comment %} Include if it's a header or matches uid {% endcomment %}
+        {% if is_header or matches_uid %}
           {% assign should_process = true %}
         {% else %}
           {% assign should_process = false %}
+          {% comment %} The last key is another text's, so only close what this one leaves open {% endcomment %}
+          {% if is_last_key %}{{ entry.scx_range_closing_tags }}{% endif %}
         {% endif %}
       {% endif %}
 
       {% if should_process %}
         {% assign html = entry._bilarasuttas_data.html_text[key] %}
-        {% comment %} Handle individual range suttas some more... {% endcomment %}
-        {% if entry.scx_range_sutta_individual and is_last_key %}
-          {% assign last_key_prefix = key | split: ":" | first %}
-          {% unless last_key_prefix == entry.scx_range_sutta_shown_uid %}
-            {% comment %} These .end* <p> tag's are only needed on the last sutta in vagga/book {% endcomment %}
-            {% assign html = html | replace: "<p class='endvagga'>{}</p>", "" %}
-            {% assign html = html | replace: "<p class='end'>{}</p>", "" %}
-            {% assign html = html | replace: "<p class='endbook'>{}</p>", "" %}
-            {% comment %}
-              Stricter check to handle other cases...
-              ie an11.22/en/sujato to an11.29/en/sujato (/pli/ms also)
-            {% endcomment %}
-            {% comment %} But first exclude ie range an11.30/en/sujato to an11.69 where the last value is "{}</p></article>" {% endcomment %}
-            {% assign html_first_two_chars = html | slice: 0, 2 %}
-            {% if html contains "</article>" and html_first_two_chars != "{}" %}
-              {% unless html contains entry.scx_range_sutta_shown_uid %}
-                {% comment %} Remove everything except the closing tag(s) {% endcomment %}
-                {% assign html = html
-                  | split: "</article>"
-                  | last
-                  | prepend: "</article>"
-                %}
-              {% endunless %}
-            {% endif %}
-          {% endunless %}
-        {% endif %}
         {% assign text = entry._bilarasuttas_data.root_text[key] %}
         {% assign comment = entry._bilarasuttas_data.variant_text[key] %}
         {% assign ref = key | split: ":" | last %}
@@ -752,10 +728,11 @@ eleventyComputed:
                 somewhere to land - CSS reveals whichever is targeted. Not searchable, they'd only add noise like "pts" and "pli1"
               {%- endcomment -%}
               {%- assign ref_ids = entry._bilarasuttas_data.reference_text[key] | split: "," -%}
+              {%- assign repeated_refs = entry.scx_repeated_refs[key] -%}
               {%- for ref_id in ref_ids -%}
                 {%- assign id = ref_id | strip -%}
                 {%- if id != blank -%}
-                  <a class="ref {{ id | referenceGroup }}" id="{{ id }}" href="#{{ id }}" title="{{ id | referenceEdition }}" data-pagefind-ignore>{{ id }}</a>
+                  <a class="ref {{ id | referenceGroup }}"{% unless repeated_refs contains id %} id="{{ id }}"{% endunless %} href="#{{ id }}" title="{{ id | referenceEdition }}" data-pagefind-ignore>{{ id }}</a>
                 {%- endif -%}
               {%- endfor %}
             </span>
@@ -875,42 +852,18 @@ eleventyComputed:
           {% assign matches_uid = true %}
         {% endif %}
 
-        {% comment %} Include if it's a header, last key, or matches uid {% endcomment %}
-        {% if is_header or is_last_key or matches_uid %}
+        {% comment %} Include if it's a header or matches uid {% endcomment %}
+        {% if is_header or matches_uid %}
           {% assign should_process = true %}
         {% else %}
           {% assign should_process = false %}
+          {% comment %} The last key is another text's, so only close what this one leaves open {% endcomment %}
+          {% if is_last_key %}{{ entry.scx_range_closing_tags }}{% endif %}
         {% endif %}
       {% endif %}
 
       {% if should_process %}
         {% assign html = entry._bilarasuttas_data.html_text[key] %}
-        {% comment %} Handle individual range suttas some more... {% endcomment %}
-        {% if entry.scx_range_sutta_individual and is_last_key %}
-          {% assign last_key_prefix = key | split: ":" | first %}
-          {% unless last_key_prefix == entry.scx_range_sutta_shown_uid %}
-            {% comment %} These .end* <p> tag's are only needed on the last sutta in vagga/book {% endcomment %}
-            {% assign html = html | replace: "<p class='endvagga'>{}</p>", "" %}
-            {% assign html = html | replace: "<p class='end'>{}</p>", "" %}
-            {% assign html = html | replace: "<p class='endbook'>{}</p>", "" %}
-            {% comment %}
-              Stricter check to handle other cases...
-              ie an11.22/en/sujato to an11.29/en/sujato (/pli/ms also)
-            {% endcomment %}
-            {% comment %} But first exclude ie range an11.30/en/sujato to an11.69 where the last value is "{}</p></article>" {% endcomment %}
-            {% assign html_first_two_chars = html | slice: 0, 2 %}
-            {% if html contains "</article>" and html_first_two_chars != "{}" %}
-              {% unless html contains entry.scx_range_sutta_shown_uid %}
-                {% comment %} Remove everything except the closing tag(s) {% endcomment %}
-                {% assign html = html
-                  | split: "</article>"
-                  | last
-                  | prepend: "</article>"
-                %}
-              {% endunless %}
-            {% endif %}
-          {% endunless %}
-        {% endif %}
         {% assign text = entry._bilarasuttas_data.translation_text[key] %}
         {% assign rootText = entry._bilarasuttas_data.root_text[key] %}
         {% assign comment = entry._bilarasuttas_data.comment_text[key] %}
@@ -933,10 +886,11 @@ eleventyComputed:
                 somewhere to land - CSS reveals whichever is targeted. Not searchable, they'd only add noise like "pts" and "pli1"
               {%- endcomment -%}
               {%- assign ref_ids = entry._bilarasuttas_data.reference_text[key] | split: "," -%}
+              {%- assign repeated_refs = entry.scx_repeated_refs[key] -%}
               {%- for ref_id in ref_ids -%}
                 {%- assign id = ref_id | strip -%}
                 {%- if id != blank -%}
-                  <a class="ref {{ id | referenceGroup }}" id="{{ id }}" href="#{{ id }}" title="{{ id | referenceEdition }}" data-pagefind-ignore>{{ id }}</a>
+                  <a class="ref {{ id | referenceGroup }}"{% unless repeated_refs contains id %} id="{{ id }}"{% endunless %} href="#{{ id }}" title="{{ id | referenceEdition }}" data-pagefind-ignore>{{ id }}</a>
                 {%- endif -%}
               {%- endfor %}
             </span>

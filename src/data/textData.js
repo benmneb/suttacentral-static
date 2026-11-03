@@ -186,6 +186,41 @@ function tocLabel(text) {
   return stripped || text.trim()
 }
 
+/** A legacy heading as the contents has it: without its references, links or ids, which the heading itself keeps */
+function legacyTocLabel(html) {
+  return tocLabel(
+    html
+      .replace(/<a\b[^>]*\bclass=['"]ref\b[^>]*>[\s\S]*?<\/a>/g, '')
+      .replace(/<\/?a\b[^>]*>/g, '')
+      .replace(/\sid=(['"]).*?\1/g, '')
+      .replace(/\s+/g, ' ')
+  )
+}
+
+const ID_TAG = /<[a-z][^>]*?\sid=(['"])(.*?)\1[^>]*>/gi
+
+/**
+ * A legacy text with each id once. A reference repeating an id takes the one its own link points to instead,
+ * as .net gives every SC number `id='sc1'`, and any other repeat is dropped
+ */
+function uniqueIds(html) {
+  const counts = new Map()
+  for (const [, , id] of html.matchAll(ID_TAG)) {
+    counts.set(id, (counts.get(id) ?? 0) + 1)
+  }
+  const seen = new Set()
+  return html.replace(ID_TAG, (tag, quote, id) => {
+    const href =
+      /\bclass=['"]ref\b/.test(tag) && tag.match(/\shref=['"]#([^'"]+)/)?.[1]
+    const own = counts.get(id) > 1 && href && !seen.has(href) ? href : id
+    if (seen.has(own)) return tag.replace(/\sid=(['"]).*?\1/, '')
+    seen.add(own)
+    return own === id
+      ? tag
+      : tag.replace(/\sid=(['"]).*?\1/, ` id=${quote}${own}${quote}`)
+  })
+}
+
 /*
  * Mirrors the `should_process` logic in `pages/text.liquid` for individual range suttas,
  * so only headings that actually get rendered on the page end up in the ToC.
@@ -283,6 +318,62 @@ function segmentIdsOf(entry) {
   return { scx_segment_ids: ids, scx_full_segment_refs: isRange }
 }
 
+/**
+ * The printed-edition references a shown segment repeats from an earlier one, by its key, so only the first
+ * has the id: lines are referenced where segments start, and two can start on one (ie sa16's t99.2.3b15)
+ */
+function repeatedRefsOf(entry) {
+  const refs = entry._bilarasuttas_data?.reference_text
+  const repeats = {}
+  const seen = new Set()
+  for (const key of (refs && shownKeysOf(entry)) ?? []) {
+    for (const ref of refs[key]?.split(',') ?? []) {
+      const id = ref.trim()
+      if (seen.has(id)) (repeats[key] ??= []).push(id)
+      if (id) seen.add(id)
+    }
+  }
+  return {
+    scx_repeated_refs: Object.keys(repeats).length ? repeats : null,
+  }
+}
+
+const VOID_ELEMENTS = new Set(['br', 'hr', 'img', 'wbr'])
+
+/**
+ * The tags one text of a range document (ie sn33.16 of sn33.16-20) leaves open, which close it in place of the
+ * document's last segment when that's another text's
+ */
+function rangeClosingTagsOf(entry) {
+  const data = entry._bilarasuttas_data
+  const keys = data?.keys_order ?? []
+  const isRange =
+    entry.scx_range_sutta_individual && entry.scx_range_sutta_shown_uid
+  if (
+    !isRange ||
+    !keys.length ||
+    getRangeKeyInfo(entry, keys.at(-1)).isRendered
+  ) {
+    return { scx_range_closing_tags: null }
+  }
+  const open = []
+  for (const key of keys.slice(0, -1)) {
+    const html = data.html_text[key]
+    if (!html || !getRangeKeyInfo(entry, key).isRendered) continue
+    for (const [, slash, name] of html.matchAll(/<(\/?)([a-z][a-z0-9]*)/gi)) {
+      if (VOID_ELEMENTS.has(name)) continue
+      if (!slash) open.push(name)
+      else if (open.includes(name)) open.length = open.lastIndexOf(name)
+    }
+  }
+  return {
+    scx_range_closing_tags: open
+      .reverse()
+      .map(name => `</${name}>`)
+      .join(''),
+  }
+}
+
 /** Whether each of the views menu's text-specific settings applies, and what it shows */
 function viewOptionsOf(entry) {
   const keys = shownKeysOf(entry)
@@ -370,7 +461,7 @@ function collectSegmentedToc(entry, useRootText) {
 /*
  * Collects the h2-h4 headings of a legacy text at the level each has on the page, injecting an id to anchor
  * to as they don't have any (eg pli-tv-kd1/horner has 66 bare headings), and keeps only the body of a text that comes as a
- * whole HTML document (eg mn10/horner), as it's put in the page's <main>.
+ * whole HTML document (eg mn10/horner), as it's put in the page's <main>. Each id is kept once (`uniqueIds`).
  *
  * Note: this mutates `entry._suttas_data.translation.text` in place, to avoid holding a second copy
  * of every legacy text in memory. It's idempotent as existing ids are kept.
@@ -387,6 +478,7 @@ function collectLegacyToc(entry) {
       bodyEnd === -1 ? undefined : bodyEnd
     )
   }
+  translation.text = uniqueIds(translation.text)
 
   // Leave the footer alone, it becomes the info popover
   const footerIndex = translation.text.lastIndexOf('<footer')
@@ -410,12 +502,9 @@ function collectLegacyToc(entry) {
     (match, level, attrs, inner, offset) => {
       const existingId = attrs.match(/\bid=["']([^"']+)["']/)
       const id = existingId?.[1] ?? `toc-${++n}`
-      if (inner.trim()) {
-        toc.push({
-          level: levels.get(offset),
-          href: `#${id}`,
-          html: tocLabel(inner),
-        })
+      const label = legacyTocLabel(inner)
+      if (label) {
+        toc.push({ level: levels.get(offset), href: `#${id}`, html: label })
       }
       return existingId
         ? match
@@ -637,6 +726,8 @@ function flatten(nodes, parent, parentPath) {
               ...tocOf(entry),
               ...referenceGroupsOf(entry),
               ...segmentIdsOf(entry),
+              ...repeatedRefsOf(entry),
+              ...rangeClosingTagsOf(entry),
               ...viewOptionsOf(entry),
             }
           })
@@ -667,6 +758,8 @@ function flatten(nodes, parent, parentPath) {
         ...tocOf(entry),
         ...referenceGroupsOf(entry),
         ...segmentIdsOf(entry),
+        ...repeatedRefsOf(entry),
+        ...rangeClosingTagsOf(entry),
         ...viewOptionsOf(entry),
       })
       return results
