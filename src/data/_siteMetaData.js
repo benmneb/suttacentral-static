@@ -46,8 +46,8 @@ export default function () {
     accessibility:
       'https://git.sr.ht/~benmneb/suttacentral-static/tree/main/item/ACCESSIBILITY.md',
     archive: 'https://codeberg.org/benmneb/suttacentral-static/releases/latest',
-    // contact: 'email@example.com',
-    suggestions: 'https://todo.sr.ht/~benmneb/suttacentral-static',
+    contact: 'feedback@suttacentral.express',
+    // suggestions: 'https://todo.sr.ht/~benmneb/suttacentral-static',
     maintainer: { name: 'sankhato', url: 'https://sr.ht/~benmneb' },
     pgpPublicKey: 'AECABD60A4CB5BE900864AF2C8DAB4CE409C4AB8',
     environment: process.env.NODE_ENV || 'dev',
