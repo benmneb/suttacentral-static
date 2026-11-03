@@ -769,7 +769,7 @@ eleventyComputed:
             {% capture comments %}
             {{ comments }}
             <article id="comment-{{ key }}" popover style="--anchored-to: --comment{{ forloop.index }}">
-              Variant: {{ comment | replace: scOrigin, '' }}
+              Variant: <span lang="{{ entry.lang | langTag }}" translate="no">{{ comment | replace: scOrigin, '' }}</span>
             </article>
             {% endcapture %}
           {%- endunless -%}
@@ -957,7 +957,7 @@ eleventyComputed:
             {% capture comments %}
             {{ comments }}
             <article id="variant-{{ key }}" popover style="--anchored-to: --variant{{ forloop.index }}">
-              Variant: {{ variant | replace: scOrigin, '' }}
+              Variant: <span lang="{{ entry.root_lang | langTag }}" translate="no">{{ variant | replace: scOrigin, '' }}</span>
             </article>
             {% endcapture %}
           {%- endunless -%}
