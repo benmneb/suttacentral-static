@@ -226,7 +226,6 @@
       '<dt><kbd>Tab</kbd></dt><dd>Through the text, segment by segment</dd>' +
       `<dt><kbd>Enter</kbd></dt><dd>Looks up a segment’s first ${unit}</dd>` +
       '<dt><kbd>Esc</kbd></dt><dd>Closes this</dd>' +
-      '<dt><kbd>D</kbd></dt><dd>Turns word lookup on or off</dd>' +
       '</dl>'
     )
   }
