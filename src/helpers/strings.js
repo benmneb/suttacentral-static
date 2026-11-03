@@ -121,12 +121,33 @@ export function tidyLists(html) {
   return out.join('')
 }
 
+// The Private Use Area characters in the API's texts, which no font the site uses has
+const PRIVATE_USE = {
+  // Word's Symbol font angle brackets, in sa107/en/analayo
+  '\uF0E1': '⟨',
+  '\uF0F1': '⟩',
+  // pdhp414's ṛ
+  '\uF82A': 'ṛ',
+  // CBETA's gaiji CB00595, CB00596 and CB02213 in Taishō texts, as CBETA normalises them
+  '\u{F0253}': '麨',
+  '\u{F0254}': '䴵',
+  '\u{F08A5}': '爆',
+}
+const PRIVATE_USE_PATTERN = new RegExp(
+  `[${Object.keys(PRIVATE_USE).join('')}]`,
+  'gu'
+)
+
 /**
  * `data` with every string in it in Unicode Normalization Form C, in place, as some of the API's text spells
- * "ā" as "a" and a combining macron
+ * "ā" as "a" and a combining macron, and with the Private Use Area characters it has swapped for real ones
  */
 export function normalizeStrings(data) {
-  if (typeof data === 'string') return data.normalize('NFC')
+  if (typeof data === 'string') {
+    return data
+      .normalize('NFC')
+      .replace(PRIVATE_USE_PATTERN, char => PRIVATE_USE[char])
+  }
   if (data && typeof data === 'object') {
     for (const key of Object.keys(data)) data[key] = normalizeStrings(data[key])
   }

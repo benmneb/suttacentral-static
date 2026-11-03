@@ -147,6 +147,15 @@ describe('Unicode normalisation', () => {
     assert.equal(normalizeStrings('sag\u0304\u0331akada'), 'saḡ\u0331akada')
     assert.equal(normalizeStrings('漢語'), '漢語')
   })
+
+  it('swaps Private Use Area characters for real ones', () => {
+    assert.equal(
+      normalizeStrings('that the \uF0E1mind\uF0F1 does'),
+      'that the ⟨mind⟩ does'
+    )
+    assert.equal(normalizeStrings('Am\uF82Atapadāni'), 'Amṛtapadāni')
+    assert.equal(normalizeStrings('飯、\u{F0253}、糒'), '飯、麨、糒')
+  })
 })
 
 describe('Heading levels', () => {
