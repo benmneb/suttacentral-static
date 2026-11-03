@@ -96,6 +96,8 @@ export function addParallelDetails(tree, resolve) {
       to.scx_alt_volpages = altVolpages
     if (parallel.remark)
       to.scx_remarks = parallel.remark.split(' | ').map(r => r.trim())
+    // uf10's has a `clas`, so every text it's a parallel of did
+    if (to.biblio) to.biblio = to.biblio.replaceAll(' clas=', ' class=')
     to.scx_has_notes = !!(to.scx_remarks || to.biblio || full)
   }
 

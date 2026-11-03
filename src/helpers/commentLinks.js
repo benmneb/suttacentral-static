@@ -14,9 +14,31 @@
  * Otherwise the #anchor and anything else after the author is always kept.
  *
  * Whitespace in a link is taken out first, as no link has any on purpose, ie DN 16's "/sn47.14 /en/sujato".
+ * Before that, a link with square brackets in it is split into the Markdown links run together in it, ie
+ * SN 45.33's "[SN 47.33:1.1], [SN 51.2:1.1]" as one link to #1.1], [sn51.2:1.1
  */
 
 const HREF_WITH_SPACE = /href=(['"])([^'"]*\s[^'"]*)\1/g
+
+const BRACKETED_LINK =
+  /<a href=(['"])([^'"#]*)#([^'"]*[[\]][^'"]*)\1>([^<]*)<\/a>/g
+
+/** The links in one with square brackets, the first to its own text, the others to the "<uid>:<segment>" each names */
+function splitBracketedLink(match, quote, url, anchor, text) {
+  const anchors = anchor.split(/\]([^[]*)\[/)
+  const texts = text.split(/\][^[]*\[/)
+  if (anchors.length !== texts.length * 2 - 1) return match
+  const unbracket = part => part.replace(/[[\]]/g, '')
+  return anchors
+    .map((part, i) => {
+      if (i % 2) return part
+      const target = unbracket(part)
+      const [uid, segment] = i ? target.split(':') : [null, target]
+      const href = uid ? url.replace(/[^/]+(?=\/[a-z]+\/[^/]+$)/, uid) : url
+      return `<a href=${quote}${href}#${segment}${quote}>${unbracket(texts[i / 2])}</a>`
+    })
+    .join('')
+}
 
 const LINK =
   /(href=['"]https:\/\/suttacentral\.net\/)([^/#?'"\s]+)\/([a-z]+)\/([^/#?'"]+)(#[^'"]*)?/g
@@ -63,6 +85,7 @@ export function fixCommentLinks(tree, resolve) {
 
         for (const [key, comment] of Object.entries(comments)) {
           comments[key] = comment
+            .replace(BRACKETED_LINK, splitBracketedLink)
             .replace(
               HREF_WITH_SPACE,
               (match, quote, url) =>

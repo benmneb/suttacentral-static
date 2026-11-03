@@ -29,7 +29,12 @@ import {
   workId,
 } from '../helpers/pageMetadata.js'
 import { SC_ORIGIN } from '../helpers/scApi.js'
-import { headingRenumberer, langTag, searchId } from '../helpers/strings.js'
+import {
+  headingRenumberer,
+  langTag,
+  searchId,
+  tidyLegacyHtml,
+} from '../helpers/strings.js'
 
 let usedPaths = []
 
@@ -461,7 +466,8 @@ function collectSegmentedToc(entry, useRootText) {
 /*
  * Collects the h2-h4 headings of a legacy text at the level each has on the page, injecting an id to anchor
  * to as they don't have any (eg pli-tv-kd1/horner has 66 bare headings), and keeps only the body of a text that comes as a
- * whole HTML document (eg mn10/horner), as it's put in the page's <main>. Each id is kept once (`uniqueIds`).
+ * whole HTML document (eg mn10/horner), as it's put in the page's <main>. Each id is kept once (`uniqueIds`), and
+ * slips in its markup are mended (`tidyLegacyHtml`).
  *
  * Note: this mutates `entry._suttas_data.translation.text` in place, to avoid holding a second copy
  * of every legacy text in memory. It's idempotent as existing ids are kept.
@@ -478,7 +484,7 @@ function collectLegacyToc(entry) {
       bodyEnd === -1 ? undefined : bodyEnd
     )
   }
-  translation.text = uniqueIds(translation.text)
+  translation.text = uniqueIds(tidyLegacyHtml(translation.text))
 
   // Leave the footer alone, it becomes the info popover
   const footerIndex = translation.text.lastIndexOf('<footer')

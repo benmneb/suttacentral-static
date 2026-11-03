@@ -68,6 +68,35 @@ function tidyReferences(bilaraData) {
   }
 }
 
+// Slips in bilara html, as a text's segments joined by \0 so one can span two
+const HTML_SLIPS = [
+  // vb16's, where every other text has data-counter
+  [/<p counter=/g, '<p data-counter='],
+  // sa1's header list, which its title would be in
+  [/(<header><ul>(?:(?!<\/ul>)[^])*?)(?=<h1)/g, '$1</ul>'],
+  // pli-tv-bu-vb-np10's rule between two items, which a list can't have
+  [/<\/dd>(\0)<hr>/g, '<hr></dd>$1'],
+  // t765's byline, a list item after the header, as the header's last line
+  [
+    /<\/header>(\0)<li class='subheading'>\{\}<\/li>/g,
+    "$1<p class='subheading'>{}</p></header>",
+  ],
+]
+
+/** A text's html with `HTML_SLIPS` mended */
+function tidyHtml(bilaraData) {
+  const html = bilaraData.html_text
+  const keys = bilaraData.keys_order
+  if (!html || !keys) return
+  const joined = keys.map(key => html[key] ?? '').join('\0')
+  let tidied = joined
+  for (const [slip, mend] of HTML_SLIPS) tidied = tidied.replace(slip, mend)
+  if (tidied === joined) return
+  tidied.split('\0').forEach((text, i) => {
+    if (text !== (html[keys[i]] ?? '')) html[keys[i]] = text
+  })
+}
+
 const SECTIONING_TAGS = /<(\/?)(article|section|h[1-6])\b/g
 
 /**
@@ -260,6 +289,7 @@ async function fetchDataTree(uid, depth = 0) {
             for (const key in texts) texts[key] = bilaraMarkup(texts[key])
           }
           tidyReferences(bilaraData)
+          tidyHtml(bilaraData)
           tidySections(bilaraData)
         } catch (e) {
           fetchErrors++

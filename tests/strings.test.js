@@ -15,6 +15,7 @@ import {
   languageName,
   normalizeStrings,
   rootTitle,
+  tidyLegacyHtml,
 } from '../src/helpers/strings.js'
 
 describe('Language names', () => {
@@ -77,10 +78,50 @@ describe('Bilara markup', () => {
     )
   })
 
+  it('drops the reference and root left in a segment', () => {
+    assert.equal(
+      bilaraMarkup('<reference>MAV 76</reference><root></root> '),
+      ' '
+    )
+  })
+
   it('leaves the rest, and what it made, as it is', () => {
     const html = 'a <i>b</i> <span class="j">c</span>'
     assert.equal(bilaraMarkup(html), html)
     assert.equal(bilaraMarkup(undefined), undefined)
+  })
+})
+
+describe('Legacy markup', () => {
+  it('puts what follows an item back into it', () => {
+    assert.equal(
+      tidyLegacyHtml(
+        '<ol><li>A<br>\n</li>\nB</li><li>C</li>\n<ol><li>D</li></ol></ol>'
+      ),
+      '<ol><li>A<br>\n\nB</li><li>C\n<ol><li>D</li></ol></ol>'
+    )
+  })
+
+  it('ends a list left open at a heading or paragraph', () => {
+    assert.equal(
+      tidyLegacyHtml('<ol><li>A</p></li>\n<p>B</p><h4>C</h4><ol><li>D</ol>'),
+      '<ol><li>A</p></li>\n</ol><p>B</p><h4>C</h4><ol><li>D</ol>'
+    )
+  })
+
+  it('mends stray commas and pipes in URLs', () => {
+    assert.equal(
+      tidyLegacyHtml(
+        '<ol type="1", start="5"><li><a href=\'http:%7C%7Cgretil.de%7Ca.htm\'>A</a></li></ol>'
+      ),
+      '<ol type="1" start="5"><li><a href=\'http://gretil.de/a.htm\'>A</a></li></ol>'
+    )
+  })
+
+  it('leaves valid lists and their items as they are', () => {
+    const html =
+      '<!DOCTYPE html><ul><li>A<ul><li>B</ul><li>C, <i>d</i></li>\n</ul><p>E, F</p><div><div>G</div></div>'
+    assert.equal(tidyLegacyHtml(html), html)
   })
 })
 

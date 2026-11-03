@@ -46,12 +46,14 @@ export function searchId(text) {
 
 /**
  * A segment's text with bilara's own tags as HTML: <supplied> and <unclear> as the classes legacy
- * texts use, and <j>, which starts a verse's next half-line, as a span closed at the segment's end
+ * texts use, and <j>, which starts a verse's next half-line, as a span closed at the segment's end.
+ * Drops the <reference> and empty <root> left in sf36:70.27, whose reference is in its references too
  */
 export function bilaraMarkup(text) {
   if (!text?.includes('<')) return text
   let joins = 0
   const html = text
+    .replace(/<reference>[^<]*<\/reference>|<root><\/root>/g, '')
     .replace(/<j>/g, () => {
       joins++
       return '<span class="j">'
@@ -60,6 +62,63 @@ export function bilaraMarkup(text) {
       close ? '</span>' : `<span class="${tag}">`
     )
   return html + '</span>'.repeat(joins)
+}
+
+const LEGACY_TOKENS = /<(\/?)([a-z][a-z0-9]*)\b[^>]*>|<![^>]*>|[^<]+|</g
+const VOID_TAGS = /^(?:area|br|col|embed|hr|img|input|link|meta|source|wbr)$/
+const BLOCK_TAGS =
+  /^(?:address|article|aside|blockquote|div|dl|figure|footer|h[1-6]|header|hr|nav|p|pre|section|table)$/
+
+/**
+ * A legacy text with its slips mended: a list with what only an item can hold (`tidyLists`), a stray comma among
+ * a tag's attributes, ie patthana1.23's `<ol type="1", start="5">`, and a URL with %7C for every /, ie sf81's
+ */
+export function tidyLegacyHtml(html) {
+  return tidyLists(html)
+    .replace(/(<[a-z][^<>]*?['"])\s*,(?=\s)/g, '$1')
+    .replace(
+      /\bhref=(['"])http:%7C%7C([^'"]*)/g,
+      (match, quote, rest) =>
+        `href=${quote}http://${rest.replaceAll('%7C', '/')}`
+    )
+}
+
+/**
+ * Lists with only items in them. What follows an item's end tag that isn't another item goes back into it, as a
+ * nested list or a sentence after a stray </li> was meant to, and a heading or paragraph ends a list left open,
+ * ie in patthana1.8/en/narada
+ */
+export function tidyLists(html) {
+  const open = []
+  const out = []
+  const inList = () => /^[ou]l$/.test(open.at(-1))
+  let itemEnd = -1
+  for (const [token, close, name] of html.matchAll(LEGACY_TOKENS)) {
+    if (!name && (!token.trim() || token.startsWith('<!'))) {
+      out.push(token)
+      continue
+    }
+    if (inList() && !close && name !== 'li') {
+      if (BLOCK_TAGS.test(name)) {
+        while (inList()) out.push(`</${open.pop()}>`)
+      } else if (itemEnd !== -1) {
+        out[itemEnd] = ''
+        open.push('li')
+      }
+    }
+    itemEnd = close && name === 'li' && open.at(-1) === 'li' ? out.length : -1
+    out.push(token)
+    if (!name || VOID_TAGS.test(name)) continue
+    if (close) {
+      const i = open.lastIndexOf(name)
+      if (i !== -1) open.length = i
+    } else {
+      // An item, or a paragraph, ends the one before it
+      if (/^(?:li|p)$/.test(name) && open.at(-1) === name) open.pop()
+      open.push(name)
+    }
+  }
+  return out.join('')
 }
 
 /**
