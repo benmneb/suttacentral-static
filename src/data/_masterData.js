@@ -15,7 +15,7 @@ import {
   suttasUrl,
 } from '../helpers/scApi.js'
 import { fixMovedLegacyLinks } from '../helpers/siteLinks.js'
-import { bilaraMarkup } from '../helpers/strings.js'
+import { bilaraMarkup, normalizeStrings } from '../helpers/strings.js'
 import { createLinkResolver } from '../helpers/textLinks.js'
 import shortcutsData from './_shortcuts.json' with { type: 'json' }
 
@@ -111,7 +111,7 @@ function tidyArticles(bilaraData) {
 }
 
 /**
- * Fetches JSON data with caching and cache timestamp tracking.
+ * Fetches JSON data, its strings in NFC, with caching and cache timestamp tracking.
  *
  * Uses Eleventy Fetch to cache responses and adds a `scx_fetched_at` property
  * indicating when the data was originally fetched from Sutta Central (not when
@@ -125,7 +125,7 @@ async function fetchJson(url) {
 
   const options = fetchOptions(url)
 
-  const data = await Fetch(url, options)
+  const data = normalizeStrings(await Fetch(url, options))
 
   let scx_fetched_at = new Date().toUTCString() // Current time for new fetches
 

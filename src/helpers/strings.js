@@ -63,6 +63,18 @@ export function bilaraMarkup(text) {
 }
 
 /**
+ * `data` with every string in it in Unicode Normalization Form C, in place, as some of the API's text spells
+ * "ā" as "a" and a combining macron
+ */
+export function normalizeStrings(data) {
+  if (typeof data === 'string') return data.normalize('NFC')
+  if (data && typeof data === 'object') {
+    for (const key of Object.keys(data)) data[key] = normalizeStrings(data[key])
+  }
+  return data
+}
+
+/**
  * A page's headings renumbered so none is more than a level below the one it's under, ie an h4 straight
  * after the h1 as an h2, as .net's texts, dictionaries and site pages skip levels
  */

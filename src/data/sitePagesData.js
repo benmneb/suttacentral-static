@@ -23,6 +23,7 @@ import {
   tidyMatter,
 } from '../helpers/sitePages.js'
 import { loadStrings } from '../helpers/siteStrings.js'
+import { normalizeStrings } from '../helpers/strings.js'
 import masterData from './_masterData.js'
 
 const EDITIONS_REPO = 'https://github.com/suttacentral/editions'
@@ -37,8 +38,8 @@ function cacheOptions(url) {
   return options
 }
 
-function fetchJson(url) {
-  return Fetch(url, cacheOptions(url))
+async function fetchJson(url) {
+  return normalizeStrings(await Fetch(url, cacheOptions(url)))
 }
 
 /** When `url` was fetched from .net, for the footer */

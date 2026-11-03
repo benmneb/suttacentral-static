@@ -13,6 +13,7 @@ import {
   dropEmptyHeadings,
   langTag,
   languageName,
+  normalizeStrings,
   rootTitle,
 } from '../src/helpers/strings.js'
 
@@ -80,6 +81,30 @@ describe('Bilara markup', () => {
     const html = 'a <i>b</i> <span class="j">c</span>'
     assert.equal(bilaraMarkup(html), html)
     assert.equal(bilaraMarkup(undefined), undefined)
+  })
+})
+
+describe('Unicode normalisation', () => {
+  it('composes letters spelled with a combining mark, however deep', () => {
+    const data = {
+      blurb: 'Kokanada\u0304',
+      keys: ['sn1.39'],
+      html: { 'sn1.39:0.1': '<p>S\u0301ra\u0304vasti\u0304 {}' },
+      count: 1,
+      none: null,
+    }
+    assert.deepEqual(normalizeStrings(data), {
+      blurb: 'Kokanadā',
+      keys: ['sn1.39'],
+      html: { 'sn1.39:0.1': '<p>Śrāvastī {}' },
+      count: 1,
+      none: null,
+    })
+  })
+
+  it('keeps a mark that has no composed form with its letter', () => {
+    assert.equal(normalizeStrings('sag\u0304\u0331akada'), 'saḡ\u0331akada')
+    assert.equal(normalizeStrings('漢語'), '漢語')
   })
 })
 
