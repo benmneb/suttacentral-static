@@ -1,7 +1,7 @@
 /**
  * Asset Minification Utilities
  *
- * Minifies the CSS and JavaScript files into `_site` for the Eleventy build,
+ * Minifies the CSS and JavaScript files into the build's output, `_site`,
  * each under a name with a hash of its content (ie `styles.3f9a1c2b.css`), so
  * it can be cached for good. `tools/serve.js` minifies them per request instead.
  *
@@ -30,6 +30,7 @@ import { browserslistToTargets, transform } from 'lightningcss'
 import path from 'path'
 import { minify as terserMinify } from 'terser'
 import { buildStage } from './buildStage.js'
+import { outputDir } from './outputDir.js'
 import { recordStat } from './buildStats.js'
 
 // The :has() floor, plus Firefox 115 ESR as the last on Windows 7 and old macOS
@@ -158,7 +159,7 @@ export function minifyHtmlCode(html) {
  */
 export async function minifyCss({
   srcDir = path.join(process.cwd(), 'src', 'styles'),
-  destDir = path.join(process.cwd(), '_site', 'styles'),
+  destDir = path.join(outputDir, 'styles'),
 } = {}) {
   if (!fs.existsSync(srcDir)) {
     console.warn(`CSS source dir not found: ${srcDir}`)
@@ -201,7 +202,7 @@ export async function minifyCss({
  */
 export async function minifyJs({
   srcDir = path.join(process.cwd(), 'src', 'scripts'),
-  destDir = path.join(process.cwd(), '_site', 'scripts'),
+  destDir = path.join(outputDir, 'scripts'),
 } = {}) {
   if (!fs.existsSync(srcDir)) {
     console.warn(`JS source dir not found: ${srcDir}`)

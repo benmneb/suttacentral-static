@@ -20,8 +20,7 @@ import path from 'node:path'
 import { loadDictionaries } from './dictionaries.js'
 import { loadDefineWords } from './defineWords.js'
 import { cleanPaliWord, loadLookup } from './lookupAnswers.js'
-
-const OUTPUT_DIR = path.join('_site', 'dictionaries')
+import { outputDir } from './outputDir.js'
 
 // A group bigger than this gets split by its next character
 const MAX_SHARD_BYTES = 100 * 1024
@@ -66,7 +65,7 @@ export function groupByPrefix(entries, prefix = '') {
 }
 
 async function writeShards(name, groups, index) {
-  const dir = path.join(OUTPUT_DIR, name)
+  const dir = path.join(outputDir, 'dictionaries', name)
   await fs.rm(dir, { recursive: true, force: true })
   await fs.mkdir(dir, { recursive: true })
   await Promise.all(
@@ -83,7 +82,7 @@ async function writeShards(name, groups, index) {
 
 // The answers already written, so a sample build adds its words to them rather than leaving only its own
 async function writtenAnswers() {
-  const dir = path.join(OUTPUT_DIR, 'pli-en')
+  const dir = path.join(outputDir, 'dictionaries', 'pli-en')
   try {
     const files = (await fs.readdir(dir)).filter(f => f !== 'index.json')
     const shards = await Promise.all(

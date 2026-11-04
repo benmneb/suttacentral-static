@@ -8,9 +8,8 @@
 
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { outputDir } from './outputDir.js'
 import { formatVolpages } from './strings.js'
-
-const OUTPUT_DIR = path.join('_site', 'search', 'volpages')
 
 // ie "PTS 2.72", "PTS SN ii 66", "PTS (2nd ed) 1.44", "PTS 1.1.1" or "PTS Iti 109"
 const PTS_PAGE =
@@ -97,14 +96,15 @@ const textsOf = nodes =>
 /** Writes each book's file and the index, from `masterData`'s tree */
 export async function writeVolpages(tree) {
   const books = volpageBooks(textsOf(tree))
-  await fs.rm(OUTPUT_DIR, { recursive: true, force: true })
-  await fs.mkdir(OUTPUT_DIR, { recursive: true })
+  const dir = path.join(outputDir, 'search', 'volpages')
+  await fs.rm(dir, { recursive: true, force: true })
+  await fs.mkdir(dir, { recursive: true })
   await Promise.all([
     ...[...books].map(([name, book]) =>
-      fs.writeFile(path.join(OUTPUT_DIR, `${name}.json`), JSON.stringify(book))
+      fs.writeFile(path.join(dir, `${name}.json`), JSON.stringify(book))
     ),
     fs.writeFile(
-      path.join(OUTPUT_DIR, 'index.json'),
+      path.join(dir, 'index.json'),
       JSON.stringify({ books: [...books.keys()] })
     ),
   ])

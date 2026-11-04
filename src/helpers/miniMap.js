@@ -12,8 +12,7 @@
 
 import fs from 'node:fs/promises'
 import path from 'node:path'
-
-const OUTPUT_DIR = path.join('_site', 'map')
+import { outputDir } from './outputDir.js'
 
 // Not a stroke that grows with the zoom, which a mini map's is
 const LINE = 'vector-effect: non-scaling-stroke'
@@ -46,13 +45,11 @@ export async function writeMiniMap({ base, symbols, layers, places }) {
       { id, icon, type, view, x, y },
     ])
   )
-  await fs.mkdir(OUTPUT_DIR, { recursive: true })
+  const dir = path.join(outputDir, 'map')
+  await fs.mkdir(dir, { recursive: true })
   await Promise.all([
-    fs.writeFile(path.join(OUTPUT_DIR, 'base.svg'), svg),
-    fs.writeFile(
-      path.join(OUTPUT_DIR, 'places.json'),
-      JSON.stringify(placesJson)
-    ),
+    fs.writeFile(path.join(dir, 'base.svg'), svg),
+    fs.writeFile(path.join(dir, 'places.json'), JSON.stringify(placesJson)),
   ])
   console.log(`🗺️  Wrote the mini maps' base, with ${shapes.length} outlines`)
 }

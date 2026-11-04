@@ -16,6 +16,7 @@ import {
   minifyHtmlCode,
   minifyJs,
 } from './src/helpers/minifyAssets.js'
+import { setOutputDir } from './src/helpers/outputDir.js'
 import { ogTags } from './src/helpers/pageMetadata.js'
 import {
   parallelAnchor,
@@ -74,6 +75,8 @@ const iconNames = new Set(
 )
 
 export default function (eleventyConfig) {
+  setOutputDir(eleventyConfig.directories.output)
+
   // So every `include` is not read and parsed again for each of ~140k pages
   // Keyed by include name, so no two `includes` can share a name, even in different folders
   eleventyConfig.setLiquidOptions({ cache: true })

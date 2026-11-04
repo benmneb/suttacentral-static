@@ -14,9 +14,9 @@ import { createHash } from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import sharp from 'sharp'
+import { outputDir } from './outputDir.js'
 import { CACHE_DURATION } from './scApi.js'
 
-const OUTPUT_DIR = '_site'
 const QUALITY = 60
 
 const images = new Map()
@@ -44,7 +44,7 @@ async function encode(url, dir, height) {
       .digest('base64url')
       .slice(0, 10)
     const name = `${path.parse(new URL(url).pathname).name}-${hash}.avif`
-    const file = path.join(OUTPUT_DIR, 'images', dir, name)
+    const file = path.join(outputDir, 'images', dir, name)
 
     let info
     try {
