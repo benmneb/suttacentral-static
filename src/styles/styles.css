@@ -65,6 +65,7 @@
   --comments-background-color: var(--bg-hard);
   --comments-border-color: var(--bg-hard);
   --sheet-background-color: var(--bg-alt-1);
+  --focus-ring: 2px solid var(--primary-color);
 
   --sans-serif-font:
     -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui,
@@ -181,6 +182,12 @@
     --orange-alt: #7a2903;
     --gray: #4b433b;
     --brown: #56402d;
+  }
+}
+
+@media (forced-colors: active) {
+  :root {
+    --focus-ring: 2px solid Highlight;
   }
 }
 
@@ -773,6 +780,10 @@ dialog#search-modal {
 
   @media (forced-colors: active) {
     border: 1px solid;
+
+    &:focus-within {
+      border-color: Canvas;
+    }
   }
 }
 
@@ -1226,6 +1237,7 @@ main {
 a:where([href]):not(.button) {
   color: var(--primary-color);
   box-decoration-break: clone;
+  border-radius: var(--rounding);
 
   &:visited {
     color: var(--primary-color-alt);
@@ -1236,7 +1248,6 @@ a:where([href]):not(.button) {
     color: var(--background-color);
     background-color: var(--primary-color);
     text-decoration: none;
-    border-radius: var(--rounding);
     box-shadow:
       0.1rem 0 0 var(--primary-color),
       -0.1rem 0 0 var(--primary-color);
@@ -1298,6 +1309,12 @@ body > main:focus {
   outline: none;
 }
 
+:where(:focus-visible) {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  z-index: 0;
+}
+
 /* https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/Heading_Elements#specifying_a_uniform_font_size_for_h1 */
 :where(article h1, section h1, nav h1, aside h1) {
   margin-block: 0.67em;
@@ -1312,10 +1329,14 @@ form#search-form {
   border-color: var(--text-color-secondary);
 
   &:focus-within {
-    border-color: inherit;
-    /* The browser's own ring, the first line where -webkit-focus-ring-color is unknown */
-    outline: 1px auto;
-    outline: auto 1px -webkit-focus-ring-color;
+    border-color: var(--primary-color);
+    outline: var(--focus-ring);
+    outline-offset: -1px;
+
+    /* Forced colours repaint the border, and Highlight can be see-through */
+    @media (forced-colors: active) {
+      border-color: Canvas;
+    }
   }
 
   input {

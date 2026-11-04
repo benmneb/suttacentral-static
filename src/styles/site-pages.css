@@ -236,10 +236,11 @@
       max-height: calc(100vh - 2rem);
       overflow-y: auto;
 
+      /* Room for the focus ring, which the scroll box would clip */
       .entry-list {
         gap: 0.25rem;
         margin: 0;
-        padding-left: 0.1em;
+        padding: 4px;
       }
     }
   }
@@ -522,9 +523,13 @@
 
     &:focus-within {
       border-color: inherit;
-      /* The browser's own ring, the first line where -webkit-focus-ring-color is unknown */
-      outline: 1px auto;
-      outline: auto 1px -webkit-focus-ring-color;
+      outline: var(--focus-ring);
+      outline-offset: -1px;
+
+      /* Forced colours repaint the border, and Highlight can be see-through */
+      @media (forced-colors: active) {
+        border-color: Canvas;
+      }
     }
 
     input {

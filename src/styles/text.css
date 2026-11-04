@@ -532,6 +532,8 @@ button[style]:is([popovertarget^='comment-'], [popovertarget^='variant-']) {
   border: none;
   background: none;
   outline: none;
+  /* Not lifted when focused, which would bring the tint over the text */
+  z-index: auto;
   /* Spans the text for the tint, so only the bracket takes clicks */
   pointer-events: none;
 
@@ -593,14 +595,8 @@ button[style]:is([popovertarget^='comment-'], [popovertarget^='variant-']) {
   }
 
   &:focus-visible::before {
-    /* The browser's own ring, the first line where -webkit-focus-ring-color is unknown */
-    outline: 1px auto;
-    outline: auto 1px -webkit-focus-ring-color;
+    outline: var(--focus-ring);
     outline-offset: 1px;
-
-    @media (forced-colors: active) {
-      outline-color: Highlight;
-    }
   }
 
   &::after {
@@ -1026,6 +1022,12 @@ aside:where(body > *) {
       &:hover:not(button[disabled]) {
         background-color: var(--primary-color);
         color: var(--background-color);
+      }
+
+      /* Inset, as the bar sits on the window's edge */
+      &:focus-visible {
+        outline-color: var(--background-color);
+        outline-offset: -4px;
       }
 
       @media (forced-colors: active) {
@@ -1686,6 +1688,11 @@ aside:where(body > *) {
           background-color: unset;
         }
 
+        /* Inset, as the menu clips anything outside it */
+        &:focus-visible {
+          outline-offset: -2px;
+        }
+
         /* This is the number prefixing the title */
         &::before {
           flex: none;
@@ -1867,8 +1874,7 @@ main {
         outline: none;
 
         &::before {
-          outline: 1px auto;
-          outline: auto 1px -webkit-focus-ring-color;
+          outline: var(--focus-ring);
           outline-offset: 1px;
         }
       }
