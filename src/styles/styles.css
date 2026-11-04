@@ -925,6 +925,10 @@ main {
         forced-color-adjust: none;
         forced-color-adjust: preserve-parent-color;
         print-color-adjust: exact;
+
+        &[title] {
+          cursor: help;
+        }
       }
 
       .root-title > span {
@@ -936,13 +940,16 @@ main {
       }
 
       .parallel-notes {
+        display: inline;
+
         > summary {
-          display: block;
+          display: inline;
           padding: 0;
           margin: 0;
+          margin-inline-start: 0.3rem;
           cursor: pointer;
 
-          /* Safari before 18.4 draws it even on a block summary */
+          /* Safari before 18.4 draws it on any summary, block or inline */
           &::-webkit-details-marker {
             display: none;
           }

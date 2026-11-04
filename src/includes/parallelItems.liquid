@@ -61,22 +61,24 @@
       {%- textRefs label, parallel.to.alt_acronym, parallel.to.scx_lang_name, parallel.to.scx_volpages, parallel.to.scx_alt_volpages -%}
     {%- endcapture %}
     {% if parallel.to.scx_has_notes %}
-      <details class="parallel-notes">
-        <summary class="text-refs" title="Notes">
-          {{- refs }}
-          {% icon "informationCircle" %}
-          <span class="sr-only">Notes</span>
-        </summary>
-        {% for remark in parallel.to.scx_remarks %}
-          <p>{{ remark }}</p>
-        {% endfor %}
-        {% if parallel.to.scx_volpages_full %}
-          <p>{{ parallel.to.scx_volpages_full }}</p>
-        {% endif %}
-        {% if parallel.to.biblio %}
-          <p>{{ parallel.to.biblio }}</p>
-        {% endif %}
-      </details>
+      <div class="text-refs">
+        {{ refs }}
+        <details class="parallel-notes">
+          <summary title="Notes">
+            {%- icon "informationCircle" %}
+            <span class="sr-only">Notes</span>
+          </summary>
+          {% for remark in parallel.to.scx_remarks %}
+            <p>{{ remark }}</p>
+          {% endfor %}
+          {% if parallel.to.scx_volpages_full %}
+            <p>{{ parallel.to.scx_volpages_full }}</p>
+          {% endif %}
+          {% if parallel.to.biblio %}
+            <p>{{ parallel.to.biblio }}</p>
+          {% endif %}
+        </details>
+      </div>
     {% elsif refs != blank %}
       <p class="text-refs">{{ refs }}</p>
     {% endif %}
