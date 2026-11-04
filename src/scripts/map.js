@@ -26,6 +26,10 @@
   // As vim's, each a fraction of the view to move by
   const MOVES = { h: [-0.2, 0], j: [0, 0.2], k: [0, -0.2], l: [0.2, 0] }
   const GLIDE_MS = 200
+  // Pixels in a wheel event's delta of each deltaMode: pixels, lines, pages
+  const WHEEL_UNITS = [1, 16, 800]
+  // The most one wheel event zooms by, as ln(1.25), a mouse wheel's notch
+  const MAX_WHEEL = Math.log(1.25)
   // Without them, :popover-open would throw
   const popovers = 'showPopover' in HTMLElement.prototype
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)')
@@ -143,12 +147,11 @@
       if (!event.ctrlKey && !event.metaKey) return
       if (event.target.closest('.map-place')) return
       event.preventDefault()
-      show(
-        zoomed(
-          event.deltaY < 0 ? 1.25 : 0.8,
-          toMap(event.clientX, event.clientY)
-        )
-      )
+      const pixels = event.deltaY * WHEEL_UNITS[event.deltaMode]
+      // A pinch comes as ctrl + wheel, its delta 100 × ln(scale) in Chromium
+      const rate = event.ctrlKey ? 0.01 : 0.003
+      const step = Math.min(Math.max(-pixels * rate, -MAX_WHEEL), MAX_WHEEL)
+      show(zoomed(Math.exp(step), toMap(event.clientX, event.clientY)))
     },
     { passive: false }
   )
