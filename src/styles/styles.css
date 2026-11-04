@@ -890,6 +890,11 @@ main {
         li {
           list-style-type: none;
 
+          /* Inline, its box is only as tall as the text, which axe finds too near the summary above */
+          > a:first-child {
+            display: inline-block;
+          }
+
           ul {
             padding-left: 2rem;
             margin-top: 0.3rem;
