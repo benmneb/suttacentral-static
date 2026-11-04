@@ -12,12 +12,11 @@ import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { SC_ORIGIN } from './scApi.js'
+import { CACHE_DURATION, SC_ORIGIN } from './scApi.js'
 import { configKeys } from './sitePages.js'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const TEMPLATE_DIRS = ['pages', 'includes', 'layouts']
-const CACHE_DURATION = process.env.REFETCH ? '0s' : '*'
 
 // Not donations etc, which have no pages here
 export const STRING_FILES = [

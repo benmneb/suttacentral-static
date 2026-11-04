@@ -98,6 +98,11 @@ You need a `.env` file with these: (any missing vars will just skip that provide
 
 - Version tags must start with lowercase `v` (e.g., `v1.0.0`)
 - The local Eleventy cache of fetched data from SuttaCentral APIs will persist until manually deleted or you run `pnpm build:refetch`
+- The build runs in stages: `build:texts`, `build:define`, `build:nav`, then `build:site-pages`. `pnpm build:refetch` fetches everything again in the first stage, and the later stages reuse that. Each stage prints the time the refetch started from, ie `REFETCH=1762300000`. If a stage fails, run it and the stages after it with that same value, so nothing is fetched twice. Then finish with the sitemap and search:
+
+  ```bash
+  REFETCH=1762300000 pnpm build:nav && REFETCH=1762300000 pnpm build:site-pages && pnpm build:sitemap && pnpm build:search
+  ```
 
 ### 2. Via Github Actions
 

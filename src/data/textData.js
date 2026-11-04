@@ -8,6 +8,7 @@ import {
   uidToAcronym,
 } from '../helpers/rangeSuttas.js'
 import masterData from './_masterData.js'
+import { builds } from '../helpers/buildStage.js'
 import { breadcrumbTrail } from '../helpers/breadcrumbs.js'
 import { onlySample } from '../helpers/samplePages.js'
 import { referenceGroupsOf } from '../helpers/referenceEditions.js'
@@ -795,6 +796,7 @@ function flatten(nodes, parent, parentPath) {
  * ]
  */
 export default async function () {
+  if (!builds('texts')) return []
   const menu = await masterData()
   tree = menu
   const entries = onlySample(flatten(menu).filter(Boolean))

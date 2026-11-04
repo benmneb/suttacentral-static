@@ -3,7 +3,7 @@ pagination:
   data: collections.all
   size: 40000
   alias: entries
-permalink: '/sitemap-{{ pagination.pageNumber | plus: 1 }}.xml'
+permalink: '/sitemap-{% if buildStage %}{{ buildStage }}-{% endif %}{{ pagination.pageNumber | plus: 1 }}.xml'
 eleventyExcludeFromCollections: true
 ---
 <?xml version="1.0" encoding="utf-8"?>

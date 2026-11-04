@@ -11,8 +11,19 @@
 export const SC_ORIGIN = 'https://suttacentral.net'
 const API = `${SC_ORIGIN}/api`
 
-// How long a cached response is good for: https://www.11ty.dev/docs/plugins/fetch/#change-the-cache-duration
-const CACHE_DURATION = process.env.REFETCH ? '0s' : '*'
+const refetchSince = Number(process.env.REFETCH)
+
+/**
+ * How long a cached response is good for: https://www.11ty.dev/docs/plugins/fetch/#change-the-cache-duration
+ * Forever, or with `REFETCH=1` not at all. `REFETCH` as a Unix time in seconds, ie a staged build's start, keeps
+ * only what was fetched since, so its later stages and reruns read what its first stage fetched
+ */
+export const CACHE_DURATION =
+  refetchSince > 1e9
+    ? `${Math.max(1, Math.floor(Date.now() / 1000 - refetchSince))}s`
+    : process.env.REFETCH
+      ? '0s'
+      : '*'
 
 /**
  * Eleventy Fetch options for a SuttaCentral API URL, so the tests read back the same cache files

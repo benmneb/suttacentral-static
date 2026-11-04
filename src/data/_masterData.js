@@ -6,6 +6,7 @@ import { fixPaginationLinks } from '../helpers/paginationLinks.js'
 import { addParallelDetails } from '../helpers/parallelLinks.js'
 import { parseUidNumbers } from '../helpers/rangeSuttas.js'
 import {
+  CACHE_DURATION,
   fetchOptions,
   leafUrl,
   menuUrl,
@@ -320,15 +321,29 @@ async function fetchDataTree(uid, depth = 0) {
         return null
       }
 
-      let publicationData
-      try {
-        publicationData = await fetchJson(
-          publicationInfoUrl(node.uid, trans.lang, trans.author_uid)
-        )
-      } catch {
+      const pubInfoUrl = publicationInfoUrl(
+        node.uid,
+        trans.lang,
+        trans.author_uid
+      )
+      // Fetch caches no failures, so each build stage would ask .net for the ~10k 404s again
+      const pubInfoFailed = new AssetCache(`${pubInfoUrl}#404`, '.cache')
+      let publicationData = { error: true }
+      let failed = pubInfoFailed.isCacheValid(CACHE_DURATION)
+      if (failed) {
+        endpointsHit++
+      } else {
+        try {
+          publicationData = await fetchJson(pubInfoUrl)
+        } catch (e) {
+          failed = true
+          if (e.message.includes('(404)'))
+            await pubInfoFailed.save(true, 'json')
+        }
+      }
+      if (failed) {
         fetchErrors++
         pubInfoErrors++
-        publicationData = { error: true }
         // It's possibly only root texts and Sujato's translations actually have data here.
         // This error object is what SC returns for errors also, ie: https://suttacentral.net/api/publication_info/dn1/en/bodhi
       }
@@ -483,14 +498,20 @@ export default async function () {
         `Results: ${successCount}/${endpointsHit} successful (${successRate}%)${errorDetails}`
       )
 
-    recordStat('fetch', {
-      endpointsHit,
-      successCount,
-      fetchErrors,
-      pubInfoErrors,
-      cacheTimeErrors,
-      elapsedMins: Number(elapsedMins),
-    })
+    // The stage that fetched, rather than a later one reading its cache
+    recordStat(
+      'fetch',
+      {
+        endpointsHit,
+        successCount,
+        fetchErrors,
+        pubInfoErrors,
+        cacheTimeErrors,
+        elapsedMins: Number(elapsedMins),
+      },
+      (earlier, value) =>
+        earlier?.elapsedMins > value.elapsedMins ? earlier : value
+    )
 
     isBuilding = false
     endpointsHit = 0

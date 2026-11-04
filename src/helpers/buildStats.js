@@ -38,12 +38,14 @@ function readJson(file) {
  * Merge a value into `.build-stats.json` under `key`. Never throws.
  * @param {string} key
  * @param {unknown} value
+ * @param {(earlier: unknown, value: unknown) => unknown} [merge] - What to keep, given an earlier
+ *   build stage's value, rather than just this one
  */
-export function recordStat(key, value) {
+export function recordStat(key, value, merge = (earlier, value) => value) {
   if (process.env.ONLY_UIDS) return
   try {
     const stats = readJson(statsFile)
-    stats[key] = value
+    stats[key] = merge(stats[key], value)
     fs.writeFileSync(statsFile, JSON.stringify(stats, null, 2))
   } catch (e) {
     console.warn(`Could not record build stat "${key}":`, e.message)
@@ -73,7 +75,13 @@ function safe(fn) {
 export function collect() {
   const stats = readJson(statsFile)
   const buildSeconds = Number.parseFloat(process.env.BUILD_SECONDS)
-  const eleventySeconds = stats.eleventy?.seconds
+  // One entry per build stage
+  const eleventyStages = Object.values(stats.eleventy ?? {})
+  const eleventyTotal = name =>
+    eleventyStages.length
+      ? eleventyStages.reduce((sum, stage) => sum + stage[name], 0)
+      : undefined
+  const eleventySeconds = eleventyTotal('seconds')
 
   const fetchSummary = safe(() => {
     const f = stats.fetch
@@ -133,7 +141,7 @@ export function collect() {
     build_duration: duration(buildSeconds),
     eleventy_duration: duration(eleventySeconds),
     search_duration: duration(buildSeconds - eleventySeconds),
-    eleventy_files: num(stats.eleventy?.files),
+    eleventy_files: num(eleventyTotal('files')),
     fetch_summary: fetchSummary,
     fetch_failures: fetchFailures,
     assets_summary: assetsSummary,

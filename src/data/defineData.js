@@ -1,5 +1,6 @@
 import { AssetCache } from '@11ty/eleventy-fetch'
 import { createHash } from 'node:crypto'
+import { builds } from '../helpers/buildStage.js'
 import {
   generateDefineJsonLd,
   generateDefineOGTags,
@@ -262,9 +263,6 @@ function listKey(ascii) {
   return /[a-z]/.test(ascii[0]) ? ascii[0] : '_'
 }
 
-// The builds the /define pages are left out of, as in `.eleventy.js`
-const DEFINE_LEFT_OUT = ['ONLY_NAV', 'ONLY_TEXTS', 'ONLY_UTILS', 'ONLY_SITE']
-
 const NONE = { pages: [], wordLists: [], dictionaries: [], index: [] }
 
 /**
@@ -273,7 +271,7 @@ const NONE = { pages: [], wordLists: [], dictionaries: [], index: [] }
  * `ONLY_UIDS` in a sample build
  */
 export default async function () {
-  if (DEFINE_LEFT_OUT.some(flag => process.env[flag])) return NONE
+  if (!builds('define')) return NONE
   const words = await loadDefineWords()
   if (!words.size) return NONE
 

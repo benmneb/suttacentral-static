@@ -29,6 +29,7 @@ import htmlmin from 'html-minifier-terser'
 import { browserslistToTargets, transform } from 'lightningcss'
 import path from 'path'
 import { minify as terserMinify } from 'terser'
+import { buildStage } from './buildStage.js'
 import { recordStat } from './buildStats.js'
 
 // The :has() floor, plus Firefox 115 ESR as the last on Windows 7 and old macOS
@@ -49,14 +50,25 @@ const CSS_TARGETS = browserslistToTargets(browserslist(BROWSERS))
 const hashedUrls = new Map()
 
 /**
- * An empty `dir` for this build's files, as nothing links an earlier build's
+ * An empty `dir` for this build's files, as nothing links an earlier build's.
+ * A build stage instead fails if a file changed since an earlier stage, whose pages link the old copy
  * @param {string} dir
  * @param {string} ext - ie `.css`
+ * @returns {() => void} Call once this build's files are written
  */
 function clearDir(dir, ext) {
   fs.mkdirSync(dir, { recursive: true })
-  for (const file of fs.readdirSync(dir)) {
-    if (file.endsWith(ext)) fs.rmSync(path.join(dir, file))
+  const earlier = fs.readdirSync(dir).filter(file => file.endsWith(ext))
+  for (const file of earlier) fs.rmSync(path.join(dir, file))
+  return () => {
+    if (!buildStage) return
+    const written = new Set(fs.readdirSync(dir))
+    const changed = earlier.filter(file => !written.has(file))
+    if (changed.length) {
+      throw new Error(
+        `${changed.join(', ')} changed since an earlier build stage, whose pages link the old copy, so rebuild every stage`
+      )
+    }
   }
 }
 
@@ -153,7 +165,7 @@ export async function minifyCss({
     return
   }
 
-  clearDir(destDir, '.css')
+  const checkEarlier = clearDir(destDir, '.css')
 
   const files = fs.readdirSync(srcDir).filter(f => f.endsWith('.css'))
   const stats = []
@@ -175,6 +187,7 @@ export async function minifyCss({
     stats.push({ file, originalSize, minifiedSize })
   }
 
+  checkEarlier()
   recordStat('assetsCss', stats)
 }
 
@@ -195,7 +208,7 @@ export async function minifyJs({
     return
   }
 
-  clearDir(destDir, '.js')
+  const checkEarlier = clearDir(destDir, '.js')
 
   const sources = fs
     .readdirSync(srcDir)
@@ -230,5 +243,6 @@ export async function minifyJs({
     }
   }
 
+  checkEarlier()
   recordStat('assetsJs', stats)
 }

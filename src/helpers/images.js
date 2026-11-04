@@ -14,8 +14,8 @@ import { createHash } from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import sharp from 'sharp'
+import { CACHE_DURATION } from './scApi.js'
 
-const CACHE_DURATION = process.env.REFETCH ? '0s' : '*'
 const OUTPUT_DIR = '_site'
 const QUALITY = 60
 

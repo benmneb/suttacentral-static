@@ -1,4 +1,5 @@
 import masterData from './_masterData.js'
+import { builds } from '../helpers/buildStage.js'
 import { breadcrumbTrail } from '../helpers/breadcrumbs.js'
 import { onlySample } from '../helpers/samplePages.js'
 import {
@@ -171,6 +172,7 @@ function flatten(nodes, parentPath = '') {
  * ]
  */
 export default async function () {
+  if (!builds('nav')) return []
   const menu = await masterData()
   tree = menu
   const chapters = flatten(menu).filter(Boolean)

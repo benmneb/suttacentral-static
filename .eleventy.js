@@ -1,6 +1,7 @@
 import fs from 'fs'
 import masterData from './src/data/_masterData.js'
 import siteMetaData from './src/data/_siteMetaData.js'
+import { builds, buildStage } from './src/helpers/buildStage.js'
 import { recordStat } from './src/helpers/buildStats.js'
 import { defineHref, loadDefineWords } from './src/helpers/defineWords.js'
 import { loadDictionaries } from './src/helpers/dictionaries.js'
@@ -52,13 +53,13 @@ const navTemplates = [
   `${inputDir}/chapter.liquid`,
   `${inputDir}/textMeta.liquid`,
 ]
-const siteTemplates = `${inputDir}/site/**`
-const defineTemplates = `${inputDir}/define/**`
-const utilTemplates = [
-  `${inputDir}/_robots.liquid`,
-  `${inputDir}/_sitemap.liquid`,
-  `${inputDir}/_sitemapIndex.liquid`,
-]
+const sitemapTemplate = `${inputDir}/_sitemap.liquid`
+const stageTemplates = {
+  texts: [textTemplate],
+  define: [`${inputDir}/define/**`],
+  nav: navTemplates,
+  site: [`${inputDir}/site/**`, `${inputDir}/_robots.liquid`],
+}
 const iconNames = new Set(
   fs
     .readdirSync('src/styles')
@@ -77,44 +78,22 @@ export default function (eleventyConfig) {
   // Keyed by include name, so no two `includes` can share a name, even in different folders
   eleventyConfig.setLiquidOptions({ cache: true })
 
-  if (process.env.ONLY_NAV) {
-    eleventyConfig.ignores.add(textTemplate)
-    eleventyConfig.ignores.add(siteTemplates)
-    eleventyConfig.ignores.add(defineTemplates)
-    utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
-    console.log('⏭️  Building only nav pages (ONLY_NAV enabled)')
-  } else if (process.env.ONLY_TEXTS) {
-    navTemplates.forEach(page => eleventyConfig.ignores.add(page))
-    eleventyConfig.ignores.add(siteTemplates)
-    eleventyConfig.ignores.add(defineTemplates)
-    utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
-    console.log('📄 Building only text pages (ONLY_TEXTS enabled)')
-  } else if (process.env.ONLY_UTILS) {
-    // The sitemaps come out empty, as they list `collections.all` and this leaves no pages in it
-    eleventyConfig.ignores.add(textTemplate)
-    navTemplates.forEach(page => eleventyConfig.ignores.add(page))
-    eleventyConfig.ignores.add(siteTemplates)
-    eleventyConfig.ignores.add(defineTemplates)
-    console.log('🧰 Building only utility pages (ONLY_UTILS enabled)')
-  } else if (process.env.ONLY_SITE) {
-    eleventyConfig.ignores.add(textTemplate)
-    navTemplates.forEach(page => eleventyConfig.ignores.add(page))
-    eleventyConfig.ignores.add(defineTemplates)
-    utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
-    console.log('ℹ️  Building only site pages (ONLY_SITE enabled)')
-  } else if (process.env.ONLY_DEFINE) {
-    eleventyConfig.ignores.add(textTemplate)
-    navTemplates.forEach(page => eleventyConfig.ignores.add(page))
-    eleventyConfig.ignores.add(siteTemplates)
-    utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
-    console.log('📖 Building only /define pages (ONLY_DEFINE enabled)')
+  for (const [stage, templates] of Object.entries(stageTemplates)) {
+    if (!builds(stage))
+      templates.forEach(page => eleventyConfig.ignores.add(page))
+  }
+  if (buildStage) console.log(`🧱 Building only the ${buildStage} pages`)
+  if (process.env.REFETCH) {
+    console.log(
+      `🔄 Refetching data cached before REFETCH=${process.env.REFETCH}`
+    )
   }
 
   // Not the sitemap, which would be written over with only the sample in it.
   // The /define pages are narrowed to a sample of their own, in `defineData.js`
   if (sampleUids) {
-    utilTemplates.forEach(page => eleventyConfig.ignores.add(page))
-    eleventyConfig.ignores.add(siteTemplates)
+    stageTemplates.site.forEach(page => eleventyConfig.ignores.add(page))
+    eleventyConfig.ignores.add(sitemapTemplate)
     console.log(`🧪 Building only ${sampleUids.join(', ')} (ONLY_UIDS enabled)`)
   }
 
@@ -189,7 +168,8 @@ export default function (eleventyConfig) {
     return (await loadTitleParts())(title)
   })
 
-  // SuttaCentral.net itself, for the links and images the pages point at
+  eleventyConfig.addGlobalData('buildStage', buildStage ?? '')
+
   eleventyConfig.addGlobalData('scOrigin', SC_ORIGIN)
 
   // Which root languages have word lookup, as its dictionaries were fetched
@@ -264,10 +244,14 @@ export default function (eleventyConfig) {
     buildStart = Date.now()
   })
   eleventyConfig.on('eleventy.after', ({ results }) => {
-    recordStat('eleventy', {
-      files: results?.length,
-      seconds: (Date.now() - buildStart) / 1000,
-    })
+    recordStat(
+      'eleventy',
+      {
+        files: results?.length,
+        seconds: (Date.now() - buildStart) / 1000,
+      },
+      (earlier, value) => ({ ...earlier, [buildStage ?? 'all']: value })
+    )
     const missing = missingKeys()
     recordStat('siteStrings', { missing: missing.length })
     if (missing.length) {
@@ -278,14 +262,8 @@ export default function (eleventyConfig) {
   })
 
   // A sample build adds its texts' words to the answers already written
-  const buildsTexts = ![
-    'ONLY_NAV',
-    'ONLY_SITE',
-    'ONLY_UTILS',
-    'ONLY_DEFINE',
-  ].some(flag => process.env[flag])
   eleventyConfig.on('eleventy.after', async () => {
-    if (!buildsTexts) return
+    if (!builds('texts')) return
     try {
       await writeLookupShards({ merge: !!sampleUids })
     } catch (e) {
@@ -294,13 +272,8 @@ export default function (eleventyConfig) {
   })
 
   // With /search, but not in a sample build, which has only some texts
-  const buildsSearch =
-    !sampleUids &&
-    !['ONLY_NAV', 'ONLY_TEXTS', 'ONLY_UTILS', 'ONLY_DEFINE'].some(
-      flag => process.env[flag]
-    )
   eleventyConfig.on('eleventy.after', async () => {
-    if (!buildsSearch) return
+    if (sampleUids || !builds('site')) return
     try {
       await writeVolpages(await masterData())
     } catch (e) {
@@ -309,11 +282,8 @@ export default function (eleventyConfig) {
   })
 
   // With /map, /define and /search, whose mini maps share it
-  const buildsMiniMaps = !['ONLY_NAV', 'ONLY_TEXTS', 'ONLY_UTILS'].some(
-    flag => process.env[flag]
-  )
   eleventyConfig.on('eleventy.after', async () => {
-    if (!buildsMiniMaps) return
+    if (!builds('site') && !builds('define')) return
     try {
       await writeMiniMap(await mapData())
     } catch (e) {

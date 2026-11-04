@@ -10,8 +10,8 @@
 
 import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
 import { recordStat } from './buildStats.js'
+import { CACHE_DURATION } from './scApi.js'
 
-const CACHE_DURATION = process.env.REFETCH ? '0s' : '*'
 const SC_DATA =
   'https://raw.githubusercontent.com/suttacentral/sc-data/main/dictionaries'
 const DPD_LOOKUPS =

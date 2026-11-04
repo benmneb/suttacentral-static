@@ -1,4 +1,5 @@
 import masterData from './_masterData.js'
+import { builds } from '../helpers/buildStage.js'
 import {
   absoluteUrl,
   jsonLd,
@@ -117,6 +118,7 @@ function generateIndexJsonLd(data) {
  * ]
  */
 export default async function () {
+  if (!builds('nav')) return []
   const menu = await masterData()
   const data = flatten(menu).filter(Boolean)
 

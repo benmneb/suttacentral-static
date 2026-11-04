@@ -12,8 +12,8 @@
  */
 
 import Fetch from '@11ty/eleventy-fetch'
+import { CACHE_DURATION } from './scApi.js'
 
-const CACHE_DURATION = process.env.REFETCH ? '0s' : '*'
 const SOURCE =
   'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson'
 
