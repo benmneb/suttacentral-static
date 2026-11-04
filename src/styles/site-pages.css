@@ -635,12 +635,6 @@
     }
   }
 
-  .map-symbols {
-    position: absolute;
-    width: 0;
-    height: 0;
-  }
-
   /* 100vw counts a classic scrollbar, so each gutter loses half of one */
   .interactive-map {
     width: calc(100vw - 2rem);
@@ -706,31 +700,8 @@
       height: 100%;
     }
 
-    path {
-      vector-effect: non-scaling-stroke;
-    }
-
     [data-place] {
       cursor: pointer;
-    }
-
-    .land {
-      fill: var(--bg-alt-1);
-      stroke: var(--fg-alt-4);
-      stroke-width: 0.75px;
-    }
-
-    .borders {
-      fill: none;
-      stroke: var(--fg-alt-4);
-      stroke-width: 0.5px;
-      stroke-dasharray: 4 3;
-    }
-
-    .rivers {
-      fill: none;
-      stroke: var(--blue);
-      stroke-width: 1px;
     }
 
     .journey {

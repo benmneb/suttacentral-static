@@ -23,13 +23,6 @@ eleventyComputed:
   </section>
 
   {% assign map = sitePagesData.map %}
-  <svg class="map-symbols" aria-hidden="true">
-    {% for symbol in map.symbols %}
-      <symbol id="marker-{{ symbol.name }}" viewBox="{{ symbol.viewBox }}">
-        {{- symbol.content -}}
-      </symbol>
-    {% endfor %}
-  </svg>
 
   {% if map.base %}
     {% assign viewBox = map.base.viewBox | split: " " %}
@@ -49,25 +42,25 @@ eleventyComputed:
             data-extent="{{ map.base.extent }}"
             aria-hidden="true"
           >
-            <path class="land" d="{{ map.base.land }}" />
-            <path class="borders today" d="{{ map.base.borders }}" />
-            <path class="rivers" d="{{ map.base.rivers }}" />
+            <use href="/map/base.svg#land" />
+            <use class="today" href="/map/base.svg#borders" />
+            <use href="/map/base.svg#rivers" />
             {% for layer in map.layers %}
               {% assign layerIndex = forloop.index %}
               {% for place in layer.places %}
                 {% if place.shape.type == "area" %}
-                  <path
+                  <use
                     class="area layer-{{ layerIndex }} shape-{{ layerIndex }}-{{ forloop.index }}"
                     data-place="{{ layerIndex }}-{{ forloop.index }}"
-                    d="{{ place.shape.d }}"
+                    href="/map/base.svg#{{ place.id | replace: "place", "shape" }}"
                     fill="{{ place.shape.fill }}"
                     fill-opacity="{{ place.shape.fillOpacity }}"
                   />
                 {% elsif place.shape.type == "line" %}
-                  <path
+                  <use
                     class="journey layer-{{ layerIndex }} shape-{{ layerIndex }}-{{ forloop.index }}"
                     data-place="{{ layerIndex }}-{{ forloop.index }}"
-                    d="{{ place.shape.d }}"
+                    href="/map/base.svg#{{ place.id | replace: "place", "shape" }}"
                   />
                 {% endif %}
               {% endfor %}
@@ -106,7 +99,7 @@ eleventyComputed:
                     >
                       {%- if kind == "point" -%}
                         <svg aria-hidden="true">
-                          <use href="#marker-{{ place.icon }}" />
+                          <use href="/map/base.svg#marker-{{ place.icon }}" />
                         </svg>
                         <span class="sr-only">{{ place.name }}</span>
                       {%- else -%}
@@ -291,7 +284,7 @@ eleventyComputed:
             <li>
               {% if place.define %}
                 <svg class="marker" aria-hidden="true">
-                  <use href="#marker-{{ place.icon }}" />
+                  <use href="/map/base.svg#marker-{{ place.icon }}" />
                 </svg>
                 <a href="/define/{{ place.define }}">{{ place.name }}</a>
               {% else %}

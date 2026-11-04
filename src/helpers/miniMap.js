@@ -1,10 +1,10 @@
 /**
  * Mini Map
  *
- * Writes the files the mini maps of a place share, on its /define page and above /search's results:
+ * Writes the files /map and the mini maps of a place, on its /define page and above /search's results, share:
  *
- * - `_site/map/base.svg`: the land and rivers, the marker symbols, and each region's and journey's outline,
- *   for them to `<use>`. Their colours are the page's variables, which reach into a `<use>`
+ * - `_site/map/base.svg`: the land, rivers and borders, the marker symbols, and each region's and journey's
+ *   outline, for them to `<use>`. Their colours are the page's variables, which reach into a `<use>`
  * - `_site/map/places.json`: each place's popover id on /map, icon, kind and viewBox, by its /define word
  *
  * Lives here, not in `data/`, as every file in there becomes global data.
@@ -30,9 +30,10 @@ export async function writeMiniMap({ base, symbols, layers, places }) {
         `<symbol id="marker-${name}" viewBox="${viewBox}">${content}</symbol>`
     ),
     '<g id="base">',
-    `<path style="fill: var(--map-land); stroke: var(--map-coast); stroke-width: 0.75px; ${LINE}" d="${base.land}"/>`,
-    `<path style="fill: none; stroke: var(--map-river); stroke-width: 1px; ${LINE}" d="${base.rivers}"/>`,
+    `<path id="land" style="fill: var(--map-land); stroke: var(--map-coast); stroke-width: 0.75px; ${LINE}" d="${base.land}"/>`,
+    `<path id="rivers" style="fill: none; stroke: var(--map-river); stroke-width: 1px; ${LINE}" d="${base.rivers}"/>`,
     '</g>',
+    `<path id="borders" style="fill: none; stroke: var(--map-coast); stroke-width: 0.5px; stroke-dasharray: 4 3; ${LINE}" d="${base.borders}"/>`,
     ...shapes.map(
       ({ id, shape }) =>
         `<path id="${id.replace('place', 'shape')}" style="${LINE}" d="${shape.d}"/>`

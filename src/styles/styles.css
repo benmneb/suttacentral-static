@@ -1366,8 +1366,12 @@ form#search-form {
   }
 }
 
+/* What /map/base.svg's land, rivers and markers take through a <use> */
 /* .net's own dark fills are lost on the dark land, so they're lighter here, and outlined dark between them */
 :is(.site-page.map, .mini-map) {
+  --map-land: var(--bg-alt-1);
+  --map-coast: var(--fg-alt-4);
+  --map-river: var(--blue);
   --map-marker-outline: var(--bg-hard);
   --map-marker-amber: #ffc107;
   --map-marker-gold: #ffcb61;
@@ -1383,11 +1387,7 @@ form#search-form {
   }
 }
 
-/* The land and rivers in /map/base.svg take these through its <use> */
 .mini-map {
-  --map-land: var(--bg-alt-1);
-  --map-coast: var(--fg-alt-4);
-  --map-river: var(--blue);
   display: block;
   width: min(100%, 24rem);
   margin-block: 1rem 0;
