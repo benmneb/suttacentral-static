@@ -71,7 +71,9 @@ const BLOCK_TAGS =
 
 /**
  * A legacy text with its slips mended: a list with what only an item can hold (`tidyLists`), a stray comma among
- * a tag's attributes, ie patthana1.23's `<ol type="1", start="5">`, and a URL with %7C for every /, ie sf81's
+ * a tag's attributes, ie patthana1.23's `<ol type="1", start="5">`, a URL with %7C for every /, ie sf81's, and
+ * an empty link, ie kv1.1's `<a class='pc' id='pc8' href='#pc8'></a>`, which .net fills only with paragraph
+ * numbers on, made an anchor
  */
 export function tidyLegacyHtml(html) {
   return tidyLists(html)
@@ -81,6 +83,7 @@ export function tidyLegacyHtml(html) {
       (match, quote, rest) =>
         `href=${quote}http://${rest.replaceAll('%7C', '/')}`
     )
+    .replace(/(<a\b[^>]*?)\s+href=(['"])[^'"]*\2([^>]*>\s*<\/a>)/g, '$1$3')
 }
 
 /**

@@ -118,6 +118,15 @@ describe('Legacy markup', () => {
     )
   })
 
+  it('makes an empty link an anchor', () => {
+    assert.equal(
+      tidyLegacyHtml(
+        "<p><a class='pc' id='pc8' href='#pc8'></a>: That <a class='ref sc' id='sc1' href='#sc1'>SC 1</a></p>"
+      ),
+      "<p><a class='pc' id='pc8'></a>: That <a class='ref sc' id='sc1' href='#sc1'>SC 1</a></p>"
+    )
+  })
+
   it('leaves valid lists and their items as they are', () => {
     const html =
       '<!DOCTYPE html><ul><li>A<ul><li>B</ul><li>C, <i>d</i></li>\n</ul><p>E, F</p><div><div>G</div></div>'
