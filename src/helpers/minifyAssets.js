@@ -33,6 +33,7 @@ import { minify as terserMinify } from 'terser'
 import { buildStage } from './buildStage.js'
 import { outputDir } from './outputDir.js'
 import { recordStat } from './buildStats.js'
+import { sampleUids } from './samplePages.js'
 
 // The :has() floor, plus Firefox 115 ESR as the last on Windows 7 and old macOS
 const BROWSERS = [
@@ -52,23 +53,31 @@ const CSS_TARGETS = browserslistToTargets(browserslist(BROWSERS))
 const hashedUrls = new Map()
 
 /**
- * An empty `dir` for this build's files, as nothing links an earlier build's.
- * A build stage instead fails if a file changed since an earlier stage, whose pages link the old copy
+ * Removes earlier builds' `ext` files from `dir`, as nothing links them once every page is rebuilt.
+ * Kept by a build stage or sample, as the pages they don't rebuild still link them
  * @param {string} dir
  * @param {string} ext - ie `.css`
  * @returns {() => void} Call once this build's files are written
  */
 function clearDir(dir, ext) {
   fs.mkdirSync(dir, { recursive: true })
-  const earlier = fs.readdirSync(dir).filter(file => file.endsWith(ext))
-  for (const file of earlier) fs.rmSync(path.join(dir, file))
+  if (!buildStage && !sampleUids) {
+    const earlier = fs.readdirSync(dir).filter(file => file.endsWith(ext))
+    for (const file of earlier) fs.rmSync(path.join(dir, file))
+  }
   return () => {
-    if (!buildStage) return
-    const written = new Set(fs.readdirSync(dir))
-    const changed = earlier.filter(file => !written.has(file))
+    // Set by predeploy, whose stages build into an empty _site, so a second copy is one a stage changed
+    if (!process.env.FULL_BUILD) return
+    const copies = Object.groupBy(
+      fs.readdirSync(dir).filter(file => file.endsWith(ext)),
+      file => file.replace(/\.[0-9a-f]{8}(?=\.\w+$)/, '')
+    )
+    const changed = Object.entries(copies)
+      .filter(([, files]) => files.length > 1)
+      .map(([file]) => file)
     if (changed.length) {
       throw new Error(
-        `${changed.join(', ')} changed since an earlier build stage, whose pages link the old copy, so rebuild every stage`
+        `${changed.join(', ')} changed since an earlier build stage, whose pages link the old copy, so run pnpm predeploy again`
       )
     }
   }

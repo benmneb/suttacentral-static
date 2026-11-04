@@ -288,11 +288,7 @@ export default function (eleventyConfig) {
   // With /map, /define and /search, whose mini maps share it, before the pages, which link its hashed name
   eleventyConfig.on('eleventy.before', async () => {
     if (!builds('site') && !builds('define')) return
-    try {
-      await writeMiniMap(await mapData())
-    } catch (e) {
-      console.error('Error while writing the mini maps:', e)
-    }
+    await writeMiniMap(await mapData())
   })
 
   eleventyConfig.addPassthroughCopy({ 'src/images': 'images' })

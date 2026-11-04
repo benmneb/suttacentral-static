@@ -29,7 +29,7 @@
     "tauri:build": "pnpm tauri build",
     "format": "prettier --write . && cargo fmt --manifest-path tauri/Cargo.toml && taplo format **/*.toml",
     "format:check": "prettier --check . && cargo fmt --manifest-path tauri/Cargo.toml --check && taplo format --check **/*.toml",
-    "predeploy": "rm -rf _site .build-stats.json && pnpm build && pnpm build:search",
+    "predeploy": "rm -rf _site .build-stats.json && FULL_BUILD=1 pnpm build && pnpm build:search",
     "deploy:dev": "dotenv -e .env -- sh -c 'vercel deploy --archive=tgz --cwd=_site -A \"$PWD/vercel.json\" --token=\"$VERCEL_TOKEN\"'",
     "deploy:prod": "dotenv -e .env -- sh -c 'vercel deploy --archive=tgz --cwd=_site --prod -A \"$PWD/vercel.json\" --token=\"$VERCEL_TOKEN\"'",
     "release:dry": "node -r dotenv/config tools/release.js dry",
