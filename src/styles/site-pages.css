@@ -79,6 +79,7 @@
     &:active {
       color: var(--background-color);
       background-color: var(--primary-color);
+      text-decoration: none;
     }
   }
 
