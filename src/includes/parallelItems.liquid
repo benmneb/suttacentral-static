@@ -1,26 +1,28 @@
 {% comment %} With `typed`, each has a title saying its type, for a list not headed by it {% endcomment %}
 {% for parallel in parallels %}
   {% assign type = parallel.to.scx_type | default: parallel.to.type %}
-  <li
-    class="parallel-list-item-{{ type }}"
-    {% if typed %}
-      title="{% if type == 'full' %}Full parallel: different versions of the same text{% elsif type == 'resembling' %}Resembling parallel: texts are comparable{% elsif type == 'mention' %}Mention: one text is quoted or mentioned in another{% elsif type == 'retelling' %}Retelling: the events of one text are retold in another{% endif %}"
-    {% endif %}
-  >
-    {% if typed %}
-      <span class="sr-only">
-        {%- case type -%}
-          {%- when "full" -%}
-            Full parallel:
-          {%- when "resembling" -%}
-            Resembling parallel:
-          {%- when "mention" -%}
-            Mention:
-          {%- when "retelling" -%}
-            Retelling:
-        {%- endcase -%}
-      </span>
-    {% endif %}
+  <li class="parallel-list-item-{{ type }}">
+    <span
+      class="parallel-type"
+      {% if typed %}
+        title="{% if type == 'full' %}Full parallel: different versions of the same text{% elsif type == 'resembling' %}Resembling parallel: texts are comparable{% elsif type == 'mention' %}Mention: one text is quoted or mentioned in another{% elsif type == 'retelling' %}Retelling: the events of one text are retold in another{% endif %}"
+      {% endif %}
+    >
+      {%- if typed -%}
+        <span class="sr-only">
+          {%- case type -%}
+            {%- when "full" -%}
+              Full parallel:
+            {%- when "resembling" -%}
+              Resembling parallel:
+            {%- when "mention" -%}
+              Mention:
+            {%- when "retelling" -%}
+              Retelling:
+          {%- endcase -%}
+        </span>
+      {%- endif -%}
+    </span>
     {% comment %} Only English and root texts are built, see `filterTranslations` in `_masterData.js` {% endcomment %}
     {% assign built_trans = null %}
     {% for trans in parallel.to.translations %}
