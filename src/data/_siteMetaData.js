@@ -44,7 +44,7 @@ export default function () {
     ],
     analytics: 'https://umamalytics.netlify.app/share/4PY6ujsQ2Mxhz8d2',
     accessibility:
-      'https://git.sr.ht/~benmneb/suttacentral-static/tree/main/item/ACCESSIBILITY.md',
+      'https://git.sr.ht/~benmneb/suttacentral-static/tree/main/item/ACCESSIBILITY.md#accessibility',
     archive: 'https://codeberg.org/benmneb/suttacentral-static/releases/latest',
     contact: 'feedback@suttacentral.express',
     // suggestions: 'https://todo.sr.ht/~benmneb/suttacentral-static',
