@@ -236,6 +236,10 @@ async function fetchDataTree(uid, depth = 0) {
       children: menuData[0].children.filter(child => child?.uid),
     }),
   }
+  // /menu calls some chapters leaves while listing their texts, ie lzh-mu-bi-vb-pd
+  if (node.node_type === 'leaf' && node.children?.length) {
+    node = { ...node, node_type: 'branch' }
+  }
 
   async function getTextData() {
     let suttaplexData = null
