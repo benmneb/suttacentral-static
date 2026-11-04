@@ -184,6 +184,14 @@
       list-style: none;
       margin: 0;
     }
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 1.5rem;
+      min-height: 1.5rem;
+    }
   }
 
   h2 a {
@@ -229,8 +237,9 @@
       overflow-y: auto;
 
       .entry-list {
-        gap: 0.25rem 0.75rem;
+        gap: 0.25rem;
         margin: 0;
+        padding-left: 0.1em;
       }
     }
   }
