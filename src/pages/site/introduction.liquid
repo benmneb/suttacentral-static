@@ -24,7 +24,7 @@ eleventyComputed:
   <figure>
     {% assign alt = "introduction:13" | t %}
     {% capture imageUrl %}{{ scOrigin }}/img/static-pages/birchbark_w400.jpg{% endcapture %}
-    {% siteImage imageUrl, alt %}
+    {% siteImage imageUrl, alt, 1600, "lazy" %}
     <figcaption>{{ "introduction:14" | t | escape }}</figcaption>
   </figure>
   <p>
@@ -60,7 +60,7 @@ eleventyComputed:
   <figure>
     {% assign alt = "introduction:35" | t %}
     {% capture imageUrl %}{{ scOrigin }}/img/static-pages/dn20.jpg{% endcapture %}
-    {% siteImage imageUrl, alt %}
+    {% siteImage imageUrl, alt, 1600, "lazy" %}
     <figcaption>{{ "introduction:36" | t | escape }}</figcaption>
   </figure>
   <p>

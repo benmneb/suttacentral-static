@@ -58,7 +58,7 @@ eleventyComputed:
         <figure>
           {% capture cover %}{{ scOrigin }}/img/publication-pages/{{ edition.uid }}-book.jpg{% endcapture %}
           {% capture alt %}Cover art for {{ edition.title }}{% endcapture %}
-          {% siteImage cover, alt, 600 %}
+          {% siteImage cover, alt, 600, "lazy" %}
           {% if edition.blurb %}
             <figcaption>{{ edition.blurb }}</figcaption>
           {% endif %}

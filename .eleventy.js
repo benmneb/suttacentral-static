@@ -187,7 +187,7 @@ export default function (eleventyConfig) {
   // A remote image as a local one, as everything has to work offline
   eleventyConfig.addShortcode(
     'siteImage',
-    async function (url, alt = '', height = 1600) {
+    async function (url, alt = '', height = 1600, loading = 'eager') {
       const image = await localImage(url, { dir: 'site-pages', height })
       const altText = String(alt)
         .replace(/<[^>]*>/g, '')
@@ -196,7 +196,8 @@ export default function (eleventyConfig) {
       const size = image.width
         ? ` width="${image.width}" height="${image.height}"`
         : ''
-      return `<img src="${image.src}" alt="${altText}"${size} loading="lazy">`
+      const lazy = loading === 'lazy' ? ' loading="lazy"' : ''
+      return `<img src="${image.src}" alt="${altText}"${size}${lazy}>`
     }
   )
 

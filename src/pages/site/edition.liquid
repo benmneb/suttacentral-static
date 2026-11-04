@@ -149,7 +149,7 @@ eleventyComputed:
       <figure>
         {% capture photo %}{{ scOrigin }}/img/publication-pages/{{ publication.creator_uid }}.jpg{% endcapture %}
         {% capture alt %}Photo of {{ publication.creator_name }}{% endcapture %}
-        {% siteImage photo, alt, 300 %}
+        {% siteImage photo, alt, 300, "lazy" %}
         <figcaption>
           Bhante {{ publication.creator_uid | capitalize }}
         </figcaption>
@@ -180,7 +180,7 @@ eleventyComputed:
         <p>{{ publication.license_statement }}</p>
         <div>
           {% capture imageUrl %}{{ scOrigin }}/img/publication-pages/cc-zero.svg{% endcapture %}
-          {% siteImage imageUrl, "", 62 %}
+          {% siteImage imageUrl, "", 62, "lazy" %}
           <p>
             <a rel="license" href="{{ publication.license_url }}">
               {{- publication.license_type }}
