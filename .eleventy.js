@@ -285,8 +285,8 @@ export default function (eleventyConfig) {
     }
   })
 
-  // With /map, /define and /search, whose mini maps share it
-  eleventyConfig.on('eleventy.after', async () => {
+  // With /map, /define and /search, whose mini maps share it, before the pages, which link its hashed name
+  eleventyConfig.on('eleventy.before', async () => {
     if (!builds('site') && !builds('define')) return
     try {
       await writeMiniMap(await mapData())

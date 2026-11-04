@@ -919,12 +919,12 @@
     String(text).replace(/[&<>"]/g, char => `&#${char.charCodeAt(0)};`)
 
   /** A place on a bit of the map, as `includes/miniMap.liquid` draws it */
-  function miniMapHTML({ id, icon, type, view, x, y }) {
+  function miniMapHTML({ id, icon, type, view, x, y }, base) {
     const shape =
       type === 'point'
-        ? `<use href="/map/base.svg#marker-${icon}" transform="translate(${x} ${y})" x="-3" y="-3" width="6" height="6" />`
-        : `<use class="${type}" href="/map/base.svg#${id.replace('place', 'shape')}" />`
-    return `<div class="mini-map"><svg viewBox="${view}" aria-hidden="true"><use href="/map/base.svg#base" /><a href="/map#${id}" tabindex="-1">${shape}</a></svg><a href="/map#${id}"><i class="icon i-map"></i>View on full map</a></div>`
+        ? `<use href="${base}#marker-${icon}" transform="translate(${x} ${y})" x="-3" y="-3" width="6" height="6" />`
+        : `<use class="${type}" href="${base}#${id.replace('place', 'shape')}" />`
+    return `<div class="mini-map"><svg viewBox="${view}" aria-hidden="true"><use href="${base}#base" /><a href="/map#${id}" tabindex="-1">${shape}</a></svg><a href="/map#${id}"><i class="icon i-map"></i>View on full map</a></div>`
   }
 
   /*
@@ -940,9 +940,10 @@
     const lookup = await loadDictionary()
     if (!lookup) return
     const page = await lookup.definePage(query)
+    const mapBase = dictionaryEl.dataset.mapBase
     const [answer, places] = await Promise.all([
       lookup.lookup('pli-en', page ?? query),
-      page && fetchJSON('/map/places.json'),
+      page && mapBase && fetchJSON('/map/places.json'),
     ])
     const place = places?.[page]
     const matches = (answer ?? []).filter(match => match.d)
@@ -969,7 +970,7 @@
       : ''
     const href = page && `/define/${encodeURI(page)}`
     // Only a link to its page where DPD has nothing for it, ie a, which PTS has
-    const map = place ? miniMapHTML(place) : ''
+    const map = place ? miniMapHTML(place, mapBase) : ''
     dictionaryEl.innerHTML = matches.length
       ? `<h2 id="search-dictionary-heading">Digital Pāḷi Dictionary</h2><dl>${definitions}</dl>${more}${map}` +
         (page

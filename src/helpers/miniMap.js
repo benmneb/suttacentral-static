@@ -3,7 +3,7 @@
  *
  * Writes the files /map and the mini maps of a place, on its /define page and above /search's results, share:
  *
- * - `_site/map/base.svg`: the land, rivers and borders, the marker symbols, and each region's and journey's
+ * - `_site/map/base.<hash>.svg`: the land, rivers and borders, the marker symbols, and each region's and journey's
  *   outline, for them to `<use>`. Their colours are the page's variables, which reach into a `<use>`
  * - `_site/map/places.json`: each place's popover id on /map, icon, kind and viewBox, by its /define word
  *
@@ -12,6 +12,7 @@
 
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { writeHashedAsset } from './minifyAssets.js'
 import { outputDir } from './outputDir.js'
 
 // Not a stroke that grows with the zoom, which a mini map's is
@@ -48,9 +49,7 @@ export async function writeMiniMap({ base, symbols, layers, places }) {
   )
   const dir = path.join(outputDir, 'map')
   await fs.mkdir(dir, { recursive: true })
-  await Promise.all([
-    fs.writeFile(path.join(dir, 'base.svg'), svg),
-    fs.writeFile(path.join(dir, 'places.json'), JSON.stringify(placesJson)),
-  ])
+  writeHashedAsset(dir, '/map', 'base.svg', svg)
+  await fs.writeFile(path.join(dir, 'places.json'), JSON.stringify(placesJson))
   console.log(`🗺️  Wrote the mini maps' base, with ${shapes.length} outlines`)
 }

@@ -1,13 +1,14 @@
 {%- comment -%}
   A place from `sitePagesData.map.places` on a bit of the map, as search.js's `miniMapHTML` draws it too
 {%- endcomment -%}
+{%- assign baseSvg = "base.svg" | asset -%}
 <div class="mini-map">
   <svg viewBox="{{ place.view }}" aria-hidden="true">
-    <use href="/map/base.svg#base" />
+    <use href="{{ baseSvg }}#base" />
     <a href="/map#{{ place.id }}" tabindex="-1">
       {% if place.type == "point" %}
         <use
-          href="/map/base.svg#marker-{{ place.icon }}"
+          href="{{ baseSvg }}#marker-{{ place.icon }}"
           transform="translate({{ place.x }} {{ place.y }})"
           x="-3"
           y="-3"
@@ -17,7 +18,7 @@
       {% else %}
         <use
           class="{{ place.type }}"
-          href="/map/base.svg#{{ place.id | replace: "place", "shape" }}"
+          href="{{ baseSvg }}#{{ place.id | replace: "place", "shape" }}"
         />
       {% endif %}
     </a>

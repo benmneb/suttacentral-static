@@ -4,6 +4,7 @@
  * Minifies the CSS and JavaScript files into the build's output, `_site`,
  * each under a name with a hash of its content (ie `styles.3f9a1c2b.css`), so
  * it can be cached for good. `tools/serve.js` minifies them per request instead.
+ * Files the build makes, ie the map's base SVG, get hashed names the same way.
  *
  * CSS minification uses LightningCSS, targeting Safari 15.4, Chrome 105 and up.
  * JS minification uses Terser with dead code elimination and mangling.
@@ -94,7 +95,7 @@ function writeAsset(destDir, urlDir, file, content) {
 
 /**
  * The URL of a minified asset's hashed copy, ie `styles.css` -> `/styles/styles.3f9a1c2b.css`.
- * Templates link CSS and JS only through this, as the `asset` filter.
+ * Templates link CSS, JS and the map's base SVG only through this, as the `asset` filter.
  * A hard-coded `/styles/x.css` works under `pnpm dev` but 404s once deployed.
  * @param {string} file
  */
@@ -102,6 +103,20 @@ export function assetUrl(file) {
   const url = hashedUrls.get(file)
   if (!url) throw new Error(`No minified asset called "${file}"`)
   return url
+}
+
+/**
+ * Writes a file the build made into `destDir` under its hashed name, after removing earlier builds' files
+ * with its extension
+ * @param {string} destDir
+ * @param {string} urlDir - Where `destDir` is served, ie `/map`
+ * @param {string} file - ie `base.svg`
+ * @param {string} content
+ */
+export function writeHashedAsset(destDir, urlDir, file, content) {
+  const checkEarlier = clearDir(destDir, path.extname(file))
+  writeAsset(destDir, urlDir, file, content)
+  checkEarlier()
 }
 
 /**

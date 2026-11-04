@@ -152,6 +152,9 @@ eleventyComputed:
     aria-labelledby="search-dictionary-heading"
     data-definitions-label="Pāli definitions for"
     data-all-label="All Pāli dictionaries"
+    {% if sitePagesData.map.base %}
+      data-map-base="{{ "base.svg" | asset }}"
+    {% endif %}
     hidden
   ></aside>
   <aside id="search-site-pages" aria-label="Site pages" hidden>

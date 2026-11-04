@@ -20,6 +20,15 @@
       ]
     },
     {
+      "source": "/map/:file(base\\.[0-9a-f]{8}\\.svg)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
       "source": "/:bundle(pagefind|pagefind-[a-z]+)/:dir(fragment|index|filter)/:file([\\w-]+\\.pf_(?:fragment|index|filter))",
       "headers": [
         {
