@@ -26,6 +26,8 @@
   // As vim's, each a fraction of the view to move by
   const MOVES = { h: [-0.2, 0], j: [0, 0.2], k: [0, -0.2], l: [0.2, 0] }
   const GLIDE_MS = 200
+  // Without them, :popover-open would throw
+  const popovers = 'showPopover' in HTMLElement.prototype
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)')
   let view = [...home]
   // The width of the first view, which zooming is measured from
@@ -288,9 +290,10 @@
   // A region or journey's shape opens its popover, as its name does, where it's clicked rather than dragged
   frame.addEventListener('click', event => {
     const shape = event.target.closest('[data-place]')
-    if (!shape) return
-    const popover = document.getElementById(`place-${shape.dataset.place}`)
-    if (!popover?.matches(':popover-open')) popover?.showPopover()
+    const popover =
+      shape && document.getElementById(`place-${shape.dataset.place}`)
+    if (!popovers || !popover || popover.matches(':popover-open')) return
+    popover.showPopover()
   })
 
   const fullscreenButton = viewControls.querySelector('[data-fullscreen]')
@@ -334,7 +337,7 @@
       figure.classList.contains('pseudo-fullscreen')
     ) {
       // Not when it closes an open popover first
-      if (!document.querySelector('.map-place:popover-open')) {
+      if (!popovers || !document.querySelector('.map-place:popover-open')) {
         setPseudoFullscreen(false)
       }
       return
@@ -366,14 +369,19 @@
     const popover = document.getElementById(
       decodeURIComponent(location.hash.slice(1))
     )
-    if (!popover?.matches('.map-place')) return
+    if (!popovers || !popover?.matches('.map-place')) return
     const button = frame.querySelector(`[popovertarget="${popover.id}"]`)
     const x = Number(button.style.getPropertyValue('--x'))
     const y = Number(button.style.getPropertyValue('--y'))
     const [, , width, height] = fitting(home)
     show([x - width / 4, y - height / 4, width / 2, height / 2])
-    figure.scrollIntoView({ block: 'center' })
     popover.showPopover()
+    const centreMap = () => figure.scrollIntoView({ block: 'center' })
+    centreMap()
+    // Again once loaded, as till then Chrome scrolls the open place to the top
+    if (document.readyState !== 'complete') {
+      addEventListener('load', centreMap, { once: true })
+    }
   }
   openLinkedPlace()
   window.addEventListener('hashchange', openLinkedPlace)

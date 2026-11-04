@@ -973,6 +973,13 @@
     }
   }
 
+  /* The checkboxes show layers by :has() */
+  @supports not selector(:has(a)) {
+    .map-controls .map-layers:not([hidden]) {
+      display: none;
+    }
+  }
+
   details > summary {
     cursor: pointer;
     padding: 0.5rem 0.15rem 0.5rem 0.5rem;
