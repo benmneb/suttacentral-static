@@ -913,14 +913,22 @@ button[style]:is([popovertarget^='comment-'], [popovertarget^='variant-']) {
   }
 }
 
+/* So a segment tabbed to isn't put under the sheet */
+:root:has(#definition:popover-open) {
+  --sheet-height: 30vh;
+  scroll-padding-block-end: var(--sheet-height);
+}
+
 @media only screen and (max-width: 600px) {
   /* So what focus moves to isn't put under the menu bar */
   :root:has(#positioner:checked) {
-    scroll-padding-block-end: 2.75rem;
+    scroll-padding-block-end: calc(2.75rem + var(--sheet-height, 0px));
 
     @media (hover: none) {
       &:has(#stop:enabled) {
-        scroll-padding-block-end: calc(2.75rem + var(--tts-controls-height));
+        scroll-padding-block-end: calc(
+          2.75rem + var(--tts-controls-height) + var(--sheet-height, 0px)
+        );
       }
     }
   }
@@ -2370,7 +2378,7 @@ aside:has(#definer:checked) ~ main .segment > :is(.translation, .root) {
   max-width: none;
   max-height: none;
   width: 100%;
-  height: 30vh;
+  height: var(--sheet-height, 30vh);
   overflow: hidden;
   position: fixed;
   inset: auto 0 0 0;
