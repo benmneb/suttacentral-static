@@ -37,6 +37,7 @@ let endpointsHit = 0
 let fetchErrors = 0
 let pubInfoErrors = 0
 let cacheTimeErrors = 0
+export let fetchedAt
 
 // The API returns parallels in no particular order (ie sn1.20#20.1 before sn1.20#2.1), so they're sorted
 // as numbers: the whole sutta, then #2.1, #20.1, #21.1...
@@ -513,6 +514,7 @@ export default async function () {
       .info(
         `Results: ${successCount}/${endpointsHit} successful (${successRate}%)${errorDetails}`
       )
+    fetchedAt = Date.now()
 
     // The stage that fetched, rather than a later one reading its cache
     recordStat(

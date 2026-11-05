@@ -1,5 +1,5 @@
 import fs from 'fs'
-import masterData from './src/data/_masterData.js'
+import masterData, { fetchedAt } from './src/data/_masterData.js'
 import siteMetaData from './src/data/_siteMetaData.js'
 import { builds, buildStage } from './src/helpers/buildStage.js'
 import { recordStat } from './src/helpers/buildStats.js'
@@ -263,6 +263,23 @@ export default function (eleventyConfig) {
         `⚠️  Site page strings .net doesn't have, left empty: ${missing.join(', ')}`
       )
     }
+  })
+
+  const minsSince = start => ((Date.now() - start) / 60_000).toFixed(2)
+  let pageCount, contentStart
+  eleventyConfig.on('eleventy.contentMap', ({ urlToInputPath }) => {
+    pageCount = new Intl.NumberFormat('en').format(
+      Object.keys(urlToInputPath).length
+    )
+    console.log(
+      `📄 Laid out ${pageCount} pages in ~${minsSince(fetchedAt ?? buildStart)} mins, rendering them`
+    )
+    contentStart = Date.now()
+  })
+  eleventyConfig.on('eleventy.layouts', () => {
+    console.log(
+      `✍️  Rendered ${pageCount} pages in ~${minsSince(contentStart)} mins, writing them`
+    )
   })
 
   // A sample build adds its texts' words to the answers already written
