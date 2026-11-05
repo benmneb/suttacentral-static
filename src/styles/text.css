@@ -2479,6 +2479,13 @@ aside:has(#definer:checked) ~ main .segment > :is(.translation, .root) {
         margin: 0;
         padding: 0 0 0.5rem;
       }
+
+      @media not all and (any-pointer: fine) {
+        #definition-keys,
+        #definition-keys + dl {
+          display: none;
+        }
+      }
     }
   }
 
