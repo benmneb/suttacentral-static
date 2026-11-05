@@ -122,7 +122,12 @@
         {% if pub_edition.edition_url != blank %}
           <dt>URL</dt>
           <dd>
-            <a href="{{ pub_edition.edition_url }}">
+            <a
+              href="{{ pub_edition.edition_url }}"
+              {% if pub_edition.edition_url contains "://" %}
+                rel="external"
+              {% endif %}
+            >
               {{- pub_edition.edition_url -}}
             </a>
           </dd>
@@ -130,7 +135,14 @@
         {% if pub.source_url != blank %}
           <dt>Source</dt>
           <dd>
-            <a href="{{ pub.source_url }}">{{ pub.source_url }}</a>
+            <a
+              href="{{ pub.source_url }}"
+              {% if pub.source_url contains "://" %}
+                rel="external"
+              {% endif %}
+            >
+              {{- pub.source_url -}}
+            </a>
           </dd>
         {% endif %}
         {% if pub._key != blank %}
@@ -153,7 +165,12 @@
     {% endif %}
     {% if pub_license.license_url != blank %}
       <p>
-        <a href="{{ pub_license.license_url }}">
+        <a
+          href="{{ pub_license.license_url }}"
+          {% if pub_license.license_url contains "://" %}
+            rel="external"
+          {% endif %}
+        >
           {{- pub_license.license_url -}}
         </a>
       </p>

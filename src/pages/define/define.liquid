@@ -42,7 +42,8 @@ eleventyComputed:
           {%- if entry.name == "dpd" %}
             <a
               href="https://dpdict.net/?q={{ term.word | url_encode }}"
-              aria-label="{{ term.word }} in the Digital Pāḷi Dictionary"
+              rel="external"
+              aria-label="{{ term.word }} in the Digital Pāḷi Dictionary (external link)"
             ></a>
           {%- endif %}
         </dt>

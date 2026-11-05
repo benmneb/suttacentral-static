@@ -35,7 +35,11 @@ eleventyComputed:
     </li>
     {% if _siteMetaData.suggestions %}
       <li>
-        <a class="with-icon" href="{{ _siteMetaData.suggestions }}">
+        <a
+          class="with-icon"
+          href="{{ _siteMetaData.suggestions }}"
+          rel="external"
+        >
           {%- icon "flag" -%}
           <span>Report a missing page</span>
         </a>

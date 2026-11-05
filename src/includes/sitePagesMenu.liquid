@@ -11,7 +11,14 @@
             {% if link.href == current %}
               <span aria-current="page">{{ link.label }}</span>
             {% else %}
-              <a href="{{ link.href }}">{{ link.label }}</a>
+              <a
+                href="{{ link.href }}"
+                {% if link.href contains "://" %}
+                  rel="external"
+                {% endif %}
+              >
+                {{- link.label -}}
+              </a>
             {% endif %}
           </li>
         {% endfor %}

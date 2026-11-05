@@ -1312,7 +1312,7 @@
       }
     }
 
-    div:has(a[rel='license']) {
+    div:has(a[rel~='license']) {
       display: flex;
       align-items: flex-start;
       gap: 1rem;
@@ -1331,7 +1331,7 @@
         font-size: small;
       }
 
-      a[rel='license'] {
+      a[rel~='license'] {
         font-weight: bold;
       }
     }

@@ -78,9 +78,13 @@ eleventyComputed:
           <tr>
             <th scope="row">EPUB</th>
             <td>
-              <a href="{{ entry.files.epub.download_url }}" download
-                >Download</a
+              <a
+                href="{{ entry.files.epub.download_url }}"
+                rel="external"
+                download
               >
+                Download
+              </a>
             </td>
           </tr>
         {% endif %}
@@ -88,7 +92,13 @@ eleventyComputed:
           <tr>
             <th scope="row">PDF</th>
             <td>
-              <a href="{{ entry.files.pdf.download_url }}" download>Download</a>
+              <a
+                href="{{ entry.files.pdf.download_url }}"
+                rel="external"
+                download
+              >
+                Download
+              </a>
             </td>
           </tr>
         {% endif %}
@@ -103,9 +113,13 @@ eleventyComputed:
               </small>
             </th>
             <td>
-              <a href="{{ entry.files.html.download_url }}" download
-                >Download</a
+              <a
+                href="{{ entry.files.html.download_url }}"
+                rel="external"
+                download
               >
+                Download
+              </a>
             </td>
           </tr>
         {% endif %}
@@ -113,7 +127,13 @@ eleventyComputed:
           <tr>
             <th scope="row">LaTeX</th>
             <td>
-              <a href="{{ entry.files.tex.download_url }}" download>Download</a>
+              <a
+                href="{{ entry.files.tex.download_url }}"
+                rel="external"
+                download
+              >
+                Download
+              </a>
             </td>
           </tr>
         {% endif %}
@@ -166,7 +186,9 @@ eleventyComputed:
 
       <dt>Source</dt>
       <dd>
-        <a href="{{ publication.source_url }}">{{ publication.source_url }}</a>
+        <a href="{{ publication.source_url }}" rel="external">
+          {{- publication.source_url -}}
+        </a>
       </dd>
 
       <dt>Text ID</dt>
@@ -182,7 +204,7 @@ eleventyComputed:
           {% capture imageUrl %}{{ scOrigin }}/img/publication-pages/cc-zero.svg{% endcapture %}
           {% siteImage imageUrl, "", 62, "lazy" %}
           <p>
-            <a rel="license" href="{{ publication.license_url }}">
+            <a rel="license external" href="{{ publication.license_url }}">
               {{- publication.license_type }}
               ({{ publication.license_abbreviation -}}
               )

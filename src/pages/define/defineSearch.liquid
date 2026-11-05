@@ -27,7 +27,11 @@ eleventyComputed:
       <li>
         {{ dictionary.title }}: {{ dictionary.count | formatNumber }} words
         {%- if dictionary.name == "dpd" %}
-          <a href="https://dpdict.net" aria-label="dpdict.net"></a>
+          <a
+            href="https://dpdict.net"
+            rel="external"
+            aria-label="dpdict.net (external link)"
+          ></a>
         {%- endif %}
       </li>
     {% endfor %}

@@ -210,8 +210,8 @@
   function helpHtml() {
     const unit = isLzh ? 'character' : 'word'
     const source = isLzh
-      ? '<a href="http://www.buddhism-dict.net/ddb/">Digital Dictionary of Buddhism</a>'
-      : '<a href="https://digitalpalidictionary.github.io/">Digital Pāḷi Dictionary</a>'
+      ? '<a href="http://www.buddhism-dict.net/ddb/" rel="external">Digital Dictionary of Buddhism</a>'
+      : '<a href="https://digitalpalidictionary.github.io/" rel="external">Digital Pāḷi Dictionary</a>'
     return (
       `<p>Source: ${source}</p>` +
       (isLzh

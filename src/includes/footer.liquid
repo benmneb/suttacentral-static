@@ -5,7 +5,9 @@
   {% endif %}
   <p>
     View this page on
-    <a id="sc-redirect" href="{{ scOrigin }}/{{ route }}">SuttaCentral.net</a>
+    <a id="sc-redirect" href="{{ scOrigin }}/{{ route }}" rel="external"
+      >SuttaCentral.net</a
+    >
   </p>
   {% if fetchedAt %}
     <p id="updated">
@@ -23,17 +25,21 @@
     <ul>
       {% if _siteMetaData.source %}
         <li>
-          <a href="{{ _siteMetaData.source }}">Open source</a>
+          <a href="{{ _siteMetaData.source }}" rel="external">Open source</a>
         </li>
       {% endif %}
       {% if _siteMetaData.analytics %}
         <li>
-          <a href="{{ _siteMetaData.analytics }}">Open analytics</a>
+          <a href="{{ _siteMetaData.analytics }}" rel="external"
+            >Open analytics</a
+          >
         </li>
       {% endif %}
       {% if _siteMetaData.accessibility %}
         <li>
-          <a href="{{ _siteMetaData.accessibility }}">Accessibility</a>
+          <a href="{{ _siteMetaData.accessibility }}" rel="external"
+            >Accessibility</a
+          >
         </li>
       {% endif %}
       {% if _siteMetaData.archive %}
@@ -43,7 +49,9 @@
       {% endif %}
       {% if _siteMetaData.suggestions %}
         <li>
-          <a href="{{ _siteMetaData.suggestions }}">Send feedback</a>
+          <a href="{{ _siteMetaData.suggestions }}" rel="external"
+            >Send feedback</a
+          >
         </li>
       {% elsif _siteMetaData.contact %}
         <li>
