@@ -15,6 +15,7 @@ import {
   parallelsUrl,
   publicationInfoUrl,
   segmentedTranslationUrl,
+  shortcutsUrl,
   suttasUrl,
 } from '../helpers/scApi.js'
 import { fixMovedLegacyLinks } from '../helpers/siteLinks.js'
@@ -25,7 +26,6 @@ import {
   readTreeSnapshot,
   saveTreeSnapshot,
 } from '../helpers/treeSnapshot.js'
-import shortcutsData from './_shortcuts.json' with { type: 'json' }
 
 const DEV_MODE = process.env.NODE_ENV !== 'prod'
 const { SKIP_FETCH: skipFetch, REFETCH, FULL_BUILD, CI } = process.env
@@ -209,15 +209,13 @@ async function limitConcurrency(promises, limit) {
 
 async function fetchShortcutsList() {
   try {
-    if (!shortcutsData[0]?.shortcuts) {
-      throw new Error('Invalid shortcuts data structure')
-    }
-    shortcutsList = shortcutsData[0].shortcuts
+    // .net returns the same list once for each time it loaded its data
+    const docs = await fetchJson(shortcutsUrl())
+    shortcutsList = [...new Set(docs.flatMap(doc => doc.shortcuts ?? []))]
+    if (!shortcutsList.length) throw new Error('no shortcuts in the response')
   } catch (e) {
-    spinner
-      .fail('Could not load shortcuts.json, this will break "shortcut" links')
-      .start()
-    console.error(e)
+    fetchErrors++
+    spinner.fail(`Fetch error for /shortcuts: ${e.message}`).start()
   }
 }
 

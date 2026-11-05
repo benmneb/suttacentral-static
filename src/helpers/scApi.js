@@ -73,6 +73,11 @@ export function fallenLeavesUrl() {
   return `${API}/fallen_leaves`
 }
 
+/** The branches that get a "shortcut to all suttas" link, which lists every text in them */
+export function shortcutsUrl() {
+  return `${API}/shortcuts`
+}
+
 /** A translation's publication details, which .net answers with an error for most translators */
 export function publicationInfoUrl(suttaUid, lang, translatorUid) {
   return `${API}/publication_info/${suttaUid}/${lang}/${translatorUid}`
