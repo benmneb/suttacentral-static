@@ -27,8 +27,6 @@
   const WORD = isLzh
     ? /\p{Script=Han}/gu
     : /[\p{L}\p{M}\u00ad\u2027]+(?:[’'”][\p{L}\p{M}\u00ad\u2027]+)*/gu
-  // The sheet's height, so a word under it gets scrolled up
-  const SHEET = 0.3
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)')
   const canHighlight =
     typeof CSS !== 'undefined' &&
@@ -307,12 +305,14 @@
       .join('')}</ol>`
   }
 
-  // Scrolls the word up out from under the sheet
+  // Scrolls the word up out from under the sheet, to the middle above it
   function keepInSight(word) {
     const rect = word.getBoundingClientRect()
-    if (rect.bottom <= innerHeight * (1 - SHEET) && rect.top >= 0) return
-    elementOf(word)?.scrollIntoView({
-      block: 'center',
+    // Its own top, as the menu bar and iOS Safari's toolbar can be under it
+    const sheet = popover.getBoundingClientRect().top
+    if (rect.top >= 0 && rect.bottom <= sheet) return
+    window.scrollBy({
+      top: rect.top + rect.height / 2 - sheet / 2,
       behavior: reducedMotion.matches ? 'auto' : 'smooth',
     })
   }
