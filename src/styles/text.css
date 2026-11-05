@@ -860,6 +860,10 @@ button[style]:is([popovertarget^='comment-'], [popovertarget^='variant-']) {
   }
 }
 
+[popover]:is(#info, #parallels) {
+  outline-offset: 0;
+}
+
 @supports (anchor-name: --a) and (position-try-fallbacks: --a) {
   @position-try --note-above {
     top: auto;
@@ -1647,6 +1651,11 @@ aside:where(body > *) {
         min-width: anchor-size(width);
       }
 
+      :is(#contents-menu, #views-menu, #listen-menu).detached:popover-open {
+        top: var(--past-tts, 0px);
+        position-visibility: always;
+      }
+
       @media only screen and (max-width: 600px) {
         :is(#contents-menu, #views-menu, #listen-menu):popover-open {
           left: anchor(--aside-bar left);
@@ -2169,7 +2178,7 @@ main {
     aside
       fieldset
       :is(#contents-menu, #views-menu, #listen-menu):not(.detached),
-    [popover]:is(#info, #parallels) {
+    [popover]:is(#info, #parallels):not(.detached) {
       position: fixed;
       inset: auto;
       position-area: bottom span-left;
@@ -2183,7 +2192,7 @@ main {
     }
 
     /* Less their padding, as max-height is the content box's */
-    [popover]:is(#info, #parallels) {
+    [popover]:is(#info, #parallels):not(.detached) {
       max-height: calc(100% - var(--past-tts, 0px) - 2.5rem);
     }
   }
@@ -2702,6 +2711,11 @@ aside:has(#definer:checked) ~ main .segment > :is(.translation, .root) {
     overscroll-behavior: contain;
     /* Moved down and shrunk, so the blur doesn't fall on the bar */
     box-shadow: 0 0.6rem 1rem -0.4rem var(--shadow-color);
+  }
+
+  [popover]:is(#info, #parallels).detached:popover-open {
+    top: var(--past-tts, 0px);
+    position-visibility: always;
   }
 
   @media (hover: hover) {

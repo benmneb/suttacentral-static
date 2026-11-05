@@ -4,12 +4,20 @@
  * Keeps the reading position when a view setting changes. Sidenotes rebuild each segment's layout, which loses
  * the browser's scroll anchor, and Safari has no scroll anchoring at all, so the first text below the menu is
  * put back where it was. Also keeps the References checkbox showing at least one group, and toggles the
- * settings and listen controls from the keyboard, with the same keys as .net and a few more, unless they're turned
- * off. And keeps a note's asterisk lit while the note is open, lets Esc hide the menus and panels hovering shows,
+ * settings and listen controls and opens the bar's menus and panels from the keyboard, with the same keys as .net
+ * and a few more, unless they're turned off. And keeps a note's asterisk lit while the note is open, lets Esc hide the menus and panels hovering shows,
  * titles each highlighting line, and loads word lookup and simplified characters once they're turned on.
  */
 ;(function () {
   'use strict'
+
+  const PANELS = {
+    u: 'contents-button',
+    i: 'info-button',
+    o: 'views-button',
+    p: 'parallels-button',
+    '[': 'listen-menu-button',
+  }
 
   const VIEW_SETTINGS = {
     n: ['commenter', 'commenter-inline', 'commenter-side'],
@@ -17,11 +25,11 @@
     f: ['rooter-first'],
     d: ['definer'],
     c: ['simplifier'],
-    i: ['illustrator'],
-    o: ['highlighter'],
-    p: ['paralleler'],
+    g: ['illustrator'],
+    z: ['highlighter'],
+    x: ['paralleler'],
     r: ['segmenter'],
-    s: ['positioner'],
+    b: ['positioner'],
   }
 
   // One turned on turns on what it's under too, or the key would do nothing
@@ -238,8 +246,10 @@
     return new Map([...inputs].map(el => [el, el.checked]))
   }
 
+  let viewsOpen = false
+
   function clearShownRows() {
-    removeEventListener('scroll', placeRows)
+    if (!viewsOpen) removeEventListener('scroll', placeRows)
     viewsMenu.style.removeProperty('--past-tts')
     for (const menu of [viewsMenu, listenMenu]) {
       menu?.classList.remove('toast')
@@ -254,13 +264,75 @@
     rowsTimer = setTimeout(clearShownRows, 1500)
   }
 
-  function placeRows() {
-    if (!viewsButton) return
-    const { top, bottom } = viewsButton.getBoundingClientRect()
-    viewsMenu.classList.toggle(
+  function detach(panel, button) {
+    const { top, bottom } = button.getBoundingClientRect()
+    panel.classList.toggle(
       'detached',
       bottom < 0 || top > document.documentElement.clientHeight
     )
+  }
+
+  function placeRows() {
+    if (viewsButton) detach(viewsMenu, viewsButton)
+  }
+
+  // Not on toggle, which comes after it has shown where the bar was
+  viewsMenu.addEventListener('beforetoggle', e => {
+    viewsOpen = e.newState === 'open'
+    if (viewsOpen) {
+      placeRows()
+      addEventListener('scroll', placeRows, { passive: true })
+    } else if (!viewsMenu.classList.contains('toast'))
+      removeEventListener('scroll', placeRows)
+  })
+
+  const focusedBefore = new Map()
+
+  for (const id of [
+    'contents-button',
+    'info-button',
+    'parallels-button',
+    'listen-menu-button',
+  ]) {
+    const button = document.getElementById(id)
+    const panel = document.getElementById(
+      button?.getAttribute('popovertarget') ?? ''
+    )
+    if (!button || !panel) continue
+    const place = () => detach(panel, button)
+    panel.addEventListener('beforetoggle', e => {
+      if (e.newState === 'open') {
+        place()
+        addEventListener('scroll', place, { passive: true })
+        return
+      }
+      removeEventListener('scroll', place)
+      if (!focusedBefore.has(panel)) return
+      const before = focusedBefore.get(panel)
+      focusedBefore.delete(panel)
+      const active = document.activeElement
+      if (active !== button && !panel.contains(active)) return
+      if (before instanceof HTMLElement && before !== document.body)
+        before.focus()
+      else if (active instanceof HTMLElement) active.blur()
+    })
+  }
+
+  function togglePanel(id) {
+    const button = document.getElementById(id)
+    const panel = document.getElementById(
+      button?.getAttribute('popovertarget') ?? ''
+    )
+    if (!button || !panel?.showPopover) return
+    if (panel.matches(':popover-open')) return panel.hidePopover()
+    const before = document.activeElement
+    // The source lets Tab go from the button into the panel, as after a click
+    panel.showPopover({ source: button })
+    if (panel !== viewsMenu) {
+      focusedBefore.set(panel, before)
+      return button.focus({ preventScroll: true })
+    }
+    ;[...panel.querySelectorAll('input, select')].find(hasRoom)?.focus()
   }
 
   // Like .net's toast: the menu comes up for a moment with just the rows a key changed, and those under them
@@ -339,6 +411,7 @@
   const finePointer = matchMedia('(any-pointer: fine)')
 
   const shortcuts = [
+    ...Object.entries(PANELS),
     ...Object.entries(VIEW_SETTINGS).map(([key, ids]) => [key, ids[0]]),
     ...Object.entries(SUB_SETTINGS),
     ...Object.entries(LISTEN_CONTROLS),
@@ -376,7 +449,8 @@
     )
       return
     const key = e.key.toLowerCase()
-    if (VIEW_SETTINGS[key] || SUB_SETTINGS[key]) {
+    if (PANELS[key]) togglePanel(PANELS[key])
+    else if (VIEW_SETTINGS[key] || SUB_SETTINGS[key]) {
       const before = checkedStates()
       if (VIEW_SETTINGS[key]) cycle(VIEW_SETTINGS[key])
       else toggleSub(SUB_SETTINGS[key])
