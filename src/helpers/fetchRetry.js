@@ -7,7 +7,7 @@
  * Lives here, not in `data/`, as every file in there becomes global data.
  */
 
-import Fetch from '@11ty/eleventy-fetch'
+import { Fetch } from '@11ty/eleventy-fetch'
 
 const RETRIES = 3
 const BASE_DELAY_MS = 2000
@@ -39,7 +39,7 @@ function delayMs(error, attempt) {
 export async function fetchWithRetry(url, options) {
   for (let attempt = 0; ; attempt++) {
     try {
-      const data = await Fetch(url, options)
+      const data = await Fetch(url, options).queue()
       if (attempt) recovered++
       return data
     } catch (error) {

@@ -1,5 +1,6 @@
 # 11ty
 .cache
+.tree-cache
 .backup_cache
 _site
 

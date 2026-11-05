@@ -1,4 +1,4 @@
-import { AssetCache } from '@11ty/eleventy-fetch'
+import { AssetCache, Fetch } from '@11ty/eleventy-fetch'
 import ora from 'ora'
 import { recordStat } from '../helpers/buildStats.js'
 import { fixCommentLinks } from '../helpers/commentLinks.js'
@@ -19,9 +19,17 @@ import {
 import { fixMovedLegacyLinks } from '../helpers/siteLinks.js'
 import { bilaraMarkup, normalizeStrings } from '../helpers/strings.js'
 import { createLinkResolver } from '../helpers/textLinks.js'
+import {
+  clearTreeSnapshot,
+  readTreeSnapshot,
+  saveTreeSnapshot,
+} from '../helpers/treeSnapshot.js'
 import shortcutsData from './_shortcuts.json' with { type: 'json' }
 
 const DEV_MODE = process.env.NODE_ENV !== 'prod'
+const { SKIP_FETCH: skipFetch, REFETCH, FULL_BUILD, CI } = process.env
+// Never on a full build, whose fetch stats the tests and release body read
+const SKIP_FETCH = skipFetch && !REFETCH && !FULL_BUILD && !CI
 const MAX_CONCURRENT_REQUESTS = 50
 const SCT_NAME = 'SuttaCentral Taishō'
 
@@ -164,8 +172,8 @@ async function fetchJson(url) {
   let scx_fetched_at = new Date().toUTCString() // Current time for new fetches
 
   try {
-    const cache = new AssetCache(url, '.cache', options)
-    const cachedTimestamp = cache.getCachedTimestamp()
+    // The instance the fetch used, memoised by URL, so no second read of its metadata
+    const cachedTimestamp = Fetch(url, options).getCachedTimestamp()
     if (cachedTimestamp) {
       scx_fetched_at = new Date(cachedTimestamp).toUTCString()
     }
@@ -464,6 +472,22 @@ export default async function () {
 
   isBuilding = true
 
+  if (REFETCH) clearTreeSnapshot()
+  if (SKIP_FETCH) {
+    const saved = readTreeSnapshot()
+    if (saved) {
+      const seconds = ((Date.now() - startTime) / 1000).toFixed(1)
+      const savedAt = new Date(saved.savedAt).toLocaleString()
+      spinner.succeed(
+        `Read the tree saved ${savedAt} in ~${seconds} s instead of fetching (SKIP_FETCH enabled)`
+      )
+      fetchedAt = Date.now()
+      cachedMasterData = saved.tree
+      isBuilding = false
+      return saved.tree
+    }
+  }
+
   try {
     spinner.start()
     await fetchShortcutsList()
@@ -482,6 +506,11 @@ export default async function () {
     spinner.info(
       `Gave ${linkedParallels} parallels a link to their translation`
     )
+    // Not a tree with texts missing, which every later build would then read
+    const complete = fetchErrors === pubInfoErrors
+    if (SKIP_FETCH && complete && saveTreeSnapshot(tree)) {
+      spinner.info('Saved the tree for the next SKIP_FETCH build')
+    }
     cachedMasterData = tree
     return tree
   } catch (e) {
