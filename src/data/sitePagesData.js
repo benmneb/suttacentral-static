@@ -1,5 +1,6 @@
-import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
+import { AssetCache } from '@11ty/eleventy-fetch'
 import { loadDictionaries } from '../helpers/dictionaries.js'
+import { fetchWithRetry } from '../helpers/fetchRetry.js'
 import { mapData } from '../helpers/mapPlaces.js'
 import {
   abbreviationUrl,
@@ -39,7 +40,7 @@ function cacheOptions(url) {
 }
 
 async function fetchJson(url) {
-  return normalizeStrings(await Fetch(url, cacheOptions(url)))
+  return normalizeStrings(await fetchWithRetry(url, cacheOptions(url)))
 }
 
 /** When `url` was fetched from .net, for the footer */

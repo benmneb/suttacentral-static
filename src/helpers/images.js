@@ -9,11 +9,11 @@
  * browsers keep them for a day and then a week while refreshing, so a changed one needs a new name
  * to appear immediately.
  */
-import Fetch from '@11ty/eleventy-fetch'
 import { createHash } from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import sharp from 'sharp'
+import { fetchWithRetry } from './fetchRetry.js'
 import { outputDir } from './outputDir.js'
 import { CACHE_DURATION } from './scApi.js'
 
@@ -37,7 +37,10 @@ export function localImage(url, { dir, height }) {
 
 async function encode(url, dir, height) {
   try {
-    const input = await Fetch(url, { duration: CACHE_DURATION, type: 'buffer' })
+    const input = await fetchWithRetry(url, {
+      duration: CACHE_DURATION,
+      type: 'buffer',
+    })
     const hash = createHash('sha256')
       .update(input)
       .update(`${height} ${QUALITY}`)

@@ -11,7 +11,7 @@
  * Lives here, not in `data/`, as every file in there becomes global data.
  */
 
-import Fetch from '@11ty/eleventy-fetch'
+import { fetchWithRetry } from './fetchRetry.js'
 import { CACHE_DURATION } from './scApi.js'
 
 const SOURCE =
@@ -156,7 +156,7 @@ export function geometryPath(geometry) {
 
 async function layer(name, keep = () => true) {
   const url = `${SOURCE}/${name}.geojson`
-  const data = await Fetch(url, {
+  const data = await fetchWithRetry(url, {
     duration: CACHE_DURATION,
     type: 'json',
     filenameFormat: (cacheKey, hash) => `natural-earth-${name}-${hash}`,

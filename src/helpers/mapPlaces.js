@@ -7,7 +7,7 @@
  * Lives here, not in `data/`, as every file in there becomes global data.
  */
 
-import Fetch from '@11ty/eleventy-fetch'
+import { fetchWithRetry } from './fetchRetry.js'
 import { geometryPath, labelPoint, mapBase, onMap, project } from './mapBase.js'
 import { mapMarkers } from './mapMarkers.js'
 import { fetchOptions, mapDataUrl } from './scApi.js'
@@ -101,7 +101,7 @@ function mapShape(geometry, style = {}) {
 async function makeMapData() {
   const url = mapDataUrl()
   const [data, base] = await Promise.all([
-    Fetch(url, fetchOptions(url)).catch(error => {
+    fetchWithRetry(url, fetchOptions(url)).catch(error => {
       console.warn(`Couldn't fetch ${url} for the map:`, error.message)
       return []
     }),

@@ -8,8 +8,9 @@
  * Lives here, not in `data/`, as every file in there becomes global data.
  */
 
-import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
+import { AssetCache } from '@11ty/eleventy-fetch'
 import { recordStat } from './buildStats.js'
+import { fetchWithRetry } from './fetchRetry.js'
 import { CACHE_DURATION } from './scApi.js'
 
 const SC_DATA =
@@ -63,7 +64,7 @@ function parse(name, body) {
 export async function fetchDictionary(name, duration = CACHE_DURATION) {
   const url = DICTIONARY_FILES[name]
   const options = fetchOptions(name, duration)
-  const data = parse(name, await Fetch(url, options))
+  const data = parse(name, await fetchWithRetry(url, options))
   const timestamp = new AssetCache(url, '.cache', options).getCachedTimestamp()
   return {
     data,

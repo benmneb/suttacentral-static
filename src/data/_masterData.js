@@ -1,7 +1,8 @@
-import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
+import { AssetCache } from '@11ty/eleventy-fetch'
 import ora from 'ora'
 import { recordStat } from '../helpers/buildStats.js'
 import { fixCommentLinks } from '../helpers/commentLinks.js'
+import { fetchWithRetry, retryStats } from '../helpers/fetchRetry.js'
 import { fixPaginationLinks } from '../helpers/paginationLinks.js'
 import { addParallelDetails } from '../helpers/parallelLinks.js'
 import { parseUidNumbers } from '../helpers/rangeSuttas.js'
@@ -157,7 +158,7 @@ async function fetchJson(url) {
 
   const options = fetchOptions(url)
 
-  const data = normalizeStrings(await Fetch(url, options))
+  const data = normalizeStrings(await fetchWithRetry(url, options))
 
   let scx_fetched_at = new Date().toUTCString() // Current time for new fetches
 
@@ -215,7 +216,9 @@ async function fetchDataTree(uid, depth = 0) {
   } catch (e) {
     fetchErrors++
     spinner
-      .fail(`Fetch error for /menu with uid: ${uid} at depth ${depth}`)
+      .fail(
+        `Fetch error for /menu with uid: ${uid} at depth ${depth}: ${e.message}`
+      )
       .start()
     return null
   }
@@ -247,7 +250,9 @@ async function fetchDataTree(uid, depth = 0) {
       suttaplexData = await fetchJson(leafUrl(node.uid))
     } catch (e) {
       fetchErrors++
-      spinner.fail(`Fetch error for /suttaplex with uid: ${node.uid}`).start()
+      spinner
+        .fail(`Fetch error for /suttaplex with uid: ${node.uid}: ${e.message}`)
+        .start()
     }
 
     if (!suttaplexData || !Array.isArray(suttaplexData) || !suttaplexData[0]) {
@@ -259,7 +264,9 @@ async function fetchDataTree(uid, depth = 0) {
       parallelsData = sortParallels(await fetchJson(parallelsUrl(node.uid)))
     } catch (e) {
       fetchErrors++
-      spinner.fail(`Fetch error for /parallels/${node.uid}`).start()
+      spinner
+        .fail(`Fetch error for /parallels/${node.uid}: ${e.message}`)
+        .start()
     }
 
     const translations = suttaplexData[0]?.translations
@@ -300,7 +307,7 @@ async function fetchDataTree(uid, depth = 0) {
           fetchErrors++
           spinner
             .fail(
-              `Fetch error for '/bilarasuttas' with translation: ${node.uid}/${trans.author_uid} at depth ${depth}`
+              `Fetch error for '/bilarasuttas' with translation: ${node.uid}/${trans.author_uid} at depth ${depth}: ${e.message}`
             )
             .start()
           return null
@@ -319,7 +326,7 @@ async function fetchDataTree(uid, depth = 0) {
         fetchErrors++
         spinner
           .fail(
-            `Fetch error for /suttas with translation: ${node.uid}/${trans.author_uid} at depth ${depth}`
+            `Fetch error for /suttas with translation: ${node.uid}/${trans.author_uid} at depth ${depth}: ${e.message}`
           )
           .start()
         return null
@@ -496,6 +503,11 @@ export default async function () {
       }
     }
 
+    const { retries, recovered } = retryStats()
+    if (retries > 0) {
+      errorDetails += `, ${recovered} recovered after ${retries} retries`
+    }
+
     spinner
       .succeed(`Fetched from ${endpointsHit} endpoints in ~${elapsedMins} mins`)
       .info(
@@ -511,6 +523,8 @@ export default async function () {
         fetchErrors,
         pubInfoErrors,
         cacheTimeErrors,
+        retries,
+        recovered,
         elapsedMins: Number(elapsedMins),
       },
       (earlier, value) =>

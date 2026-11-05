@@ -8,10 +8,11 @@
  * Lives here, not in `data/`, as every file in there becomes global data.
  */
 
-import Fetch, { AssetCache } from '@11ty/eleventy-fetch'
+import { AssetCache } from '@11ty/eleventy-fetch'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { fetchWithRetry } from './fetchRetry.js'
 import { CACHE_DURATION, SC_ORIGIN } from './scApi.js'
 import { configKeys } from './sitePages.js'
 
@@ -77,7 +78,7 @@ function fetchOptions(name, duration) {
 export async function fetchStrings(name, duration = CACHE_DURATION) {
   const url = stringsUrl(name)
   const options = fetchOptions(name, duration)
-  const data = await Fetch(url, options)
+  const data = await fetchWithRetry(url, options)
   const timestamp = new AssetCache(url, '.cache', options).getCachedTimestamp()
   return {
     strings: Object.fromEntries(
