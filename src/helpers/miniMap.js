@@ -32,7 +32,7 @@ export async function writeMiniMap({ base, symbols, layers, places }) {
     ),
     '<g id="base">',
     `<path id="land" style="fill: var(--map-land); stroke: var(--map-coast); stroke-width: 0.75px; ${LINE}" d="${base.land}"/>`,
-    `<path id="rivers" style="fill: none; stroke: var(--map-river); stroke-width: 1px; ${LINE}" d="${base.rivers}"/>`,
+    `<path id="rivers" style="fill: none; stroke: var(--map-river); stroke-width: 0.75px; ${LINE}" d="${base.rivers}"/>`,
     '</g>',
     `<path id="borders" style="fill: none; stroke: var(--map-coast); stroke-width: 0.5px; stroke-dasharray: 4 3; ${LINE}" d="${base.borders}"/>`,
     ...shapes.map(

@@ -1379,6 +1379,10 @@ form#search-form {
   --map-marker-grey: var(--gray-dim);
   --map-marker-red: var(--red);
 
+  @supports (color: color-mix(in srgb, red 50%, blue)) {
+    --map-river: color-mix(in srgb, var(--blue) 45%, var(--map-land));
+  }
+
   @media (prefers-color-scheme: light), print {
     --map-marker-outline: var(--fg-alt-1);
     --map-marker-green: #3b763b;
