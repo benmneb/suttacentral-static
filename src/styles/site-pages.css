@@ -458,6 +458,10 @@
       > dd.again {
         margin-top: 1em;
       }
+
+      .dpd ~ dd > ol {
+        padding-left: 1rem;
+      }
     }
 
     > nav {
