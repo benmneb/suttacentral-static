@@ -11,8 +11,9 @@
  *    still lands (ie /pli-tv-kd14/en/sujato -> /pli-tv-kd14/en/brahmali). .net picks one at random
  * 3. No translation in that language: the root text (ie /cnd23/en/sujato -> /cnd23/pli/ms)
  * 4. No text at all, but the uid has a page: that (ie /sn12/en/sujato -> /sn12)
- * And one .net doesn't do, as it has a page for those uids and this site doesn't:
- * 5. The uid is in a range text: the range, as 2. and 3. (ie /pli-tv-bu-vb-as7/en/sujato -> /pli-tv-bu-vb-as1-7/en/brahmali)
+ * And one .net doesn't do:
+ * 5. The uid is in a range text: the range, as 2. and 3. (ie /pli-tv-bu-vb-as7/en/sujato -> /pli-tv-bu-vb-as1-7/en/brahmali).
+ *    Before 4. for a fallen leaf, whose page has only its parallels, where .net sends it
  * 6. Otherwise: left as is, they're malformed in the data (ie "sn47.14 /en/sujato", /mn155/en/sujato)
  */
 
@@ -34,6 +35,16 @@ function indexTexts(nodes, index = new Map()) {
     indexTexts(node.children, index)
   }
   return index
+}
+
+/** The uids with a page but no text, as `_masterData.js` adds them, ie pli-tv-bi-vb-sk2 */
+function collectFallenLeaves(nodes, uids = new Set()) {
+  for (const node of nodes ?? []) {
+    if (!node) continue
+    if (node.scx_fallen_leaf) uids.add(node.uid)
+    collectFallenLeaves(node.children, uids)
+  }
+  return uids
 }
 
 /** The text to show for `uid` in place of the missing one, or null if it has no texts */
@@ -59,6 +70,7 @@ function translationFor(translations, lang) {
 export function createLinkResolver(tree) {
   const index = indexTexts(tree)
   const pageUids = collectPageUids(tree)
+  const fallenLeaves = collectFallenLeaves(tree)
   const ranges = [...index.keys()].filter(uid => {
     const span = parseUidNumbers(uid)
     return span && span.start !== span.end
@@ -73,13 +85,14 @@ export function createLinkResolver(tree) {
     const target = translationFor(translations, lang)
     if (target) return { uid, ...target }
 
-    if (pageUids.has(uid)) return { uid, lang: null, author: null }
+    const page = pageUids.has(uid) && { uid, lang: null, author: null }
+    if (page && !fallenLeaves.has(uid)) return page
 
     const range = ranges.find(r => r !== selfUid && uidIsInRange(uid, r))
     const rangeTarget = range && translationFor(index.get(range), lang)
     if (rangeTarget) return { uid: range, ...rangeTarget }
 
-    return null
+    return page || null
   }
 
   resolve.hasText = uid => !!index.get(uid)?.length

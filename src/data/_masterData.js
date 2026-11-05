@@ -8,6 +8,7 @@ import { addParallelDetails } from '../helpers/parallelLinks.js'
 import { parseUidNumbers } from '../helpers/rangeSuttas.js'
 import {
   CACHE_DURATION,
+  fallenLeavesUrl,
   fetchOptions,
   leafUrl,
   menuUrl,
@@ -35,6 +36,8 @@ const SCT_NAME = 'SuttaCentral Taishō'
 
 let cachedMasterData = null
 let shortcutsList = []
+// The uids each chapter has parallels for but no text, which /menu leaves out, ie pli-tv-bi-vb-sk2 in pli-tv-bi-vb-sk
+const fallenLeaves = new Map()
 let isBuilding = false
 
 const spinner = ora('Fetching...')
@@ -218,6 +221,199 @@ async function fetchShortcutsList() {
   }
 }
 
+/** `node` with its /suttaplex details, parallels and translations, as a leaf of the tree */
+async function fetchTextData(node, depth) {
+  let suttaplexData = null
+  try {
+    suttaplexData = await fetchJson(leafUrl(node.uid))
+  } catch (e) {
+    fetchErrors++
+    spinner
+      .fail(`Fetch error for /suttaplex with uid: ${node.uid}: ${e.message}`)
+      .start()
+  }
+
+  if (!suttaplexData || !Array.isArray(suttaplexData) || !suttaplexData[0]) {
+    return node
+  }
+
+  let parallelsData = null
+  try {
+    parallelsData = sortParallels(await fetchJson(parallelsUrl(node.uid)))
+  } catch (e) {
+    fetchErrors++
+    spinner.fail(`Fetch error for /parallels/${node.uid}: ${e.message}`).start()
+  }
+
+  const translations = suttaplexData[0]?.translations
+  if (!Array.isArray(translations) || !translations.length) {
+    return { ...node, ...suttaplexData[0], _parallels_data: parallelsData }
+  }
+
+  function filterTranslations(translations) {
+    if (!translations.length) return []
+    return (
+      translations
+        .filter(t => t.lang === 'en' || t.is_root)
+        // The API names the Taishō edition "Taisho Tipitaka" on one text and nothing on the rest
+        .map(t => (t.author_uid === 'sct' ? { ...t, author: SCT_NAME } : t))
+      // return translations // oh no my memory 🤯
+    )
+  }
+
+  const translationsToProcess = filterTranslations(translations)
+
+  const translationPromises = translationsToProcess.map(async trans => {
+    let bilaraData
+    if (trans.segmented) {
+      try {
+        bilaraData = await fetchJson(
+          segmentedTranslationUrl(node.uid, trans.author_uid, trans.lang)
+        )
+        for (const texts of [
+          bilaraData.root_text,
+          bilaraData.translation_text,
+        ]) {
+          for (const key in texts) texts[key] = bilaraMarkup(texts[key])
+        }
+        tidyReferences(bilaraData)
+        tidyHtml(bilaraData)
+        tidySections(bilaraData)
+      } catch (e) {
+        fetchErrors++
+        spinner
+          .fail(
+            `Fetch error for '/bilarasuttas' with translation: ${node.uid}/${trans.author_uid} at depth ${depth}: ${e.message}`
+          )
+          .start()
+        return null
+      }
+    }
+
+    let suttasData
+    try {
+      suttasData = await fetchJson(
+        suttasUrl(node.uid, trans.author_uid, trans.lang)
+      )
+      suttasData.suttaplex.translations = filterTranslations(
+        suttasData.suttaplex.translations
+      )
+    } catch (e) {
+      fetchErrors++
+      spinner
+        .fail(
+          `Fetch error for /suttas with translation: ${node.uid}/${trans.author_uid} at depth ${depth}: ${e.message}`
+        )
+        .start()
+      return null
+    }
+
+    const pubInfoUrl = publicationInfoUrl(
+      node.uid,
+      trans.lang,
+      trans.author_uid
+    )
+    // Fetch caches no failures, so each build stage would ask .net for the ~10k 404s again
+    const pubInfoFailed = new AssetCache(`${pubInfoUrl}#404`, '.cache')
+    let publicationData = { error: true }
+    let failed = pubInfoFailed.isCacheValid(CACHE_DURATION)
+    if (failed) {
+      endpointsHit++
+    } else {
+      try {
+        publicationData = await fetchJson(pubInfoUrl)
+      } catch (e) {
+        failed = true
+        if (e.message.includes('(404)')) await pubInfoFailed.save(true, 'json')
+      }
+    }
+    if (failed) {
+      fetchErrors++
+      pubInfoErrors++
+      // It's possibly only root texts and Sujato's translations actually have data here.
+      // This error object is what SC returns for errors also, ie: https://suttacentral.net/api/publication_info/dn1/en/bodhi
+    }
+
+    // Add translated texts and publication info into `/suttaplex`.translations
+    // to keep the texts data with its meta-data.
+    return {
+      ...trans,
+      _suttas_data: suttasData,
+      ...(trans.segmented && { _bilarasuttas_data: bilaraData }),
+      ...(!publicationData.error && {
+        _publication_info: publicationData[0],
+      }),
+    }
+  })
+
+  const mergedTranslations = await limitConcurrency(
+    translationPromises,
+    MAX_CONCURRENT_REQUESTS
+  )
+
+  return {
+    ...node,
+    ...suttaplexData[0],
+    translations: mergedTranslations.filter(Boolean),
+    _parallels_data: parallelsData,
+  }
+}
+
+async function fetchFallenLeaves() {
+  try {
+    for (const doc of await fetchJson(fallenLeavesUrl())) {
+      for (const chapters of doc.fallen_leaves ?? []) {
+        for (const [chapter, uids] of Object.entries(chapters)) {
+          fallenLeaves.set(chapter, uids)
+        }
+      }
+    }
+  } catch (e) {
+    fetchErrors++
+    spinner.fail(`Fetch error for /fallen_leaves: ${e.message}`).start()
+  }
+}
+
+/**
+ * The chapter's texts with its fallen leaves among them, as .net lists them: by the number after the
+ * chapter's uid, and a range before the first leaf in it (ie pli-tv-bi-vb-pd2-8, then pd2)
+ */
+async function withFallenLeaves(chapter, depth) {
+  const leaves = await limitConcurrency(
+    fallenLeaves.get(chapter.uid).map(uid =>
+      fetchTextData(
+        {
+          uid,
+          node_type: 'leaf',
+          root_lang_iso: chapter.root_lang_iso,
+          root_lang_name: chapter.root_lang_name,
+          scx_fallen_leaf: true,
+        },
+        depth + 1
+      )
+    ),
+    MAX_CONCURRENT_REQUESTS
+  )
+  // /suttaplex has no acronym for them, so it's made as .net's chapter list makes it, ie "Bi Sk 2" from "Bi Sk 1"
+  const first = chapter.children.find(child => child.acronym)?.acronym.trim()
+  const prefix = first?.includes(' ')
+    ? first.slice(0, first.lastIndexOf(' '))
+    : chapter.uid
+  const numberOf = node => parseInt(node.uid.slice(chapter.uid.length)) || 0
+  return [
+    ...chapter.children,
+    // /suttaplex is all nulls for some, ie pli-tv-bi-vb-pc92, which .net leaves out too
+    ...leaves
+      .filter(leaf => leaf.uid)
+      .map(leaf => ({
+        ...leaf,
+        acronym:
+          leaf.acronym || `${prefix} ${leaf.uid.slice(chapter.uid.length)}`,
+        root_lang: leaf.root_lang || chapter.root_lang_iso,
+      })),
+  ].sort((a, b) => numberOf(a) - numberOf(b))
+}
+
 async function fetchDataTree(uid, depth = 0) {
   let menuData
   try {
@@ -253,146 +449,6 @@ async function fetchDataTree(uid, depth = 0) {
     node = { ...node, node_type: 'branch' }
   }
 
-  async function getTextData() {
-    let suttaplexData = null
-    try {
-      suttaplexData = await fetchJson(leafUrl(node.uid))
-    } catch (e) {
-      fetchErrors++
-      spinner
-        .fail(`Fetch error for /suttaplex with uid: ${node.uid}: ${e.message}`)
-        .start()
-    }
-
-    if (!suttaplexData || !Array.isArray(suttaplexData) || !suttaplexData[0]) {
-      return node
-    }
-
-    let parallelsData = null
-    try {
-      parallelsData = sortParallels(await fetchJson(parallelsUrl(node.uid)))
-    } catch (e) {
-      fetchErrors++
-      spinner
-        .fail(`Fetch error for /parallels/${node.uid}: ${e.message}`)
-        .start()
-    }
-
-    const translations = suttaplexData[0]?.translations
-    if (!Array.isArray(translations) || !translations.length) {
-      return { ...node, ...suttaplexData[0], _parallels_data: parallelsData }
-    }
-
-    function filterTranslations(translations) {
-      if (!translations.length) return []
-      return (
-        translations
-          .filter(t => t.lang === 'en' || t.is_root)
-          // The API names the Taishō edition "Taisho Tipitaka" on one text and nothing on the rest
-          .map(t => (t.author_uid === 'sct' ? { ...t, author: SCT_NAME } : t))
-        // return translations // oh no my memory 🤯
-      )
-    }
-
-    const translationsToProcess = filterTranslations(translations)
-
-    const translationPromises = translationsToProcess.map(async trans => {
-      let bilaraData
-      if (trans.segmented) {
-        try {
-          bilaraData = await fetchJson(
-            segmentedTranslationUrl(node.uid, trans.author_uid, trans.lang)
-          )
-          for (const texts of [
-            bilaraData.root_text,
-            bilaraData.translation_text,
-          ]) {
-            for (const key in texts) texts[key] = bilaraMarkup(texts[key])
-          }
-          tidyReferences(bilaraData)
-          tidyHtml(bilaraData)
-          tidySections(bilaraData)
-        } catch (e) {
-          fetchErrors++
-          spinner
-            .fail(
-              `Fetch error for '/bilarasuttas' with translation: ${node.uid}/${trans.author_uid} at depth ${depth}: ${e.message}`
-            )
-            .start()
-          return null
-        }
-      }
-
-      let suttasData
-      try {
-        suttasData = await fetchJson(
-          suttasUrl(node.uid, trans.author_uid, trans.lang)
-        )
-        suttasData.suttaplex.translations = filterTranslations(
-          suttasData.suttaplex.translations
-        )
-      } catch (e) {
-        fetchErrors++
-        spinner
-          .fail(
-            `Fetch error for /suttas with translation: ${node.uid}/${trans.author_uid} at depth ${depth}: ${e.message}`
-          )
-          .start()
-        return null
-      }
-
-      const pubInfoUrl = publicationInfoUrl(
-        node.uid,
-        trans.lang,
-        trans.author_uid
-      )
-      // Fetch caches no failures, so each build stage would ask .net for the ~10k 404s again
-      const pubInfoFailed = new AssetCache(`${pubInfoUrl}#404`, '.cache')
-      let publicationData = { error: true }
-      let failed = pubInfoFailed.isCacheValid(CACHE_DURATION)
-      if (failed) {
-        endpointsHit++
-      } else {
-        try {
-          publicationData = await fetchJson(pubInfoUrl)
-        } catch (e) {
-          failed = true
-          if (e.message.includes('(404)'))
-            await pubInfoFailed.save(true, 'json')
-        }
-      }
-      if (failed) {
-        fetchErrors++
-        pubInfoErrors++
-        // It's possibly only root texts and Sujato's translations actually have data here.
-        // This error object is what SC returns for errors also, ie: https://suttacentral.net/api/publication_info/dn1/en/bodhi
-      }
-
-      // Add translated texts and publication info into `/suttaplex`.translations
-      // to keep the texts data with its meta-data.
-      return {
-        ...trans,
-        _suttas_data: suttasData,
-        ...(trans.segmented && { _bilarasuttas_data: bilaraData }),
-        ...(!publicationData.error && {
-          _publication_info: publicationData[0],
-        }),
-      }
-    })
-
-    const mergedTranslations = await limitConcurrency(
-      translationPromises,
-      MAX_CONCURRENT_REQUESTS
-    )
-
-    return {
-      ...node,
-      ...suttaplexData[0],
-      translations: mergedTranslations.filter(Boolean),
-      _parallels_data: parallelsData,
-    }
-  }
-
   if (node.node_type === 'leaf') {
     // Assign marker and add useful metadata for "range suttas",
     // for use later to extract individual range suttas in `text(Meta)Data.js` files
@@ -413,7 +469,7 @@ async function fetchDataTree(uid, depth = 0) {
       }
     }
 
-    return await getTextData()
+    return await fetchTextData(node, depth)
   }
 
   // Assign marker for "Shortcut to all suttas" links. Only needed for `branch` nodes.
@@ -426,7 +482,7 @@ async function fetchDataTree(uid, depth = 0) {
   // The Pātimokkha's get /suttaplex data while still a branch node.
   if (node.children?.length) {
     if (node.uid?.endsWith('-pm') || node.uid?.includes('-pm-')) {
-      node = await getTextData()
+      node = await fetchTextData(node, depth)
     }
 
     node.children = (
@@ -435,6 +491,10 @@ async function fetchDataTree(uid, depth = 0) {
         MAX_CONCURRENT_REQUESTS
       )
     ).filter(Boolean)
+
+    if (fallenLeaves.has(node.uid)) {
+      node.children = await withFallenLeaves(node, depth)
+    }
   }
 
   return node
@@ -451,6 +511,9 @@ async function fetchDataTree(uid, depth = 0) {
  * Then, if `segmented` is `true` on the translation object,
  * it then uses the `/bilarasuttas` API, in addition to the `/suttas` API
  * to get the actual translated text and associated data.
+ *
+ * The fallen leaves from `/fallen_leaves`, which have parallels but no text,
+ * are added to their chapter as leaves with `scx_fallen_leaf: true`.
  *
  * This master output is then used by the various `flat...Data.js` files
  * to add `scx_path` key, json-ld data, and flatten this deeply nested tree
@@ -491,6 +554,7 @@ export default async function () {
   try {
     spinner.start()
     await fetchShortcutsList()
+    await fetchFallenLeaves()
     const roots = ['sutta', 'vinaya', 'abhidhamma']
     const tree = await Promise.all(roots.map(uid => fetchDataTree(uid)))
     const resolveLink = createLinkResolver(tree)

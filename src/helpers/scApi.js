@@ -68,6 +68,11 @@ export function parallelsUrl(uid) {
   return `${API}/parallels/${uid}`
 }
 
+/** The uids with parallels but no text, which /menu leaves out, by the chapter they're listed in */
+export function fallenLeavesUrl() {
+  return `${API}/fallen_leaves`
+}
+
 /** A translation's publication details, which .net answers with an error for most translators */
 export function publicationInfoUrl(suttaUid, lang, translatorUid) {
   return `${API}/publication_info/${suttaUid}/${lang}/${translatorUid}`
