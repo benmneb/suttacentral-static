@@ -342,7 +342,7 @@ Verify checksum matches
 sha256sum -c --ignore-missing SHA256SUMS.txt
 ```
 
-Import my public key (same key used to sign all commits to this repo)
+Import my public key
 
 ```bash
 gpg --keyserver keys.openpgp.org --recv-keys AECABD60A4CB5BE900864AF2C8DAB4CE409C4AB8

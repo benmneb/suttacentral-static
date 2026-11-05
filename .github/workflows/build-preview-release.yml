@@ -653,7 +653,7 @@ jobs:
             // Build GPG section if signed
             const gpgSection = signed && pgpPublicKey ? `
 
-            Import my public key (same key used to sign all commits to this repo)
+            Import my public key
             \`\`\`bash
             gpg --keyserver keys.openpgp.org --recv-keys ${pgpPublicKey}
             \`\`\`
@@ -1491,7 +1491,7 @@ jobs:
             // Build GPG section if signed
             const gpgSection = signed && pgpPublicKey ? `
 
-            Import my public key (same key used to sign all commits to this repo)
+            Import my public key
             \`\`\`bash
             gpg --keyserver keys.openpgp.org --recv-keys ${pgpPublicKey}
             \`\`\`
