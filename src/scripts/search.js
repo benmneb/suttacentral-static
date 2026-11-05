@@ -1359,11 +1359,4 @@
     if (getFilters().boxes.length) await performSearch('')
     else clearResults()
   })
-
-  document.addEventListener('keydown', function (event) {
-    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
-      event.preventDefault()
-      input.focus()
-    }
-  })
 })()

@@ -9,7 +9,8 @@
  * Without JS: Form submits to external search (limited to this domain) with hidden input field
  * With JS: Form submits to /search page with query parameter for client-side search
  *
- * Also adds `Cmd (Mac) or Ctrl (Windows/Linux) + K` shortcut for opening the search dialog
+ * Also adds `Cmd (Mac) or Ctrl (Windows/Linux) + K` shortcut for opening the search dialog, and S, / and ] as on
+ * .net, unless a text's Hot keys setting is off
  *
  * @module preSearch
  */
@@ -41,6 +42,32 @@
     })
   })
 
+  // As on .net, unless a text's Hot keys setting is off
+  function hotkey(event) {
+    if (event.metaKey || event.ctrlKey || event.altKey) return false
+    if (!['/', 's', 'S', ']'].includes(event.key)) return false
+    const shortcutter = document.getElementById('shortcutter')
+    if (shortcutter instanceof HTMLInputElement && !shortcutter.checked)
+      return false
+    const target = event.target
+    return !(
+      target instanceof HTMLElement &&
+      (target.isContentEditable ||
+        target.matches(
+          'input:not([type="checkbox"], [type="range"]), textarea, select'
+        ))
+    )
+  }
+
+  document.addEventListener('keydown', event => {
+    const toggle = (event.metaKey || event.ctrlKey) && event.key === 'k'
+    if ((!toggle && !hotkey(event)) || !(dialog ?? input)) return
+    event.preventDefault()
+    if (!dialog) return input.focus()
+    if (!dialog.open) dialog.showModal()
+    else if (toggle) dialog.close()
+  })
+
   if (!dialog) return
 
   // Invoker commands and closedby are too new for some targets
@@ -60,13 +87,5 @@
   // Safari's search field keeps Escape from the dialog, even once empty
   dialog.addEventListener('keydown', event => {
     if (event.key === 'Escape' && !input?.value) dialog.close()
-  })
-
-  document.addEventListener('keydown', function (event) {
-    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
-      event.preventDefault()
-      if (dialog.open) dialog.close()
-      else dialog.showModal()
-    }
   })
 })()
