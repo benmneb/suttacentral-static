@@ -628,154 +628,71 @@ eleventyComputed:
 >
   {% if entry.is_root and entry._bilarasuttas_data.size > 0 %}
     {% assign comments = "" %}
-    {% for key in entry._bilarasuttas_data.keys_order %}
-      {% comment %}
-        First, decide whether or not to "process" a key for range-suttas
-        every other text should always process all keys and skips this intro
-      {% endcomment %}
-      {% assign should_process = true %}
-      {% assign is_header = false %}
-      {% assign is_last_key = false %}
-
-      {% comment %}
-        A uid in no document at all gets the whole response, unfiltered
-      {% endcomment %}
-      {% if entry.scx_range_sutta_individual
-        and entry.scx_range_sutta_shown_uid
-      %}
-        {% comment %}
-          Check if this key is a :0.X header key, as this is where the headings are.
-          These are useful for all texts in the range as including this heading gives context to the text
-        {% endcomment %}
-        {% assign key_segment = key | split: ":" | last %}
-        {% if key_segment contains "0." %}
-          {% assign header_html = entry._bilarasuttas_data.html_text[key] %}
-
-          {% if header_html contains "<article id=" %}
-            {% comment %}
-              Article-specific header (e.g., "<article id='dhp1'>" or "<article id='an1.258-267'>")
-              Extract the id and check if it matches this `entry.uid` or `entry.scx_range_sutta_uid`
-            {% endcomment %}
-            {% assign article_id_parts = header_html | split: "id='" %}
-            {% assign article_id = article_id_parts[1] | split: "'" | first %}
-
-            {% if article_id == entry.scx_range_sutta_uid
-              or article_id == entry.uid
-              or article_id == entry.scx_range_sutta_shown_uid
-            %}
-              {% assign is_header = true %}
-            {% endif %}
-          {% else %}
-            {% comment %}
-              Global range header (e.g., division, subdivision, range-title)
-              These apply to all suttas in the range
-            {% endcomment %}
-            {% assign is_header = true %}
-          {% endif %}
-        {% endif %}
-
-        {% comment %}
-          Check if this is the last key
-          (ie for the closing </article> and </section> tags)
-        {% endcomment %}
-        {% assign last_index = entry._bilarasuttas_data.keys_order.size
-          | minus: 1
-        %}
-        {% assign is_last_key = false %}
-        {% if forloop.index0 == last_index %}
-          {% assign is_last_key = true %}
-        {% endif %}
-
-        {% comment %}
-          Check if key belongs to the bilara document holding the text uid: its own,
-          or the (sub-)range it's part of, ie /sn45.52 is in sn45.50-54, /an1.180 in an1.175-186
-        {% endcomment %}
-        {% assign key_id = key | split: ":" | first | downcase %}
-        {% assign matches_uid = false %}
-        {% if key_id == entry.scx_range_sutta_shown_uid %}
-          {% assign matches_uid = true %}
-        {% endif %}
-
-        {% comment %} Include if it's a header or matches uid {% endcomment %}
-        {% if is_header or matches_uid %}
-          {% assign should_process = true %}
-        {% else %}
-          {% assign should_process = false %}
-          {% comment %} The last key is another text's, so only close what this one leaves open {% endcomment %}
-          {% if is_last_key %}{{ entry.scx_range_closing_tags }}{% endif %}
-        {% endif %}
+    {% assign keys = entry.scx_keys
+      | default: entry._bilarasuttas_data.keys_order
+    %}
+    {% for key in keys %}
+      {% assign html = entry._bilarasuttas_data.html_text[key] %}
+      {% assign text = entry._bilarasuttas_data.root_text[key] %}
+      {% assign comment = entry._bilarasuttas_data.variant_text[key] %}
+      {% assign ref = key | split: ":" | last %}
+      {% assign ref_id = entry.scx_segment_ids[key] | default: ref %}
+      {% if entry.scx_full_segment_refs %}
+        {% assign ref = key %}
       {% endif %}
 
-      {% if should_process %}
-        {% assign html = entry._bilarasuttas_data.html_text[key] %}
-        {% assign text = entry._bilarasuttas_data.root_text[key] %}
-        {% assign comment = entry._bilarasuttas_data.variant_text[key] %}
-        {% assign ref = key | split: ":" | last %}
-        {% assign ref_id = entry.scx_segment_ids[key] | default: ref %}
-        {% if entry.scx_full_segment_refs %}
-          {% assign ref = key %}
-        {% endif %}
-
-        {% if html %}
-          {% assign is_heading = html | isHeading %}
-          {% capture replacement %}
-          {% assign anchor = entry.scx_parallel_anchors[key] %}
-          <span id="{{ key }}" class="segment"{% if anchor %} style="--anchor: {{ anchor }}"{% endif %}>
-            <span class="reference" id="{{ ref_id }}" hidden>
-              <a href="#{{ ref_id }}" title="SuttaCentral segment number">{{ ref }}</a>
-              {%- comment -%}
-                Every printed-edition reference too, hidden like the number, so a link like /mn2/en/sujato#bj10.20 has
-                somewhere to land - CSS reveals whichever is targeted. Not searchable, they'd only add noise like "pts" and "pli1"
-              {%- endcomment -%}
-              {%- assign ref_ids = entry._bilarasuttas_data.reference_text[key] | split: "," -%}
-              {%- assign repeated_refs = entry.scx_repeated_refs[key] -%}
-              {%- for ref_id in ref_ids -%}
-                {%- assign id = ref_id | strip -%}
-                {%- if id != blank -%}
-                  <a class="ref {{ id | referenceGroup }}"{% unless repeated_refs contains id %} id="{{ id }}"{% endunless %} href="#{{ id }}" title="{{ id | referenceEdition }}" data-pagefind-ignore>{{ id }}</a>
-                {%- endif -%}
-              {%- endfor %}
-            </span>
-            {% if text %}
-            <!-- This is not a translation, its the root text, the class is so it's not `display: none` by default. -->
-            <span class="translation" lang="{{ entry.lang | langTag }}" translate="no">
-              {% if entry.scx_range_sutta_individual
-                and is_header
-                and entry.scx_range_sutta_shown_uid == entry.uid
-              %}
-                {% comment %} Handle untitled root texts, eg range an11.22/pli/ms to 11.29 (and 30-69) has ~ as the title {% endcomment %}
-                {% if text contains '~' %}
-                  {% if html contains "class='range-title'" or html contains "class='sutta-title'" %}
-                    {% capture text %}{{ entry.scx_range_sutta_title }}{% endcapture %}
-                  {% endif %}
-                {% endif %}
-              {% endif %}
-              <span class="text">{% if is_heading %}{{ text | softHyphenateTitle | lookupWords: entry.lang }}{% else %}{{ text | lookupWords: entry.lang }}{% endif %}</span>
-              {% unless comment == blank %}
-                <button class="variant-btn" popovertarget="comment-{{ key }}" style="--anchor: --comment{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
-                <span class="inline-comment" hidden>
-                  Variant: {{ comment | replace: scOrigin, '' }}
-                </span>
-              {% endunless %}
-            </span>
-            {% endif %}
-            {% if entry.scx_illustrations %}
-              {% include "illustrations.liquid", illustrations: entry.scx_illustrations[key] %}
-            {% endif %}
+      {% if html %}
+        {% assign is_heading = html | isHeading %}
+        {% capture replacement %}
+        {% assign anchor = entry.scx_parallel_anchors[key] %}
+        <span id="{{ key }}" class="segment"{% if anchor %} style="--anchor: {{ anchor }}"{% endif %}>
+          <span class="reference" id="{{ ref_id }}" hidden>
+            <a href="#{{ ref_id }}" title="SuttaCentral segment number">{{ ref }}</a>
+            {%- comment -%}
+              Every printed-edition reference too, hidden like the number, so a link like /mn2/en/sujato#bj10.20 has
+              somewhere to land - CSS reveals whichever is targeted. Not searchable, they'd only add noise like "pts" and "pli1"
+            {%- endcomment -%}
+            {%- assign ref_ids = entry._bilarasuttas_data.reference_text[key] | split: "," -%}
+            {%- assign repeated_refs = entry.scx_repeated_refs[key] -%}
+            {%- for ref_id in ref_ids -%}
+              {%- assign id = ref_id | strip -%}
+              {%- if id != blank -%}
+                <a class="ref {{ id | referenceGroup }}"{% unless repeated_refs contains id %} id="{{ id }}"{% endunless %} href="#{{ id }}" title="{{ id | referenceEdition }}" data-pagefind-ignore>{{ id }}</a>
+              {%- endif -%}
+            {%- endfor %}
           </span>
+          {% if text %}
+          <!-- This is not a translation, its the root text, the class is so it's not `display: none` by default. -->
+          <span class="translation" lang="{{ entry.lang | langTag }}" translate="no">
+            {% if entry.scx_retitled_keys[key] %}
+              {% assign text = entry.scx_range_sutta_title %}
+            {% endif %}
+            <span class="text">{% if is_heading %}{{ text | softHyphenateTitle | lookupWords: entry.lang }}{% else %}{{ text | lookupWords: entry.lang }}{% endif %}</span>
+            {% unless comment == blank %}
+              <button class="variant-btn" popovertarget="comment-{{ key }}" style="--anchor: --comment{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
+              <span class="inline-comment" hidden>
+                Variant: {{ comment | replace: scOrigin, '' }}
+              </span>
+            {% endunless %}
+          </span>
+          {% endif %}
+          {% if entry.scx_illustrations %}
+            {% include "illustrations.liquid", illustrations: entry.scx_illustrations[key] %}
+          {% endif %}
+        </span>
+        {% endcapture %}
+        {{ html | replace: "{}", replacement }}
+        {%- unless comment == blank -%}
+          {% capture comments %}
+          {{ comments }}
+          <article id="comment-{{ key }}" popover style="--anchored-to: --comment{{ forloop.index }}">
+            Variant: <span lang="{{ entry.lang | langTag }}" translate="no">{{ comment | replace: scOrigin, '' }}</span>
+          </article>
           {% endcapture %}
-          {{ html | replace: "{}", replacement }}
-          {%- unless comment == blank -%}
-            {% capture comments %}
-            {{ comments }}
-            <article id="comment-{{ key }}" popover style="--anchored-to: --comment{{ forloop.index }}">
-              Variant: <span lang="{{ entry.lang | langTag }}" translate="no">{{ comment | replace: scOrigin, '' }}</span>
-            </article>
-            {% endcapture %}
-          {%- endunless -%}
-        {% endif %}
+        {%- endunless -%}
       {% endif %}
     {% endfor %}
+    {{ entry.scx_range_closing_tags }}
     {{ comments }}
     {% if has_info %}
       <article id="info" popover>
@@ -784,186 +701,96 @@ eleventyComputed:
     {% endif %}
   {% elsif entry.segmented %}
     {% assign comments = "" %}
-    {% for key in entry._bilarasuttas_data.keys_order %}
-      {% comment %}
-        First, decide whether or not to "process" a key for range-suttas
-        every other text should always process all keys and skips this intro
-      {% endcomment %}
-      {% assign should_process = true %}
-      {% assign is_header = false %}
-      {% assign is_last_key = false %}
-
-      {% comment %}
-        A uid in no document at all gets the whole response, unfiltered
-      {% endcomment %}
-      {% if entry.scx_range_sutta_individual
-        and entry.scx_range_sutta_shown_uid
-      %}
-        {% comment %}
-          Check if this key is a :0.X header key, as this is where the headings are.
-          These are useful for all texts in the range as including this heading gives context to the text
-        {% endcomment %}
-        {% assign key_segment = key | split: ":" | last %}
-        {% if key_segment contains "0." %}
-          {% assign header_html = entry._bilarasuttas_data.html_text[key] %}
-
-          {% if header_html contains "<article id=" %}
-            {% comment %}
-              Article-specific header (e.g., "<article id='dhp1'>" or "<article id='an1.258-267'>")
-              Extract the id and check if it matches this `entry.uid` or `entry.scx_range_sutta_uid`
-            {% endcomment %}
-            {% assign article_id_parts = header_html | split: "id='" %}
-            {% assign article_id = article_id_parts[1] | split: "'" | first %}
-
-            {% if article_id == entry.scx_range_sutta_uid
-              or article_id == entry.uid
-              or article_id == entry.scx_range_sutta_shown_uid
-            %}
-              {% assign is_header = true %}
-            {% endif %}
-          {% else %}
-            {% comment %}
-              Global range header (e.g., division, subdivision, range-title)
-              These apply to all suttas in the range
-            {% endcomment %}
-            {% assign is_header = true %}
-          {% endif %}
-        {% endif %}
-
-        {% comment %}
-          Check if this is the last key
-          (ie for the closing </article> and </section> tags)
-        {% endcomment %}
-        {% assign last_index = entry._bilarasuttas_data.keys_order.size
-          | minus: 1
-        %}
-        {% assign is_last_key = false %}
-        {% if forloop.index0 == last_index %}
-          {% assign is_last_key = true %}
-        {% endif %}
-
-        {% comment %}
-          Check if key belongs to the bilara document holding the text uid: its own,
-          or the (sub-)range it's part of, ie /sn45.52 is in sn45.50-54, /an1.180 in an1.175-186
-        {% endcomment %}
-        {% assign key_id = key | split: ":" | first | downcase %}
-        {% assign matches_uid = false %}
-        {% if key_id == entry.scx_range_sutta_shown_uid %}
-          {% assign matches_uid = true %}
-        {% endif %}
-
-        {% comment %} Include if it's a header or matches uid {% endcomment %}
-        {% if is_header or matches_uid %}
-          {% assign should_process = true %}
-        {% else %}
-          {% assign should_process = false %}
-          {% comment %} The last key is another text's, so only close what this one leaves open {% endcomment %}
-          {% if is_last_key %}{{ entry.scx_range_closing_tags }}{% endif %}
-        {% endif %}
+    {% assign keys = entry.scx_keys
+      | default: entry._bilarasuttas_data.keys_order
+    %}
+    {% for key in keys %}
+      {% assign html = entry._bilarasuttas_data.html_text[key] %}
+      {% assign text = entry._bilarasuttas_data.translation_text[key] %}
+      {% assign rootText = entry._bilarasuttas_data.root_text[key] %}
+      {% assign comment = entry._bilarasuttas_data.comment_text[key] %}
+      {% assign variant = entry._bilarasuttas_data.variant_text[key] %}
+      {% assign ref = key | split: ":" | last %}
+      {% assign ref_id = entry.scx_segment_ids[key] | default: ref %}
+      {% if entry.scx_full_segment_refs %}
+        {% assign ref = key %}
       {% endif %}
 
-      {% if should_process %}
-        {% assign html = entry._bilarasuttas_data.html_text[key] %}
-        {% assign text = entry._bilarasuttas_data.translation_text[key] %}
-        {% assign rootText = entry._bilarasuttas_data.root_text[key] %}
-        {% assign comment = entry._bilarasuttas_data.comment_text[key] %}
-        {% assign variant = entry._bilarasuttas_data.variant_text[key] %}
-        {% assign ref = key | split: ":" | last %}
-        {% assign ref_id = entry.scx_segment_ids[key] | default: ref %}
-        {% if entry.scx_full_segment_refs %}
-          {% assign ref = key %}
-        {% endif %}
-
-        {% if html %}
-          {% assign is_heading = html | isHeading %}
-          {% capture replacement %}
-          {% assign anchor = entry.scx_parallel_anchors[key] %}
-          <span id="{{ key }}" class="segment"{% if anchor %} style="--anchor: {{ anchor }}"{% endif %}>
-            <span class="reference" id="{{ ref_id }}" hidden>
-              <a href="#{{ ref_id }}" title="SuttaCentral segment number">{{ ref }}</a>
-              {%- comment -%}
-                Every printed-edition reference too, hidden like the number, so a link like /mn2/en/sujato#bj10.20 has
-                somewhere to land - CSS reveals whichever is targeted. Not searchable, they'd only add noise like "pts" and "pli1"
-              {%- endcomment -%}
-              {%- assign ref_ids = entry._bilarasuttas_data.reference_text[key] | split: "," -%}
-              {%- assign repeated_refs = entry.scx_repeated_refs[key] -%}
-              {%- for ref_id in ref_ids -%}
-                {%- assign id = ref_id | strip -%}
-                {%- if id != blank -%}
-                  <a class="ref {{ id | referenceGroup }}"{% unless repeated_refs contains id %} id="{{ id }}"{% endunless %} href="#{{ id }}" title="{{ id | referenceEdition }}" data-pagefind-ignore>{{ id }}</a>
-                {%- endif -%}
-              {%- endfor %}
-            </span>
-            {% if text %}
-              <span class="translation" lang="{{ entry.lang | langTag }}"{% if text == entry.translated_title or text == entry.translated_name %} data-pagefind-weight="8"{% endif %}>
-            {% comment %}
-              Swap the vagga heading for the number, but only when the sutta has no translated
-              heading of its own to title the page (ie Dhp verses) - otherwise it'd just repeat it
-            {% endcomment %}
-            {% if entry.scx_range_sutta_individual
-              and is_header
-              and entry.scx_range_sutta_shown_uid == entry.uid
-              and entry.scx_range_sutta_untitled
-            %}
-              {% if text == entry.translated_title or text == entry.translated_name %}
-                {% capture text %}{{ entry.scx_range_sutta_title }}{% endcapture %}
+      {% if html %}
+        {% assign is_heading = html | isHeading %}
+        {% capture replacement %}
+        {% assign anchor = entry.scx_parallel_anchors[key] %}
+        <span id="{{ key }}" class="segment"{% if anchor %} style="--anchor: {{ anchor }}"{% endif %}>
+          <span class="reference" id="{{ ref_id }}" hidden>
+            <a href="#{{ ref_id }}" title="SuttaCentral segment number">{{ ref }}</a>
+            {%- comment -%}
+              Every printed-edition reference too, hidden like the number, so a link like /mn2/en/sujato#bj10.20 has
+              somewhere to land - CSS reveals whichever is targeted. Not searchable, they'd only add noise like "pts" and "pli1"
+            {%- endcomment -%}
+            {%- assign ref_ids = entry._bilarasuttas_data.reference_text[key] | split: "," -%}
+            {%- assign repeated_refs = entry.scx_repeated_refs[key] -%}
+            {%- for ref_id in ref_ids -%}
+              {%- assign id = ref_id | strip -%}
+              {%- if id != blank -%}
+                <a class="ref {{ id | referenceGroup }}"{% unless repeated_refs contains id %} id="{{ id }}"{% endunless %} href="#{{ id }}" title="{{ id | referenceEdition }}" data-pagefind-ignore>{{ id }}</a>
+              {%- endif -%}
+            {%- endfor %}
+          </span>
+          {% if text %}
+            <span class="translation" lang="{{ entry.lang | langTag }}"{% if text == entry.translated_title or text == entry.translated_name %} data-pagefind-weight="8"{% endif %}>
+          {% if entry.scx_retitled_keys[key] %}
+            {% assign text = entry.scx_range_sutta_title %}
+          {% endif %}
+          <span class="text">{{ text }}</span>
+            {% unless comment == blank %}
+              <button popovertarget="comment-{{ key }}" style="--anchor: --comment{{ forloop.index }}" aria-label="Show {{ entry.author }}'s footnote for segment {{ key }}">*</button>
+              <span class="inline-comment" hidden>
+                <span class="sr-only">Note:</span> {{ comment | replace: scOrigin, '' }}
+              </span>
+            {% endunless %}
+          </span>
+          {% endif %}
+          {% if rootText %}
+            {% assign normalisedRoot = rootText | normalise %}
+            {% assign normalisedTitle = entry.original_title | normalise %}
+            <span class="root" lang="{{ entry.root_lang | langTag }}" translate="no" hidden {% unless normalisedRoot contains normalisedTitle %}data-pagefind-ignore="all"{% endunless %}>
+              {% if entry.scx_retitled_keys[key] %}
+                {% assign rootText = entry.scx_range_sutta_title %}
               {% endif %}
-            {% endif %}
-            <span class="text">{{ text }}</span>
-              {% unless comment == blank %}
-                <button popovertarget="comment-{{ key }}" style="--anchor: --comment{{ forloop.index }}" aria-label="Show {{ entry.author }}'s footnote for segment {{ key }}">*</button>
+              <span class="text">{% if is_heading %}{{ rootText | softHyphenateTitle | lookupWords: entry.root_lang }}{% else %}{{ rootText | lookupWords: entry.root_lang }}{% endif %}</span>
+              {% unless variant == blank %}
+                <button class="variant-btn" popovertarget="variant-{{ key }}" style="--anchor: --variant{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
                 <span class="inline-comment" hidden>
-                  <span class="sr-only">Note:</span> {{ comment | replace: scOrigin, '' }}
+                  Variant: {{ variant | replace: scOrigin, '' }}
                 </span>
               {% endunless %}
             </span>
-            {% endif %}
-            {% if rootText %}
-              {% assign normalisedRoot = rootText | normalise %}
-              {% assign normalisedTitle = entry.original_title | normalise %}
-              <span class="root" lang="{{ entry.root_lang | langTag }}" translate="no" hidden {% unless normalisedRoot contains normalisedTitle %}data-pagefind-ignore="all"{% endunless %}>
-                {% if entry.scx_range_sutta_individual
-                  and is_header
-                  and entry.scx_range_sutta_shown_uid == entry.uid
-                %}
-                  {% if text == entry.scx_range_sutta_title %}
-                    {% capture rootText %}{{ entry.scx_range_sutta_title }}{% endcapture %}
-                  {% endif %}
-                {% endif %}
-                <span class="text">{% if is_heading %}{{ rootText | softHyphenateTitle | lookupWords: entry.root_lang }}{% else %}{{ rootText | lookupWords: entry.root_lang }}{% endif %}</span>
-                {% unless variant == blank %}
-                  <button class="variant-btn" popovertarget="variant-{{ key }}" style="--anchor: --variant{{ forloop.index }}" aria-label="Show variant reading for segment {{ ref }}">*</button>
-                  <span class="inline-comment" hidden>
-                    Variant: {{ variant | replace: scOrigin, '' }}
-                  </span>
-                {% endunless %}
-              </span>
-            {% endif %}
-            {% if entry.scx_illustrations %}
-              {% include "illustrations.liquid", illustrations: entry.scx_illustrations[key] %}
-            {% endif %}
-          </span>
+          {% endif %}
+          {% if entry.scx_illustrations %}
+            {% include "illustrations.liquid", illustrations: entry.scx_illustrations[key] %}
+          {% endif %}
+        </span>
+        {% endcapture %}
+        {{ html | replace: "{}", replacement }}
+        {%- unless comment == blank -%}
+          {% capture comments %}
+          {{ comments }}
+          <article id="comment-{{ key }}" popover style="--anchored-to: --comment{{ forloop.index }}">
+            {{ comment | replace: scOrigin, '' }}
+          </article>
           {% endcapture %}
-          {{ html | replace: "{}", replacement }}
-          {%- unless comment == blank -%}
-            {% capture comments %}
-            {{ comments }}
-            <article id="comment-{{ key }}" popover style="--anchored-to: --comment{{ forloop.index }}">
-              {{ comment | replace: scOrigin, '' }}
-            </article>
-            {% endcapture %}
-          {%- endunless -%}
-          {%- unless variant == blank -%}
-            {% capture comments %}
-            {{ comments }}
-            <article id="variant-{{ key }}" popover style="--anchored-to: --variant{{ forloop.index }}">
-              Variant: <span lang="{{ entry.root_lang | langTag }}" translate="no">{{ variant | replace: scOrigin, '' }}</span>
-            </article>
-            {% endcapture %}
-          {%- endunless -%}
-        {% endif %}
+        {%- endunless -%}
+        {%- unless variant == blank -%}
+          {% capture comments %}
+          {{ comments }}
+          <article id="variant-{{ key }}" popover style="--anchored-to: --variant{{ forloop.index }}">
+            Variant: <span lang="{{ entry.root_lang | langTag }}" translate="no">{{ variant | replace: scOrigin, '' }}</span>
+          </article>
+          {% endcapture %}
+        {%- endunless -%}
       {% endif %}
     {% endfor %}
+    {{ entry.scx_range_closing_tags }}
     {{ comments }}
     {% if has_info %}
       <article id="info" popover>

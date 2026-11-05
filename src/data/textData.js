@@ -227,11 +227,7 @@ function uniqueIds(html) {
   })
 }
 
-/*
- * Mirrors the `should_process` logic in `pages/text.liquid` for individual range suttas,
- * so only headings that actually get rendered on the page end up in the ToC.
- * Keep the two in sync.
- */
+/** Whether a key of a range sutta's page is shown, and whether it's one of the headings above its text */
 function getRangeKeyInfo(entry, key) {
   const html = entry._bilarasuttas_data.html_text[key]
 
@@ -251,21 +247,71 @@ function getRangeKeyInfo(entry, key) {
   const matchesUid =
     key.split(':')[0].toLowerCase() === entry.scx_range_sutta_shown_uid
 
-  // The last key is also processed by the template, but only for its closing tags
   return { isRendered: isHeader || matchesUid, isHeader }
+}
+
+/** Whether a heading of a range sutta's page takes its number for a title, as it has none of its own */
+function isRetitled(entry, key) {
+  const data = entry._bilarasuttas_data
+  const html = data.html_text[key]
+  if (entry.is_root) {
+    // An untitled root text, ie an11.22-29/pli/ms has ~ as the title
+    return (
+      !!data.root_text?.[key]?.includes('~') &&
+      (html.includes("class='range-title'") ||
+        html.includes("class='sutta-title'"))
+    )
+  }
+  const text = data.translation_text?.[key]
+  if (!text) return false
+  // Its root text follows the translation's, swapped or not
+  return (
+    text === entry.scx_range_sutta_title ||
+    (entry.scx_range_sutta_untitled &&
+      (text === entry.translated_title || text === entry.translated_name))
+  )
+}
+
+/**
+ * The keys a range sutta's page shows: the range's headings, and its own document's segments. And the headings
+ * among them that take its number for a title. Null for any other page, which shows every key
+ */
+function rangeKeysOf(entry) {
+  const data = entry._bilarasuttas_data
+  if (
+    !entry.scx_range_sutta_individual ||
+    !entry.scx_range_sutta_shown_uid ||
+    !data?.keys_order?.length
+  ) {
+    return { scx_keys: null, scx_retitled_keys: null }
+  }
+  const keys = []
+  const retitled = {}
+  for (const key of data.keys_order) {
+    if (!data.html_text[key]) continue
+    const { isRendered, isHeader } = getRangeKeyInfo(entry, key)
+    if (!isRendered) continue
+    keys.push(key)
+    if (
+      isHeader &&
+      entry.scx_range_sutta_shown_uid === entry.uid &&
+      isRetitled(entry, key)
+    ) {
+      retitled[key] = true
+    }
+  }
+  return {
+    scx_keys: keys,
+    scx_retitled_keys: Object.keys(retitled).length ? retitled : null,
+  }
 }
 
 /** The segment keys a page shows, or null for a legacy text */
 function shownKeysOf(entry) {
+  if (entry.scx_keys) return entry.scx_keys
   const data = entry._bilarasuttas_data
   if (!data?.keys_order?.length) return null
-  const isRange =
-    entry.scx_range_sutta_individual && entry.scx_range_sutta_shown_uid
-  return data.keys_order.filter(
-    key =>
-      data.html_text[key] &&
-      (!isRange || getRangeKeyInfo(entry, key).isRendered)
-  )
+  return data.keys_order.filter(key => data.html_text[key])
 }
 
 /** A shown segment's illustrations, by its key, or null if it has none. That's only MN 123 for now */
@@ -353,19 +399,12 @@ const VOID_ELEMENTS = new Set(['br', 'hr', 'img', 'wbr'])
 function rangeClosingTagsOf(entry) {
   const data = entry._bilarasuttas_data
   const keys = data?.keys_order ?? []
-  const isRange =
-    entry.scx_range_sutta_individual && entry.scx_range_sutta_shown_uid
-  if (
-    !isRange ||
-    !keys.length ||
-    getRangeKeyInfo(entry, keys.at(-1)).isRendered
-  ) {
+  if (!entry.scx_keys || getRangeKeyInfo(entry, keys.at(-1)).isRendered) {
     return { scx_range_closing_tags: null }
   }
   const open = []
-  for (const key of keys.slice(0, -1)) {
+  for (const key of entry.scx_keys) {
     const html = data.html_text[key]
-    if (!html || !getRangeKeyInfo(entry, key).isRendered) continue
     for (const [, slash, name] of html.matchAll(/<(\/?)([a-z][a-z0-9]*)/gi)) {
       if (VOID_ELEMENTS.has(name)) continue
       if (!slash) open.push(name)
@@ -396,16 +435,11 @@ function viewOptionsOf(entry) {
  */
 function collectSegmentedToc(entry, useRootText) {
   const data = entry._bilarasuttas_data
-  const isRange =
-    entry.scx_range_sutta_individual && entry.scx_range_sutta_shown_uid
   const renumber = headingRenumberer()
   const toc = []
 
-  for (const key of data.keys_order ?? []) {
+  for (const key of shownKeysOf(entry) ?? []) {
     const html = data.html_text[key]
-    if (!html) continue
-    const rangeKey = isRange && getRangeKeyInfo(entry, key)
-    if (rangeKey && !rangeKey.isRendered) continue
     const heading = html.match(/<h([2-4])([^>]*)>(?=\{\})/)
     // A heading with no text, which `dropEmptyHeadings` takes off the page
     const isDropped =
@@ -419,32 +453,11 @@ function collectSegmentedToc(entry, useRootText) {
     }
     if (!heading) continue
 
-    let text = useRootText
-      ? data.root_text?.[key]
-      : data.translation_text?.[key]
-
-    if (rangeKey) {
-      const { isHeader } = rangeKey
-      // Same title substitutions as the template. A whole range document
-      // (ie sn45.50-54) is shown as is, so its own headings are already right
-      const isRetitled =
-        isHeader && entry.scx_range_sutta_shown_uid === entry.uid
-      if (isRetitled && useRootText) {
-        if (
-          text?.includes('~') &&
-          (html.includes("class='range-title'") ||
-            html.includes("class='sutta-title'"))
-        ) {
-          text = entry.scx_range_sutta_title
-        }
-      } else if (
-        isRetitled &&
-        entry.scx_range_sutta_untitled &&
-        (text === entry.translated_title || text === entry.translated_name)
-      ) {
-        text = entry.scx_range_sutta_title
-      }
-    }
+    const text = entry.scx_retitled_keys?.[key]
+      ? entry.scx_range_sutta_title
+      : useRootText
+        ? data.root_text?.[key]
+        : data.translation_text?.[key]
 
     if (!text?.trim()) continue
 
@@ -711,7 +724,8 @@ function flatten(nodes, parent, parentPath) {
           keyPrefixes.every(prefix => firsts.has(prefix))
 
         results.push(
-          ...rangeEntries.map(entry => {
+          ...rangeEntries.map(rangeEntry => {
+            const entry = { ...rangeEntry, ...rangeKeysOf(rangeEntry) }
             const shown = entry.scx_range_sutta_shown_uid
             const unindexed = !rangeUnindexed || firsts.get(shown) !== entry.uid
             return {
