@@ -54,12 +54,9 @@ eleventyComputed:
       {% for child in entry.children %}
         {% comment %} The id is where breadcrumbs link to for things with no page of their own, ie pātimokkha sections {% endcomment %}
         <li id="{{ child.uid }}">
-          {% assign titled = child | isTitled %}
           <hgroup>
             <h2>{% rootTitle child %}</h2>
-            {%- if child.acronym and titled %}
-              <p>{{ child.acronym }}</p>
-            {% endif %}
+            {% include "childTextRefs.liquid", entry: child %}
           </hgroup>
           {%- if child.blurb %}
             <p>{{ child.blurb }}</p>
@@ -74,12 +71,9 @@ eleventyComputed:
             <ul>
               {% for grandchild in child.children %}
                 <li>
-                  {% assign titled = grandchild | isTitled %}
                   <hgroup>
                     <h3>{% rootTitle grandchild %}</h3>
-                    {%- if grandchild.acronym and titled %}
-                      <p>{{ grandchild.acronym }}</p>
-                    {% endif %}
+                    {% include "childTextRefs.liquid", entry: grandchild %}
                   </hgroup>
                   {% if grandchild.blurb %}
                     <p>{{ grandchild.blurb }}</p>
@@ -93,12 +87,9 @@ eleventyComputed:
             <ul>
               {% for grandchild in child.children %}
                 <li>
-                  {% assign titled = grandchild | isTitled %}
                   <hgroup>
                     <h3>{% rootTitle grandchild %}</h3>
-                    {%- if grandchild.acronym and titled %}
-                      <p>{{ grandchild.acronym }}</p>
-                    {% endif %}
+                    {% include "childTextRefs.liquid", entry: grandchild %}
                   </hgroup>
                   {% if grandchild.blurb %}
                     <p>{{ grandchild.blurb }}</p>
@@ -110,12 +101,11 @@ eleventyComputed:
                   <ul>
                     {% for greatgrandchild in grandchild.children %}
                       <li>
-                        {% assign titled = greatgrandchild | isTitled %}
                         <hgroup>
                           <h4>{% rootTitle greatgrandchild %}</h4>
-                          {%- if greatgrandchild.acronym and titled %}
-                            <p>{{ greatgrandchild.acronym }}</p>
-                          {% endif %}
+                          {% include "childTextRefs.liquid",
+                            entry: greatgrandchild
+                          %}
                         </hgroup>
                         {% if greatgrandchild.blurb %}
                           <p>{{ greatgrandchild.blurb }}</p>

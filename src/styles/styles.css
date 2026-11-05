@@ -238,7 +238,7 @@ i.upright {
     color: var(--text-color-secondary);
   }
 
-  :is(.alt-acronym, .volpages):not(.texts-list *, .parallel-list *) {
+  hgroup > & > :is(.alt-acronym, .volpages) {
     font-size: small;
   }
 }

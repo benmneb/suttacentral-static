@@ -1,0 +1,14 @@
+{% comment %} Without the acronym when it's already the title {% endcomment %}
+{% assign refs_acronym = "" %}
+{% assign refs_titled = entry | isTitled %}
+{% if refs_titled %}
+  {% assign refs_acronym = entry.acronym %}
+{% endif %}
+{% assign refs_volpages = entry.volpages | formatVolpages %}
+{% assign refs_alt_volpages = entry.alt_volpages | formatVolpages %}
+{% capture refs -%}
+  {%- textRefs refs_acronym, entry.alt_acronym, "", refs_volpages, refs_alt_volpages -%}
+{%- endcapture %}
+{% if refs != blank %}
+  <p class="text-refs">{{ refs }}</p>
+{% endif %}
