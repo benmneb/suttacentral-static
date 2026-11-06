@@ -167,14 +167,34 @@ export async function minifyJsCode(code) {
  */
 export function minifyHtmlCode(html) {
   // https://github.com/terser/html-minifier-terser?tab=readme-ov-file#options-quick-reference
-  return htmlmin.minify(html, {
+  return htmlmin.minify(squeezeLineBreaks(html), {
     useShortDoctype: true,
     removeComments: true,
     collapseWhitespace: true,
     collapseBooleanAttributes: true,
     // Not removeOptionalTags: browsers build the same DOM without them, but Pagefind takes a closing tag
     // as a word break, so text running into one (ie "possessions?’</p><p>SC") gets indexed as one word
+    // Not the default <% %> and <? ?> fragments, whose regex backtracks across every whitespace run
+    ignoreCustomFragments: [],
   })
+}
+
+const KEEP_WHITESPACE = /<(pre|textarea|script|style)\b[\s\S]*?<\/\1>/gi
+const LINE_BREAKS = /[ \t\f]*[\r\n][ \t\r\n\f]*/g
+
+/**
+ * Each run of whitespace with a line break in it as one line break, but not in a `<pre>`, `<textarea>`,
+ * `<script>` or `<style>`. The minifier collapses them the same, but its trim is quadratic in a run's length.
+ */
+export function squeezeLineBreaks(html) {
+  let squeezed = ''
+  let last = 0
+  for (const match of html.matchAll(KEEP_WHITESPACE)) {
+    squeezed += html.slice(last, match.index).replace(LINE_BREAKS, '\n')
+    squeezed += match[0]
+    last = match.index + match[0].length
+  }
+  return squeezed + html.slice(last).replace(LINE_BREAKS, '\n')
 }
 
 /**
