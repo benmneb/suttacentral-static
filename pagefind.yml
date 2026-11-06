@@ -5,6 +5,7 @@ exclude_selectors:
   - 'article[popover]' # notes, variants, info and parallels; notes get their own bundle (searchExtras.js)
   - '.inline-comment'
   - '.reference'
+  - '.root:not([data-indexed])' # root text, bar segments with the sutta title
   #  from SC:
   - '.ref' # segment references
   - '.end'

@@ -75,7 +75,7 @@ function referenceHtml(entry, key, ref, refId) {
       const unique = Array.isArray(repeated)
         ? !repeated.includes(id)
         : typeof repeated?.indexOf !== 'function' || repeated.indexOf(id) < 0
-      return `<a class="ref ${out(referenceGroup(id))}"${unique ? ` id="${id}"` : ''} href="#${id}" title="${out(referenceEditionName(id) ?? id)}" data-pagefind-ignore>${id}</a>`
+      return `<a class="ref ${out(referenceGroup(id))}"${unique ? ` id="${id}"` : ''} href="#${id}" title="${out(referenceEditionName(id) ?? id)}">${id}</a>`
     })
   return `\n<span class="reference" id="${out(refId)}" hidden>\n<a href="#${out(refId)}" title="SuttaCentral segment number">${out(ref)}</a>${refs.join('')}\n</span>\n`
 }
@@ -158,7 +158,7 @@ export async function segmentsHtml(entry, isRoot) {
           entry.root_lang
         )
         segment +=
-          `<span class="root" lang="${out(langTag(entry.root_lang))}" translate="no" hidden ${indexed ? '' : 'data-pagefind-ignore="all"'}>\n` +
+          `<span class="root" lang="${out(langTag(entry.root_lang))}" translate="no" hidden${indexed ? ' data-indexed' : ''}>\n` +
           `<span class="text">${out(words)}</span>\n`
         if (!blank(variant)) {
           segment +=
