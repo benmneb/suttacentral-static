@@ -71,13 +71,13 @@
   if (!dialog) return
 
   // Invoker commands and closedby are too new for some targets
-  if (!('commandForElement' in HTMLButtonElement.prototype)) {
-    document
-      .querySelectorAll('button[commandfor="search-modal"]')
-      .forEach(button =>
-        button.addEventListener('click', () => dialog.showModal())
-      )
-  }
+  const invokers = 'commandForElement' in HTMLButtonElement.prototype
+  document
+    .querySelectorAll('button[commandfor="search-modal"]')
+    .forEach(button => {
+      button.title = 'Cmd/Ctrl+K'
+      if (!invokers) button.addEventListener('click', () => dialog.showModal())
+    })
   if (!('closedBy' in HTMLDialogElement.prototype)) {
     dialog.addEventListener('click', event => {
       if (event.target === dialog) dialog.close()
