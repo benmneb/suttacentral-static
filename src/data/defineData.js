@@ -338,11 +338,14 @@ export default async function () {
         ),
       })
     ),
-    dictionaries: Object.entries(DICTIONARY_TITLES).map(([name, title]) => ({
-      name,
-      title,
-      count: [...words.values()].filter(entries => entries[name].length).length,
-    })),
+    dictionaries: Object.entries(DICTIONARY_TITLES)
+      .map(([name, title]) => ({
+        name,
+        title,
+        count: [...words.values()].filter(entries => entries[name].length)
+          .length,
+      }))
+      .sort((a, b) => b.count - a.count),
     // The /define page, paginated over this so it isn't built without its words
     index: [
       {
