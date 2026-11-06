@@ -15,6 +15,7 @@ import path from 'path'
 import siteMetaData from '../../src/data/_siteMetaData.js'
 import { fetchOptions } from '../../src/helpers/scApi.js'
 import { sitePageRoots } from '../../src/helpers/sitePages.js'
+import { progress } from './progress.js'
 
 export const SITE_DIR = path.resolve(process.env.SITE_DIR || '_site')
 
@@ -473,24 +474,30 @@ export function scanSite() {
       if (!map.has(key)) map.set(key, url)
     }
 
-    for (let i = 0; i < htmlFiles.length; i += READ_CONCURRENCY) {
-      const batch = htmlFiles.slice(i, i + READ_CONCURRENCY)
-      const htmls = await Promise.all(
-        batch.map(file => fs.readFile(path.join(SITE_DIR, file), 'utf8'))
-      )
-      batch.forEach((file, j) => {
-        const url = urlForFile(file)
-        const facts = factsFor(url, htmls[j])
-        for (const target of facts.links) firstOf(linkSources, target, url)
-        for (const shape of facts.jsonLdShapes)
-          firstOf(jsonLdShapes, shape, url)
-        if (facts.ogImage) firstOf(ogImages, facts.ogImage, url)
-        // These live on in the site-wide maps, no need for a copy per page
-        facts.links = facts.links.size
-        delete facts.jsonLdShapes
-        delete facts.ogImage
-        pages.set(url, facts)
-      })
+    const reading = progress('Reading the site', htmlFiles.length)
+    try {
+      for (let i = 0; i < htmlFiles.length; i += READ_CONCURRENCY) {
+        const batch = htmlFiles.slice(i, i + READ_CONCURRENCY)
+        const htmls = await Promise.all(
+          batch.map(file => fs.readFile(path.join(SITE_DIR, file), 'utf8'))
+        )
+        batch.forEach((file, j) => {
+          const url = urlForFile(file)
+          const facts = factsFor(url, htmls[j])
+          for (const target of facts.links) firstOf(linkSources, target, url)
+          for (const shape of facts.jsonLdShapes)
+            firstOf(jsonLdShapes, shape, url)
+          if (facts.ogImage) firstOf(ogImages, facts.ogImage, url)
+          // These live on in the site-wide maps, no need for a copy per page
+          facts.links = facts.links.size
+          delete facts.jsonLdShapes
+          delete facts.ogImage
+          pages.set(url, facts)
+        })
+        reading.add(batch.length)
+      }
+    } finally {
+      reading.end()
     }
 
     return { files, pages, linkSources, jsonLdShapes, ogImages }

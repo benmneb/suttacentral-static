@@ -24,6 +24,7 @@ import puppeteer from 'puppeteer-core'
 import { PUPPETEER_REVISIONS } from 'puppeteer-core/internal/revisions.js'
 import sirv from 'sirv'
 import { defineSample } from '../src/helpers/samplePages.js'
+import { progress } from './lib/progress.js'
 import {
   collectionOf,
   listSome,
@@ -253,10 +254,16 @@ describe('Accessibility', () => {
               tab = await openTab()
             }
           }
+          checking.add()
         }
         if (browser.connected) await tab.page.close()
       }
-      await Promise.all(Array.from({ length: TABS }, next))
+      const checking = progress('Checking accessibility', urls.length)
+      try {
+        await Promise.all(Array.from({ length: TABS }, next))
+      } finally {
+        checking.end()
+      }
       if (queue.length > 0) {
         found.push({
           rule: `The browser closed, so ${queue.length} pages weren't checked`,

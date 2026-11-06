@@ -232,7 +232,7 @@ Then, when a release passes the tests, or you publish a draft release or pre-rel
 - **Structured data:** every page's JSON-LD only uses schema.org types, with properties where they belong (checked against a pinned version of schema.org's vocabulary, fetched once into `.cache`), its language tags are canonical BCP 47, and its meta and Open Graph tags are valid
 - **Dictionaries:** each dictionary in `.cache` has at least about 95% of the words it had (no build needed), the `/define` pages have their entries and `/map` links to them, and word lookup's files are all there and answer at least 97% of the sample texts' words, with a `/define` page
 
-The site's structure comes from SuttaCentral's APIs, so pages coming and going with them is fine - only losing more than a few fails. The limits are constants at the top of each `tests/*.test.js` file. A full run takes a few minutes, mostly reading the mass of HTML, plus the HTML check, which takes longest as it parses every page again.
+The site's structure comes from SuttaCentral's APIs, so pages coming and going with them is fine - only losing more than a few fails. The limits are constants at the top of each `tests/*.test.js` file. On a full build a run takes about 3 minutes reading the mass of HTML, about 15 for the accessibility check, then the HTML check, which takes longest as it parses every page again. Results only show once each check is done, so the slow ones count their pages as they go. `node --test tests/links.test.js` runs one file.
 
 #### Tag format
 

@@ -14,6 +14,7 @@ import { describe, it } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import vnuJar from 'vnu-jar'
 import javaDownloader from 'vnu-jar/vnu-java-downloader.js'
+import { progress } from './lib/progress.js'
 import { listFiles, listSome, SITE_DIR, urlForFile } from './lib/site.js'
 
 // Files per run of the validator, few enough to stay under the OS's argument length limit
@@ -108,9 +109,15 @@ describe('Every page’s HTML', () => {
     const next = async () => {
       for (let batch; (batch = batches.shift()); ) {
         for (const message of await validate(java, batch)) add(message)
+        validating.add(batch.length)
       }
     }
-    await Promise.all(Array.from({ length: os.availableParallelism() }, next))
+    const validating = progress('Validating the HTML', files.length)
+    try {
+      await Promise.all(Array.from({ length: os.availableParallelism() }, next))
+    } finally {
+      validating.end()
+    }
 
     const report = [...byMessage]
       .sort(([, a], [, b]) => b.count - a.count)
