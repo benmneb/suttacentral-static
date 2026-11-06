@@ -873,6 +873,10 @@ main {
         background-color: var(--bg-alt-1);
       }
     }
+
+    details {
+      margin-bottom: 1rem;
+    }
   }
 
   .texts-list {
@@ -916,6 +920,33 @@ main {
           }
         }
       }
+    }
+
+    > li > ul > li:not(.leaf-node) {
+      list-style-type: lower-roman;
+    }
+  }
+
+  .leaf-node {
+    list-style-type: none;
+    border: 1px solid var(--bg-alt-1);
+    border-radius: var(--rounding);
+    padding: 1rem;
+    margin-bottom: 1rem;
+
+    > hgroup {
+      h3,
+      h4 {
+        font-size: larger;
+      }
+
+      > :first-child {
+        margin-top: 0;
+      }
+    }
+
+    > :last-child {
+      margin-bottom: 0;
     }
   }
 
