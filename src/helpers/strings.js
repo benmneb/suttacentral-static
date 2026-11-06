@@ -235,6 +235,11 @@ export function headingRenumberer() {
   }
 }
 
+/** Whitespace runs as single spaces, trimmed */
+export function normalise(value) {
+  return value?.replace(/\s+/g, ' ').trim() ?? ''
+}
+
 /** Is a segment's bilara html a heading? ie "<h1 class='sutta-title'>{}</h1>" */
 export function isHeadingHTML(html) {
   return /<h[1-6][^>]*>\{\}/.test(html ?? '')

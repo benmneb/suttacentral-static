@@ -29,6 +29,7 @@ import {
 } from './src/helpers/referenceEditions.js'
 import { sampleUids } from './src/helpers/samplePages.js'
 import { SC_ORIGIN } from './src/helpers/scApi.js'
+import { segmentsHtml } from './src/helpers/segmentsHtml.js'
 import { createSiteLinkFixer } from './src/helpers/siteLinks.js'
 import { missingKeys, t } from './src/helpers/siteStrings.js'
 import {
@@ -39,6 +40,7 @@ import {
   langTag,
   languageName,
   isTitled,
+  normalise,
   rootTitle,
   softHyphenateTitle,
   textRefs,
@@ -105,9 +107,7 @@ export default function (eleventyConfig) {
     return str.endsWith(suffix)
   })
 
-  eleventyConfig.addFilter('normalise', function (value) {
-    return value?.replace(/\s+/g, ' ').trim() ?? ''
-  })
+  eleventyConfig.addFilter('normalise', normalise)
 
   eleventyConfig.addFilter('parallelPath', parallelPath)
   eleventyConfig.addFilter('parallelLabel', parallelKeyLabel)
@@ -160,11 +160,7 @@ export default function (eleventyConfig) {
     return new URL(url).hostname
   })
 
-  // Each word of a Pāli root text into word lookup's answers, leaving the text as it is
-  eleventyConfig.addFilter('lookupWords', async function (html, lang) {
-    if (lang === 'pli') (await loadLookup()).addWords(html)
-    return html
-  })
+  eleventyConfig.addFilter('segmentsHtml', segmentsHtml)
 
   // A root title's words, for search to find a compound title by any of them
   eleventyConfig.addFilter('titleParts', async function (title) {
