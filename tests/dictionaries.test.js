@@ -84,6 +84,8 @@ const LOOKUP_CANARIES = {
   bhagavā: 'bhagavā',
   sāvatthiyaṁ: 'sāvatthī',
   bhikkhū: 'bhikkhu',
+  hiriottappa: 'hiriottappa',
+  akata: 'akata',
 }
 
 // Pages with the Word lookup setting, by the dictionary it uses

@@ -915,6 +915,12 @@
     return dictionary
   }
 
+  // As `dpdHeadword` in defineWords.js: "nibbāna 1: nt. …" is nibbāna's
+  const headwordOf = definition =>
+    definition.includes(':')
+      ? definition.slice(0, definition.indexOf(':')).replace(/ [\d.]+$/, '')
+      : null
+
   const escape = text =>
     String(text).replace(/[&<>"]/g, char => `&#${char.charCodeAt(0)};`)
 
@@ -946,8 +952,22 @@
       page && mapBase && fetchJSON('/map/places.json'),
     ])
     const place = places?.[page]
-    const matches = (answer ?? []).filter(match => match.d)
+    let matches = (answer ?? []).filter(match => match.d)
     if (searchId !== latestSearch || (!page && !matches.length)) return
+    // The page's own word first, and its own definitions first in that, ie sammā's before samma's
+    if (page) {
+      const own = matches.find(match => match.b === page)
+      if (own) {
+        const d = [
+          ...own.d.filter(text => headwordOf(text) === page),
+          ...own.d.filter(text => headwordOf(text) !== page),
+        ]
+        matches = [{ ...own, d }, ...matches.filter(match => match !== own)]
+      } else if (!matches.some(match => match.h === page)) {
+        // Only other words', ie a split of a word only NCPED or PTS has, so just the link
+        matches = []
+      }
+    }
 
     // Show only the first few, as a word like dhamma has loads
     let shown = 0

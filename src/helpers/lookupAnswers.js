@@ -2,8 +2,8 @@
  * Lookup Answers
  *
  * What word lookup shows for a Pāli word, worked out at build time so the browser only fetches the answer: DPD's
- * headwords for the form (its i2h table) and its split (its deconstructor), or failing those SSR's stemming and
- * compound splitting, against DPD and then NCPED. Ported from SSR's `src/utils/lookup.ts`, which runs it on a
+ * headwords for the form (its i2h table) and its split (its deconstructor), with DPD's own entry first where the
+ * form is a headword, or failing those SSR's stemming and compound splitting, against DPD and then NCPED. Ported from SSR's `src/utils/lookup.ts`, which runs it on a
  * server per tap.
  *
  * Each answer is a list of matches, `{ b: base, d: [definitions], g: grammar, x: [cross-references],
@@ -50,14 +50,27 @@ function reduceHtml(html) {
 }
 
 /**
- * The dictionaries the lookup reads, as Maps: DPD's and NCPED's entries by word, and DPD's i2h and deconstructor
- * tables. NCPED's are null where it couldn't be fetched, and the lot empty without DPD
+ * The dictionaries the lookup reads, as Maps: DPD's and NCPED's entries by word, DPD's definitions by their
+ * headword, and DPD's i2h and deconstructor tables. NCPED's are null where it couldn't be fetched, and the lot
+ * empty without DPD
  */
 function dictionariesOf(dictionaries, words) {
   const dpd = new Map()
+  const byHeadword = new Map()
   for (const { entry, definition } of dictionaries.dpd?.data ?? []) {
-    dpd.set(pageWord(entry), { d: [definition].flat().map(reduceHtml) })
+    const d = [definition].flat().map(reduceHtml)
+    dpd.set(pageWord(entry), { d })
+    for (const text of d) {
+      const head = dpdHeadword(text)
+      if (!head) continue
+      if (!byHeadword.has(head)) byHeadword.set(head, new Set())
+      byHeadword.get(head).add(text)
+    }
   }
+  // DPD's entries are by form, so a headword that's no form of itself, ie hiriottappa, has none of its own
+  const headwords = new Map(
+    [...byHeadword].map(([head, texts]) => [head, { d: [...texts] }])
+  )
   const ncped = new Map()
   for (const [word, entries] of words) {
     if (!entries.ncped.length) continue
@@ -77,6 +90,7 @@ function dictionariesOf(dictionaries, words) {
   return {
     dpd,
     ncped,
+    headwords,
     i2h: dictionaries.dpd_i2h?.data ?? {},
     deconstructor: dictionaries.dpd_deconstructor?.data ?? {},
   }
@@ -275,6 +289,9 @@ export function loadLookup() {
         let matches = []
         if (dicts.dpd.size) {
           matches = lookupDpd(form, dicts)
+          const own = dicts.headwords.get(form)
+          if (own && !matches.some(match => match.entry && match.base === form))
+            matches.unshift({ base: form, entry: own })
           if (!matches.length) matches = lookupCompound(form, dicts.dpd)
           if (!matches.length) matches = lookupCompound(form, dicts.ncped)
         }
