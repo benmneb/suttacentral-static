@@ -1233,9 +1233,8 @@ main {
 }
 
 /* Only real links: legacy texts use bare <a id> anchors (eg in headings)
-   that shouldn't look clickable. :where() keeps the specificity of `a`.
-   Skip link has it's own styles. */
-a:where([href]):not(.button, .skip) {
+   that shouldn't look clickable. :where() keeps the specificity of `a`. */
+a:where([href]):not(.button) {
   color: var(--primary-color);
   box-decoration-break: clone;
   border-radius: var(--rounding);
@@ -1304,6 +1303,7 @@ body > .skip:focus {
   /* Transparent, so it shows only in forced colours, where the fill is lost */
   outline: 2px solid transparent;
   outline-offset: -2px;
+  border-radius: 0;
 }
 
 body > #main:focus {
