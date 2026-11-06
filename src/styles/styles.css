@@ -1233,8 +1233,9 @@ main {
 }
 
 /* Only real links: legacy texts use bare <a id> anchors (eg in headings)
-   that shouldn't look clickable. :where() keeps the specificity of `a`. */
-a:where([href]):not(.button) {
+   that shouldn't look clickable. :where() keeps the specificity of `a`.
+   Skip link has it's own styles. */
+a:where([href]):not(.button, .skip) {
   color: var(--primary-color);
   box-decoration-break: clone;
   border-radius: var(--rounding);
