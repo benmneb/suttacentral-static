@@ -37,8 +37,10 @@
   function wordsFor(key) {
     if (!lists.has(key)) {
       const words = fetch(`/dictionaries/define-words/${key}.json`)
-        .then(response => (response.ok ? response.json() : []))
-        .then(list => list.map(word => ({ word, ascii: asciify(word) })))
+        .then(response => (response.ok ? response.json() : {}))
+        .then(list =>
+          Object.keys(list).map(word => ({ word, ascii: asciify(word) }))
+        )
         .catch(() => {
           lists.delete(key)
           return []

@@ -258,6 +258,27 @@ function entriesOf(word, entries, words) {
   return found
 }
 
+/**
+ * How many definitions a word's page has, as /search counts them: each of DPD's and NCPED's, and each headword
+ * in the others, ie PTS's samma 1 to 3 in one entry
+ */
+function definitionCount(entries) {
+  const ncped = entries.ncped
+    .flatMap(entry => entry.homonyms ?? [entry])
+    .reduce(
+      (sum, { definition }) =>
+        sum + (definition ? [definition].flat().length : 0),
+      0
+    )
+  const headwords = ['dhammika', 'dppn', 'pts']
+    .flatMap(name => entries[name])
+    .reduce(
+      (sum, html) => sum + Math.max(1, html.match(/<dt[\s>]/g)?.length ?? 0),
+      0
+    )
+  return entries.dpd.length + ncped + headwords
+}
+
 /** Which list of words /define searches for a word or query, by its first letter without diacritics */
 function listKey(ascii) {
   return /[a-z]/.test(ascii[0]) ? ascii[0] : '_'
@@ -312,7 +333,9 @@ export default async function () {
     wordLists: [...Map.groupBy(sorted, ({ ascii }) => listKey(ascii))].map(
       ([letter, items]) => ({
         letter,
-        words: items.map(({ word }) => word),
+        words: Object.fromEntries(
+          items.map(({ word }) => [word, definitionCount(words.get(word))])
+        ),
       })
     ),
     dictionaries: Object.entries(DICTIONARY_TITLES).map(([name, title]) => ({

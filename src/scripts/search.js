@@ -947,14 +947,15 @@
     if (!lookup) return
     const page = await lookup.definePage(query)
     const mapBase = dictionaryEl.dataset.mapBase
-    const [answer, places] = await Promise.all([
+    const [answer, places, count] = await Promise.all([
       lookup.lookup('pli-en', page ?? query),
       page && mapBase && fetchJSON('/map/places.json'),
+      page && lookup.definitionCount(page),
     ])
     const place = places?.[page]
     let matches = (answer ?? []).filter(match => match.d)
     if (searchId !== latestSearch || (!page && !matches.length)) return
-    // The page's own word first, and its own definitions first in that, ie sammā's before samma's
+    // Only the page's own word, as its page has it, and its own definitions first, ie sammā's before samma's
     if (page) {
       const own = matches.find(match => match.b === page)
       if (own) {
@@ -962,16 +963,23 @@
           ...own.d.filter(text => headwordOf(text) === page),
           ...own.d.filter(text => headwordOf(text) !== page),
         ]
-        matches = [{ ...own, d }, ...matches.filter(match => match !== own)]
+        matches = [{ ...own, d }]
       } else if (!matches.some(match => match.h === page)) {
         // Only other words', ie a split of a word only NCPED or PTS has, so just the link
         matches = []
       }
     }
+    // Each definition once, as each word's entry has its forms' other headwords too, ie satī's has sati's
+    const seen = new Set()
+    matches = matches
+      .map(match => ({
+        ...match,
+        d: match.d.filter(text => !seen.has(text) && seen.add(text)),
+      }))
+      .filter(match => match.d.length)
 
     // Show only the first few, as a word like dhamma has loads
     let shown = 0
-    const total = matches.reduce((sum, match) => sum + match.d.length, 0)
     const definitions = matches
       .map(match => {
         const defs = match.d.slice(0, MAX_DEFINITIONS - shown)
@@ -984,7 +992,7 @@
         )
       })
       .join('')
-    const left = total - shown
+    const left = Math.max(0, (count ?? seen.size) - shown)
     const more = left
       ? `<p>…and ${left} more definition${left === 1 ? '' : 's'}</p>`
       : ''

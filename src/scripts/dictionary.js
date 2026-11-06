@@ -9,6 +9,7 @@
  * await scxDictionary.lookup('pli-en', 'Bhikkhave’ti') // [{ b: 'bhikkhave', d: [...], p: 1 }, ...]
  * await scxDictionary.lookupLzh('如是我聞', 1) // [{ term: '如是', start: 0, p: 'rú shì', d: 'thus' }, ...]
  * await scxDictionary.definePage('samma') // 'sammā'
+ * await scxDictionary.definitionCount('sammā') // 8
  */
 ;(function () {
   'use strict'
@@ -116,17 +117,20 @@
     return found.flat().sort((a, b) => b.term.length - a.term.length)
   }
 
+  /** The words with /define pages that start with a word's letter, each with its count of definitions */
+  function wordListOf(ascii) {
+    // As `defineData.js` splits the list of words, by first letter
+    const letter = /[a-z]/.test(ascii[0]) ? ascii[0] : '_'
+    return fetchOnce(wordLists, `/dictionaries/define-words/${letter}.json`)
+  }
+
   /** The word whose /define page a word has, with or without its diacritics, or null if there's none */
   async function definePage(word) {
     const key = cleanWord(word)
     const ascii = asciify(key)
-    // As `defineData.js` splits the list of words, by first letter
-    const letter = /[a-z]/.test(ascii[0]) ? ascii[0] : '_'
-    const words = await fetchOnce(
-      wordLists,
-      `/dictionaries/define-words/${letter}.json`
-    )
-    if (!words) return null
+    const list = await wordListOf(ascii)
+    if (!list) return null
+    const words = Object.keys(list)
     return (
       words.find(w => w === key) ??
       words.find(w => asciify(w) === ascii) ??
@@ -134,5 +138,17 @@
     )
   }
 
-  window.scxDictionary = { cleanWord, definePage, lookup, lookupLzh }
+  /** How many definitions a /define page has in all its dictionaries, or null if that's unknown */
+  async function definitionCount(page) {
+    const list = await wordListOf(asciify(page))
+    return list && Object.hasOwn(list, page) ? list[page] : null
+  }
+
+  window.scxDictionary = {
+    cleanWord,
+    definePage,
+    definitionCount,
+    lookup,
+    lookupLzh,
+  }
 })()

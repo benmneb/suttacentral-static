@@ -358,10 +358,20 @@ describe('The /define pages', () => {
         JSON.parse(await fs.readFile(path.join(dir, file), 'utf8'))
       )
     )
-    const total = lists.reduce((sum, words) => sum + words.length, 0)
+    const total = lists.reduce(
+      (sum, words) => sum + Object.keys(words).length,
+      0
+    )
     assert.ok(total >= 60_000, `Only ${total} words`)
     const d = JSON.parse(await readPage('/dictionaries/define-words/d.json'))
-    assert.ok(d.includes('dhamma'))
+    assert.ok(Object.hasOwn(d, 'dhamma'))
+  })
+
+  it("count their words' definitions in all their dictionaries", async () => {
+    const s = JSON.parse(await readPage('/dictionaries/define-words/s.json'))
+    // DPD's 5, NCPED's 1 and PTS's samma 1 to 3
+    assert.equal(s.samma, 9)
+    assert.ok(Object.values(s).every(Number.isInteger))
   })
 })
 
