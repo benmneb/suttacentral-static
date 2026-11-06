@@ -82,6 +82,8 @@ export default function (eleventyConfig) {
   // So every `include` is not read and parsed again for each of ~140k pages
   // Keyed by include name, so no two `includes` can share a name, even in different folders
   eleventyConfig.setLiquidOptions({ cache: true })
+  // Not the legacy parsing, which parses a shortcode's arguments again on every call
+  eleventyConfig.setLiquidParameterParsing('builtin')
 
   for (const [stage, templates] of Object.entries(stageTemplates)) {
     if (!builds(stage))
