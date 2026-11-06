@@ -31,7 +31,8 @@ eleventyComputed:
   {% include "headerNav.liquid", breadcrumbsList: breadcrumbsList %}
 </header>
 
-<main id="main">
+<span id="main" tabindex="-1"></span>
+<main>
   <h1>{% rootTitle entry %}</h1>
 
   {% if entry.blurb %}

@@ -599,8 +599,8 @@ eleventyComputed:
 {% unless entry.scx_unindexed %}
   {% assign title_parts = entry.original_title | titleParts %}
 {% endunless %}
+<span id="main" tabindex="-1"></span>
 <main
-  id="main"
   {% comment %} Not when another page indexes this text, nor its titles, as Pagefind searches meta (and the h1 without one) {% endcomment %}
   {% unless entry.scx_unindexed %}
     data-pagefind-body

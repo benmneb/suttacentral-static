@@ -1306,8 +1306,13 @@ body > .skip:focus {
   outline-offset: -2px;
 }
 
-body > main:focus {
+body > #main:focus {
   outline: none;
+}
+
+/* The link's height, as Firefox and Safari scroll before it collapses */
+body > .skip:focus ~ #main {
+  scroll-margin-top: calc(1.5rem + 1.5em);
 }
 
 :where(:focus-visible) {

@@ -31,7 +31,8 @@ eleventyComputed:
   {% include "headerNav.liquid", breadcrumbsList: breadcrumbsList %}
 </header>
 
-<main id="main">
+<span id="main" tabindex="-1"></span>
+<main>
   <!-- This has it's own file because it's reused in text.liquid -->
   {% include "textMetaContent.liquid",
     entry: entry,

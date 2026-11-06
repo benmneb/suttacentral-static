@@ -32,7 +32,8 @@ eleventyComputed:
   {% endif %}
 </header>
 
-<main id="main" class="site-page{% if mainClass %} {{ mainClass }}{% endif %}">
+<span id="main" tabindex="-1"></span>
+<main class="site-page{% if mainClass %} {{ mainClass }}{% endif %}">
   {{ content }}
 </main>
 

@@ -27,21 +27,6 @@
   }
   if (input) input.name = 'query'
 
-  // Not the link's own jump, after which Firefox drops focus for a caret, which on a text lands in a hidden
-  // segment number, so Tab starts again from the top. Focused before the scroll, so the link's bar is gone by then
-  const skip = document.querySelector('body > .skip')
-  skip?.addEventListener('click', event => {
-    const target = document.getElementById(skip.hash.slice(1))
-    if (!target) return
-    event.preventDefault()
-    target.tabIndex = -1
-    target.focus({ preventScroll: true })
-    target.scrollIntoView()
-    target.addEventListener('blur', () => target.removeAttribute('tabindex'), {
-      once: true,
-    })
-  })
-
   // As on .net, unless a text's Hot keys setting is off
   function hotkey(event) {
     if (event.metaKey || event.ctrlKey || event.altKey) return false
