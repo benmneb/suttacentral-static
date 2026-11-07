@@ -54,20 +54,20 @@
         {{ json_ld }}
       </script>
     {% endif %}
-    <script
-      defer
-      src="https://umamalytics.netlify.app/script.js"
-      data-website-id="480aa584-78e8-42ab-a911-e06bdb82a31f"
-      data-domains="suttacentral.express,www.suttacentral.express,sxc.onl,www.sxc.onl"
-      data-exclude-search="true"
-      data-exclude-hash="true"
-    ></script>
     <script src="{{ 'preSearch.js' | asset }}" defer></script>
     {% if scripts %}
       {% for script in scripts %}
         <script src="{{ script | asset }}" defer></script>
       {% endfor %}
     {% endif %}
+    <script
+      async
+      src="https://stats.suttacentral.express/script.js"
+      data-website-id="480aa584-78e8-42ab-a911-e06bdb82a31f"
+      data-domains="suttacentral.express,www.suttacentral.express,sxc.onl,www.sxc.onl"
+      data-exclude-search="true"
+      data-exclude-hash="true"
+    ></script>
   </head>
   <body>
     {{ content }}

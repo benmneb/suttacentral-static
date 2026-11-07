@@ -42,7 +42,7 @@ export default function () {
       'https://codeberg.org/benmneb/suttacentral-static',
       'https://github.com/benmneb/suttacentral-static',
     ],
-    analytics: 'https://umamalytics.netlify.app/share/4PY6ujsQ2Mxhz8d2',
+    analytics: 'https://stats.suttacentral.express/share/4PY6ujsQ2Mxhz8d2',
     accessibility:
       'https://git.sr.ht/~benmneb/suttacentral-static/tree/main/item/ACCESSIBILITY.md#accessibility',
     archive: 'https://codeberg.org/benmneb/suttacentral-static/releases/latest',
