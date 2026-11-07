@@ -194,8 +194,11 @@ export default function (eleventyConfig) {
       const size = image.width
         ? ` width="${image.width}" height="${image.height}"`
         : ''
-      const lazy = loading === 'lazy' ? ' loading="lazy"' : ''
-      return `<img src="${image.src}" alt="${altText}"${size}${lazy}>`
+      const load = {
+        lazy: ' loading="lazy"',
+        high: ' fetchpriority="high"',
+      }
+      return `<img src="${image.src}" alt="${altText}"${size}${load[loading] ?? ''}>`
     }
   )
 

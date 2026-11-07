@@ -9,7 +9,7 @@ eleventyComputed:
   <figure>
     {% assign alt = "pirivenaPage:imageAlt" | t %}
     {% capture imageUrl %}{{ scOrigin }}/img/static-pages/pirivena-monks-walking.jpg{% endcapture %}
-    {% siteImage imageUrl, alt %}
+    {% siteImage imageUrl, alt, 1600, "high" %}
     <figcaption>{{ "pirivenaPage:photoCaption" | t | escape }}</figcaption>
   </figure>
   <p>{{ "pirivenaPage:1" | t | escape }}</p>

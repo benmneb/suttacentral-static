@@ -13,7 +13,7 @@ eleventyComputed:
   <figure>
     {% assign alt = "introduction:6" | t %}
     {% capture imageUrl %}{{ scOrigin }}/img/static-pages/Life_of_Buddha_Burmese_Manuscript_22_Volume_1_Wellcom.jpg{% endcapture %}
-    {% siteImage imageUrl, alt %}
+    {% siteImage imageUrl, alt, 1600, "high" %}
     <figcaption>{{ "introduction:7" | t | escape }}</figcaption>
   </figure>
   <h2>{{ "introduction:8" | t }}</h2>
