@@ -12,7 +12,7 @@
  */
 
 import { fetchWithRetry } from './fetchRetry.js'
-import { CACHE_DURATION } from './scApi.js'
+import { CACHE_DURATION, STRICT } from './scApi.js'
 
 const SOURCE =
   'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson'
@@ -224,7 +224,7 @@ function viewBox({ west, east, south, north }) {
 }
 
 /**
- * The base map as SVG path data, or null if Natural Earth couldn't be fetched
+ * The base map as SVG path data, or null if Natural Earth couldn't be fetched and the build isn't `STRICT`
  * @returns {Promise<{ viewBox: string, extent: string, land: string, rivers: string, borders: string, today: object } | null>}
  */
 export async function mapBase() {
@@ -269,6 +269,7 @@ export async function mapBase() {
     }
   } catch (error) {
     console.warn("Couldn't make the base of the map:", error.message)
+    if (STRICT) throw error
     return null
   }
 }

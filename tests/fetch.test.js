@@ -1,8 +1,8 @@
 /**
  * The build fetched the whole site from SuttaCentral's APIs.
  *
- * `_masterData.js` counts fetch errors and carries on, so a failed endpoint
- * doesn't fail the build, it just leaves that branch or text out of the site.
+ * A full build stops on a failed fetch, and any other build leaves that branch
+ * or text out of the site, so this checks the stats for either.
  */
 
 import assert from 'node:assert/strict'

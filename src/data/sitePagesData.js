@@ -13,6 +13,7 @@ import {
   publicationEditionFilesUrl,
   publicationEditionUrl,
   publicationEditionsUrl,
+  STRICT,
   translationCountUrl,
 } from '../helpers/scApi.js'
 import { buildSitePageMetadata } from '../helpers/sitePageMetadata.js'
@@ -50,12 +51,13 @@ function fetchedAt(url) {
   return new Date(cache.getCachedTimestamp() ?? Date.now()).toUTCString()
 }
 
-/** `fetchJson`, or `fallback` and a warning if it fails, so one missing page doesn't fail the build */
+/** `fetchJson`, or `fallback` and a warning if it fails, so one missing page doesn't fail a build that isn't `STRICT` */
 async function tryFetchJson(url, fallback) {
   try {
     return await fetchJson(url)
   } catch (error) {
     console.warn(`Couldn't fetch ${url} for a site page:`, error.message)
+    if (STRICT) throw error
     return fallback
   }
 }

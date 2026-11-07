@@ -15,7 +15,7 @@ import path from 'node:path'
 import sharp from 'sharp'
 import { fetchWithRetry } from './fetchRetry.js'
 import { outputDir } from './outputDir.js'
-import { CACHE_DURATION } from './scApi.js'
+import { CACHE_DURATION, STRICT } from './scApi.js'
 
 const QUALITY = 60
 
@@ -27,7 +27,7 @@ const images = new Map()
  * @param {string} options.dir - Its folder in `/images/`
  * @param {number} options.height - The tallest it's shown on a high density screen, which it's shrunk to
  * @returns {Promise<{ src: string, width?: number, height?: number }>} Its local path and size, or just the remote
- *   URL if it couldn't be downloaded
+ *   URL if it couldn't be downloaded and the build isn't `STRICT`
  */
 export function localImage(url, { dir, height }) {
   const key = `${url} ${dir} ${height}`
@@ -69,6 +69,7 @@ async function encode(url, dir, height) {
       `Couldn't make a local copy of ${url}, so it stays remote:`,
       error.message
     )
+    if (STRICT) throw error
     return { src: url }
   }
 }

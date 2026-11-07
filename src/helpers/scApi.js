@@ -26,6 +26,12 @@ export const CACHE_DURATION =
       : '*'
 
 /**
+ * Whether a fetch that fails after its retries fails the build, as it does on a full build or CI, rather than
+ * leaving out what it was for. A rerun fetches only what's missing from the cache
+ */
+export const STRICT = Boolean(process.env.FULL_BUILD || process.env.CI)
+
+/**
  * Eleventy Fetch options for a SuttaCentral API URL, so the tests read back the same cache files
  * @param {string} url
  * @param {string} [duration] - How long a cached response is good for

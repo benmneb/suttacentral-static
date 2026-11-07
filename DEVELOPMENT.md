@@ -98,6 +98,7 @@ You need a `.env` file with these: (any missing vars will just skip that provide
 
 - Version tags must start with lowercase `v` (e.g., `v1.0.0`)
 - The local Eleventy cache of fetched data from SuttaCentral APIs will persist until manually deleted or you run `pnpm build:refetch`
+- A full build (`pnpm predeploy`, or any build in CI) stops if a fetch still fails after its retries, rather than leaving out what it was for. `pnpm predeploy` then fetches only what's missing
 - `SKIP_FETCH=1` on a build, ie `SKIP_FETCH=1 pnpm build:sample`, saves the data it fetched to `.tree-cache` (about 800MB) for later ones to read in seconds. They fetch again once the data code or `.cache` changes. Delete `.tree-cache` after editing a file in `.cache` by hand
 - The build runs in stages: `build:texts`, `build:define`, `build:nav`, then `build:site-pages`. `pnpm build:refetch` fetches everything again in the first stage, and the later stages reuse that. Each stage prints the time the refetch started from, ie `REFETCH=1762300000`. If a stage fails, run it and the stages after it with that same value, so nothing is fetched twice, and with `FULL_BUILD=1`, which fails a stage whose CSS, JS or map base changed since an earlier one. Then finish with the sitemap and search:
 
@@ -187,7 +188,7 @@ Then, when a release passes the tests, or you publish a draft release or pre-rel
 - Deploys to Vercel production
 - Uploads all assets to Codeberg releases (if the secrets exist, otherwise skips)
 
-**Note on data fetching:** GitHub Actions workflows always fetch fresh data from SuttaCentral APIs on every build. The cache directory created by Eleventy (~1.6GB with 234,000+ files) is too large for GitHub Actions to save. Fresh fetches usually complete in ~4-5 minutes on GitHub's servers
+**Note on data fetching:** GitHub Actions workflows always fetch fresh data from SuttaCentral APIs on every run. Fresh fetches usually complete in ~4-5 minutes on GitHub's servers. A build that fails saves its cache for that run only, so "Re-run failed jobs" fetches only what's missing
 
 #### Example release workflows
 

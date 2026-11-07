@@ -13,7 +13,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { fetchWithRetry } from './fetchRetry.js'
-import { CACHE_DURATION, SC_ORIGIN } from './scApi.js'
+import { CACHE_DURATION, SC_ORIGIN, STRICT } from './scApi.js'
 import { configKeys } from './sitePages.js'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
@@ -91,7 +91,8 @@ export async function fetchStrings(name, duration = CACHE_DURATION) {
 }
 
 /**
- * Fetches every strings file for the `t` filter. One that fails is left out, so its keys show up as missing
+ * Fetches every strings file for the `t` filter. One that fails is left out, so its keys show up as missing,
+ * or fails the build if it's `STRICT`
  * @returns {Promise<string>} when the newest of them was fetched
  */
 export async function loadStrings() {
@@ -106,6 +107,9 @@ export async function loadStrings() {
       })
     )
   )
+  if (STRICT && results.includes(null)) {
+    throw new Error("Couldn't fetch every site page strings file")
+  }
   let newest = 0
   for (const result of results.filter(Boolean)) {
     Object.assign(strings, result.strings)

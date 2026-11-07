@@ -10,7 +10,7 @@
 import { fetchWithRetry } from './fetchRetry.js'
 import { geometryPath, labelPoint, mapBase, onMap, project } from './mapBase.js'
 import { mapMarkers } from './mapMarkers.js'
-import { fetchOptions, mapDataUrl } from './scApi.js'
+import { fetchOptions, mapDataUrl, STRICT } from './scApi.js'
 import { mapLayerKeys } from './sitePages.js'
 
 // Numeric, so the journeys' 10) comes after 9), not 1)
@@ -103,6 +103,7 @@ async function makeMapData() {
   const [data, base] = await Promise.all([
     fetchWithRetry(url, fetchOptions(url)).catch(error => {
       console.warn(`Couldn't fetch ${url} for the map:`, error.message)
+      if (STRICT) throw error
       return []
     }),
     mapBase(),

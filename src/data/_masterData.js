@@ -16,6 +16,7 @@ import {
   publicationInfoUrl,
   segmentedTranslationUrl,
   shortcutsUrl,
+  STRICT,
   suttasUrl,
 } from '../helpers/scApi.js'
 import { fixMovedLegacyLinks } from '../helpers/siteLinks.js'
@@ -34,11 +35,10 @@ const SKIP_FETCH = skipFetch && !REFETCH && !FULL_BUILD && !CI
 const MAX_CONCURRENT_REQUESTS = 50
 const SCT_NAME = 'SuttaCentral Taishō'
 
-let cachedMasterData = null
+let building = null
 let shortcutsList = []
 // The uids each chapter has parallels for but no text, which /menu leaves out, ie pli-tv-bi-vb-sk2 in pli-tv-bi-vb-sk
 const fallenLeaves = new Map()
-let isBuilding = false
 
 const spinner = ora('Fetching...')
 spinner.spinner = { frames: ['⏳'] }
@@ -517,22 +517,12 @@ async function fetchDataTree(uid, depth = 0) {
  * to add `scx_path` key, json-ld data, and flatten this deeply nested tree
  * to sync URL structure with SuttaCentral.net.
  */
-export default async function () {
-  if (cachedMasterData) return cachedMasterData
+export default function () {
+  building ??= buildTree()
+  return building
+}
 
-  if (isBuilding) {
-    return new Promise(resolve => {
-      const checkCache = setInterval(() => {
-        if (cachedMasterData) {
-          clearInterval(checkCache)
-          resolve(cachedMasterData)
-        }
-      }, 100)
-    })
-  }
-
-  isBuilding = true
-
+async function buildTree() {
   if (REFETCH) clearTreeSnapshot()
   if (SKIP_FETCH) {
     const saved = readTreeSnapshot()
@@ -543,8 +533,6 @@ export default async function () {
         `Read the tree saved ${savedAt} in ~${seconds} s instead of fetching (SKIP_FETCH enabled)`
       )
       fetchedAt = Date.now()
-      cachedMasterData = saved.tree
-      isBuilding = false
       return saved.tree
     }
   }
@@ -555,6 +543,12 @@ export default async function () {
     await fetchFallenLeaves()
     const roots = ['sutta', 'vinaya', 'abhidhamma']
     const tree = await Promise.all(roots.map(uid => fetchDataTree(uid)))
+    const failed = fetchErrors - pubInfoErrors
+    if (STRICT && failed) {
+      throw new Error(
+        `${failed} ${failed === 1 ? 'fetch' : 'fetches'} failed (see "Fetch error" above), so the build stopped. \`pnpm predeploy\` fetches only what's missing`
+      )
+    }
     const resolveLink = createLinkResolver(tree)
     const fixedLinks = fixCommentLinks(tree, resolveLink)
     spinner.info(`Pointed ${fixedLinks} links in comments at pages that exist`)
@@ -569,14 +563,13 @@ export default async function () {
       `Gave ${linkedParallels} parallels a link to their translation`
     )
     // Not a tree with texts missing, which every later build would then read
-    const complete = fetchErrors === pubInfoErrors
-    if (SKIP_FETCH && complete && saveTreeSnapshot(tree)) {
+    if (SKIP_FETCH && !failed && saveTreeSnapshot(tree)) {
       spinner.info('Saved the tree for the next SKIP_FETCH build')
     }
-    cachedMasterData = tree
     return tree
   } catch (e) {
     spinner.fail(e.message)
+    if (STRICT) throw e
     return []
   } finally {
     const elapsedMins = ((Date.now() - startTime) / 60_000).toFixed(2)
@@ -624,7 +617,6 @@ export default async function () {
         earlier?.elapsedMins > value.elapsedMins ? earlier : value
     )
 
-    isBuilding = false
     endpointsHit = 0
     fetchErrors = 0
     pubInfoErrors = 0

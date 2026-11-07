@@ -105,6 +105,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      # A re-run picks up the cache its failed attempt saved, so it only fetches what's missing
+      - name: Restore fetch cache
+        uses: actions/cache/restore@v4
+        continue-on-error: true
+        with:
+          path: .cache
+          key: fetch-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: fetch-${{ github.job }}-${{ github.run_id }}-
+
       - name: Build site
         id: build
         shell: bash
@@ -112,6 +121,15 @@ jobs:
           START=$(date +%s)
           pnpm predeploy 2>&1 | tee build.log
           echo "seconds=$(( $(date +%s) - START ))" >> $GITHUB_OUTPUT
+
+      # Each attempt saves under its own key, as a cache key can't be saved twice
+      - name: Save fetch cache
+        if: failure() && steps.build.outcome == 'failure'
+        uses: actions/cache/save@v4
+        continue-on-error: true
+        with:
+          path: .cache
+          key: fetch-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       # Whether the fetched data built the site it should. A failure doesn't stop the release,
       # it just leaves it for review by hand instead of deploying itself
@@ -839,8 +857,27 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      # A re-run picks up the cache its failed attempt saved, so it only fetches what's missing
+      - name: Restore fetch cache
+        uses: actions/cache/restore@v4
+        continue-on-error: true
+        with:
+          path: .cache
+          key: fetch-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: fetch-${{ github.job }}-${{ github.run_id }}-
+
       - name: Build site
+        id: build
         run: pnpm predeploy
+
+      # Each attempt saves under its own key, as a cache key can't be saved twice
+      - name: Save fetch cache
+        if: failure() && steps.build.outcome == 'failure'
+        uses: actions/cache/save@v4
+        continue-on-error: true
+        with:
+          path: .cache
+          key: fetch-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Create archive for preview
         env:
@@ -918,6 +955,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      # A re-run picks up the cache its failed attempt saved, so it only fetches what's missing
+      - name: Restore fetch cache
+        uses: actions/cache/restore@v4
+        continue-on-error: true
+        with:
+          path: .cache
+          key: fetch-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: fetch-${{ github.job }}-${{ github.run_id }}-
+
       - name: Build site
         id: build
         shell: bash
@@ -925,6 +971,15 @@ jobs:
           START=$(date +%s)
           pnpm predeploy 2>&1 | tee build.log
           echo "seconds=$(( $(date +%s) - START ))" >> $GITHUB_OUTPUT
+
+      # Each attempt saves under its own key, as a cache key can't be saved twice
+      - name: Save fetch cache
+        if: failure() && steps.build.outcome == 'failure'
+        uses: actions/cache/save@v4
+        continue-on-error: true
+        with:
+          path: .cache
+          key: fetch-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       # Whether the fetched data built the site it should. A failure doesn't stop the release,
       # it just leaves it for review by hand instead of deploying itself

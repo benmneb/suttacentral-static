@@ -11,7 +11,7 @@
 import { AssetCache } from '@11ty/eleventy-fetch'
 import { recordStat } from './buildStats.js'
 import { fetchWithRetry } from './fetchRetry.js'
-import { CACHE_DURATION } from './scApi.js'
+import { CACHE_DURATION, STRICT } from './scApi.js'
 
 const SC_DATA =
   'https://raw.githubusercontent.com/suttacentral/sc-data/main/dictionaries'
@@ -104,7 +104,7 @@ export function entriesOf(data) {
 
 /**
  * Every dictionary, fetched once per build. One that fails is null, so the build carries on without what
- * needs it, and each one's entry count goes in `.build-stats.json` for the fetch test
+ * needs it unless it's `STRICT`, and each one's entry count goes in `.build-stats.json` for the fetch test
  * @returns {Promise<Record<string, { data: object[] | object, fetchedAt: string } | null>>}
  */
 export function loadDictionaries() {
@@ -128,6 +128,10 @@ export function loadDictionaries() {
         ])
       )
     )
+    const failed = Object.keys(dictionaries).filter(name => !dictionaries[name])
+    if (STRICT && failed.length) {
+      throw new Error(`Couldn't fetch these dictionaries: ${failed.join(', ')}`)
+    }
     return dictionaries
   })
   return loaded
