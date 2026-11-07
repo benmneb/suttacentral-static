@@ -326,13 +326,20 @@
     if (!button || !panel?.showPopover) return
     if (panel.matches(':popover-open')) return panel.hidePopover()
     const before = document.activeElement
-    // The source lets Tab go from the button into the panel, as after a click
+    // The source has Tab leave the panel for what's after the button
     panel.showPopover({ source: button })
-    if (panel !== viewsMenu) {
-      focusedBefore.set(panel, before)
-      return button.focus({ preventScroll: true })
-    }
-    ;[...panel.querySelectorAll('input, select')].find(hasRoom)?.focus()
+    if (panel !== viewsMenu) focusedBefore.set(panel, before)
+    // Not a link in info or parallels, as it could be far down a long panel
+    const first =
+      panel.classList.contains('dropdown') &&
+      [
+        ...panel.querySelectorAll(
+          'a[href], button:enabled, input:enabled, select:enabled'
+        ),
+      ].find(hasRoom)
+    if (first) return first.focus()
+    panel.tabIndex = -1
+    panel.focus()
   }
 
   // Like .net's toast: the menu comes up for a moment with just the rows a key changed, and those under them
