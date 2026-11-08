@@ -26,8 +26,7 @@
  * @returns {string} accessibility - Accessibility statement, linked from the footer
  * @returns {string} archive - The latest offline archive, linked from the footer
  * @returns {string[]} releases - Where the offline archive, ZIM and apps are published, for the archive README
- * @returns {string} contact - Contact email address for site inquiries/bug reports
- * @returns {string} [suggestions] - Where to send feedback, if not by `contact` email
+ * @returns {string} feedback - Where to send feedback, any link or mailto: address for inquiries/bug reports, eg in site footer and 404 page
  * @returns {{ name: string, url?: string }} maintainer - Who runs this instance, for its structured data, and the ZIM's publisher
  * @returns {string} pgpPublicKey - Fingerprint of the key `pnpm release:upload` signs release checksums with, if gpg has it
  * @returns {string} environment - Current build environment ('dev' or 'prod')
@@ -72,8 +71,7 @@ export default function () {
       'https://github.com/benmneb/suttacentral-static/releases',
       'https://codeberg.org/benmneb/suttacentral-static/releases',
     ],
-    contact: 'feedback@suttacentral.express',
-    // suggestions: 'https://todo.sr.ht/~benmneb/suttacentral-static',
+    feedback: 'mailto:feedback@suttacentral.express',
     maintainer: { name: 'sankhato', url: 'https://sr.ht/~benmneb' },
     pgpPublicKey: 'AECABD60A4CB5BE900864AF2C8DAB4CE409C4AB8',
     environment: process.env.NODE_ENV || 'dev',

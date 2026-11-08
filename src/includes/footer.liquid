@@ -19,8 +19,7 @@
     and _siteMetaData.analytics.shareUrl == blank
     and _siteMetaData.accessibility == blank
     and _siteMetaData.archive == blank
-    and _siteMetaData.suggestions == blank
-    and _siteMetaData.contact == blank
+    and _siteMetaData.feedback == blank
   %}
     <ul>
       {% if _siteMetaData.source %}
@@ -47,15 +46,9 @@
           <a href="/offline#scx-offline">Use offline</a>
         </li>
       {% endif %}
-      {% if _siteMetaData.suggestions %}
+      {% if _siteMetaData.feedback %}
         <li>
-          <a href="{{ _siteMetaData.suggestions }}" rel="external"
-            >Send feedback</a
-          >
-        </li>
-      {% elsif _siteMetaData.contact %}
-        <li>
-          <a href="mailto:{{ _siteMetaData.contact }}?subject=%5B{{ _siteMetaData.shortName | url_encode }}%5D%20Re%3A%20{{ route | url_encode }}"
+          <a href="{{ _siteMetaData.feedback }}" rel="external"
             >Send feedback</a
           >
         </li>

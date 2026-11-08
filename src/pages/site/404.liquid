@@ -33,23 +33,12 @@ eleventyComputed:
         <span>Search for something</span>
       </a>
     </li>
-    {% if _siteMetaData.suggestions %}
+    {% if _siteMetaData.feedback %}
       <li>
         <a
           class="with-icon"
-          href="{{ _siteMetaData.suggestions }}"
+          href="{{ _siteMetaData.feedback }}"
           rel="external"
-        >
-          {%- icon "flag" -%}
-          <span>Report a missing page</span>
-        </a>
-      </li>
-    {% elsif _siteMetaData.contact %}
-      <li>
-        <a
-          class="with-icon"
-          id="let-me-know"
-          href="mailto:{{ _siteMetaData.contact }}?subject=%5B{{ _siteMetaData.shortName | url_encode }}%5D%20Re%3A%20404"
         >
           {%- icon "flag" -%}
           <span>Report a missing page</span>
