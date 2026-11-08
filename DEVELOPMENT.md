@@ -6,11 +6,11 @@
 1. Install packages: `pnpm i` (all commands should be run from the root directory)
 1. Build site: `pnpm dev:fresh` and practice patience while it hits over 127,000 SuttaCentral API's to get the data for the whole site, then builds it all (after fetching once it caches the data indefinitely)
 1. You now have a fully functioning local version of the site that works offline, with the latest data
-1. Run `pnpm tauri:build` to build this into a native desktop app for your platform (macOS, Windows, Linux). Android apps are only built in CI (see [App builds](#app-builds))
+1. Run `pnpm tauri:build` to build this into a native desktop app for your platform
 
 ## Contributing
 
-See <https://todo.sr.ht/~benmneb/suttacentral-static> for inspiration, but note that this project is feature-complete and all future updates will be reserved for fixes/enhancements
+See <https://todo.sr.ht/~benmneb/suttacentral-static> for inspiration, and note that this project prioritises performance, accessibility and best practices: HTML first, CSS where needed, JavaScript only as enhancement. All pages work without JavaScript, are W3C-valid HTML with schema.org-valid structured data, and target WCAG 2.2 AA, checked with axe-core before each release. When more contrast is requested, text meets AAA ratios, and forced-colours mode is fully supported. Features degrade gracefully and are designed to work offline, so the site can be packaged as self-contained archives and native apps
 
 ## Deploying and releasing
 
