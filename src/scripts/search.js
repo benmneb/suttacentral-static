@@ -14,6 +14,13 @@
 ;(async function () {
   'use strict'
 
+  // The site's name, as base.liquid gives it in og:site_name, for the tab titles search sets
+  const siteTitle =
+    document.querySelector('meta[property="og:site_name"]')?.content ||
+    document.title.match(/ @ ([^@]*)$/)?.[1] ||
+    ''
+  const searchTitle = query => (siteTitle ? `${query} @ ${siteTitle}` : query)
+
   const pageSize = 10
   const ranking = {
     // https://pagefind.app/docs/ranking/
@@ -1071,7 +1078,7 @@
    */
   async function performSearch(query, netQuery = query) {
     const searchId = ++latestSearch
-    document.title = `${query || 'Search'} @ SuttaCentral Express`
+    document.title = searchTitle(query || 'Search')
     showMoreBtn.hidden = true
 
     // Update footer link
@@ -1271,7 +1278,7 @@
 
   function clearResults() {
     latestSearch++
-    document.title = 'Search @ SuttaCentral Express'
+    document.title = searchTitle('Search')
     stopPending()
     countEl.hidden = true
     showApplied([])

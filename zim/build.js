@@ -320,7 +320,7 @@ export async function createZim(version, zimPath, siteDir = '_site') {
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [
     version = '0.0.0-test',
-    zimPath = `.dist/scx_archive-${version}.zim`,
+    zimPath = `.dist/${siteMetaData().slug}_archive-${version}.zim`,
     siteDir,
   ] = process.argv.slice(2)
   await createZim(version, zimPath, siteDir)

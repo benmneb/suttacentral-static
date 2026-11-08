@@ -60,14 +60,18 @@
         <script src="{{ script | asset }}" defer></script>
       {% endfor %}
     {% endif %}
-    <script
-      async
-      src="https://stats.suttacentral.express/script.js"
-      data-website-id="480aa584-78e8-42ab-a911-e06bdb82a31f"
-      data-domains="suttacentral.express,www.suttacentral.express,sxc.onl,www.sxc.onl"
-      data-exclude-search="true"
-      data-exclude-hash="true"
-    ></script>
+    {% if _siteMetaData.analytics.src %}
+      <script
+        src="{{ _siteMetaData.analytics.src }}"
+        {% for attribute in _siteMetaData.analytics.attributes %}
+          {%- if attribute[1] == true %}
+            {{ attribute[0] -}}
+          {%- elsif attribute[1] != false %}
+            {{ attribute[0] }}="{{ attribute[1] }}"
+          {%- endif -%}
+        {% endfor %}
+      ></script>
+    {% endif %}
   </head>
   <body>
     {{ content }}

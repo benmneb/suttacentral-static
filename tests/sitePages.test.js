@@ -8,6 +8,7 @@
 
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
+import siteMetaData from '../src/data/_siteMetaData.js'
 import { SC_ORIGIN } from '../src/helpers/scApi.js'
 import {
   buildSitePageMetadata,
@@ -21,6 +22,8 @@ import {
   templateKeys,
 } from '../src/helpers/siteStrings.js'
 import { listSome, readPage, scanSite } from './lib/site.js'
+
+const { origin, title } = siteMetaData()
 
 // Characters of text a site page's <main> has at least
 const MIN_TEXT_LENGTH = 20
@@ -40,12 +43,12 @@ describe('Site page metadata', () => {
     const og = JSON.parse(generateSitePageOGTags(page))
     const jsonLd = JSON.parse(generateSitePageJsonLd(page))
 
-    assert.equal(og['og:url'], 'https://suttacentral.express/about')
+    assert.equal(og['og:url'], `${origin}/about`)
     assert.equal(og['og:description'], page.description)
     assert.equal(jsonLd['@type'], 'AboutPage')
     assert.equal(jsonLd['@id'], og['og:url'])
     assert.equal(jsonLd.sameAs, `${SC_ORIGIN}/about`)
-    assert.equal(jsonLd.isPartOf.name, 'SuttaCentral Express')
+    assert.equal(jsonLd.isPartOf.name, title)
     assert.deepEqual(
       jsonLd.breadcrumb.itemListElement.map(({ name }) => name),
       ['Home', 'About SuttaCentral']
@@ -191,7 +194,7 @@ describe('Site page metadata', () => {
 
     assert.equal(about['@type'], 'AboutPage')
     assert.equal(about.name, 'About SuttaCentral')
-    assert.equal(about.url, 'https://suttacentral.express/about')
+    assert.equal(about.url, `${origin}/about`)
     assert.equal(abbreviation['@type'], 'CollectionPage')
     assert.equal(abbreviation.mainEntity['@type'], 'ItemList')
     assert.equal(abbreviation.mainEntity.numberOfItems, 3)
@@ -233,13 +236,10 @@ describe('Site page metadata', () => {
     assert.equal(edition.dateModified, '2026-10-18')
     assert.equal(edition.inLanguage, 'en')
     assert.equal(edition.isbn, '9781234567890')
-    assert.equal(
-      edition.image,
-      'https://suttacentral.express/images/site-pages/mn-book-test.avif'
-    )
+    assert.equal(edition.image, `${origin}/images/site-pages/mn-book-test.avif`)
     assert.deepEqual(edition.potentialAction, {
       '@type': 'ReadAction',
-      url: 'https://suttacentral.express/pitaka/sutta/middle/mn',
+      url: `${origin}/pitaka/sutta/middle/mn`,
     })
     assert.deepEqual(edition.isBasedOn, {
       '@type': 'Book',
@@ -285,21 +285,20 @@ describe('Site page metadata', () => {
     assert.equal(matter.description, 'How this translation was prepared.')
     const book = {
       '@type': 'Book',
-      '@id': 'https://suttacentral.express/edition/mn/en/sujato',
+      '@id': `${origin}/edition/mn/en/sujato`,
       name: 'Middle Discourses',
     }
     assert.deepEqual(matter.isPartOf, book)
     // The chapter is a CreativeWork with an identity of its own, and the book it belongs to
     assert.deepEqual(matter.hasPart, {
       '@type': 'Chapter',
-      '@id':
-        'https://suttacentral.express/edition/mn/en/sujato/introduction#chapter',
+      '@id': `${origin}/edition/mn/en/sujato/introduction#chapter`,
       name: 'Introduction',
-      url: 'https://suttacentral.express/edition/mn/en/sujato/introduction',
+      url: `${origin}/edition/mn/en/sujato/introduction`,
       isPartOf: book,
       inLanguage: 'en',
     })
-    assert.equal(edition.isPartOf.name, 'SuttaCentral Express')
+    assert.equal(edition.isPartOf.name, title)
 
     const mapPage = JSON.parse(pages['/map/'].scx_json_ld)
     const [poster, interactiveMap, index] = mapPage.hasPart
@@ -311,14 +310,14 @@ describe('Site page metadata', () => {
     )
     assert.equal(
       poster.url,
-      'https://suttacentral.express/images/site-pages/jambudipa_map-test.avif'
+      `${origin}/images/site-pages/jambudipa_map-test.avif`
     )
     assert.equal(poster.encodingFormat, 'image/avif')
     assert.equal(poster.width, 1400)
     assert.equal(poster.height, 1900)
     assert.equal(poster.name, 'Poster map')
     assert.match(poster.description, /^Jambudīpa: India in the time/)
-    assert.equal(interactiveMap.url, 'https://suttacentral.express/map')
+    assert.equal(interactiveMap.url, `${origin}/map`)
     assert.equal(interactiveMap.encodingFormat, 'image/svg+xml')
     assert.equal(index.name, 'Index of Places')
     // A list of lists, as `hasPart` only takes CreativeWorks, and gives no position
@@ -339,8 +338,8 @@ describe('Site page metadata', () => {
       {
         '@type': 'Place',
         name: 'Rājagaha',
-        url: 'https://suttacentral.express/define/rājagaha',
-        sameAs: 'https://suttacentral.express/map#place-1-1',
+        url: `${origin}/define/rājagaha`,
+        sameAs: `${origin}/map#place-1-1`,
       },
     ])
     // A place with no /define page is still listed, without a url
@@ -356,8 +355,8 @@ describe('Site page metadata', () => {
         item: {
           '@type': 'Place',
           name: 'Rājagaha',
-          url: 'https://suttacentral.express/define/rājagaha',
-          sameAs: 'https://suttacentral.express/map#place-3-1',
+          url: `${origin}/define/rājagaha`,
+          sameAs: `${origin}/map#place-3-1`,
         },
       },
     ])
@@ -368,7 +367,7 @@ describe('Site page metadata', () => {
       mapPage.about.map(({ name }) => name),
       ['Buddhism in Ancient India', 'Mahajanapadas']
     )
-    assert.equal(mapPage.isPartOf.name, 'SuttaCentral Express')
+    assert.equal(mapPage.isPartOf.name, title)
     assert.equal(
       JSON.parse(
         generateSitePageOGTags({
@@ -377,7 +376,7 @@ describe('Site page metadata', () => {
           url: '/about',
         })
       )['og:url'],
-      'https://suttacentral.express/about'
+      `${origin}/about`
     )
   })
 })

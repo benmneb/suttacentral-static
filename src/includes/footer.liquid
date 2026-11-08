@@ -16,7 +16,7 @@
     </p>
   {% endif %}
   {% unless _siteMetaData.source == blank
-    and _siteMetaData.analytics == blank
+    and _siteMetaData.analytics.shareUrl == blank
     and _siteMetaData.accessibility == blank
     and _siteMetaData.archive == blank
     and _siteMetaData.suggestions == blank
@@ -28,9 +28,9 @@
           <a href="{{ _siteMetaData.source }}" rel="external">Open source</a>
         </li>
       {% endif %}
-      {% if _siteMetaData.analytics %}
+      {% if _siteMetaData.analytics.shareUrl %}
         <li>
-          <a href="{{ _siteMetaData.analytics }}" rel="external"
+          <a href="{{ _siteMetaData.analytics.shareUrl }}" rel="external"
             >Open analytics</a
           >
         </li>
@@ -55,7 +55,7 @@
         </li>
       {% elsif _siteMetaData.contact %}
         <li>
-          <a href="mailto:{{ _siteMetaData.contact }}?subject=%5BSCX%5D%20Re%3A%20{{ route | url_encode }}"
+          <a href="mailto:{{ _siteMetaData.contact }}?subject=%5B{{ _siteMetaData.shortName | url_encode }}%5D%20Re%3A%20{{ route | url_encode }}"
             >Send feedback</a
           >
         </li>

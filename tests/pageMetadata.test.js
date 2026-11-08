@@ -4,6 +4,7 @@
 
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
+import siteMetaData from '../src/data/_siteMetaData.js'
 import {
   breadcrumbList,
   jsonLd,
@@ -12,6 +13,8 @@ import {
   person,
   withTranslatedTitle,
 } from '../src/helpers/pageMetadata.js'
+
+const { origin, title } = siteMetaData()
 
 describe('Page metadata', () => {
   it('gives Open Graph tags absolute URLs, an image and plain text', () => {
@@ -25,13 +28,10 @@ describe('Page metadata', () => {
 
     assert.equal(og['og:title'], 'The Root of All Things')
     assert.equal(og['og:description'], 'A sutta & its parallels')
-    assert.equal(og['og:url'], 'https://suttacentral.express/mn1/en/sujato')
-    assert.equal(
-      og['og:image'],
-      'https://suttacentral.express/images/og-image2.jpg'
-    )
+    assert.equal(og['og:url'], `${origin}/mn1/en/sujato`)
+    assert.equal(og['og:image'], `${origin}/images/og-image2.jpg`)
     assert.equal(og['og:image:width'], 1200)
-    assert.equal(og['og:site_name'], 'SuttaCentral Express')
+    assert.equal(og['og:site_name'], title)
   })
 
   it('leaves out breadcrumbs with no page and numbers the rest', () => {
@@ -49,9 +49,9 @@ describe('Page metadata', () => {
         item,
       ]),
       [
-        [1, 'Home', 'https://suttacentral.express/'],
-        [2, 'Sutta', 'https://suttacentral.express/pitaka/sutta'],
-        [3, 'MN 1', 'https://suttacentral.express/mn1/en/sujato'],
+        [1, 'Home', `${origin}/`],
+        [2, 'Sutta', `${origin}/pitaka/sutta`],
+        [3, 'MN 1', `${origin}/mn1/en/sujato`],
       ]
     )
   })

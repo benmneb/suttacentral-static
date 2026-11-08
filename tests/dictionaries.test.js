@@ -10,6 +10,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { describe, it } from 'node:test'
 import vm from 'node:vm'
+import siteMetaData from '../src/data/_siteMetaData.js'
 import {
   generateDefineJsonLd,
   generateDefineOGTags,
@@ -25,6 +26,8 @@ import { mendNcped, tidyDictionaryHtml } from '../src/helpers/defineWords.js'
 import { cleanPaliWord } from '../src/helpers/lookupAnswers.js'
 import { SC_ORIGIN } from '../src/helpers/scApi.js'
 import { mainOf, readPage, SITE_DIR, textOf } from './lib/site.js'
+
+const { origin, title } = siteMetaData()
 
 // About 95% of the words each had in October 2026
 const MIN_WORDS = {
@@ -188,7 +191,7 @@ describe('The /define pages', () => {
     const og = JSON.parse(generateDefineOGTags(term))
     const jsonLd = JSON.parse(generateDefineJsonLd(term))
 
-    assert.equal(og['og:url'], 'https://suttacentral.express/define/dhamma')
+    assert.equal(og['og:url'], `${origin}/define/dhamma`)
     assert.equal(og['og:description'], 'Pāli dictionary results for “dhamma”.')
     // The page, as breadcrumb's domain is WebPage, with the word as its main entity
     assert.equal(jsonLd['@type'], 'WebPage')
@@ -196,7 +199,7 @@ describe('The /define pages', () => {
     assert.equal(jsonLd.name, 'Definitions for dhamma')
     assert.equal(jsonLd.description, 'Pāli dictionary results for “dhamma”.')
     assert.equal(jsonLd.sameAs, `${SC_ORIGIN}/define/dhamma`)
-    assert.equal(jsonLd.isPartOf.name, 'SuttaCentral Express')
+    assert.equal(jsonLd.isPartOf.name, title)
     // isPartOf's domain is CreativeWork, which a DefinedTerm isn't: inDefinedTermSet says it instead
     assert.equal(jsonLd.mainEntity.isPartOf, undefined)
     assert.deepEqual(
@@ -204,19 +207,13 @@ describe('The /define pages', () => {
       ['Home', 'Definitions', 'dhamma']
     )
     assert.equal(jsonLd.mainEntity['@type'], 'DefinedTerm')
-    assert.equal(
-      jsonLd.mainEntity['@id'],
-      'https://suttacentral.express/define/dhamma#term'
-    )
+    assert.equal(jsonLd.mainEntity['@id'], `${origin}/define/dhamma#term`)
     assert.equal(jsonLd.mainEntity.name, 'dhamma')
     // The word is described by what a dictionary says of it, not by the page's own description
     assert.equal(jsonLd.mainEntity.description, 'nature; character')
     assert.equal(jsonLd.mainEntity.inDefinedTermSet['@type'], 'DefinedTermSet')
     assert.equal(jsonLd.mainEntity.inDefinedTermSet.inLanguage, 'pi')
-    assert.equal(
-      jsonLd.mainEntity.inDefinedTermSet.url,
-      'https://suttacentral.express/define'
-    )
+    assert.equal(jsonLd.mainEntity.inDefinedTermSet.url, `${origin}/define`)
     // Its dictionary entries are Things, which `about` takes and `hasPart` doesn't
     assert.equal(jsonLd.hasPart, undefined)
     assert.equal(jsonLd.about.length, 1)
@@ -274,11 +271,11 @@ describe('The /define pages', () => {
     const og = JSON.parse(generateDefineSearchOGTags())
     const jsonLd = JSON.parse(generateDefineSearchJsonLd())
 
-    assert.equal(og['og:url'], 'https://suttacentral.express/define')
+    assert.equal(og['og:url'], `${origin}/define`)
     assert.equal(jsonLd['@type'], 'CollectionPage')
     assert.equal(jsonLd.url, og['og:url'])
     assert.equal(jsonLd.sameAs, `${SC_ORIGIN}/define`)
-    assert.equal(jsonLd.isPartOf.name, 'SuttaCentral Express')
+    assert.equal(jsonLd.isPartOf.name, title)
     assert.deepEqual(
       jsonLd.breadcrumb.itemListElement.map(({ name }) => name),
       ['Home', 'Definitions']

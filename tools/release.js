@@ -76,6 +76,7 @@ const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID
 const SITE_BUILD_DIR = process.env.SITE_DIR || '_site'
 
 const PGP_KEY = siteMetaData().pgpPublicKey
+const SLUG = siteMetaData().slug
 const CHECKSUMS_NAME = 'SHA256SUMS.txt'
 
 // Parse command-line arguments
@@ -130,12 +131,12 @@ function getTimestamp() {
 
 function getArchiveName(tag) {
   const cleanTag = tag.startsWith('v') ? tag.substring(1) : tag
-  return `scx_archive-${cleanTag}.tar.gz`
+  return `${SLUG}_archive-${cleanTag}.tar.gz`
 }
 
 function getZimName(tag) {
   const cleanTag = tag.startsWith('v') ? tag.substring(1) : tag
-  return `scx_archive-${cleanTag}.zim`
+  return `${SLUG}_archive-${cleanTag}.zim`
 }
 
 function contentType(filePath) {

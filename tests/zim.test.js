@@ -107,6 +107,11 @@ const layout = await minifyHtmlCode(
       new URL('../src/layouts/base.liquid', import.meta.url),
       'utf8'
     )
+    // The analytics script is all Liquid, so stands in as a plain remote script
+    .replace(
+      /<script[^>]*_siteMetaData\.analytics\.src[\s\S]*?<\/script>/,
+      '<script src="https://stats.invalid/script.js" async></script>'
+    )
     .replace(/{%[\s\S]*?%}|{{[\s\S]*?}}/g, '')
 )
 

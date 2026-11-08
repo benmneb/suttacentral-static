@@ -48,7 +48,13 @@ function flatten(nodes) {
 }
 
 function generateIndexJsonLd(data) {
-  const { maintainer, mirrors = [], source } = siteMetaData()
+  const {
+    alternateNames = [],
+    maintainer,
+    mirrors = [],
+    shortName,
+    source,
+  } = siteMetaData()
   const repositories = [source, ...mirrors].filter(Boolean)
   const home = absoluteUrl('/')
   // The site, whose name and alternate names are what search engines show for it, and its home page
@@ -56,7 +62,7 @@ function generateIndexJsonLd(data) {
     '@graph': [
       {
         ...website(),
-        alternateName: ['SCX', 'SuttaCentral.Express'],
+        alternateName: [shortName, ...alternateNames].filter(Boolean),
         ...(repositories.length && { sameAs: repositories }),
         description: description(),
         inLanguage: 'en',

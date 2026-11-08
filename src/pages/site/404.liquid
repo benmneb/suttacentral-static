@@ -49,7 +49,7 @@ eleventyComputed:
         <a
           class="with-icon"
           id="let-me-know"
-          href="mailto:{{ _siteMetaData.contact }}?subject=%5BSCX%5D%20Re%3A%20404"
+          href="mailto:{{ _siteMetaData.contact }}?subject=%5B{{ _siteMetaData.shortName | url_encode }}%5D%20Re%3A%20404"
         >
           {%- icon "flag" -%}
           <span>Report a missing page</span>

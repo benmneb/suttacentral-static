@@ -31,6 +31,7 @@ import path from 'path'
 import { Converter } from 'opencc-js'
 import TSPhrases from 'opencc-js/dict/TSPhrases'
 import * as pagefind from 'pagefind'
+import siteMetaData from '../src/data/_siteMetaData.js'
 import { recordStat } from '../src/helpers/buildStats.js'
 import { groupByPrefix } from '../src/helpers/lookupShards.js'
 import { parseUidNumbers } from '../src/helpers/rangeSuttas.js'
@@ -42,6 +43,7 @@ import {
 } from '../src/helpers/sitePages.js'
 
 const SITE_DIR = '_site'
+const SITE_TITLE = siteMetaData().title
 const READ_CONCURRENCY = 64
 
 // The few entities the templates and API put in attributes
@@ -445,9 +447,10 @@ function sitePage(file, html, sharedTitle) {
   const collection = isEdition ? editionUid : guideCollections.get(`/${root}`)
   // ie "Preface—Middle Discourses" for /edition/mn/en/sujato/preface, or "Middle Discourses—Bhikkhu Sujato"
   // for /edition/mn/en/sujato itself
-  const tabTitle =
-    isEdition &&
-    html.match(/<title>([^<]*)—([^<]*) @ SuttaCentral Express<\/title>/)
+  // Only the site's own tab titles end in its name, as base.liquid appends it
+  const titleMatch =
+    isEdition && html.match(/<title>([^<]*)—([^<]*) @ ([^<]*)<\/title>/)
+  const tabTitle = titleMatch?.[3] === SITE_TITLE ? titleMatch : null
   const isMatter = url.split('/').length > 5
   const label = isMatter && tabTitle?.[1]
   const edition = tabTitle?.[isMatter ? 2 : 1]

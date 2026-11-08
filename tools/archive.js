@@ -1,7 +1,7 @@
 /**
  * Release Archive
  *
- * Packs the site build into a `.tar.gz` holding a `scx_{version}` folder, plus a
+ * Packs the site build into a `.tar.gz` holding a `{slug}_{version}` folder, plus a
  * README.txt beside it saying what it is and how to use it.
  *
  * Usage:
@@ -21,6 +21,7 @@ import {
 import { tmpdir } from 'os'
 import { basename, dirname, join, resolve } from 'path'
 import { pathToFileURL } from 'url'
+import siteMetaData from '../src/data/_siteMetaData.js'
 
 export function formatBytes(bytes) {
   if (bytes === 0) return '0 Bytes'
@@ -47,6 +48,7 @@ function siteStats(siteDir) {
 }
 
 function readme(version, folder, { pages, files, bytes }) {
+  const { origin, releases = [], title } = siteMetaData()
   const num = n => n.toLocaleString('en-US')
   const width = Math.max(folder.length + 1, 'README.txt'.length) + 3
   const date = new Date().toLocaleDateString('en-GB', {
@@ -56,10 +58,10 @@ function readme(version, folder, { pages, files, bytes }) {
     timeZone: 'UTC',
   })
 
-  return `SuttaCentral Express offline archive
+  return `${title} offline archive
 Version ${version}, built ${date}
 
-A complete offline copy of https://suttacentral.express. It has every
+A complete offline copy of ${origin}. It has every
 sutta, vinaya and abhidhamma text in its root language, all English
 translations, notes, parallels and search. The texts are from
 SuttaCentral (https://suttacentral.net), as they were on the build date.
@@ -86,8 +88,7 @@ lookups need it.
 Apps and updates
 Native desktop and mobile apps with this same content, and any newer
 versions with fresher content, are at:
-  https://github.com/benmneb/suttacentral-static/releases
-  https://codeberg.org/benmneb/suttacentral-static/releases
+${releases.map(url => `  ${url}`).join('\n')}
 
 Licence
 The site's code is public domain (CC0). Texts and translations keep
@@ -96,7 +97,7 @@ their own licences: see /licensing on the site.
 }
 
 /**
- * Pack `siteDir` into `archivePath` as `scx_{version}/`, with a README.txt beside it.
+ * Pack `siteDir` into `archivePath` as `{slug}_{version}/`, with a README.txt beside it.
  * Reuses an archive that already exists.
  */
 export function createArchive(version, archivePath, siteDir = '_site') {
@@ -110,7 +111,7 @@ export function createArchive(version, archivePath, siteDir = '_site') {
     return
   }
 
-  const folder = `scx_${version}`
+  const folder = `${siteMetaData().slug}_${version}`
   const site = resolve(siteDir)
   const tmp = mkdtempSync(join(tmpdir(), 'scx-archive-'))
 

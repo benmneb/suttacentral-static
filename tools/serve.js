@@ -4,10 +4,12 @@ import { readFile, stat } from 'node:fs/promises'
 import { networkInterfaces } from 'node:os'
 import { styleText } from 'node:util'
 import sirv from 'sirv'
+import siteMetaData from '../src/data/_siteMetaData.js'
 import { minifyCssCode, minifyJsCode } from '../src/helpers/minifyAssets.js'
 
 const defaultPort = 3000
 const dir = '_site'
+const { title } = siteMetaData()
 // Set by the Tauri CLI, whose devUrl needs the default port
 const tauri = 'TAURI_ENV_PLATFORM' in process.env
 let port = defaultPort
@@ -111,7 +113,7 @@ server.on('listening', () => {
   console.log(
     [
       '',
-      `  ${styleText('bold', 'SuttaCentral Express')} ${styleText('dim', `serving ${dir}`)}`,
+      `  ${styleText('bold', title)} ${styleText('dim', `serving ${dir}`)}`,
       '',
       `  ${styleText('dim', 'Local:  ')} ${styleText('cyan', `http://localhost:${port}`)}`,
       network &&
