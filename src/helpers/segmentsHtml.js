@@ -110,7 +110,7 @@ export async function segmentsHtml(entry, isRoot) {
     if (isRoot) {
       const text = data.root_text?.[key]
       const comment = data.variant_text?.[key]
-      if (truthy(text)) {
+      if (truthy(text) || retitled) {
         const shown = retitled ? entry.scx_range_sutta_title : text
         const words = await lookupWords(
           isHeading ? softHyphenateTitle(shown) : shown,
@@ -137,7 +137,7 @@ export async function segmentsHtml(entry, isRoot) {
       const rootText = data.root_text?.[key]
       const comment = data.comment_text?.[key]
       const variant = data.variant_text?.[key]
-      if (truthy(text)) {
+      if (truthy(text) || retitled) {
         const weighted =
           text === entry.translated_title || text === entry.translated_name
         segment +=
@@ -152,9 +152,8 @@ export async function segmentsHtml(entry, isRoot) {
       }
       if (truthy(rootText)) {
         const indexed = normalise(rootText).includes(normalisedTitle)
-        const shown = retitled ? entry.scx_range_sutta_title : rootText
         const words = await lookupWords(
-          isHeading ? softHyphenateTitle(shown) : shown,
+          isHeading ? softHyphenateTitle(rootText) : rootText,
           entry.root_lang
         )
         segment +=
@@ -183,7 +182,15 @@ export async function segmentsHtml(entry, isRoot) {
       segment += illustrationsHtml(entry.scx_illustrations[key])
     }
     segment += '</span>\n'
-    html.push(out(segmentHtml).split('{}').join(segment))
+    let template = out(segmentHtml)
+    if (key === entry.scx_range_sutta_heading_key) {
+      const heading = `<h2 class="sutta-title">${out(entry.scx_range_sutta_title)}</h2>`
+      template = template.replace(
+        /^(?:<(?:article|div|section) id=(['"])[^'"]*\1>)?/,
+        wrapper => wrapper + heading
+      )
+    }
+    html.push(template.split('{}').join(segment))
   }
 
   return {

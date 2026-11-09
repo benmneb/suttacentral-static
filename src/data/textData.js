@@ -251,30 +251,25 @@ function getRangeKeyInfo(entry, key) {
 }
 
 /** Whether a heading of a range sutta's page takes its number for a title, as it has none of its own */
-function isRetitled(entry, key) {
+function isRetitled(entry, key, isHeader) {
   const data = entry._bilarasuttas_data
   const html = data.html_text[key]
-  if (entry.is_root) {
-    // An untitled root text, ie an11.22-29/pli/ms has ~ as the title
-    return (
-      !!data.root_text?.[key]?.includes('~') &&
-      (html.includes("class='range-title'") ||
-        html.includes("class='sutta-title'"))
-    )
-  }
-  const text = data.translation_text?.[key]
-  if (!text) return false
-  // Its root text follows the translation's, swapped or not
+  const text = (entry.is_root ? data.root_text : data.translation_text)?.[key]
+  if (key === entry.scx_range_sutta_title_key && !text?.trim()) return true
+  // An untitled root text, ie an11.22-29/pli/ms has ~ as the title
   return (
-    text === entry.scx_range_sutta_title ||
-    (entry.scx_range_sutta_untitled &&
-      (text === entry.translated_title || text === entry.translated_name))
+    entry.is_root &&
+    isHeader &&
+    !!text?.includes('~') &&
+    (html.includes("class='range-title'") ||
+      html.includes("class='sutta-title'"))
   )
 }
 
 /**
  * The keys a range sutta's page shows: the range's headings, and its own document's segments. And the headings
- * among them that take its number for a title. Null for any other page, which shows every key
+ * among them that take its number for a title, or else the key its added heading goes in. Null for any other
+ * page, which shows every key
  */
 function rangeKeysOf(entry) {
   const data = entry._bilarasuttas_data
@@ -283,26 +278,37 @@ function rangeKeysOf(entry) {
     !entry.scx_range_sutta_shown_uid ||
     !data?.keys_order?.length
   ) {
-    return { scx_keys: null, scx_retitled_keys: null }
+    return {
+      scx_keys: null,
+      scx_retitled_keys: null,
+      scx_range_sutta_heading_key: null,
+    }
   }
+  const isOwn = entry.scx_range_sutta_shown_uid === entry.uid
   const keys = []
   const retitled = {}
+  let headingKey = null
   for (const key of data.keys_order) {
     if (!data.html_text[key]) continue
     const { isRendered, isHeader } = getRangeKeyInfo(entry, key)
     if (!isRendered) continue
     keys.push(key)
+    if (isOwn && isRetitled(entry, key, isHeader)) retitled[key] = true
     if (
-      isHeader &&
-      entry.scx_range_sutta_shown_uid === entry.uid &&
-      isRetitled(entry, key)
+      isOwn &&
+      !isHeader &&
+      !headingKey &&
+      key.split(':')[0].toLowerCase() === entry.uid
     ) {
-      retitled[key] = true
+      headingKey = key
     }
   }
+  const hasRetitled = Object.keys(retitled).length > 0
   return {
     scx_keys: keys,
-    scx_retitled_keys: Object.keys(retitled).length ? retitled : null,
+    scx_retitled_keys: hasRetitled ? retitled : null,
+    scx_range_sutta_heading_key:
+      entry.scx_range_sutta_title_key || hasRetitled ? null : headingKey,
   }
 }
 
@@ -439,10 +445,19 @@ function collectSegmentedToc(entry, useRootText) {
   const toc = []
 
   for (const key of shownKeysOf(entry) ?? []) {
+    if (key === entry.scx_range_sutta_heading_key) {
+      toc.push({
+        level: renumber(2),
+        href: `#${entry.uid}`,
+        html: tocLabel(entry.scx_range_sutta_title),
+        isTitle: true,
+      })
+    }
     const html = data.html_text[key]
     const heading = html.match(/<h([2-4])([^>]*)>(?=\{\})/)
     // A heading with no text, which `dropEmptyHeadings` takes off the page
     const isDropped =
+      !entry.scx_retitled_keys?.[key] &&
       !data.root_text?.[key]?.trim() &&
       (useRootText || !data.translation_text?.[key]?.trim())
     let level
@@ -613,15 +628,14 @@ function flatten(nodes, parent, parentPath) {
                 ? rangeUidToAcronym(spanOf(shownUid)) // nested, eg "AN 1.175–186"
                 : uidToAcronym(uid)
 
-          // Whether the sutta has a translated heading of its own. Dhp verses don't (theirs is
-          // Pāli only), so the vagga heading gets swapped for the number to title the page instead
+          // The sutta's own heading, which takes its number where it's blank, ie a Dhp verse's
+          // (Pāli only). One with none, ie an1.188, gets a heading with the number added
           const bilara = node._bilarasuttas_data
           const suttaTitleKey = bilara?.keys_order?.find(
             key =>
               key.split(':')[0].toLowerCase() === shownUid &&
               bilara.html_text[key]?.includes("class='sutta-title'")
           )
-          const isUntitled = !bilara?.translation_text?.[suttaTitleKey]?.trim()
 
           // Inside the response the neighbours are known exactly, its key prefixes being
           // the documents in order - so a nested range gets linked as the one page it is,
@@ -701,7 +715,7 @@ function flatten(nodes, parent, parentPath) {
               .join('/'),
             scx_range_sutta_individual: true,
             scx_range_sutta_shown_uid: shownUid,
-            scx_range_sutta_untitled: isUntitled,
+            scx_range_sutta_title_key: suttaTitleKey ?? null,
             scx_range_sutta_title: uidToTitle(uid),
             scx_range_sutta_pagination: { prev: getPrev(), next: getNext() },
             scx_range_sutta_parallels_data:
