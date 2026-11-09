@@ -71,13 +71,17 @@ Contents
   ${'README.txt'.padEnd(width)}this file
 
 Using it
+To just read the site, the apps (see below) are easier. This archive
+suits self-hosting, or anyone comfortable with a terminal.
+
 The folder has to be served over HTTP. Opening index.html directly
 won't work, as its links start from the site root, which a file:// URL
 doesn't have.
 
   Computer: in a terminal, from this folder, run
-    python3 -m http.server --directory ${folder}
-  then visit the URL provided
+    python3 -m http.server --bind 127.0.0.1 --directory ${folder}
+  (on Windows, py in place of python3), then visit
+    http://127.0.0.1:8000/
 
   Phone or tablet: use a free "HTTP server" app from the App Store or
   Play Store, and point it at the ${folder} folder.

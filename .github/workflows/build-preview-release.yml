@@ -715,16 +715,18 @@ jobs:
 
             The attached \`scx_archive*.tar.gz\` file is a fully-featured, offline-first, compressed archive of the whole site.
 
+            To just read the site, the apps (or the ZIM file) are easier. This archive suits self-hosting, or anyone comfortable with a terminal.
+
             To use it locally:
 
             1. Download the \`scx_archive*.tar.gz\` file to your device
-            2. Extract its contents (open it with your OS's built-in archive utility or a free unzip tool from the App Store / Play Store). You'll get a \`scx_{version}\` folder, with a \`README.txt\` beside it
+            2. Extract its contents (open it with your OS's built-in archive utility or a free unzip tool from the App Store / Play Store). You'll get a \`scx_{version}\` folder, with a \`README.txt\` beside it. Windows 10's File Explorer can't open \`.tar.gz\` files, but the free 7-Zip can
             3. Serve the \`scx_{version}\` folder over a local HTTP server, then visit the server's local URL in your browser
 
             Note: opening \`index.html\` directly (double-clicking it) will **not** work — the site uses absolute references to its other files which only resolve correctly when served over HTTP, not when loaded via the \`file://\` protocol.
 
             A local HTTP server can be set up for free on any computer, tablet, or smartphone. For example:
-            - **Desktop:** run \`python3 -m http.server --directory scx_{version}\` where you extracted it, then visit the provided URL in your browser
+            - **Desktop:** run \`python3 -m http.server --bind 127.0.0.1 --directory scx_{version}\` where you extracted it (on Windows, \`py\` in place of \`python3\`), then visit the provided URL in your browser
             - **Mobile or tablet:** free HTTP server apps are available on the App Store / Play Store
             </details>${zimSection}
 
@@ -1590,16 +1592,18 @@ jobs:
 
             The attached \`scx_archive*.tar.gz\` file is a fully-featured, offline-first, compressed archive of the whole site.
 
+            To just read the site, the apps (or the ZIM file) are easier. This archive suits self-hosting, or anyone comfortable with a terminal.
+
             To use it locally:
 
             1. Download the \`scx_archive*.tar.gz\` file to your device
-            2. Extract its contents (open it with your OS's built-in archive utility or a free unzip tool from the App Store / Play Store). You'll get a \`scx_{version}\` folder, with a \`README.txt\` beside it
+            2. Extract its contents (open it with your OS's built-in archive utility or a free unzip tool from the App Store / Play Store). You'll get a \`scx_{version}\` folder, with a \`README.txt\` beside it. Windows 10's File Explorer can't open \`.tar.gz\` files, but the free 7-Zip can
             3. Serve the \`scx_{version}\` folder over a local HTTP server, then visit the server's local URL in your browser
 
             Note: opening \`index.html\` directly (double-clicking it) will **not** work — the site uses absolute references to its other files which only resolve correctly when served over HTTP, not when loaded via the \`file://\` protocol.
 
             A local HTTP server can be set up for free on any computer, tablet, or smartphone. For example:
-            - **Desktop:** run \`python3 -m http.server --directory scx_{version}\` where you extracted it, then visit the provided URL in your browser
+            - **Desktop:** run \`python3 -m http.server --bind 127.0.0.1 --directory scx_{version}\` where you extracted it (on Windows, \`py\` in place of \`python3\`), then visit the provided URL in your browser
             - **Mobile or tablet:** free HTTP server apps are available on the App Store / Play Store
             </details>${zimSection}
 
