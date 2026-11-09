@@ -15,7 +15,7 @@
  *
  * @returns {Object} Site metadata configuration
  * @returns {string} title - Site name displayed in browser tabs and meta tags
- * @returns {string} shortName - Short name for space-constrained places, ie mail subjects
+ * @returns {string} shortName - Short name the site goes by, for its structured data
  * @returns {string} slug - Filesystem-safe name for release archives and their folders
  * @returns {string[]} alternateNames - Other names the site goes by, for its structured data
  * @returns {string} description - Site description for search engines and social sharing

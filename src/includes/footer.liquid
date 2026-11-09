@@ -48,9 +48,15 @@
       {% endif %}
       {% if _siteMetaData.feedback %}
         <li>
-          <a href="{{ _siteMetaData.feedback }}" rel="external"
-            >Send feedback</a
-          >
+          {% if _siteMetaData.feedback contains "mailto:" %}
+            <a href="{{ _siteMetaData.feedback }}?subject=Re%3A%20{{ route | url_encode }}"
+              >Send feedback</a
+            >
+          {% else %}
+            <a href="{{ _siteMetaData.feedback }}" rel="external"
+              >Send feedback</a
+            >
+          {% endif %}
         </li>
       {% endif %}
     </ul>

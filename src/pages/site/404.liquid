@@ -35,14 +35,25 @@ eleventyComputed:
     </li>
     {% if _siteMetaData.feedback %}
       <li>
-        <a
-          class="with-icon"
-          href="{{ _siteMetaData.feedback }}"
-          rel="external"
-        >
-          {%- icon "flag" -%}
-          <span>Report a missing page</span>
-        </a>
+        {% if _siteMetaData.feedback contains "mailto:" %}
+          <a
+            class="with-icon"
+            id="let-me-know"
+            href="{{ _siteMetaData.feedback }}?subject=Re%3A%20404"
+          >
+            {%- icon "flag" -%}
+            <span>Report a missing page</span>
+          </a>
+        {% else %}
+          <a
+            class="with-icon"
+            href="{{ _siteMetaData.feedback }}"
+            rel="external"
+          >
+            {%- icon "flag" -%}
+            <span>Report a missing page</span>
+          </a>
+        {% endif %}
       </li>
     {% endif %}
   </ul>
