@@ -12,7 +12,7 @@ import { describe, it } from 'node:test'
 import { listSome, resolves, scanSite } from './lib/site.js'
 
 // Dead link targets in the last full build (all from .net data), plus some headroom
-const MAX_DEAD_LINKS = 60
+const MAX_DEAD_LINKS = 55
 
 const { files, linkSources } = await scanSite()
 
