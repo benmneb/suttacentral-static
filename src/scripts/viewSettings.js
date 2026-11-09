@@ -345,10 +345,12 @@
 
   /** N's inline view hides the button an open note is anchored to, so close it first to not leave it floating */
   function dismissNotes() {
+    // Without popover support, :popover-open would throw
+    if (!HTMLElement.prototype.hidePopover) return
     for (const note of document.querySelectorAll(
-      'article[popover]:is([id^="comment-"], [id^="variant-"])'
+      'article:popover-open:is([id^="comment-"], [id^="variant-"])'
     ))
-      note.hidePopover?.()
+      note.hidePopover()
   }
 
   // Like .net's toast: the menu comes up for a moment with just the rows a key changed, and those under them
