@@ -5,8 +5,9 @@
  * the browser's scroll anchor, and Safari has no scroll anchoring at all, so the first text below the menu is
  * put back where it was. Also keeps the References checkbox showing at least one group, and toggles the
  * settings and listen controls and opens the bar's menus and panels from the keyboard, with the same keys as .net
- * and a few more, unless they're turned off. And keeps a note's asterisk lit while the note is open, lets Esc hide the menus and panels hovering shows,
- * titles each highlighting line, and loads word lookup and simplified characters once they're turned on.
+ * and a few more, unless they're turned off. And keeps a note's asterisk lit while the note is open, hides an open
+ * note when N changes the view, lets Esc hide the menus and panels hovering shows, titles each highlighting line,
+ * and loads word lookup and simplified characters once they're turned on.
  */
 ;(function () {
   'use strict'
@@ -342,6 +343,14 @@
     panel.focus()
   }
 
+  /** N's inline view hides the button an open note is anchored to, so close it first to not leave it floating */
+  function dismissNotes() {
+    for (const note of document.querySelectorAll(
+      'article[popover]:is([id^="comment-"], [id^="variant-"])'
+    ))
+      note.hidePopover?.()
+  }
+
   // Like .net's toast: the menu comes up for a moment with just the rows a key changed, and those under them
   function showChanges(ids, before) {
     const changed = new Set(
@@ -458,6 +467,7 @@
     const key = e.key.toLowerCase()
     if (PANELS[key]) togglePanel(PANELS[key])
     else if (VIEW_SETTINGS[key] || SUB_SETTINGS[key]) {
+      if (key === 'n') dismissNotes()
       const before = checkedStates()
       if (VIEW_SETTINGS[key]) cycle(VIEW_SETTINGS[key])
       else toggleSub(SUB_SETTINGS[key])
