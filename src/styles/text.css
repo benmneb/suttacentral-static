@@ -1102,6 +1102,10 @@ aside:where(body > *) {
         animation-range: exit 0% exit 100%;
       }
 
+      @media (scripting: none) {
+        display: none;
+      }
+
       button:focus > .icon,
       button:hover > .icon {
         color: var(--background-color);

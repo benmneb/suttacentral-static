@@ -576,8 +576,16 @@ body {
       anchor-name: --site-pages-button;
     }
 
-    > div > .icon-button {
+    > div > .icon-button,
+    > div > noscript > .icon-button {
       margin-block: -0.3125rem;
+    }
+
+    /* The noscript link instead, as without invoker commands it opens nothing */
+    @media (scripting: none) {
+      button[commandfor='search-modal'] {
+        display: none;
+      }
     }
   }
 
