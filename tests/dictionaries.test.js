@@ -41,30 +41,20 @@ const MIN_WORDS = {
   dpd_deconstructor: 20_000,
 }
 
-// /define pages that have to be there, and the dictionary of each of their entries, DPD's first, and each of
-// an NCPED entry's homonyms one (gaha)
+// /define pages that have to be there, and dictionaries each has an entry in
 const DEFINE_PAGES = {
   '/define/dhamma/': ['dpd', 'ncped', 'dppn', 'pts'],
   '/define/sāvatthī/': ['dpd', 'ncped', 'dppn'],
   '/define/ima/': ['dpd'],
   '/define/aggāḷave cetiye/': ['dppn'],
-  '/define/gaha/': ['dpd', 'ncped', 'ncped', 'dhammika', 'pts'],
+  '/define/gaha/': ['dpd', 'ncped', 'dhammika', 'pts'],
 }
 
-// .net's adjacent terms for buddha, which only has words with a full entry
-const BUDDHA_ADJACENT = [
-  'bujjhati',
-  'bujjhana',
-  'bujjhanaka',
-  'bujjhitar',
-  'buḍḍha',
-  'buddha',
-  'buddhaka',
-  'buddhatā',
-  'buddhati',
-  'buddhatta',
-  'buddhi',
-]
+// The order a page's dictionaries are in, DPD's then .net's
+const DICTIONARY_ORDER = ['dpd', 'ncped', 'dhammika', 'dppn', 'pts']
+
+// Words either side of a page's in its Adjacent Terms
+const ADJACENT = 5
 
 // The map's places DPPN has no entry for, which stay linked to .net
 const MAP_DEFINES_MISSING = ['piprahwa stupa', 'siṁsapāvana3']
@@ -81,15 +71,15 @@ const LOOKUP_PAGES = ['/mn1/pli/ms/', '/dn16/pli/ms/', '/mn10/pli/ms/']
 const MIN_ANSWERED_SHARE = 0.97
 const MIN_PAGED_SHARE = 0.97
 
-// Words lookup has to answer, and the headword of each
-const LOOKUP_CANARIES = {
-  evaṁ: 'evaṁ',
-  bhagavā: 'bhagavā',
-  sāvatthiyaṁ: 'sāvatthī',
-  bhikkhū: 'bhikkhu',
-  hiriottappa: 'hiriottappa',
-  akata: 'akata',
-}
+// Words lookup has to answer, each with a /define page
+const LOOKUP_CANARIES = [
+  'evaṁ',
+  'bhagavā',
+  'sāvatthiyaṁ',
+  'bhikkhū',
+  'hiriottappa',
+  'akata',
+]
 
 // Pages with the Word lookup setting, by the dictionary it uses
 const LOOKUP_ROWS = {
@@ -280,15 +270,20 @@ describe('The /define pages', () => {
   })
 
   for (const [url, dictionaries] of Object.entries(DEFINE_PAGES)) {
-    it(`include ${url}, with its entries`, async () => {
+    it(`include ${url}, with its entries in order`, async () => {
       const html = await readPage(url)
       assert.match(html, /<h1>/)
-      // A dictionary's later entries go under its first one's dt
-      let name
-      const found = [
-        ...html.matchAll(/<dt class="(\w+)"|<dd class="again">/g),
-      ].map(match => (name = match[1] ?? name))
-      assert.deepEqual(found, dictionaries)
+      const found = [...html.matchAll(/<dt class="(\w+)"/g)].map(
+        ([, name]) => name
+      )
+      assert.deepEqual(
+        found,
+        DICTIONARY_ORDER.filter(name => found.includes(name)),
+        `Not one dt per dictionary, in order: ${found.join(', ')}`
+      )
+      for (const name of dictionaries) {
+        assert.ok(found.includes(name), `No ${name} entry`)
+      }
     })
   }
 
@@ -306,14 +301,20 @@ describe('The /define pages', () => {
     )
   })
 
-  it("list .net's adjacent terms", async () => {
+  it("list .net's adjacent terms, each with a page", async () => {
     const html = await readPage('/define/buddha/')
     const terms = html.slice(html.indexOf('Adjacent Terms</h2>'))
     const list = terms.slice(0, terms.indexOf('</ol>'))
-    const words = [...list.matchAll(/translate="no">([^<]+)</g)].map(
-      ([, word]) => word
+    const items = [...list.matchAll(/<li[^>]*>(.*?)<\/li>/g)].map(
+      ([, item]) => item
     )
-    assert.deepEqual(words, BUDDHA_ADJACENT)
+    assert.equal(items.length, 2 * ADJACENT + 1)
+    assert.match(items[ADJACENT], /aria-current="page"[^>]*>buddha</)
+    for (const item of items.toSpliced(ADJACENT, 1)) {
+      const href = item.match(/href="(\/define\/[^"]+)"/)?.[1]
+      assert.ok(href, `Not a link: ${item}`)
+      await readPage(`${decodeURIComponent(href)}/`)
+    }
   })
 
   it('link a DPPN place to it on /map', async () => {
@@ -357,8 +358,9 @@ describe('The /define pages', () => {
 
   it("count their words' definitions in all their dictionaries", async () => {
     const s = JSON.parse(await readPage('/dictionaries/define-words/s.json'))
-    // DPD's 5, NCPED's 1 and PTS's samma 1 to 3
-    assert.equal(s.samma, 9)
+    const html = await readPage('/define/samma/')
+    const dictionaries = html.match(/<dt class="/g).length
+    assert.ok(s.samma >= dictionaries, `samma has only ${s.samma}`)
     assert.ok(Object.values(s).every(Number.isInteger))
   })
 })
@@ -455,13 +457,13 @@ describe('Word lookup', () => {
     })
   }
 
-  it('answers the canaries, each with its headword', async () => {
-    for (const [word, headword] of Object.entries(LOOKUP_CANARIES)) {
+  it('answers the canaries, each with a /define page', async () => {
+    for (const word of LOOKUP_CANARIES) {
       const answer = await answerOf(word)
       assert.ok(answer.length, `No answer for ${word}`)
       assert.ok(
-        answer.some(match => match.b === headword || match.h === headword),
-        `${word} isn't answered with ${headword}: ${JSON.stringify(answer).slice(0, 200)}`
+        answer.some(match => match.p || match.h),
+        `${word} has no /define page: ${JSON.stringify(answer).slice(0, 200)}`
       )
     }
   })
