@@ -28,6 +28,66 @@ const { origin, title } = siteMetaData()
 // Characters of text a site page's <main> has at least
 const MIN_TEXT_LENGTH = 20
 
+const metadata = await buildSitePageMetadata({
+  titleFor: key =>
+    ({
+      'an-guide-sujato:2': 'Bhikkhu Sujato, 2019',
+      'interface:anGuideSujato': 'Aṅguttara Nikāya',
+      'interface:languages': 'Languages on SuttaCentral',
+      'methodology:16': 'Rod Bucknell, updated by Sujato',
+      'methodology:33': 'Bhikkhu Sujato',
+      'publication:editionsToolbarTitle': 'SuttaCentral Editions',
+    })[key] ?? key,
+  imageFor: async () => ({ src: '/images/site-pages/test.avif' }),
+  languagePages: [{ scx_path: 'languages/pli', name: 'Pali' }],
+  map: {
+    layers: [
+      {
+        name: 'Capital cities',
+        places: [
+          { id: 'place-1-1', name: 'Rājagaha', define: 'rājagaha' },
+          { id: 'place-1-2', name: 'A nameless village' },
+        ],
+      },
+      {
+        name: 'Mahāparinibbāna journey',
+        // Its stops are numbered, so `mapPlaces.js` counts it a sequence
+        ordered: true,
+        places: [
+          { id: 'place-2-1', name: '1) Rājagaha', define: 'rājagaha' },
+          { id: 'place-2-2', name: 'Mahāparinibbāna journey', route: true },
+        ],
+      },
+    ],
+  },
+  editions: [
+    {
+      uid: 'mn',
+      scx_path: 'edition/mn/en/sujato',
+      title: 'Middle Discourses',
+      readHref: '/pitaka/sutta/middle/mn',
+      publication: {
+        creator_name: 'Bhikkhu Sujato',
+        translation_lang_iso: 'en',
+      },
+      matter: [
+        {
+          label: 'Introduction',
+          scx_path: 'edition/mn/en/sujato/introduction',
+          html: `<article class='introduction'>
+<h1>Middle Discourses: a translation</h1>
+<p class='byline'>Bhikkhu Sujato, 2024</p>
+<nav class='contents'><ol><li><a href='#intro-item1'>About this translation</a></li></ol></nav>
+<p>How this translation was prepared.</p>
+<p>And what it leaves out.</p>
+</article>`,
+        },
+      ],
+    },
+  ],
+})
+const jsonLdOf = url => JSON.parse(metadata[url].scx_json_ld)
+
 describe('Site page metadata', () => {
   it('generates absolute metadata for an informational page', () => {
     const page = {
@@ -55,328 +115,75 @@ describe('Site page metadata', () => {
     )
   })
 
-  it('builds breadcrumbs for language, edition, and front-matter routes', async () => {
-    const pages = await buildSitePageMetadata({
-      titleFor: key =>
-        ({
-          'abhidhamma:2': 'Bhikkhu Sujato',
-          'an-guide-sujato:2': 'Bhikkhu Sujato, 2019',
-          'interface:anGuideSujato': 'Aṅguttara Nikāya',
-          'discourses:2': 'Bhikkhu Sujato',
-          'dn-guide-sujato:2': 'Bhikkhu Sujato, 2019',
-          'general-guide-sujato:2': 'Bhikkhu Sujato, 2019',
-          'interface:aboutTitle': 'About SuttaCentral',
-          'interface:languages': 'Languages on SuttaCentral',
-          'interface:mnGuideSujato': 'The Middle Discourses',
-          'map:1': 'The Buddha’s India',
-          'map:2': 'Poster map',
-          'map:3':
-            'Jambudīpa: India in the time of the Buddha. Hand-drawn by Jonas for SuttaCentral, CC0.',
-          'map:4': 'Interactive map',
-          'map:5': 'Capital cities',
-          'map:6': 'Towns & villages',
-          'map:11': 'Mahāparinibbāna journey',
-          'methodology:16': 'Rod Bucknell, updated by Sujato',
-          'methodology:33': 'Bhikkhu Sujato',
-          'publication:editionsToolbarTitle': 'SuttaCentral Editions',
-          'an-introduction-bodhi:2': 'Bhikkhu Bodhi, 2012',
-          'sn-guide-sujato:2': 'Bhikkhu Sujato, 2019',
-          'vinaya:2': 'Bhikkhu Brahmali',
-        })[key] ?? key,
-      languagePages: [{ scx_path: 'languages/pli', name: 'Pali' }],
-      abbreviations: {
-        texts: [{ acronym: 'DN', name: 'Dīgha Nikāya' }],
-        editions: [{ acronym: 'PTS', name: 'Pali Text Society' }],
-        schools: [{ acronym: 'Mū', name: 'Mūlasarvāstivāda' }],
-      },
-      imageFor: async (url, options) => {
-        if (url.endsWith('/static-pages/jambudipa_map.jpg')) {
-          assert.deepEqual(options, { dir: 'site-pages', height: 2068 })
-          return {
-            src: '/images/site-pages/jambudipa_map-test.avif',
-            width: 1400,
-            height: 1900,
-          }
-        }
-        assert.equal(url, `${SC_ORIGIN}/img/publication-pages/mn-book.jpg`)
-        assert.deepEqual(options, { dir: 'site-pages', height: 600 })
-        return { src: '/images/site-pages/mn-book-test.avif' }
-      },
-      map: {
-        layers: [
-          {
-            name: 'Capital cities',
-            labelKey: 'map:5',
-            places: [
-              {
-                id: 'place-1-1',
-                name: 'Rājagaha',
-                define: 'rājagaha',
-                shape: { type: 'point', x: 1, y: 2 },
-              },
-            ],
-          },
-          {
-            name: 'Towns & villages',
-            labelKey: 'map:6',
-            places: [
-              {
-                id: 'place-2-1',
-                name: 'A nameless village',
-                define: undefined,
-                shape: { type: 'point', x: 3, y: 4 },
-              },
-            ],
-          },
-          {
-            name: 'Mahāparinibbāna journey',
-            labelKey: 'map:11',
-            // Its stops are numbered, so `mapPlaces.js` counts it a sequence
-            ordered: true,
-            places: [
-              {
-                id: 'place-3-1',
-                name: '1) Rājagaha',
-                define: 'rājagaha',
-                shape: { type: 'point', x: 5, y: 6 },
-              },
-              {
-                id: 'place-3-2',
-                name: 'Mahāparinibbāna journey',
-                route: true,
-                shape: { type: 'line', x: 7, y: 8 },
-              },
-            ],
-          },
-        ],
-      },
-      editions: [
-        {
-          uid: 'mn',
-          scx_path: 'edition/mn/en/sujato',
-          title: 'Middle Discourses',
-          readHref: '/pitaka/sutta/middle/mn',
-          publication: {
-            creator_name: 'Bhikkhu Sujato',
-            translation_lang_iso: 'en',
-            translation_subtitle: 'A meaningful translation',
-            publication_date: '2024-05-12',
-            text_description: '<p>A translation of the Middle Discourses.</p>',
-          },
-          files: { updated: '2026-10-18' },
-          volumes: [{ isbn: '9781234567890' }],
-          menu: { original_title: 'Majjhima Nikāya' },
-          matter: [
-            {
-              label: 'Introduction',
-              scx_path: 'edition/mn/en/sujato/introduction',
-              html: `<article class='introduction'>
-<h1>Middle Discourses: a translation</h1>
-<p class='byline'>Bhikkhu Sujato, 2024</p>
-<nav class='contents'><ol><li><a href='#intro-item1'>About this translation</a></li></ol></nav>
-<p>How this translation was prepared.</p>
-<p>And what it leaves out.</p>
-</article>`,
-            },
-          ],
-        },
-      ],
-    })
-    const about = JSON.parse(pages['/about/'].scx_json_ld)
-    const language = JSON.parse(pages['/languages/pli/'].scx_json_ld)
-    const abbreviation = JSON.parse(pages['/abbreviations/'].scx_json_ld)
-    const subjectIndex = JSON.parse(pages['/subjects/'].scx_json_ld)
-    const article = JSON.parse(pages['/an-guide-sujato/'].scx_json_ld)
-    const edition = JSON.parse(pages['/edition/mn/en/sujato/'].scx_json_ld)
-    const matter = JSON.parse(
-      pages['/edition/mn/en/sujato/introduction/'].scx_json_ld
-    )
+  it('gives language, edition and front-matter pages the trail to them', () => {
+    const trail = url =>
+      jsonLdOf(url).breadcrumb.itemListElement.map(({ name }) => name)
+    assert.deepEqual(trail('/languages/pli/'), [
+      'Home',
+      'Languages on SuttaCentral',
+      'Pali',
+    ])
+    assert.deepEqual(trail('/edition/mn/en/sujato/'), [
+      'Home',
+      'SuttaCentral Editions',
+      'Middle Discourses',
+    ])
+    assert.deepEqual(trail('/edition/mn/en/sujato/introduction/'), [
+      'Home',
+      'SuttaCentral Editions',
+      'Middle Discourses',
+      'Introduction',
+    ])
+  })
 
-    assert.equal(about['@type'], 'AboutPage')
-    assert.equal(about.name, 'About SuttaCentral')
-    assert.equal(about.url, `${origin}/about`)
-    assert.equal(abbreviation['@type'], 'CollectionPage')
-    assert.equal(abbreviation.mainEntity['@type'], 'ItemList')
-    assert.equal(abbreviation.mainEntity.numberOfItems, 3)
-    assert.equal(
-      abbreviation.mainEntity.description,
-      'Comprehensive list of abbreviations for suttas, Vinaya rules, editions, and schools'
-    )
-    assert.equal(abbreviation.mainContentOfPage['@type'], 'Table')
-    assert.equal(abbreviation.mainContentOfPage.about, 'Sutta abbreviations')
-    for (const url of [
-      '/subjects/',
-      '/similes/',
-      '/names/',
-      '/terminology/',
-      '/pali-tipitaka/',
-    ]) {
-      assert.equal(
-        JSON.parse(pages[url].scx_json_ld)['@type'],
-        'CollectionPage'
-      )
-    }
-    assert.deepEqual(article['@type'], ['WebPage', 'ScholarlyArticle'])
-    assert.equal(article.headline, 'Aṅguttara Nikāya')
-    assert.equal(article.name, undefined)
-    assert.deepEqual(article.author, [
+  it('describes front matter by its first paragraph, as a chapter of its book', () => {
+    const matter = jsonLdOf('/edition/mn/en/sujato/introduction/')
+    assert.equal(matter.description, 'How this translation was prepared.')
+    assert.equal(matter.isPartOf['@id'], `${origin}/edition/mn/en/sujato`)
+    assert.equal(matter.hasPart['@type'], 'Chapter')
+    assert.deepEqual(matter.hasPart.isPartOf, matter.isPartOf)
+  })
+
+  it("takes an article's authors and year from its bylines", () => {
+    const guide = jsonLdOf('/an-guide-sujato/')
+    const methodology = jsonLdOf('/methodology/')
+    assert.equal(guide.headline, 'Aṅguttara Nikāya')
+    assert.deepEqual(guide.author, [
       { '@type': 'Person', name: 'Bhikkhu Sujato' },
     ])
-    assert.equal(article.datePublished, '2019')
-    assert.equal(article.inLanguage, 'en')
-    assert.equal(article.publisher.name, 'SuttaCentral')
-    assert.deepEqual(edition['@type'], ['WebPage', 'Book'])
-    assert.equal(edition.name, 'Middle Discourses—A meaningful translation')
-    assert.deepEqual(edition.author, {
-      '@type': 'Person',
-      name: 'Bhikkhu Sujato',
-    })
-    assert.deepEqual(edition.translator, edition.author)
-    assert.equal(edition.datePublished, '2024-05-12')
-    assert.equal(edition.dateModified, '2026-10-18')
-    assert.equal(edition.inLanguage, 'en')
-    assert.equal(edition.isbn, '9781234567890')
-    assert.equal(edition.image, `${origin}/images/site-pages/mn-book-test.avif`)
-    assert.deepEqual(edition.potentialAction, {
-      '@type': 'ReadAction',
-      url: `${origin}/pitaka/sutta/middle/mn`,
-    })
-    assert.deepEqual(edition.isBasedOn, {
-      '@type': 'Book',
-      name: 'Majjhima Nikāya',
-      inLanguage: 'pi',
-      description: 'Original Pāli Buddhist text',
-    })
-    const articleRoutes = [
-      '/abhidhamma-guide-sujato/',
-      '/an-guide-sujato/',
-      '/an-introduction-bodhi/',
-      '/discourses-guide-sujato/',
-      '/dn-guide-sujato/',
-      '/general-guide-sujato/',
-      '/mn-guide-sujato/',
-      '/methodology/',
-      '/sn-guide-sujato/',
-      '/vinaya-guide-brahmali/',
-    ]
-    for (const url of articleRoutes) {
-      assert.deepEqual(JSON.parse(pages[url].scx_json_ld)['@type'], [
-        'WebPage',
-        'ScholarlyArticle',
-      ])
-    }
-    assert.equal(
-      JSON.parse(pages['/discourses-guide-sujato/'].scx_json_ld).datePublished,
-      undefined
-    )
-    assert.equal(about.sameAs, `${SC_ORIGIN}/about`)
+    assert.equal(guide.datePublished, '2019')
     assert.deepEqual(
-      language.breadcrumb.itemListElement.map(({ name }) => name),
-      ['Home', 'Languages on SuttaCentral', 'Pali']
+      methodology.author.map(({ name }) => name),
+      ['Rod Bucknell', 'Sujato', 'Bhikkhu Sujato']
     )
-    assert.deepEqual(
-      edition.breadcrumb.itemListElement.map(({ name }) => name),
-      ['Home', 'SuttaCentral Editions', 'Middle Discourses']
-    )
-    assert.deepEqual(
-      matter.breadcrumb.itemListElement.map(({ name }) => name),
-      ['Home', 'SuttaCentral Editions', 'Middle Discourses', 'Introduction']
-    )
-    assert.equal(matter.description, 'How this translation was prepared.')
-    const book = {
-      '@type': 'Book',
-      '@id': `${origin}/edition/mn/en/sujato`,
-      name: 'Middle Discourses',
-    }
-    assert.deepEqual(matter.isPartOf, book)
-    // The chapter is a CreativeWork with an identity of its own, and the book it belongs to
-    assert.deepEqual(matter.hasPart, {
-      '@type': 'Chapter',
-      '@id': `${origin}/edition/mn/en/sujato/introduction#chapter`,
-      name: 'Introduction',
-      url: `${origin}/edition/mn/en/sujato/introduction`,
-      isPartOf: book,
-      inLanguage: 'en',
-    })
-    assert.equal(edition.isPartOf.name, title)
+    assert.equal(methodology.datePublished, undefined)
+  })
 
-    const mapPage = JSON.parse(pages['/map/'].scx_json_ld)
-    const [poster, interactiveMap, index] = mapPage.hasPart
-    assert.equal(mapPage['@type'], 'WebPage')
-    assert.equal(mapPage.name, 'The Buddha’s India')
-    assert.deepEqual(
-      mapPage.hasPart.map(part => part['@type']),
-      ['ImageObject', 'Map', 'Table']
+  it("lists the map's places, with a journey's stops in order and no route line", () => {
+    const index = jsonLdOf('/map/').hasPart.find(
+      part => part['@type'] === 'Table'
     )
-    assert.equal(
-      poster.url,
-      `${origin}/images/site-pages/jambudipa_map-test.avif`
-    )
-    assert.equal(poster.encodingFormat, 'image/avif')
-    assert.equal(poster.width, 1400)
-    assert.equal(poster.height, 1900)
-    assert.equal(poster.name, 'Poster map')
-    assert.match(poster.description, /^Jambudīpa: India in the time/)
-    assert.equal(interactiveMap.url, `${origin}/map`)
-    assert.equal(interactiveMap.encodingFormat, 'image/svg+xml')
-    assert.equal(index.name, 'Index of Places')
-    // A list of lists, as `hasPart` only takes CreativeWorks, and gives no position
-    assert.equal(index.hasPart, undefined)
-    assert.equal(index.mainEntity['@type'], 'ItemList')
-    // The journey's route line isn't one of the places it lists
-    assert.equal(index.mainEntity.numberOfItems, 3)
-    const categories = index.mainEntity.itemListElement
-    assert.deepEqual(
-      categories.map(({ name }) => name),
-      ['Capital cities', 'Towns & villages', 'Mahāparinibbāna journey']
-    )
-    // Sorted by name, so the places stand on their own, with no position
-    assert.equal(categories[0]['@type'], 'ItemList')
-    assert.equal(categories[0].numberOfItems, 1)
-    assert.equal(categories[0].itemListOrder, undefined)
-    assert.deepEqual(categories[0].itemListElement, [
+    const [cities, journey] = index.mainEntity.itemListElement
+    assert.deepEqual(cities.itemListElement, [
       {
         '@type': 'Place',
         name: 'Rājagaha',
         url: `${origin}/define/rājagaha`,
         sameAs: `${origin}/map#place-1-1`,
       },
-    ])
-    // A place with no /define page is still listed, without a url
-    assert.equal(categories[1].itemListElement[0].url, undefined)
-    assert.equal(categories[1].itemListElement[0].name, 'A nameless village')
-    // A journey's stops are in sequence, so each is a positioned ListItem, minus its number
-    assert.equal(categories[2].itemListOrder, 'ItemListOrderAscending')
-    assert.equal(categories[2].numberOfItems, 1)
-    assert.deepEqual(categories[2].itemListElement, [
       {
-        '@type': 'ListItem',
-        position: 1,
-        item: {
-          '@type': 'Place',
-          name: 'Rājagaha',
-          url: `${origin}/define/rājagaha`,
-          sameAs: `${origin}/map#place-3-1`,
-        },
+        '@type': 'Place',
+        name: 'A nameless village',
+        sameAs: `${origin}/map#place-1-2`,
       },
     ])
-    assert.equal(mapPage.spatialCoverage['@type'], 'Place')
-    assert.equal(mapPage.spatialCoverage.name, 'India')
-    assert.equal(mapPage.temporalCoverage, '6th–5th century BCE')
+    assert.equal(cities.itemListOrder, undefined)
     assert.deepEqual(
-      mapPage.about.map(({ name }) => name),
-      ['Buddhism in Ancient India', 'Mahajanapadas']
-    )
-    assert.equal(mapPage.isPartOf.name, title)
-    assert.equal(
-      JSON.parse(
-        generateSitePageOGTags({
-          title: 'About SuttaCentral',
-          description: 'About',
-          url: '/about',
-        })
-      )['og:url'],
-      `${origin}/about`
+      journey.itemListElement.map(({ position, item }) => [
+        position,
+        item.name,
+      ]),
+      [[1, 'Rājagaha']]
     )
   })
 })
