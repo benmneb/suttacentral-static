@@ -5,9 +5,11 @@
  */
 
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
 import htmlmin from 'html-minifier-terser'
 import {
+  minifyCssCode,
   minifyHtmlCode,
   squeezeLineBreaks,
 } from '../src/helpers/minifyAssets.js'
@@ -59,5 +61,16 @@ describe('Page minifier', () => {
         collapseBooleanAttributes: true,
       })
     )
+  })
+})
+
+describe('Text styles', () => {
+  // A root :has() makes axe restyle the whole page per hidden element, so long texts take minutes
+  it('anchors the view settings on the aside', () => {
+    const css = minifyCssCode(
+      'text.css',
+      readFileSync('src/styles/text.css', 'utf8')
+    )
+    assert.doesNotMatch(css, /:scope:(?:not\()?has\(/)
   })
 })
