@@ -100,6 +100,27 @@ describe('Search index', () => {
     )
   })
 
+  it('has each text page under its collections, as in: takes in those under one', async () => {
+    const { children } = JSON.parse(
+      await fs.readFile(path.join(SITE_DIR, 'search/collections.json'), 'utf8')
+    )
+    const missing = [...pages.values()]
+      .filter(page => page.searchable && page.collections.length)
+      .filter(page =>
+        page.collections.some(
+          (uid, i) =>
+            !Object.hasOwn(children, uid) ||
+            (i && !children[page.collections[i - 1]].includes(uid))
+        )
+      )
+      .map(page => page.url)
+    assert.equal(
+      missing.length,
+      0,
+      `Text pages in: can't find by a collection:\n${listSome(missing)}`
+    )
+  })
+
   it("has every text's titles in the titles bundle", async () => {
     const titles = pageCount(await readEntry('pagefind-titles'))
     assert.equal(

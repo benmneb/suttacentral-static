@@ -510,6 +510,36 @@
     return own.in?.any.length === 0 ? null : own
   }
 
+  /**
+   * A text bundle's filters with `in` as the index has it: each page only in its nearest collection, so a
+   * collection takes in those under it, and its own text ids in `text`, ie mn10. Pagefind ANDs filters, so
+   * a mix of the two is `any` of them
+   */
+  async function textFilters(filters) {
+    if (!filters.in) return filters
+    const collections = await fetchJSON('/search/collections.json')
+    if (!collections) return filters
+    const { children, texts } = collections
+    const under = new Set()
+    const add = uid => {
+      if (under.has(uid)) return
+      under.add(uid)
+      children[uid].forEach(add)
+    }
+    const ids = []
+    for (const value of filters.in.any) {
+      const isCollection = Object.hasOwn(children, value)
+      if (isCollection) add(value)
+      if (!isCollection || texts.includes(value)) ids.push(value)
+    }
+    const { in: _, ...rest } = filters
+    const own = [
+      ...(under.size ? [{ in: { any: [...under] } }] : []),
+      ...(ids.length ? [{ text: { any: ids } }] : []),
+    ]
+    return own.length === 1 ? { ...rest, ...own[0] } : { ...rest, any: own }
+  }
+
   /** The collections in `uids`, above them and below them, of those in `has` */
   function relatedCollections(uids, has) {
     const related = new Set()
@@ -1119,7 +1149,13 @@
         included.map(async name => {
           const bundle = name === 'texts' ? pagefind : await loadBundle(name)
           const own = bundleFilters(name, filters)
-          const found = own ? await find(term, own, bundle) : []
+          const found = own
+            ? await find(
+                term,
+                name === 'site' ? own : await textFilters(own),
+                bundle
+              )
+            : []
           for (const result of found) result.bundle ??= name
           return found
         })

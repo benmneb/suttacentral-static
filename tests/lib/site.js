@@ -348,6 +348,16 @@ export function metaProblems(html, url) {
   return problems.slice(0, 3)
 }
 
+/** A text page's breadcrumb uids down to the one with the `in` filter, as searchExtras.js reads them */
+function collectionsOf(html) {
+  const header = html.slice(0, html.indexOf('<main'))
+  const crumbs = [...header.matchAll(/<[^>]* data-uid="([^"]*)"[^>]*>/g)]
+  const nearest = crumbs.findLastIndex(([tag]) =>
+    tag.includes('data-pagefind-filter="in')
+  )
+  return crumbs.slice(0, nearest + 1).map(match => match[1])
+}
+
 /** A page's Open Graph image and what its tags say about it, ie `https://…/og.jpg 1200 630 image/jpeg` */
 function ogImageOf(html) {
   const content = property =>
@@ -403,6 +413,8 @@ function factsFor(url, html) {
     textIds: [...html.matchAll(/data-text-id="([^"]*)"/g)].map(match =>
       copyOf(match[1])
     ),
+    // Its breadcrumbs' collections, down to the one the index has it in, ie sutta … an4-ragapeyyala
+    collections: collectionsOf(html).map(copyOf),
     segments: html.split('class="segment"').length - 1,
     notes: [
       ...html.matchAll(

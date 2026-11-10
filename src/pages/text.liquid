@@ -34,7 +34,8 @@ eleventyComputed:
     {% for crumb in entry.scx_breadcrumb_trail %}
       <li>
         {% comment %}
-          Every ancestor is a search filter (`in`), by uid, so filtering on ie `dn` or `sutta` both find dn1.
+          Only the nearest collection is a search filter (`in`), by uid, as /search takes in those under `dn`
+          or `sutta` from search/collections.json, so both find dn1 with a smaller filter to download.
           Not the text itself, unless it's a branch too, ie the pātimokkhas.
           The text's own uid stays in the index next to its name, so searching ie "mn1" still finds it first
         {% endcomment %}
@@ -48,10 +49,17 @@ eleventyComputed:
           {% else %}
             <a href="{{ crumb.href }}" data-uid="{{ crumb.uid }}" data-pagefind-body data-pagefind-weight="10">{{ label }}</a>
           {% endif %}
-        {% elsif crumb.href %}
-          <a href="{{ crumb.href }}" data-uid="{{ crumb.uid }}" data-pagefind-filter="in[data-uid]">{{ crumb.name }}</a>
         {% else %}
-          <span data-uid="{{ crumb.uid }}" data-pagefind-filter="in[data-uid]">{{ crumb.name }}</span>
+          {% if forloop.rindex0 == 1 and entry.node_type == 'leaf' %}
+            {% assign filter = ' data-pagefind-filter="in[data-uid]"' %}
+          {% else %}
+            {% assign filter = '' %}
+          {% endif %}
+          {% if crumb.href %}
+            <a href="{{ crumb.href }}" data-uid="{{ crumb.uid }}"{{ filter }}>{{ crumb.name }}</a>
+          {% else %}
+            <span data-uid="{{ crumb.uid }}"{{ filter }}>{{ crumb.name }}</span>
+          {% endif %}
         {% endif %}
       </li>
     {% endfor %}
@@ -66,7 +74,7 @@ eleventyComputed:
       <span
         hidden
         data-text-id="{{ id }}"
-        data-pagefind-filter="in[data-text-id]"
+        data-pagefind-filter="text[data-text-id]"
       ></span>
     {% endfor %}
   {% endunless %}

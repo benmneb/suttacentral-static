@@ -10,6 +10,8 @@
  *   _site/pagefind-site/     the site pages' text, ie the guides and the editions' introductions
  *   _site/search/refs/       the pages each reference is on, ie sya13.544, for .net's `ref:`, in shards
  *   _site/search/texts/      the acronym and titles of the texts those are on
+ *   _site/search/collections.json  each collection's children, and the collections that are some page's
+ *                            text id too, for /search to take in a collection's own and those under it
  *   _site/search/hant.json   each simplified Chinese character's traditional form, of those the texts
  *                            have, so /search finds them by either
  *   _site/hans.json          the simplified form of each traditional character the texts have, for
@@ -89,15 +91,19 @@ function textPage(file, html) {
     decode(main.match(new RegExp(` data-${name}="([^"]*)"`))?.[1] ?? '').trim()
   const header = html.slice(0, html.indexOf('<main'))
   const parts = file.split(path.sep)
-  const collections = [
-    ...header.matchAll(/data-uid="([^"]*)" data-pagefind-filter="in/g),
-  ].map(match => match[1])
+  // The breadcrumbs down to the one the index filters by, ie sutta … an4-ragapeyyala, not the text
+  const crumbs = [...header.matchAll(/<[^>]* data-uid="([^"]*)"[^>]*>/g)]
+  const nearest = crumbs.findLastIndex(([tag]) =>
+    tag.includes('data-pagefind-filter="in')
+  )
+  const collections = crumbs.slice(0, nearest + 1).map(match => match[1])
   const textIds = [...header.matchAll(/data-text-id="([^"]*)"/g)]
     .map(match => match[1])
     .filter(id => !collections.includes(id))
   return {
     url: urlOf(file),
     uid: parts[0],
+    collections,
     textIds,
     meta: {
       acronym: attribute('acronym'),
@@ -110,7 +116,8 @@ function textPage(file, html) {
       titleParts: attribute('titleparts'),
     },
     filters: {
-      in: [...collections, ...textIds],
+      in: collections.slice(-1),
+      text: textIds,
       author: [attribute('authoruid')],
       lang: [attribute('lang')],
     },
@@ -226,6 +233,40 @@ function collectReferences(page, html) {
       referenceTexts.set(page.uid, [acronym, originalTitle, title, rootLang])
     }
   }
+}
+
+// Each collection's children, ie an4 → an4-pathamapannasaka …, from the breadcrumbs
+const collectionChildren = new Map()
+// Every id a page has in `text`
+const allTextIds = new Set()
+
+/** Notes down a text page's collections, each under the one above it, and its text ids */
+function collectCollections(page) {
+  page.collections.forEach((uid, i) => {
+    if (!collectionChildren.has(uid)) collectionChildren.set(uid, new Set())
+    if (i) collectionChildren.get(page.collections[i - 1]).add(uid)
+  })
+  for (const id of page.textIds) allTextIds.add(id)
+}
+
+/**
+ * Writes each collection's children, as the index has each page in only its nearest, and the collections
+ * that are another page's text id too (ie ea21), as `in:` has to find those pages by `text`
+ */
+async function writeCollections() {
+  const collections = {
+    children: Object.fromEntries(
+      [...collectionChildren].map(([uid, children]) => [uid, [...children]])
+    ),
+    texts: [...allTextIds].filter(id => collectionChildren.has(id)),
+  }
+  await fs.writeFile(
+    path.join(SITE_DIR, 'search', 'collections.json'),
+    JSON.stringify(collections)
+  )
+  console.log(
+    `🔎 Wrote ${collectionChildren.size} collections to search/collections.json`
+  )
 }
 
 // How often each Chinese character is in the Chinese texts
@@ -573,12 +614,12 @@ const counts = Object.fromEntries(Object.keys(bundles).map(name => [name, 0]))
 const filterCounts = Object.fromEntries(
   Object.keys(bundles).map(name => [name, {}])
 )
-// Not a text's own `in` ids, which have no box to show or hide
-function countFilters(name, filters = {}, textIds = []) {
+// Not `text`, as text ids have no box to show or hide
+function countFilters(name, filters = {}) {
   for (const [key, values] of Object.entries(filters)) {
+    if (key === 'text') continue
     const counted = (filterCounts[name][key] ??= new Map())
     for (const value of new Set(values.filter(Boolean))) {
-      if (key === 'in' && textIds.includes(value)) continue
       counted.set(value, (counted.get(value) ?? 0) + 1)
     }
   }
@@ -592,6 +633,7 @@ for (let i = 0; i < files.length; i += READ_CONCURRENCY) {
       const page = html && textPage(file, html)
       if (!page) return
       collectReferences(page, html)
+      collectCollections(page)
       countHan(page, html)
       for (const [name, bundle] of Object.entries(bundles)) {
         for (const record of bundle.records?.(page, html) ?? []) {
@@ -600,7 +642,8 @@ for (let i = 0; i < files.length; i += READ_CONCURRENCY) {
             console.warn(`${name} ${record.url}:`, errors.join(', '))
           } else {
             counts[name]++
-            countFilters(name, record.filters, page.textIds)
+            // Each collection above the nearest too, as each of those has a box
+            countFilters(name, { ...record.filters, in: page.collections })
           }
         }
       }
@@ -640,6 +683,7 @@ for (const [name, { outputPath, filterValues }] of Object.entries(bundles)) {
 }
 await pagefind.close()
 await writeReferences()
+await writeCollections()
 await writeTraditional()
 await writeSimplified()
 
