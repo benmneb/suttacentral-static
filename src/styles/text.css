@@ -1702,6 +1702,8 @@ aside:where(body > *) {
         padding: 0.1rem 0.3rem;
         display: flex;
         gap: 0.3rem;
+        border-radius: 0;
+
         &:hover {
           background-color: unset;
         }
