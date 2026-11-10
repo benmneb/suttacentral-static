@@ -8,6 +8,8 @@
 
 - Includes all sutta, vinaya and abhidhamma texts in their root languages, all English translations, footnotes, parallels, reference links and flexible text view settings
 - Mirrors the URL structure of suttacentral.net. Just switch the `.net` for `.express`, or use the [browser extension](https://git.sr.ht/~benmneb/suttacentral-redirect) from the [Chrome](https://chromewebstore.google.com/detail/suttacentral-redirect/noaddajdfegpjfgpmbhcbahofgkceaan) or [Firefox](https://addons.mozilla.org/firefox/addon/suttacentral-redirect/) store
+- W3C-valid HTML and schema.org-valid structured data, built and tested to WCAG 2.2 AA, with AAA contrast when more contrast is requested plus support for forced colours and reduced motion. See [ACCESSIBILITY.md](ACCESSIBILITY.md)
+- Reads and navigates in older browsers, back to Chrome 109 and Firefox 115 on Windows 7. See the [principles](DEVELOPMENT.md#principles)
 - Works offline with full functionality via desktop and Android apps, site archives and a [Kiwix](https://kiwix.org) ZIM file, all available for download in [Github](https://github.com/benmneb/suttacentral-static/releases/latest) and [Codeberg](https://codeberg.org/benmneb/suttacentral-static/releases/latest) releases
 
 ### Fast

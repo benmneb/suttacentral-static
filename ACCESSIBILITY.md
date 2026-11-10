@@ -8,6 +8,8 @@ The site targets [WCAG 2.2](https://www.w3.org/TR/WCAG22/) level AA. This is a g
 
 ## How it's checked
 
+Pages are checked by hand with a keyboard, at a phone's width, in light and dark mode, with more contrast and with forced colours. A screen reader has only been tried on a few of them.
+
 These checks run on every release build, and a new release only deploys itself when they pass:
 
 - Every page is checked with the [Nu HTML validator](https://validator.w3.org/nu/) that W3C runs, and only a few errors or warnings are let through, from slips in the API data that SuttaCentral provides
@@ -24,6 +26,7 @@ The site also:
 ## Known limits
 
 - Automated checks only find some kinds of problem, so passing them doesn't mean every page meets every criterion
+- Little of the site has been tried with a screen reader, so its markup and labels are checked by axe-core more than by use. Reports from screen reader users are especially welcome
 - The texts, notes, dictionary entries and site pages come from [SuttaCentral](https://suttacentral.net)'s data. Their markup is tidied as the site is built, but there are nearly 140,000 pages, too many to review each by hand
 
 ## Feedback

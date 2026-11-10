@@ -10,7 +10,20 @@
 
 ## Contributing
 
-See <https://todo.sr.ht/~benmneb/suttacentral-static> for inspiration, and note that this project prioritises performance, accessibility and best practices: HTML first, CSS where needed, JavaScript only as enhancement. All pages work without JavaScript, are W3C-valid HTML (bar a few potential unhandled upstream slips from SuttaCentral's data) with schema.org-valid structured data, and target WCAG 2.2 AA, checked with axe-core before each release. When more contrast is requested, text meets AAA ratios, and forced-colours mode is fully supported. Features degrade gracefully and are designed to work offline, so the site can be packaged as self-contained archives and native apps
+See <https://todo.sr.ht/~benmneb/suttacentral-static> for inspiration
+
+### Principles
+
+The site is built HTML first, with CSS where it's needed and JavaScript only as an enhancement. Every change is held to these:
+
+- Every page, text and core feature is static HTML and CSS, and works without JavaScript. Search, word lookup, Listen, simplified Chinese and remembered settings need it. The rest of the deferred ~11 kB (gzipped) on a text adds to pages that already work
+- Every page passes the W3C's [Nu validator](https://validator.w3.org/nu/), and its JSON-LD fits the schema.org vocabulary. Slips in SuttaCentral's data are mended as the site is built where readers would notice them, so for my sanity, a few only the validator sees are allowed to get through
+- Pages are built and tested to [WCAG 2.2](https://www.w3.org/TR/WCAG22/) AA, with no axe-core violations in light and dark mode or at a phone's width. With more contrast set, text meets AAA contrast ratios. Forced colours and reduced motion are respected throughout. See [ACCESSIBILITY.md](ACCESSIBILITY.md)
+- There's no render-blocking JS and no layout shift
+- CSS is compiled for Chrome and Edge 105, Firefox 115 and Safari 15.4, and newer features (popovers, anchor positioning, `:has()`) sit behind `@supports` with a plainer fallback. That covers Windows 7 and 8.1 through Chrome 109 and Firefox 115 ESR, the last versions for them
+- All features work offline, so the site can be packaged as self-contained archives, native apps and a ZIM
+
+[`pnpm test`](#tests) checks all of this before each release: validity on every page, and accessibility on a sample of every kind of page.
 
 ## Deploying and releasing
 
