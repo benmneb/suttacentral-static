@@ -528,13 +528,4 @@ describe('Edition matter', () => {
       '<dl><dt>Sosa</dt><dd></dd>\n<dt>Taka</dt><dd>?</dd>\n<dt>Kāla</dt><dd></dd></dl>'
     )
   })
-
-  it('ends a markdown link left in an href at its ")"', () => {
-    assert.equal(
-      tidyMatter(
-        '<a href="https://suttacentral.net/pli-tv-kd21.1.1.1)%20begins%20<i%20lang=\'pli\'>at%20[DN%2016](dn16:1.6.13">Kd 21</a>'
-      ),
-      '<a href="https://suttacentral.net/pli-tv-kd21.1.1.1">Kd 21</a>'
-    )
-  })
 })

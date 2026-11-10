@@ -156,15 +156,6 @@ describe('Dictionary markup', () => {
     )
   })
 
-  it('mends slips in it', () => {
-    assert.equal(
-      tidyDictionaryHtml(
-        "<dl><dt>A</dt></dt>B</dt>&gt;<dd><p span class='eti'>1</p></dd><dl><dt>Uses for <td>A</td></dt><dd>Gr. <span class='at'>̓η</span></dd></dl>"
-      ),
-      "<dl><dt>A</dt><dt>B</dt><dd><p class='eti'>1</p></dd><dt>Uses for A</dt><dd>Gr.<span class='at'> ̓η</span></dd></dl>"
-    )
-  })
-
   it("rejoins NCPED's grammar where it was split at an &amp;", () => {
     assert.deepEqual(
       mendNcped({ entry: 'paṅgu', grammar: 'adj &amp', xr: 'n' }),

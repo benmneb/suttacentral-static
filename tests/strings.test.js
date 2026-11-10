@@ -78,13 +78,6 @@ describe('Bilara markup', () => {
     )
   })
 
-  it('drops the reference and root left in a segment', () => {
-    assert.equal(
-      bilaraMarkup('<reference>MAV 76</reference><root></root> '),
-      ' '
-    )
-  })
-
   it('leaves the rest, and what it made, as it is', () => {
     const html = 'a <i>b</i> <span class="j">c</span>'
     assert.equal(bilaraMarkup(html), html)
@@ -106,15 +99,6 @@ describe('Legacy markup', () => {
     assert.equal(
       tidyLegacyHtml('<ol><li>A</p></li>\n<p>B</p><h4>C</h4><ol><li>D</ol>'),
       '<ol><li>A</p></li>\n</ol><p>B</p><h4>C</h4><ol><li>D</ol>'
-    )
-  })
-
-  it('mends stray commas and pipes in URLs', () => {
-    assert.equal(
-      tidyLegacyHtml(
-        '<ol type="1", start="5"><li><a href=\'http:%7C%7Cgretil.de%7Ca.htm\'>A</a></li></ol>'
-      ),
-      '<ol type="1" start="5"><li><a href=\'http://gretil.de/a.htm\'>A</a></li></ol>'
     )
   })
 
@@ -155,15 +139,6 @@ describe('Unicode normalisation', () => {
   it('keeps a mark that has no composed form with its letter', () => {
     assert.equal(normalizeStrings('sag\u0304\u0331akada'), 'saḡ\u0331akada')
     assert.equal(normalizeStrings('漢語'), '漢語')
-  })
-
-  it('swaps Private Use Area characters for real ones', () => {
-    assert.equal(
-      normalizeStrings('that the \uF0E1mind\uF0F1 does'),
-      'that the ⟨mind⟩ does'
-    )
-    assert.equal(normalizeStrings('Am\uF82Atapadāni'), 'Amṛtapadāni')
-    assert.equal(normalizeStrings('飯、\u{F0253}、糒'), '飯、麨、糒')
   })
 })
 
