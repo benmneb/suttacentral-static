@@ -10,7 +10,7 @@
 
 ## Contributing
 
-See <https://todo.sr.ht/~benmneb/suttacentral-static> for inspiration, and note that this project prioritises performance, accessibility and best practices: HTML first, CSS where needed, JavaScript only as enhancement. All pages work without JavaScript, are W3C-valid HTML with schema.org-valid structured data, and target WCAG 2.2 AA, checked with axe-core before each release. When more contrast is requested, text meets AAA ratios, and forced-colours mode is fully supported. Features degrade gracefully and are designed to work offline, so the site can be packaged as self-contained archives and native apps
+See <https://todo.sr.ht/~benmneb/suttacentral-static> for inspiration, and note that this project prioritises performance, accessibility and best practices: HTML first, CSS where needed, JavaScript only as enhancement. All pages work without JavaScript, are W3C-valid HTML (bar a few potential unhandled upstream slips from SuttaCentral's data) with schema.org-valid structured data, and target WCAG 2.2 AA, checked with axe-core before each release. When more contrast is requested, text meets AAA ratios, and forced-colours mode is fully supported. Features degrade gracefully and are designed to work offline, so the site can be packaged as self-contained archives and native apps
 
 ## Deploying and releasing
 
@@ -228,7 +228,7 @@ Then, when a release passes the tests, or you publish a draft release or pre-rel
 - **Links:** internal links go to pages that exist
 - **Search:** the search index has every text page, and hasn't shrunk since production, the extra indexes have every text's titles, every English note once, every Chinese text and every site page, the reference files only list text pages with their titles, `volpage:DN ii 72` finds DN 16, and simplified Chinese has its traditional forms
 - **Site pages:** every key the site pages use is in the strings fetched from .net (read from `.cache`, no build needed), and every page in the site pages menu is built with a heading and its text
-- **HTML:** every page passes the [Nu validator](https://validator.w3.org/nu/) with no errors or warnings
+- **HTML:** every page passes the [Nu validator](https://validator.w3.org/nu/), bar a few potential unhandled errors or warnings from slips in .net's data, which are listed when the check passes too. These are currently handled to a more-than-reasonable degree, but because this content is almost entirely built from .net's API data, I can't claim 100% validity on all pages going forward
 - **Accessibility:** a sample of each kind of page in each collection (or just the pages in `AXE_PAGES=/mn1/en/sujato/,/about/`) has no [axe-core](https://github.com/dequelabs/axe-core) violations of WCAG 2.2 A/AA or its best practices, in light and dark mode and at a phone's width, and none of AAA (mainly 7:1 contrast) with `prefers-contrast: more`. `AXE_MAX_PAGES` caps the sample
 - **Structured data:** every page's JSON-LD only uses schema.org types, with properties where they belong (checked against a pinned version of schema.org's vocabulary, fetched once into `.cache`), its language tags are canonical BCP 47, and its meta and Open Graph tags are valid
 - **Dictionaries:** each dictionary in `.cache` has at least about 95% of the words it had (no build needed), the `/define` pages have their entries and `/map` links to them, and word lookup's files are all there and answer at least 97% of the sample texts' words, with a `/define` page

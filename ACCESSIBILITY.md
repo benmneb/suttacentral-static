@@ -10,7 +10,7 @@ The site targets [WCAG 2.2](https://www.w3.org/TR/WCAG22/) level AA. This is a g
 
 These checks run on every release build, and a new release only deploys itself when they pass:
 
-- Every page is valid HTML, with no errors or warnings from the [Nu validator](https://validator.w3.org/nu/) that W3C runs
+- Every page is checked with the [Nu HTML validator](https://validator.w3.org/nu/) that W3C runs, and only a few errors or warnings are let through, from slips in the API data that SuttaCentral provides
 - A sample of every kind of page has no problems [axe-core](https://github.com/dequelabs/axe-core) can find, by WCAG 2.2 A and AA and axe's best practices
 - The sample is checked in light and dark mode, at a phone's width, and with more contrast, where it's held to AAA contrast too
 

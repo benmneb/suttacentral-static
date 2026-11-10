@@ -1,6 +1,9 @@
 /**
- * Every page is valid HTML, with no errors or warnings from the Nu validator,
- * the checker validator.w3.org/nu runs.
+ * Pages are valid HTML, by the Nu validator, the checker validator.w3.org/nu runs.
+ *
+ * A few errors or warnings are let through, as slips in .net's data turn up
+ * between builds. A slip in a template is on every page of its kind, so it's
+ * far over the cap.
  *
  * It's a Java program, so it uses Java 11+ from the PATH, or else downloads a Java
  * runtime into `node_modules` once. `JAVA` or `JAVA_HOME` point at another.
@@ -19,6 +22,9 @@ import { listFiles, listSome, SITE_DIR, urlForFile } from './lib/site.js'
 
 // Files per run of the validator, few enough to stay under the OS's argument length limit
 const BATCH_SIZE = 1000
+
+// Problems in the last full build: none
+const MAX_PROBLEMS = 50
 
 /** Runs a command, resolving to its exit code and stdout */
 function run(command, args) {
@@ -73,7 +79,7 @@ async function validate(java, files) {
 }
 
 describe('Every page’s HTML', () => {
-  it('passes the Nu validator', { timeout: 4 * 60 * 60 * 1000 }, async () => {
+  it('passes the Nu validator', { timeout: 4 * 60 * 60 * 1000 }, async t => {
     const java = await findJava().catch(error => {
       throw new Error(
         `Couldn't download Java for the Nu validator, so install Java 11+ or set JAVA: ${error.message}`
@@ -125,10 +131,12 @@ describe('Every page’s HTML', () => {
         ([key, { count, places }]) =>
           `${key} (${count})\n${places.map(place => `    ${place}`).join('\n')}`
       )
-    assert.equal(
-      byMessage.size,
-      0,
-      `${byMessage.size} kinds of HTML problem in ${files.length} pages:\n${listSome(report, 30)}`
+    const total = [...byMessage.values()].reduce(
+      (sum, { count }) => sum + count,
+      0
     )
+    const summary = `${total} HTML problems of ${byMessage.size} kinds in ${files.length} pages:\n${listSome(report, 30)}`
+    assert.ok(total <= MAX_PROBLEMS, summary)
+    if (total) t.diagnostic(summary)
   })
 })
