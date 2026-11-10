@@ -957,6 +957,43 @@
         display: inline;
         margin: 0;
       }
+
+      /* A fine pointer stands in for a keyboard, as no query finds one */
+      .for-fine,
+      .for-coarse {
+        display: none;
+      }
+
+      @media (any-pointer: fine) {
+        .for-both {
+          display: none;
+        }
+
+        .for-fine {
+          display: inline;
+        }
+      }
+
+      @media (any-pointer: coarse) {
+        .for-both {
+          display: none;
+        }
+
+        .for-coarse {
+          display: inline;
+        }
+      }
+
+      @media (any-pointer: fine) and (any-pointer: coarse) {
+        .for-both {
+          display: inline;
+        }
+
+        .for-fine,
+        .for-coarse {
+          display: none;
+        }
+      }
     }
 
     /* As the text pages' hotkeys */
