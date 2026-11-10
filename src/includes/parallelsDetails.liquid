@@ -33,10 +33,7 @@
             <span>{{ segment[0] | parallelLabel: entry }}</span>
           {% endif %}
           <ul>
-            {% include "parallelItems.liquid",
-              parallels: segment[1],
-              typed: true
-            %}
+            {{ segment[1] | parallelItemsHtml: true }}
           </ul>
         </li>
       {% endunless %}

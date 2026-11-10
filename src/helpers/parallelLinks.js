@@ -7,7 +7,7 @@
  * to each translator beside the link to its root text. A parallel to a passage only gets the
  * segmented ones, as a legacy text has no segment for its #anchor to land on.
  *
- * Each also gets what `parallelItems.liquid` shows of it, worked out once here rather than
+ * Each also gets what `parallelItemsHtml.js` shows of it, worked out once here rather than
  * on every page it's on: its label with the passage, its language, and its volume and pages.
  *
  * /api/parallels only has an English title for a parallel with a legacy English translation,
@@ -113,7 +113,7 @@ export function addParallelDetails(tree, resolve) {
           describe(parallel, rootLang)
           if (!to.uid) continue
           let translations = translationsOf(to.uid, to.to?.includes('#'))
-          // The one `parallelItems.liquid` links the title to
+          // The one `parallelItemsHtml.js` links the title to
           const titleLink = to.translations?.find(
             t => t.lang === 'en' || t.lang === to.root_lang
           )

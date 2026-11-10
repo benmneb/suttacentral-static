@@ -18,6 +18,7 @@ import {
 } from './src/helpers/minifyAssets.js'
 import { setOutputDir } from './src/helpers/outputDir.js'
 import { ogTags } from './src/helpers/pageMetadata.js'
+import { parallelItemsHtml } from './src/helpers/parallelItemsHtml.js'
 import {
   parallelAnchor,
   parallelKeyLabel,
@@ -163,6 +164,7 @@ export default function (eleventyConfig) {
   })
 
   eleventyConfig.addFilter('segmentsHtml', segmentsHtml)
+  eleventyConfig.addFilter('parallelItemsHtml', parallelItemsHtml)
 
   // A root title's words, for search to find a compound title by any of them
   eleventyConfig.addFilter('titleParts', async function (title) {

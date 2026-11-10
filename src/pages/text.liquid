@@ -684,10 +684,7 @@ eleventyComputed:
               <section>
                 <h2>{{ group.title }}</h2>
                 <ul class="parallel-list">
-                  {% include "parallelItems.liquid",
-                    parallels: group.parallels,
-                    typed: false
-                  %}
+                  {{ group.parallels | parallelItemsHtml: false }}
                 </ul>
               </section>
             {% endfor %}

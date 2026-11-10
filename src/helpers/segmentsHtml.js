@@ -7,6 +7,7 @@
  * Lives here, not in `data/`, as every file in there becomes global data.
  */
 
+import { blank, out, truthy } from './liquidValues.js'
 import { loadLookup } from './lookupAnswers.js'
 import { referenceEditionName, referenceGroup } from './referenceEditions.js'
 import { SC_ORIGIN } from './scApi.js'
@@ -17,10 +18,6 @@ import {
   softHyphenateTitle,
 } from './strings.js'
 
-// As Liquid has it: only nil and false are falsy, and blank is those, or an empty or whitespace-only string
-const truthy = value => value != null && value !== false
-const blank = value =>
-  !truthy(value) || (typeof value === 'string' && !value.trim())
 const nonEmpty = value =>
   (Array.isArray(value) || typeof value === 'string') && !value.length
     ? undefined
@@ -35,7 +32,6 @@ const ESCAPES = {
 }
 const escapeHtml = text =>
   String(text ?? '').replace(/[&<>"']/g, c => ESCAPES[c])
-const out = value => (value == null ? '' : String(value))
 const withoutOrigin = html => out(html).split(SC_ORIGIN).join('')
 
 /** Each word of a Pāli text into word lookup's answers, leaving the text as it is */
