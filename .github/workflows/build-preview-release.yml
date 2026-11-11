@@ -815,7 +815,7 @@ jobs:
             - Assets minified: ${{ needs.release-draft.outputs.assets_summary || 'n/a' }}
             - Search index: ${{ needs.release-draft.outputs.search_pages || 'n/a' }} pages, ${{ needs.release-draft.outputs.search_words || 'n/a' }} words
 
-            </details>
+            </details>${autoDeploy ? '' : `
 
             ---
 
@@ -824,7 +824,7 @@ jobs:
 
             **Preview Deployment:** ${{ needs.release-draft.outputs.preview_url }}
 
-            ${autoDeploy ? `**Auto-deploy:** it passed the build checks and every app and the ZIM built, so it's published and deploying to production - see the "Auto-deploy" job in the [run](${runUrl}) for how that went` : `**Next Steps:**
+            **Next Steps:**
             1. Review the preview deployment above
             2. If satisfied, edit this release body and click "Publish release" to deploy to production
             3. Publishing will automatically:
@@ -1715,7 +1715,7 @@ jobs:
             - Assets minified: ${{ needs.content-refresh.outputs.assets_summary || 'n/a' }}
             - Search index: ${{ needs.content-refresh.outputs.search_pages || 'n/a' }} pages, ${{ needs.content-refresh.outputs.search_words || 'n/a' }} words
 
-            </details>
+            </details>${autoDeploy ? '' : `
 
             ---
 
@@ -1724,7 +1724,7 @@ jobs:
 
             **Preview Deployment:** ${{ needs.content-refresh.outputs.preview_url }}
 
-            ${autoDeploy ? `**Auto-deploy:** it passed the build checks and every app and the ZIM built, so it's published and deploying to production - see the "Auto-deploy" job in the [run](${runUrl}) for how that went` : `**Next Steps:**
+            **Next Steps:**
             1. Review the preview deployment above
             2. If satisfied, edit this release body and uncheck "Set as a pre-release" to promote to production
             3. Publishing will automatically:
