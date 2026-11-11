@@ -285,11 +285,22 @@ jobs:
     steps:
       # The site, Rust target dir and Gradle together get close to the runner's free space
       - name: Free disk space
-        if: matrix.android
+        if: runner.os == 'Linux'
         uses: jlumbroso/free-disk-space@v1.3.1
         with:
           android: false
           large-packages: false
+
+      # Compiling the app crate, with the whole site embedded, can run the runner out of memory
+      - name: Add swap
+        if: runner.os == 'Linux'
+        run: |
+          sudo fallocate -l 16G /swapfile.ci
+          sudo chmod 600 /swapfile.ci
+          sudo mkswap /swapfile.ci
+          sudo swapon /swapfile.ci
+          free -h
+          df -h /
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -329,6 +340,9 @@ jobs:
       - name: Setup Android SDK
         if: matrix.android
         uses: android-actions/setup-android@v3
+        with:
+          # Not the default 'tools', which the SDK repository no longer has
+          packages: platform-tools
 
       # The runner's latest NDK (r28+) links .so files with 16 KB page alignment,
       # which newer devices need to load them
@@ -458,9 +472,9 @@ jobs:
           done
 
           # Android
-          for f in tauri/gen/android/signed.apk; do
-            cp "$f" "artifacts/scx_app-${VERSION}-android_${{ matrix.abi }}.apk"
-          done
+          if [ -f tauri/gen/android/signed.apk ]; then
+            cp tauri/gen/android/signed.apk "artifacts/scx_app-${VERSION}-android_${{ matrix.abi }}.apk"
+          fi
           shopt -u nullglob
 
           echo "Artifacts:"
@@ -595,9 +609,11 @@ jobs:
 
   finalize-release:
     name: Finalize Release
-    needs: [release-draft, build-zim, sign-release]
+    needs: [release-draft, build-tauri, build-zim, sign-release]
     if: always() && needs.release-draft.result == 'success'
     runs-on: ubuntu-latest
+    outputs:
+      auto_deploy: ${{ steps.body.outputs.auto_deploy }}
     steps:
       - name: Check which platforms succeeded
         id: platforms
@@ -633,13 +649,16 @@ jobs:
           fi
 
       - name: Update release body
+        id: body
         uses: actions/github-script@v7
         with:
           script: |
             const signed = '${{ needs.sign-release.outputs.signed }}' === 'true';
             const pgpPublicKey = '${{ needs.release-draft.outputs.pgp_public_key }}';
             const checksPassed = '${{ needs.release-draft.outputs.checks_passed }}' === 'true';
-            const autoDeploy = checksPassed && '${{ vars.AUTO_DEPLOY }}' !== 'false';
+            const buildsPassed = '${{ needs.build-tauri.result }}' === 'success' && '${{ needs.build-zim.result }}' === 'success';
+            const autoDeploy = checksPassed && buildsPassed && '${{ vars.AUTO_DEPLOY }}' !== 'false';
+            core.setOutput('auto_deploy', autoDeploy);
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const checksLine = checksPassed
               ? `**Build checks:** ✅ [Passed](${runUrl})`
@@ -805,7 +824,7 @@ jobs:
 
             **Preview Deployment:** ${{ needs.release-draft.outputs.preview_url }}
 
-            ${autoDeploy ? `**Auto-deploy:** it passed the build checks, so it's published and deploying to production - see the "Auto-deploy" job in the [run](${runUrl}) for how that went` : `**Next Steps:**
+            ${autoDeploy ? `**Auto-deploy:** it passed the build checks and every app and the ZIM built, so it's published and deploying to production - see the "Auto-deploy" job in the [run](${runUrl}) for how that went` : `**Next Steps:**
             1. Review the preview deployment above
             2. If satisfied, edit this release body and click "Publish release" to deploy to production
             3. Publishing will automatically:
@@ -829,9 +848,7 @@ jobs:
     needs: [release-draft, finalize-release]
     if: >
       always() &&
-      needs.finalize-release.result == 'success' &&
-      needs.release-draft.outputs.checks_passed == 'true' &&
-      vars.AUTO_DEPLOY != 'false'
+      needs.finalize-release.outputs.auto_deploy == 'true'
     uses: ./.github/workflows/deploy-release.yml
     with:
       release_id: '${{ needs.release-draft.outputs.release_id }}'
@@ -1164,11 +1181,22 @@ jobs:
     steps:
       # The site, Rust target dir and Gradle together get close to the runner's free space
       - name: Free disk space
-        if: matrix.android
+        if: runner.os == 'Linux'
         uses: jlumbroso/free-disk-space@v1.3.1
         with:
           android: false
           large-packages: false
+
+      # Compiling the app crate, with the whole site embedded, can run the runner out of memory
+      - name: Add swap
+        if: runner.os == 'Linux'
+        run: |
+          sudo fallocate -l 16G /swapfile.ci
+          sudo chmod 600 /swapfile.ci
+          sudo mkswap /swapfile.ci
+          sudo swapon /swapfile.ci
+          free -h
+          df -h /
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -1208,6 +1236,9 @@ jobs:
       - name: Setup Android SDK
         if: matrix.android
         uses: android-actions/setup-android@v3
+        with:
+          # Not the default 'tools', which the SDK repository no longer has
+          packages: platform-tools
 
       # The runner's latest NDK (r28+) links .so files with 16 KB page alignment,
       # which newer devices need to load them
@@ -1337,9 +1368,9 @@ jobs:
           done
 
           # Android
-          for f in tauri/gen/android/signed.apk; do
-            cp "$f" "artifacts/scx_app-${VERSION}-android_${{ matrix.abi }}.apk"
-          done
+          if [ -f tauri/gen/android/signed.apk ]; then
+            cp tauri/gen/android/signed.apk "artifacts/scx_app-${VERSION}-android_${{ matrix.abi }}.apk"
+          fi
           shopt -u nullglob
 
           echo "Artifacts:"
@@ -1473,9 +1504,16 @@ jobs:
   finalize-release-content-refresh:
     name: Finalize Content Refresh Release
     needs:
-      [content-refresh, build-zim-content-refresh, sign-release-content-refresh]
+      [
+        content-refresh,
+        build-tauri-content-refresh,
+        build-zim-content-refresh,
+        sign-release-content-refresh,
+      ]
     if: always() && needs.content-refresh.result == 'success'
     runs-on: ubuntu-latest
+    outputs:
+      auto_deploy: ${{ steps.body.outputs.auto_deploy }}
     steps:
       - name: Check which platforms succeeded
         id: platforms
@@ -1511,13 +1549,16 @@ jobs:
           fi
 
       - name: Update release body
+        id: body
         uses: actions/github-script@v7
         with:
           script: |
             const signed = '${{ needs.sign-release-content-refresh.outputs.signed }}' === 'true';
             const pgpPublicKey = '${{ needs.content-refresh.outputs.pgp_public_key }}';
             const checksPassed = '${{ needs.content-refresh.outputs.checks_passed }}' === 'true';
-            const autoDeploy = checksPassed && '${{ vars.AUTO_DEPLOY }}' !== 'false';
+            const buildsPassed = '${{ needs.build-tauri-content-refresh.result }}' === 'success' && '${{ needs.build-zim-content-refresh.result }}' === 'success';
+            const autoDeploy = checksPassed && buildsPassed && '${{ vars.AUTO_DEPLOY }}' !== 'false';
+            core.setOutput('auto_deploy', autoDeploy);
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const checksLine = checksPassed
               ? `**Build checks:** ✅ [Passed](${runUrl})`
@@ -1683,7 +1724,7 @@ jobs:
 
             **Preview Deployment:** ${{ needs.content-refresh.outputs.preview_url }}
 
-            ${autoDeploy ? `**Auto-deploy:** it passed the build checks, so it's published and deploying to production - see the "Auto-deploy" job in the [run](${runUrl}) for how that went` : `**Next Steps:**
+            ${autoDeploy ? `**Auto-deploy:** it passed the build checks and every app and the ZIM built, so it's published and deploying to production - see the "Auto-deploy" job in the [run](${runUrl}) for how that went` : `**Next Steps:**
             1. Review the preview deployment above
             2. If satisfied, edit this release body and uncheck "Set as a pre-release" to promote to production
             3. Publishing will automatically:
@@ -1710,9 +1751,7 @@ jobs:
     needs: [content-refresh, finalize-release-content-refresh]
     if: >
       always() &&
-      needs.finalize-release-content-refresh.result == 'success' &&
-      needs.content-refresh.outputs.checks_passed == 'true' &&
-      vars.AUTO_DEPLOY != 'false'
+      needs.finalize-release-content-refresh.outputs.auto_deploy == 'true'
     uses: ./.github/workflows/deploy-release.yml
     with:
       release_id: '${{ needs.content-refresh.outputs.release_id }}'

@@ -109,7 +109,7 @@ Note: `GITHUB_TOKEN` is automatically provided by GitHub Actions. Codeberg is op
 
 ### GitHub Variables
 
-- `AUTO_DEPLOY` - Set to `false` (Settings → Secrets and variables → Actions → Variables) to stop releases deploying themselves when they pass the tests, so every release waits for you to publish it. Anything else, or not set, leaves auto-deploy on
+- `AUTO_DEPLOY` - Set to `false` (Settings → Secrets and variables → Actions → Variables) to stop releases deploying themselves when they pass the tests and every build succeeds, so every release waits for you to publish it. Anything else, or not set, leaves auto-deploy on
 
 ### The workflow triggers when
 
@@ -133,8 +133,8 @@ Note: `GITHUB_TOKEN` is automatically provided by GitHub Actions. Codeberg is op
    - Runs `build-zim` job in parallel, attaching `scx_archive-{version}.zim` to the draft release
    - Runs `sign-release` job to attach `SHA256SUMS.txt` for the archives and apps, PGP-signed
    - Runs `finalize-release` job when all builds complete to update release body with which platforms built, and whether the tests passed
-   - If the tests passed → publishes the release and runs `auto-deploy` (see below)
-   - **Next step** if they failed: Review preview URL and publish when release shows all builds complete
+   - If the tests passed and every app and the ZIM built → publishes the release and runs `auto-deploy` (see below)
+   - **Next step** otherwise: Review preview URL and publish when release shows all builds complete
    - If tag is NOT on main → skips draft release creation
 
 3. **Manual trigger** (click button in GitHub Actions UI)
@@ -150,19 +150,19 @@ Note: `GITHUB_TOKEN` is automatically provided by GitHub Actions. Codeberg is op
      - Attaches `.dmg`, `.exe`, `.AppImage`, `.apk` to the pre-release
    - Runs `build-zim-content-refresh` job in parallel, attaching `scx_archive-{version}-content-refresh-{date}.zim`
    - When all builds complete it updates release body with which platforms built, and whether the tests passed
-   - If the tests passed → promotes the pre-release to a release and runs `auto-deploy-content-refresh` (see below)
-   - **Next step** if they failed: Review preview URL and uncheck "Set as a pre-release" when release shows all builds complete
+   - If the tests passed and every app and the ZIM built → promotes the pre-release to a release and runs `auto-deploy-content-refresh` (see below)
+   - **Next step** otherwise: Review preview URL and uncheck "Set as a pre-release" when release shows all builds complete
      - Publishing will automatically deploy to Vercel production and upload all assets to Codeberg releases
      - Preview tag is automatically cleaned up from all remotes when published or deleted
 
 4. **Monthly schedule** (1st of month at midnight UTC)
    - Same as manual trigger (runs `content-refresh` job)
    - Automatically builds with fresh content from SuttaCentral APIs monthly
-   - Creates pre-release, promoted to production if it passes the tests, or for review before manual promotion if not
+   - Creates pre-release, promoted to production if it passes the tests and every build succeeds, or for review before manual promotion if not
 
-**All the above (tag push, manual, or scheduled) automatically trigger releases and preview deployments. Those that pass the tests go on to production by themselves, and the rest wait for review.**
+**All the above (tag push, manual, or scheduled) automatically trigger releases and preview deployments. Those that pass the tests, with every app and the ZIM built, go on to production by themselves, and the rest wait for review.**
 
-Then, when a release passes the tests, or you publish a draft release or pre-release in GitHub UI, it deploys to production (`deploy-release.yml`):
+Then, when a release passes the tests and builds, or you publish a draft release or pre-release in GitHub UI, it deploys to production (`deploy-release.yml`):
 
 - Downloads all release assets (archives + apps)
 - Deploys to Vercel production
