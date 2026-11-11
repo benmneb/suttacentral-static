@@ -2171,6 +2171,13 @@ aside:not(:has(#segmenter:checked))
   }
 }
 
+/* Script blockers still match scripting: enabled, so the noscript notice stays */
+@media (scripting: none) {
+  aside li:has(> #listen-menu-button) {
+    display: none;
+  }
+}
+
 @media not all and (max-width: 600px) {
   aside fieldset :is(#views-menu, #listen-menu) {
     max-height: 70vh;
