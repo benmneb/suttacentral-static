@@ -36,7 +36,7 @@ Desktop performance comparison for `/dn1/en/sujato` via <https://pagespeed.web.d
 
 ### Frontend
 
-This project uses the public SuttaCentral APIs at build time to generate a fully static site that displays their data minimally and accessibly. See [DEVELOPMENT.md](DEVELOPMENT.md) for more info
+This project uses the public SuttaCentral APIs at build time to generate a fully static site that displays their data minimally and accessibly. See [DEVELOPMENT.md](DEVELOPMENT.md) for how it's built and why, and [DEPLOYMENT.md](DEPLOYMENT.md) to deploy your own
 
 ## License
 

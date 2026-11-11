@@ -404,7 +404,7 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           if [ -z "$ANDROID_KEYSTORE_BASE64" ] || [ -z "$ANDROID_KEYSTORE_PASSWORD" ] || [ -z "$ANDROID_KEY_ALIAS" ]; then
-            echo "✗ Android signing secrets not configured - see DEVELOPMENT.md"
+            echo "✗ Android signing secrets not configured - see DEPLOYMENT.md"
             exit 1
           fi
 
@@ -1283,7 +1283,7 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           if [ -z "$ANDROID_KEYSTORE_BASE64" ] || [ -z "$ANDROID_KEYSTORE_PASSWORD" ] || [ -z "$ANDROID_KEY_ALIAS" ]; then
-            echo "✗ Android signing secrets not configured - see DEVELOPMENT.md"
+            echo "✗ Android signing secrets not configured - see DEPLOYMENT.md"
             exit 1
           fi
 
