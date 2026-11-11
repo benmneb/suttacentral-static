@@ -31,7 +31,7 @@ import masterData from './_masterData.js'
 const EDITIONS_REPO = 'https://github.com/suttacentral/editions'
 
 // Named by the hash alone where the URL's query would make too long a file name. Not /menu, as the tree caches
-// it by its full name, which a SKIP_FETCH build would otherwise fetch from .net again
+// it by its full name, which a build reading the saved tree would otherwise fetch from .net again
 function cacheOptions(url) {
   const options = fetchOptions(url)
   if (url.includes('?') && !url.includes('/api/menu/')) {

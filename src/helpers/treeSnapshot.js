@@ -1,9 +1,9 @@
 /**
  * Tree Snapshot
  *
- * With `SKIP_FETCH=1`, the finished `_masterData` tree is saved to `.tree-cache` and read back by the next
- * build, rather than walking ~129k files in `.cache` again. It's only good while the code that makes the tree
- * and `.cache` are as they were, so its key hashes both.
+ * Except in CI or with `REFETCH`, the finished `_masterData` tree is saved to `.tree-cache` and read back by
+ * the next build, rather than walking ~129k files in `.cache` again. It's only good while the code that makes
+ * the tree and `.cache` are as they were, so its key hashes both.
  *
  * Lives here, not in `data/`, as every file in there becomes global data.
  */
@@ -52,9 +52,10 @@ export function clearTreeSnapshot() {
  * Saves the tree as JSON, a file per child of each root, as the whole tree is longer than a string can be.
  * Never throws
  * @param {object[]} tree - `_masterData`
+ * @param {object} stats - The fetch stats for the build to record
  * @returns {boolean} Whether it was saved
  */
-export function saveTreeSnapshot(tree) {
+export function saveTreeSnapshot(tree, stats) {
   try {
     clearTreeSnapshot()
     fs.mkdirSync(DIR, { recursive: true })
@@ -70,7 +71,7 @@ export function saveTreeSnapshot(tree) {
     // Last, so a save cut short leaves no snapshot to read
     fs.writeFileSync(
       MANIFEST,
-      JSON.stringify({ key: snapshotKey(), savedAt: Date.now(), roots })
+      JSON.stringify({ key: snapshotKey(), savedAt: Date.now(), stats, roots })
     )
     return true
   } catch (error) {
@@ -81,12 +82,13 @@ export function saveTreeSnapshot(tree) {
 }
 
 /**
- * The saved tree and when it was saved, or null if there's none or the code or `.cache` has changed since
- * @returns {{ tree: object[], savedAt: number } | null}
+ * The saved tree, when it was saved and its fetch stats, or null if there's none or the code or `.cache` has
+ * changed since
+ * @returns {{ tree: object[], savedAt: number, stats: object } | null}
  */
 export function readTreeSnapshot() {
   try {
-    const { key, savedAt, roots } = JSON.parse(
+    const { key, savedAt, stats, roots } = JSON.parse(
       fs.readFileSync(MANIFEST, 'utf8')
     )
     if (key !== snapshotKey()) return null
@@ -96,7 +98,7 @@ export function readTreeSnapshot() {
         JSON.parse(fs.readFileSync(path.join(DIR, file), 'utf8'))
       )
     }
-    return { tree: roots, savedAt }
+    return { tree: roots, savedAt, stats }
   } catch {
     return null
   }

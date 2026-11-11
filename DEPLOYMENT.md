@@ -84,6 +84,7 @@ You need a `.env` file with these: (any missing vars will just skip that provide
 
 - Version tags must start with lowercase `v` (e.g., `v1.0.0`)
 - The local Eleventy cache of fetched data from SuttaCentral APIs will persist until manually deleted or you run `pnpm build:refetch`
+- Builds other than CI or refetch ones save the data tree they make from that cache to `.tree-cache` (about 800MB), so later ones read it in seconds rather than ~45. It's made again once the data code or `.cache` changes. Delete `.tree-cache` after editing a file in `.cache` by hand
 
 ## 2. Via Github Actions
 

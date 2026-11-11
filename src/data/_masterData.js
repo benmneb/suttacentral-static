@@ -29,9 +29,9 @@ import {
 } from '../helpers/treeSnapshot.js'
 
 const DEV_MODE = process.env.NODE_ENV !== 'prod'
-const { SKIP_FETCH: skipFetch, REFETCH, FULL_BUILD, CI } = process.env
-// Never on a full build, whose fetch stats the tests and release body read
-const SKIP_FETCH = skipFetch && !REFETCH && !FULL_BUILD && !CI
+const { REFETCH, CI } = process.env
+// Not in CI, which starts without one each run
+const TREE_SNAPSHOT = !REFETCH && !CI
 const MAX_CONCURRENT_REQUESTS = 50
 const SCT_NAME = 'SuttaCentral Taishō'
 
@@ -522,16 +522,36 @@ export default function () {
   return building
 }
 
+/** This build's fetch stats, for `pnpm test` and the release body */
+function fetchStats() {
+  const { retries, recovered } = retryStats()
+  return {
+    endpointsHit,
+    successCount: endpointsHit - fetchErrors,
+    fetchErrors,
+    pubInfoErrors,
+    cacheTimeErrors,
+    retries,
+    recovered,
+    elapsedMins: Number(((Date.now() - startTime) / 60_000).toFixed(2)),
+  }
+}
+
+// The stage that fetched, rather than a later one reading its cache
+const keepLongestFetch = (earlier, value) =>
+  earlier?.elapsedMins > value.elapsedMins ? earlier : value
+
 async function buildTree() {
   if (REFETCH) clearTreeSnapshot()
-  if (SKIP_FETCH) {
+  if (TREE_SNAPSHOT) {
     const saved = readTreeSnapshot()
     if (saved) {
       const seconds = ((Date.now() - startTime) / 1000).toFixed(1)
       const savedAt = new Date(saved.savedAt).toLocaleString()
       spinner.succeed(
-        `Read the tree saved ${savedAt} in ~${seconds} s instead of fetching (SKIP_FETCH enabled)`
+        `Read the tree saved ${savedAt} in ~${seconds} s instead of walking .cache`
       )
+      recordStat('fetch', saved.stats, keepLongestFetch)
       fetchedAt = Date.now()
       return saved.tree
     }
@@ -563,8 +583,8 @@ async function buildTree() {
       `Gave ${linkedParallels} parallels a link to their translation`
     )
     // Not a tree with texts missing, which every later build would then read
-    if (SKIP_FETCH && !failed && saveTreeSnapshot(tree)) {
-      spinner.info('Saved the tree for the next SKIP_FETCH build')
+    if (TREE_SNAPSHOT && !failed && saveTreeSnapshot(tree, fetchStats())) {
+      spinner.info('Saved the tree to .tree-cache for the next build')
     }
     return tree
   } catch (e) {
@@ -600,22 +620,7 @@ async function buildTree() {
       )
     fetchedAt = Date.now()
 
-    // The stage that fetched, rather than a later one reading its cache
-    recordStat(
-      'fetch',
-      {
-        endpointsHit,
-        successCount,
-        fetchErrors,
-        pubInfoErrors,
-        cacheTimeErrors,
-        retries,
-        recovered,
-        elapsedMins: Number(elapsedMins),
-      },
-      (earlier, value) =>
-        earlier?.elapsedMins > value.elapsedMins ? earlier : value
-    )
+    recordStat('fetch', fetchStats(), keepLongestFetch)
 
     endpointsHit = 0
     fetchErrors = 0
