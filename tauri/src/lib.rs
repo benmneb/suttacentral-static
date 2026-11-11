@@ -927,8 +927,14 @@ fn store_context_link(url: String) {
     }
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
+#[cfg(mobile)]
+#[tauri::mobile_entry_point]
+fn mobile_main() {
+    run(tauri::generate_context!());
+}
+
+// Context from main.rs on desktop, as the rlib's metadata of every embedded page outgrows Mach-O
+pub fn run(context: tauri::Context) {
     let builder = tauri::Builder::default().plugin(tauri_plugin_opener::init());
 
     // Mobile has no clipboard plugin, window state or menu bar
@@ -1331,6 +1337,6 @@ pub fn run() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
+        .run(context)
         .expect("error while running tauri application");
 }
