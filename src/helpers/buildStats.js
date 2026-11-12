@@ -123,6 +123,18 @@ export function collect() {
     return `${files.length} files, ${num(original)} → ${num(minified)} bytes (−${saved}%)`
   })
 
+  const htmlSummary = safe(() => {
+    const kinds = Object.entries(stats.html ?? {})
+    if (kinds.length === 0) return NA
+    const kb = bytes => (bytes / 1024).toFixed(1)
+    const files = kinds.reduce((sum, [, k]) => sum + k.files, 0)
+    const bytes = kinds.reduce((sum, [, k]) => sum + k.bytes, 0)
+    const each = kinds.map(
+      ([kind, k]) => `${kind} ${num(k.files)}, avg ${kb(k.bytes / k.files)} KB`
+    )
+    return `${num(files)} files, ${(bytes / 1024 ** 3).toFixed(2)} GB, avg ${kb(bytes / files)} KB (${each.join('; ')})`
+  })
+
   const searchPages = safe(() => {
     const languages = Object.values(readJson(pagefindEntry).languages ?? {})
     if (languages.length === 0) return NA
@@ -144,6 +156,7 @@ export function collect() {
     eleventy_files: num(eleventyTotal('files')),
     fetch_summary: fetchSummary,
     fetch_failures: fetchFailures,
+    html_summary: htmlSummary,
     assets_summary: assetsSummary,
     search_pages: searchPages,
     search_words: searchWords,

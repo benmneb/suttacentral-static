@@ -260,6 +260,20 @@ export default function (eleventyConfig) {
       },
       (earlier, value) => ({ ...earlier, [buildStage ?? 'all']: value })
     )
+    const html = {}
+    for (const { inputPath, outputPath, content } of results ?? []) {
+      if (!outputPath?.endsWith('.html')) continue
+      const kind =
+        Object.keys(stageTemplates).find(stage =>
+          stageTemplates[stage].some(page =>
+            inputPath.startsWith(`./${page.replace('/**', '/')}`)
+          )
+        ) ?? 'site'
+      html[kind] ??= { files: 0, bytes: 0 }
+      html[kind].files++
+      html[kind].bytes += Buffer.byteLength(content ?? '')
+    }
+    recordStat('html', html, (earlier, value) => ({ ...earlier, ...value }))
     const missing = missingKeys()
     recordStat('siteStrings', { missing: missing.length })
     if (missing.length) {

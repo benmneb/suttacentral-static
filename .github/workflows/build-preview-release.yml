@@ -67,6 +67,7 @@ jobs:
       eleventy_duration: ${{ steps.stats.outputs.eleventy_duration }}
       search_duration: ${{ steps.stats.outputs.search_duration }}
       eleventy_files: ${{ steps.stats.outputs.eleventy_files }}
+      html_summary: ${{ steps.stats.outputs.html_summary }}
       fetch_summary: ${{ steps.stats.outputs.fetch_summary }}
       fetch_failures: ${{ steps.stats.outputs.fetch_failures }}
       assets_summary: ${{ steps.stats.outputs.assets_summary }}
@@ -822,6 +823,7 @@ jobs:
             - Build time: ${{ needs.release-draft.outputs.build_duration || 'n/a' }} (11ty: ${{ needs.release-draft.outputs.eleventy_duration || 'n/a' }}, search index: ${{ needs.release-draft.outputs.search_duration || 'n/a' }})
             - API fetch: ${{ needs.release-draft.outputs.fetch_summary || 'n/a' }}${fetchFailuresLine}
             - Pages written: ${{ needs.release-draft.outputs.eleventy_files || 'n/a' }}
+            - HTML: ${{ needs.release-draft.outputs.html_summary || 'n/a' }}
             - Assets minified: ${{ needs.release-draft.outputs.assets_summary || 'n/a' }}
             - Search index: ${{ needs.release-draft.outputs.search_pages || 'n/a' }} pages, ${{ needs.release-draft.outputs.search_words || 'n/a' }} words
 
@@ -957,6 +959,7 @@ jobs:
       eleventy_duration: ${{ steps.stats.outputs.eleventy_duration }}
       search_duration: ${{ steps.stats.outputs.search_duration }}
       eleventy_files: ${{ steps.stats.outputs.eleventy_files }}
+      html_summary: ${{ steps.stats.outputs.html_summary }}
       fetch_summary: ${{ steps.stats.outputs.fetch_summary }}
       fetch_failures: ${{ steps.stats.outputs.fetch_failures }}
       assets_summary: ${{ steps.stats.outputs.assets_summary }}
@@ -1732,6 +1735,7 @@ jobs:
             - Build time: ${{ needs.content-refresh.outputs.build_duration || 'n/a' }} (11ty: ${{ needs.content-refresh.outputs.eleventy_duration || 'n/a' }}, search index: ${{ needs.content-refresh.outputs.search_duration || 'n/a' }})
             - API fetch: ${{ needs.content-refresh.outputs.fetch_summary || 'n/a' }}${fetchFailuresLine}
             - Pages written: ${{ needs.content-refresh.outputs.eleventy_files || 'n/a' }}
+            - HTML: ${{ needs.content-refresh.outputs.html_summary || 'n/a' }}
             - Assets minified: ${{ needs.content-refresh.outputs.assets_summary || 'n/a' }}
             - Search index: ${{ needs.content-refresh.outputs.search_pages || 'n/a' }} pages, ${{ needs.content-refresh.outputs.search_words || 'n/a' }} words
 
