@@ -214,11 +214,15 @@ jobs:
           echo "preview_url=$URL" >> $GITHUB_OUTPUT
           echo "Preview URL: $URL"
 
+      # One file, as Windows runners fail to download the site's 241k files from an artifact
+      - name: Pack site for app builds
+        run: tar -cf site.tar _site
+
       - name: Upload site artifact for Tauri builds
         uses: actions/upload-artifact@v4
         with:
           name: site-build
-          path: _site
+          path: site.tar
           retention-days: 1
 
       - name: Create draft release
@@ -311,7 +315,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: site-build
-          path: _site
+
+      - name: Unpack site
+        shell: bash
+        run: tar -xf site.tar && rm site.tar
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -408,7 +415,7 @@ jobs:
           { grep -m1 '^package ' "$ACTIVITY"; grep -v '^package ' tauri/android/MainActivity.kt; } > MainActivity.kt.tmp
           mv MainActivity.kt.tmp "$ACTIVITY"
 
-          pnpm tauri android build --apk --split-per-abi --target ${{ matrix.android_target }}
+          pnpm tauri android build --apk true --aab false --split-per-abi --target ${{ matrix.android_target }}
 
       - name: Sign Android APK
         if: matrix.android
@@ -512,7 +519,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: site-build
-          path: _site
+
+      - name: Unpack site
+        shell: bash
+        run: tar -xf site.tar && rm site.tar
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -1108,11 +1118,15 @@ jobs:
           echo "HTML files: $HTML_COUNT"
           echo "Total files: $TOTAL_COUNT"
 
+      # One file, as Windows runners fail to download the site's 241k files from an artifact
+      - name: Pack site for app builds
+        run: tar -cf site.tar _site
+
       - name: Upload site artifact for Tauri builds
         uses: actions/upload-artifact@v4
         with:
           name: site-build-content-refresh
-          path: _site
+          path: site.tar
           retention-days: 1
 
       - name: Create pre-release
@@ -1207,7 +1221,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: site-build-content-refresh
-          path: _site
+
+      - name: Unpack site
+        shell: bash
+        run: tar -xf site.tar && rm site.tar
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -1304,7 +1321,7 @@ jobs:
           { grep -m1 '^package ' "$ACTIVITY"; grep -v '^package ' tauri/android/MainActivity.kt; } > MainActivity.kt.tmp
           mv MainActivity.kt.tmp "$ACTIVITY"
 
-          pnpm tauri android build --apk --split-per-abi --target ${{ matrix.android_target }}
+          pnpm tauri android build --apk true --aab false --split-per-abi --target ${{ matrix.android_target }}
 
       - name: Sign Android APK
         if: matrix.android
@@ -1407,7 +1424,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: site-build-content-refresh
-          path: _site
+
+      - name: Unpack site
+        shell: bash
+        run: tar -xf site.tar && rm site.tar
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
