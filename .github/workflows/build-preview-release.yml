@@ -694,7 +694,7 @@ jobs:
 
             To read it in any browser on your network instead, serve it with \`kiwix-serve\`.
 
-            Kiwix readers differ in what they can run, so anything a reader doesn't support, such as text-to-speech or site search, is left out. Kiwix has its own full-text search, and Kiwix for Android its own "Read aloud". In a browser through \`kiwix-serve\`, every feature works as it does on the website.
+            Kiwix readers differ in what they can run, so anything a reader doesn't support, such as text-to-speech or site search, is left out in that reader. Kiwix has its own full-text search, and Kiwix for Android its own "Read aloud". In readers that support all features, or a browser through \`kiwix-serve\`, every feature works as it does on the website.
             </details>` : '';
 
             // Build GPG section if signed
@@ -1603,7 +1603,7 @@ jobs:
 
             To read it in any browser on your network instead, serve it with \`kiwix-serve\`.
 
-            Kiwix readers differ in what they can run, so anything a reader doesn't support, such as text-to-speech or site search, is left out. Kiwix has its own full-text search, and Kiwix for Android its own "Read aloud". In a browser through \`kiwix-serve\`, every feature works as it does on the website.
+            Kiwix readers differ in what they can run, so anything a reader doesn't support, such as text-to-speech or site search, is left out in that reader. Kiwix has its own full-text search, and Kiwix for Android its own "Read aloud". In readers that support all features, or a browser through \`kiwix-serve\`, every feature works as it does on the website.
             </details>` : '';
 
             // Build GPG section if signed
