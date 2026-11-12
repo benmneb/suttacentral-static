@@ -755,11 +755,7 @@ jobs:
             } else if (!platformsList.includes('Windows') || !platformsList.includes('Linux') || !platformsList.includes('macOS') || !platformsList.includes('Android (64-bit)') || !platformsList.includes('Android (32-bit)')) {
               platformSection = `**⚠️ App Partial Build**
 
-            Some platform builds failed. Available platforms:
-
-            ${platformsList}
-
-            Missing platforms may be added later if the build issue is resolved.
+            Some platform builds failed, please see logs and assets.
 
             ---
 
@@ -1686,7 +1682,7 @@ jobs:
             // Build platform warning section if needed
             let platformSection = '';
             if (!platformsAvailable) {
-              platformSection = `** ⚠️ App Build Failure**
+              platformSection = `**⚠️ App Build Failure**
 
             All platform builds failed for this release. Please check the [Actions tab](https://github.com/${context.repo.owner}/${context.repo.repo}/actions) for details.
 
@@ -1696,11 +1692,7 @@ jobs:
             } else if (!platformsList.includes('Windows') || !platformsList.includes('Linux') || !platformsList.includes('macOS') || !platformsList.includes('Android (64-bit)') || !platformsList.includes('Android (32-bit)')) {
               platformSection = `**⚠️ App Partial Build**
 
-            Some platform builds failed. Available platforms:
-
-            ${platformsList}
-
-            Missing platforms may be added later if the build issue is resolved.
+            Some platform builds failed, please see logs and assets.
 
             ---
 
