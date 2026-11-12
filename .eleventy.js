@@ -79,6 +79,7 @@ const iconNames = new Set(
 
 export default function (eleventyConfig) {
   setOutputDir(eleventyConfig.directories.output)
+  eleventyConfig.setQuietMode(true)
 
   // So every `include` is not read and parsed again for each of ~140k pages
   // Keyed by include name, so no two `includes` can share a name, even in different folders
