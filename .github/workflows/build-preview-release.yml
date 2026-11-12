@@ -416,6 +416,14 @@ jobs:
           { grep -m1 '^package ' "$ACTIVITY"; grep -v '^package ' tauri/android/MainActivity.kt; } > MainActivity.kt.tmp
           mv MainActivity.kt.tmp "$ACTIVITY"
 
+          # Cargo reruns a build script whose generated files are newer than its last run,
+          # so a stub debug pass writes Tauri's first, else Gradle recompiles the whole site
+          mkdir -p "$RUNNER_TEMP/stub-site"
+          echo '<!doctype html>' > "$RUNNER_TEMP/stub-site/index.html"
+          pnpm tauri android build --debug --apk true --aab false --target ${{ matrix.android_target }} \
+            --config "{\"build\":{\"frontendDist\":\"$RUNNER_TEMP/stub-site\"}}"
+          rm -rf tauri/target/${{ matrix.rust_target }}/debug
+
           pnpm tauri android build --apk true --aab false --split-per-abi --target ${{ matrix.android_target }}
 
       - name: Sign Android APK
@@ -1323,6 +1331,14 @@ jobs:
           ACTIVITY=$(find tauri/gen/android/app/src/main -name MainActivity.kt)
           { grep -m1 '^package ' "$ACTIVITY"; grep -v '^package ' tauri/android/MainActivity.kt; } > MainActivity.kt.tmp
           mv MainActivity.kt.tmp "$ACTIVITY"
+
+          # Cargo reruns a build script whose generated files are newer than its last run,
+          # so a stub debug pass writes Tauri's first, else Gradle recompiles the whole site
+          mkdir -p "$RUNNER_TEMP/stub-site"
+          echo '<!doctype html>' > "$RUNNER_TEMP/stub-site/index.html"
+          pnpm tauri android build --debug --apk true --aab false --target ${{ matrix.android_target }} \
+            --config "{\"build\":{\"frontendDist\":\"$RUNNER_TEMP/stub-site\"}}"
+          rm -rf tauri/target/${{ matrix.rust_target }}/debug
 
           pnpm tauri android build --apk true --aab false --split-per-abi --target ${{ matrix.android_target }}
 
