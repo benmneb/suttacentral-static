@@ -441,8 +441,11 @@ jobs:
             --config "{\"build\":{\"frontendDist\":\"$RUNNER_TEMP/stub-site\"}}"
           rm -rf tauri/target/${{ matrix.rust_target }}/debug
           # Its idle Gradle and Kotlin daemons would hold RAM through the long compile
-          tauri/gen/android/gradlew --stop
+          bash tauri/gen/android/gradlew --stop || true
           pkill -f KotlinCompileDaemon || true
+
+          # RAM and disk every 5 min, to tell what ran out if the runner is killed again
+          ( while sleep 300; do free -g | grep -E 'Mem|Swap'; df -h / | tail -1; done ) &
 
           pnpm tauri android build --apk true --aab false --split-per-abi --target ${{ matrix.android_target }}
 
@@ -1376,8 +1379,11 @@ jobs:
             --config "{\"build\":{\"frontendDist\":\"$RUNNER_TEMP/stub-site\"}}"
           rm -rf tauri/target/${{ matrix.rust_target }}/debug
           # Its idle Gradle and Kotlin daemons would hold RAM through the long compile
-          tauri/gen/android/gradlew --stop
+          bash tauri/gen/android/gradlew --stop || true
           pkill -f KotlinCompileDaemon || true
+
+          # RAM and disk every 5 min, to tell what ran out if the runner is killed again
+          ( while sleep 300; do free -g | grep -E 'Mem|Swap'; df -h / | tail -1; done ) &
 
           pnpm tauri android build --apk true --aab false --split-per-abi --target ${{ matrix.android_target }}
 
