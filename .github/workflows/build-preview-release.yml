@@ -106,14 +106,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # A re-run picks up the cache its failed attempt saved, so it only fetches what's missing
+      - name: Get date
+        id: day
+        run: echo "day=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+
+      # A tag pushed again that day reuses its first fetch, as caches are kept per tag name
       - name: Restore fetch cache
+        id: fetch-cache
         uses: actions/cache/restore@v6
         continue-on-error: true
         with:
           path: .cache
-          key: fetch-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: fetch-${{ github.job }}-${{ github.run_id }}-
+          key: fetch-${{ github.job }}-${{ steps.day.outputs.day }}
+          restore-keys: fetch-${{ github.job }}-${{ steps.day.outputs.day }}-
 
       - name: Build site
         id: build
@@ -130,7 +135,7 @@ jobs:
         continue-on-error: true
         with:
           path: .cache
-          key: fetch-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: fetch-${{ github.job }}-${{ steps.day.outputs.day }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       # Whether the fetched data built the site it should. A failure doesn't stop the release,
       # it just leaves it for review by hand instead of deploying itself
@@ -138,6 +143,15 @@ jobs:
         id: checks
         continue-on-error: true
         run: pnpm test
+
+      # Only data that passed the checks, so a retry after a failed check fetches again
+      - name: Save daily fetch cache
+        if: steps.fetch-cache.outputs.cache-hit != 'true' && steps.checks.outcome == 'success'
+        uses: actions/cache/save@v6
+        continue-on-error: true
+        with:
+          path: .cache
+          key: fetch-${{ github.job }}-${{ steps.day.outputs.day }}
 
       - name: Collect build stats
         id: stats
@@ -896,18 +910,31 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # A re-run picks up the cache its failed attempt saved, so it only fetches what's missing
+      - name: Get date
+        id: day
+        run: echo "day=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+
+      # A PR's later runs that day reuse its first fetch, or what a failed run fetched
       - name: Restore fetch cache
+        id: fetch-cache
         uses: actions/cache/restore@v6
         continue-on-error: true
         with:
           path: .cache
-          key: fetch-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: fetch-${{ github.job }}-${{ github.run_id }}-
+          key: fetch-${{ github.job }}-${{ steps.day.outputs.day }}
+          restore-keys: fetch-${{ github.job }}-${{ steps.day.outputs.day }}-
 
       - name: Build site
         id: build
         run: pnpm predeploy
+
+      - name: Save daily fetch cache
+        if: steps.fetch-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        continue-on-error: true
+        with:
+          path: .cache
+          key: fetch-${{ github.job }}-${{ steps.day.outputs.day }}
 
       # Each attempt saves under its own key, as a cache key can't be saved twice
       - name: Save fetch cache
@@ -916,7 +943,7 @@ jobs:
         continue-on-error: true
         with:
           path: .cache
-          key: fetch-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: fetch-${{ github.job }}-${{ steps.day.outputs.day }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Create archive for preview
         env:

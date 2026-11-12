@@ -168,7 +168,7 @@ Then, when a release passes the tests and builds, or you publish a draft release
 - Deploys to Vercel production
 - Uploads all assets to Codeberg releases (if the secrets exist, otherwise skips)
 
-**Note on data fetching:** GitHub Actions workflows always fetch fresh data from SuttaCentral APIs on every run. Fresh fetches usually complete in ~4-5 minutes on GitHub's servers. A build that fails saves its cache for that run only, so "Re-run failed jobs" fetches only what's missing
+**Note on data fetching:** Each PR, and each release tag, fetches from SuttaCentral APIs only on its first successful build of the day (UTC). Its later runs that day reuse that data, including a tag deleted and pushed again under the same name. A build that fails saves what it fetched, so its re-run or the next push that day fetches only what's missing. Content refreshes always fetch fresh. Fresh fetches usually complete in ~4-5 minutes on GitHub's servers
 
 ### Example release workflows
 
