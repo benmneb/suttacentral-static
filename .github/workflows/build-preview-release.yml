@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -78,7 +78,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: main
           fetch-depth: 0
@@ -96,7 +96,7 @@ jobs:
           echo "✓ Tag $TAG verified"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24.3.0'
 
@@ -108,7 +108,7 @@ jobs:
 
       # A re-run picks up the cache its failed attempt saved, so it only fetches what's missing
       - name: Restore fetch cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         continue-on-error: true
         with:
           path: .cache
@@ -126,7 +126,7 @@ jobs:
       # Each attempt saves under its own key, as a cache key can't be saved twice
       - name: Save fetch cache
         if: failure() && steps.build.outcome == 'failure'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         continue-on-error: true
         with:
           path: .cache
@@ -220,7 +220,7 @@ jobs:
         run: tar -cf site.tar _site
 
       - name: Upload site artifact for Tauri builds
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: site-build
           path: site.tar
@@ -228,7 +228,7 @@ jobs:
 
       - name: Create draft release
         id: create_release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: v${{ steps.version.outputs.version }}
@@ -308,12 +308,12 @@ jobs:
           df -h /
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: main
 
       - name: Download site artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: site-build
 
@@ -322,7 +322,7 @@ jobs:
         run: tar -xf site.tar && rm site.tar
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24.3.0'
 
@@ -340,14 +340,14 @@ jobs:
 
       - name: Setup Java
         if: matrix.android
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '17'
 
       - name: Setup Android SDK
         if: matrix.android
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
           # Not the default 'tools', which the SDK repository no longer has
           packages: platform-tools
@@ -497,7 +497,7 @@ jobs:
           ls -la artifacts/ || echo "No artifacts found"
 
       - name: Upload to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.release-draft.outputs.tag }}
           files: artifacts/*
@@ -520,12 +520,12 @@ jobs:
           large-packages: false
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: main
 
       - name: Download site artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: site-build
 
@@ -534,7 +534,7 @@ jobs:
         run: tar -xf site.tar && rm site.tar
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24.3.0'
 
@@ -550,7 +550,7 @@ jobs:
           echo "zim_size=$(du -h ".dist/$ZIM_NAME" | cut -f1)" >> $GITHUB_OUTPUT
 
       - name: Upload to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.release-draft.outputs.tag }}
           files: .dist/${{ steps.zim.outputs.zim_name }}
@@ -616,7 +616,7 @@ jobs:
 
       - name: Upload checksums and signature
         if: steps.download.outputs.has_artifacts == 'true'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.release-draft.outputs.tag }}
           files: |
@@ -669,7 +669,7 @@ jobs:
 
       - name: Update release body
         id: body
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const signed = '${{ needs.sign-release.outputs.signed }}' === 'true';
@@ -881,12 +881,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24.3.0'
 
@@ -898,7 +898,7 @@ jobs:
 
       # A re-run picks up the cache its failed attempt saved, so it only fetches what's missing
       - name: Restore fetch cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         continue-on-error: true
         with:
           path: .cache
@@ -912,7 +912,7 @@ jobs:
       # Each attempt saves under its own key, as a cache key can't be saved twice
       - name: Save fetch cache
         if: failure() && steps.build.outcome == 'failure'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         continue-on-error: true
         with:
           path: .cache
@@ -936,7 +936,7 @@ jobs:
           echo "Preview URL: $URL"
 
       - name: Comment PR with preview URL
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             github.rest.issues.createComment({
@@ -979,13 +979,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: main
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24.3.0'
 
@@ -997,7 +997,7 @@ jobs:
 
       # A re-run picks up the cache its failed attempt saved, so it only fetches what's missing
       - name: Restore fetch cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         continue-on-error: true
         with:
           path: .cache
@@ -1015,7 +1015,7 @@ jobs:
       # Each attempt saves under its own key, as a cache key can't be saved twice
       - name: Save fetch cache
         if: failure() && steps.build.outcome == 'failure'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         continue-on-error: true
         with:
           path: .cache
@@ -1134,7 +1134,7 @@ jobs:
         run: tar -cf site.tar _site
 
       - name: Upload site artifact for Tauri builds
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: site-build-content-refresh
           path: site.tar
@@ -1142,7 +1142,7 @@ jobs:
 
       - name: Create pre-release
         id: create_release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.preview_tag.outputs.tag }}
           name: v${{ steps.version.outputs.version }} - Content Refresh (${{ steps.date.outputs.date }})
@@ -1224,12 +1224,12 @@ jobs:
           df -h /
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: main
 
       - name: Download site artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: site-build-content-refresh
 
@@ -1238,7 +1238,7 @@ jobs:
         run: tar -xf site.tar && rm site.tar
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24.3.0'
 
@@ -1256,14 +1256,14 @@ jobs:
 
       - name: Setup Java
         if: matrix.android
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '17'
 
       - name: Setup Android SDK
         if: matrix.android
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
           # Not the default 'tools', which the SDK repository no longer has
           packages: platform-tools
@@ -1413,7 +1413,7 @@ jobs:
           ls -la artifacts/ || echo "No artifacts found"
 
       - name: Upload to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.content-refresh.outputs.preview_tag }}
           files: artifacts/*
@@ -1435,12 +1435,12 @@ jobs:
           large-packages: false
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: main
 
       - name: Download site artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: site-build-content-refresh
 
@@ -1449,7 +1449,7 @@ jobs:
         run: tar -xf site.tar && rm site.tar
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24.3.0'
 
@@ -1465,7 +1465,7 @@ jobs:
           echo "zim_size=$(du -h ".dist/$ZIM_NAME" | cut -f1)" >> $GITHUB_OUTPUT
 
       - name: Upload to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.content-refresh.outputs.preview_tag }}
           files: .dist/${{ steps.zim.outputs.zim_name }}
@@ -1531,7 +1531,7 @@ jobs:
 
       - name: Upload checksums and signature
         if: steps.download.outputs.has_artifacts == 'true'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.content-refresh.outputs.preview_tag }}
           files: |
@@ -1589,7 +1589,7 @@ jobs:
 
       - name: Update release body
         id: body
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const signed = '${{ needs.sign-release-content-refresh.outputs.signed }}' === 'true';
