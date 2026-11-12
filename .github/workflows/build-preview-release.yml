@@ -254,7 +254,7 @@ jobs:
 
             **Preview Deployment:** ${{ steps.vercel_deploy.outputs.preview_url }}
 
-            > ⏳ **App builds in progress.** Please wait for all builds to complete before publishing.
+            > ⏳ **App builds in progress.** ${{ steps.checks.outcome == 'success' && vars.AUTO_DEPLOY != 'false' && 'This release deploys itself once they all pass.' || 'Please wait for them all to finish before publishing.' }}
 
             **Build Info:**
             - Date: ${{ steps.date.outputs.date }}
@@ -701,6 +701,9 @@ jobs:
             const buildsPassed = '${{ needs.build-tauri.result }}' === 'success' && '${{ needs.build-zim.result }}' === 'success';
             const autoDeploy = checksPassed && buildsPassed && '${{ vars.AUTO_DEPLOY }}' !== 'false';
             core.setOutput('auto_deploy', autoDeploy);
+            const holdReason = !checksPassed ? 'the build checks failed'
+              : !buildsPassed ? 'an app or ZIM build failed'
+              : 'the `AUTO_DEPLOY` variable is `false`';
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const checksLine = checksPassed
               ? `**Build checks:** ✅ [Passed](${runUrl})`
@@ -864,8 +867,9 @@ jobs:
             **Preview Deployment:** ${{ needs.release-draft.outputs.preview_url }}
 
             **Next Steps:**
+            Not deployed automatically, as ${holdReason}.
             1. Review the preview deployment above
-            2. If satisfied, edit this release body and click "Publish release" to deploy to production
+            2. If satisfied, edit this release and click "Publish release" to deploy to production
             3. Publishing will automatically:
                - Deploy the exact same build to Vercel production
                - Upload assets to Codeberg releases`}`;
@@ -1187,7 +1191,7 @@ jobs:
 
             **Preview Deployment:** ${{ steps.vercel_deploy.outputs.preview_url }}
 
-            > ⏳ **App builds in progress.** Please wait for all builds to complete before publishing.
+            > ⏳ **App builds in progress.** ${{ steps.checks.outcome == 'success' && vars.AUTO_DEPLOY != 'false' && 'This release deploys itself once they all pass.' || 'Please wait for them all to finish before publishing.' }}
 
             **Build Info:**
             - Date: ${{ steps.date.outputs.date }}
@@ -1639,6 +1643,9 @@ jobs:
             const buildsPassed = '${{ needs.build-tauri-content-refresh.result }}' === 'success' && '${{ needs.build-zim-content-refresh.result }}' === 'success';
             const autoDeploy = checksPassed && buildsPassed && '${{ vars.AUTO_DEPLOY }}' !== 'false';
             core.setOutput('auto_deploy', autoDeploy);
+            const holdReason = !checksPassed ? 'the build checks failed'
+              : !buildsPassed ? 'an app or ZIM build failed'
+              : 'the `AUTO_DEPLOY` variable is `false`';
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const checksLine = checksPassed
               ? `**Build checks:** ✅ [Passed](${runUrl})`
@@ -1802,8 +1809,9 @@ jobs:
             **Preview Deployment:** ${{ needs.content-refresh.outputs.preview_url }}
 
             **Next Steps:**
+            Not deployed automatically, as ${holdReason}.
             1. Review the preview deployment above
-            2. If satisfied, edit this release body and uncheck "Set as a pre-release" to promote to production
+            2. If satisfied, edit this release and uncheck "Set as a pre-release" to promote to production
             3. Publishing will automatically:
                - Deploy the exact same build to Vercel production
                - Upload assets to Codeberg releases
