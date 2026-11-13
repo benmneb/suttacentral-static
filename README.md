@@ -14,14 +14,9 @@
 
 ### Fast
 
-Desktop performance comparison for `/dn1/en/sujato` via <https://pagespeed.web.dev> on 22/01/2026:
-
-| &nbsp;                   | SuttaCentral.express | SuttaCentral.net | Performance Gain |
-| ------------------------ | -------------------- | ---------------- | ---------------- |
-| First Contentful Paint   | 0.4s                 | 0.6s             | 33% faster       |
-| Largest Contentful Paint | 0.4s                 | 2.3s             | 5.8x faster      |
-| Total Blocking Time      | 20ms                 | 240ms            | 92% reduction    |
-| Cumulative Layout Shift  | 0                    | 0.608            | 100% reduction   |
+- A first visit to `/mn1/en/sujato` transfers 91 KB here (a long sutta, about 6x the average), styles and scripts included, against 2.14 MB on SuttaCentral.net
+- Readers here viewed about 4 pages each over the last 13 days, at 1.2 pages per visit. Even if every page were as long as MN 1, the average reader would take 8 months to load as much as .net does on its first page
+- Every page is pre-built HTML, so the text comes with the first response, with no API calls, loading spinners or layout shift, except on the search results page. On [PageSpeed Insights](https://pagespeed.web.dev) for `/mn1/en/sujato` (desktop, 13/11/2026), Largest Contentful Paint was 7x faster (0.3s vs 2.1s), Total Blocking Time 94% lower (20ms vs 320ms), and Cumulative Layout Shift 100% lower (0 vs 0.3)
 
 ### Minimal
 
@@ -31,7 +26,7 @@ Desktop performance comparison for `/dn1/en/sujato` via <https://pagespeed.web.d
 ### Alternative
 
 1. Typing `.express` vs `.net`: **+1.231 seconds** (38-40 WPM)
-1. Faster page load: **−1.9 seconds** (using the most user-perceivable metric—Largest Contentful Paint)
+1. Faster page load: **−1.8 seconds** (using the most user-perceivable metric—Largest Contentful Paint)
 1. The performance gain so dramatically outweighs the typing cost that you break even before you even finish loading the first page
 
 ### Frontend
