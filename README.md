@@ -14,12 +14,13 @@
 
 ### Fast
 
-- A first visit to `/mn1/en/sujato` transfers 91 KB here (a long sutta, about 6x the average), styles and scripts included, against 2.14 MB on SuttaCentral.net
-- Readers here viewed about 4 pages each over the last 13 days, at 1.2 pages per visit. Even if every page were as long as MN 1, the average reader would take 8 months to load as much as .net does on its first page
-- Every page is pre-built HTML, so the text comes with the first response, with no API calls, loading spinners or layout shift, except on the search results page. On [PageSpeed Insights](https://pagespeed.web.dev) for `/mn1/en/sujato` (desktop, 13/11/2026), Largest Contentful Paint was 7x faster (0.3s vs 2.1s), Total Blocking Time 94% lower (20ms vs 320ms), and Cumulative Layout Shift 100% lower (0 vs 0.3)
+- Every page is pre-built HTML, so the text comes with the first response, with no API calls, loading spinners or layout shift, except on the search results page
+- On [PageSpeed Insights](https://pagespeed.web.dev) for `/mn1/en/sujato` (desktop, 13/11/2026), Largest Contentful Paint was 7x faster (0.3s vs 2.1s), Total Blocking Time 94% lower (20ms vs 320ms), and Cumulative Layout Shift 100% lower (0 vs 0.3)
 
 ### Minimal
 
+- A first visit to `/mn1/en/sujato` transfers 91 KB here (a long sutta, about 6x the average), styles and scripts included, against 2.14 MB on SuttaCentral.net
+- Readers here viewed about 4 pages each over the last 13 days, at 1.2 pages per visit. Even if every page were as long as MN 1, the average reader would take 8 months to load as much as .net does on its first page
 - No translations other than English
 - No Javascript needed for reading any content or using any core-features. But if you want your settings to persist, to enable inline root-word lookup, to use the on-site text-to-speech or static search: enable JS
 
