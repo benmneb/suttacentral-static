@@ -20,7 +20,7 @@ The site is built HTML first, with CSS where it's needed and JavaScript only as 
 - Every page passes the W3C's [Nu validator](https://validator.w3.org/nu/), and its JSON-LD fits the schema.org vocabulary. Slips in SuttaCentral's data are mended as the site is built where readers would notice them, so for my sanity, a few only the validator sees are allowed to get through
 - Pages are built and tested to [WCAG 2.2](https://www.w3.org/TR/WCAG22/) AA, with no axe-core violations in light and dark mode or at a phone's width. With more contrast set, text meets AAA contrast ratios. Forced colours and reduced motion are respected throughout. See [ACCESSIBILITY.md](ACCESSIBILITY.md)
 - There's no render-blocking JS and no layout shift
-- CSS is compiled for Chrome and Edge 105, Firefox 115 and Safari 15.4, and newer features (popovers, anchor positioning, `:has()`) sit behind `@supports` with a plainer fallback. That covers Windows 7 and 8.1 through Chrome 109 and Firefox 115 ESR, the last versions for them
+- CSS is compiled for Chrome and Edge 105, Firefox 115 and Safari 15.4, and newer features (popovers, anchor positioning, `:has()`) sit behind `@supports` with a plainer fallback. That covers Windows 7 and 8.1 through Chrome 109 and Firefox 115 ESR, the last versions for them, and an iPhone 6s
 - All features work offline, so the site can be packaged as self-contained archives, native apps and a ZIM
 
 [`pnpm test`](#tests) checks all of this before each release: validity on every page, and accessibility on a sample of every kind of page
