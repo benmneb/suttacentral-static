@@ -189,7 +189,7 @@ Then, when a release passes the tests and builds, or you publish a draft release
 **Content refresh (update data from SuttaCentral APIs only):**
 
 1. Go to Actions tab in GitHub
-1. Click "Build & Preview" workflow
+1. Click "Build & Release" workflow
 1. Click "Run workflow" → "Run workflow" button
 1. Wait for build to complete (~30 minutes total)
 1. If the tests passed, it publishes and deploys to production by itself. Done ✨
