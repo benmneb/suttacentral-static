@@ -478,8 +478,10 @@ jobs:
           rm -f "$KEYSTORE"
 
           # Refuse to publish an APK signed by anything but the published certificate
-          ACTUAL=$("$BUILD_TOOLS/apksigner" verify --print-certs tauri/gen/android/signed.apk \
-            | grep -m1 'Signer #1 certificate SHA-256 digest:' | awk '{print $NF}')
+          CERTS=$("$BUILD_TOOLS/apksigner" verify -v --print-certs tauri/gen/android/signed.apk)
+          echo "$CERTS"
+          # Labelled "Signer #1", or "Signer (minSdkVersion=…)" once a v3.1 block is present
+          ACTUAL=$(echo "$CERTS" | grep 'certificate SHA-256 digest:' | awk '{print $NF}' | sort -u)
           EXPECTED=$(echo "$ANDROID_CERT_SHA256" | tr -d ':' | tr 'A-F' 'a-f')
           if [ -z "$EXPECTED" ] || [ "$ACTUAL" != "$EXPECTED" ]; then
             echo "✗ APK signing certificate ($ACTUAL) doesn't match ANDROID_CERT_SHA256"
@@ -1416,8 +1418,10 @@ jobs:
           rm -f "$KEYSTORE"
 
           # Refuse to publish an APK signed by anything but the published certificate
-          ACTUAL=$("$BUILD_TOOLS/apksigner" verify --print-certs tauri/gen/android/signed.apk \
-            | grep -m1 'Signer #1 certificate SHA-256 digest:' | awk '{print $NF}')
+          CERTS=$("$BUILD_TOOLS/apksigner" verify -v --print-certs tauri/gen/android/signed.apk)
+          echo "$CERTS"
+          # Labelled "Signer #1", or "Signer (minSdkVersion=…)" once a v3.1 block is present
+          ACTUAL=$(echo "$CERTS" | grep 'certificate SHA-256 digest:' | awk '{print $NF}' | sort -u)
           EXPECTED=$(echo "$ANDROID_CERT_SHA256" | tr -d ':' | tr 'A-F' 'a-f')
           if [ -z "$EXPECTED" ] || [ "$ACTUAL" != "$EXPECTED" ]; then
             echo "✗ APK signing certificate ($ACTUAL) doesn't match ANDROID_CERT_SHA256"
