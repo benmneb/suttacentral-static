@@ -15,14 +15,25 @@
 ### Fast
 
 - Every page is pre-built HTML, so the text comes with the first response, with no API calls, loading spinners or layout shift, except on the search results page
+- On a mid-range Android with a weak or crowded mobile signal, like rural areas, a remote monastery or retreat centre, or a busy train (emulated as 400 kbps, 400 ms latency and a [mid-tier](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#benchmarking-cpu-power) CPU), the opening of MN 1 is on screen in 2.6s here and 28.9s on SuttaCentral.net
 - On [PageSpeed Insights](https://pagespeed.web.dev) for `/mn1/en/sujato` (desktop, 13/11/2026), Largest Contentful Paint was 7x faster (0.3s vs 2.1s), Total Blocking Time 94% lower (20ms vs 320ms), and Cumulative Layout Shift 100% lower (0 vs 0.3)
 
 ### Minimal
 
-- A first visit to `/mn1/en/sujato` transfers 91 KB here (a long sutta, about 6x the average), styles and scripts included, against 2.14 MB on SuttaCentral.net
-- Readers here viewed about 4 pages each over the last 13 days, at 1.2 pages per visit. Even if every page were as long as MN 1, the average reader would take 8 months to load as much as .net does on its first page
-- No translations other than English
-- No Javascript needed for reading any content or using any core-features. But if you want your settings to persist, to enable inline root-word lookup, to use the on-site text-to-speech or static search: enable JS
+- English translations only
+- No JavaScript needed to read any content or use any core feature. Turn it on to keep your settings, look up root words inline, listen with text-to-speech or search on the site
+
+What a first visit transfers on each site, styles, scripts and fonts included, measured in headless Chrome with an empty cache on 13/11/2026:
+
+| Page                 | SuttaCentral.express | SuttaCentral.net | Lighter by |
+| -------------------- | -------------------- | ---------------- | ---------- |
+| `/`                  | 20 KB                | 1.66 MB          | 83x        |
+| `/mn1/en/sujato`     | 70 KB                | 2.13 MB          | 30x        |
+| `/ma1/en/patton`     | 54 KB                | 1.94 MB          | 36x        |
+| `/define/dhamma`     | 50 KB                | 2.09 MB          | 42x        |
+| `/search?query=deva` | 123 KB               | 1.70 MB          | 14x        |
+
+After its first page, .net runs as a single-page app, and each further sutta costs about the same on both sites, a few KB more here — unless .net needs a font it hasn't loaded yet, up to 20 MB for Chinese. It takes about 600 more suttas to make up the first-page gap, or about 6,000 if one of them has Chinese characters in it
 
 ### Alternative
 
